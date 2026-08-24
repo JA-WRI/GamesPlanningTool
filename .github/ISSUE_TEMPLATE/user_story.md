@@ -1,3 +1,10 @@
+---
+name: User Story
+about: Create a user story
+title: "[STORY] "
+labels: "story"
+assignees: ""
+---
 ## Story
 
 **As a** [type of user],  **I want to** [action/function],  **so that** [goal/reason].
