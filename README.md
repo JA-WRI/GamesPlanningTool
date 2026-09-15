@@ -33,7 +33,7 @@ Copy the example env file and fill in your own values:
 cp .env.example .env
 ```
 
-⚠️ Update the literal values in `DATABASE_URL` if you change the Postgres vars above
+⚠️ Update the literal values in `DATABASE_URL` if you change the Postgres vars in .env (eg. if you want the change ports)
 
 ### 5. Start Postgres with Docker
  This starts a local Postgres container in the background.
@@ -55,7 +55,7 @@ docker compose down
 
 ### 6. Apply the database schema
  
-Run this once after cloning (or any time you pull new migrations from teammates):
+Run this once after cloning:
  
 ```bash
 npx prisma migrate dev
@@ -68,21 +68,20 @@ npm run dev
 ```
  Visit **http://localhost:3000**.
 
-
 ### 8. Using Prisma (team workflow)
  
-#### Viewing / editing data
+#### a. Viewing / editing data
  
-Each teammate has their **own local Postgres container** with **their own data**. Prisma Studio only shows what's on your machine, no a shared team database yet.
+Each teammate has their **own local Postgres container** with **their own data**. Prisma Studio only shows what's on your machine, no shared team database yet.
  
 ```bash
 npx prisma studio
 ```
 Can view, add, edit, and delete rows. It does **not** let you create tables or columns.
 
-#### Changing the schema (tables/columns)
+#### b. Changing the schema (tables/columns)
  
-The schema (`prisma/schema.prisma`) is the single source of truth for database structure. Never create tables/columns by hand — always go through the schema file:
+The schema (`prisma/schema.prisma`) is the single source of truth for database structure. Never create tables/columns by hand, always go through the schema file:
  
 1. Edit `prisma/schema.prisma` (add/change a model, field, etc.)
 2. Run a migration with a **descriptive name**:
@@ -91,7 +90,7 @@ The schema (`prisma/schema.prisma`) is the single source of truth for database s
 ```
 3. Commit both the schema change **and** the new folder created in `prisma/migrations/` to git.
 
-#### After pulling teammates' changes
+#### c. After pulling teammates' changes
  
 If someone else added migrations, sync your local database:
  
@@ -110,8 +109,6 @@ const games = await prisma.games.findMany() //this is an example
 ```
  
 This avoids exhausting database connections during Next.js hot-reload in dev.
-
-
 
 ## Quick reference — common commands
  
