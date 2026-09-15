@@ -46,6 +46,8 @@ To check it's running:
 docker ps
 ```
  or open docker desktop and see the running container.
+ 
+ ⚠️ If you get an error running docker compose up -d -> open docker desktop first, check that you don't have a virtualization error and run command again.
 
 To stop it later:
  
