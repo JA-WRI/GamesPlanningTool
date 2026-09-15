@@ -9,7 +9,7 @@
 ## Project Summary
 
 ## Developer Getting Started Guide
-[Project board](https://github.com/users/JA-WRI/projects/11)
+📌 [Project board](https://github.com/users/JA-WRI/projects/11)
 ### 1. Prerequisites
 - Node.js
 - Docker Desktop
@@ -21,13 +21,13 @@ git clone https://github.com/JA-WRI/GamesPlanningTool.git
 cd games-planning-tool
 ```
 
-## 3. Install dependencies
+### 3. Install dependencies
  
 ```bash
 npm install
 ```
 
-## 4. Set up environment variables
+### 4. Set up environment variables
 Copy the example env file and fill in your own values:
 ```bash
 cp .env.example .env
@@ -35,7 +35,7 @@ cp .env.example .env
 
 ⚠️ Update the literal values in `DATABASE_URL` if you change the Postgres vars above
 
-## 5. Start Postgres with Docker
+### 5. Start Postgres with Docker
  This starts a local Postgres container in the background.
 ```bash
 docker compose up -d
@@ -53,7 +53,7 @@ To stop it later:
 docker compose down
 ```
 
-## 6. Apply the database schema
+### 6. Apply the database schema
  
 Run this once after cloning (or any time you pull new migrations from teammates):
  
@@ -61,7 +61,7 @@ Run this once after cloning (or any time you pull new migrations from teammates)
 npx prisma migrate dev
 ```
 
-## 7. Start the Next.js dev server
+### 7. Start the Next.js dev server
  
 ```bash
 npm run dev
@@ -69,9 +69,9 @@ npm run dev
  Visit **http://localhost:3000**.
 
 
-## 8. Using Prisma (team workflow)
+### 8. Using Prisma (team workflow)
  
-### Viewing / editing data
+#### Viewing / editing data
  
 Each teammate has their **own local Postgres container** with **their own data**. Prisma Studio only shows what's on your machine, no a shared team database yet.
  
@@ -80,7 +80,7 @@ npx prisma studio
 ```
 Can view, add, edit, and delete rows. It does **not** let you create tables or columns.
 
-### Changing the schema (tables/columns)
+#### Changing the schema (tables/columns)
  
 The schema (`prisma/schema.prisma`) is the single source of truth for database structure. Never create tables/columns by hand — always go through the schema file:
  
@@ -91,7 +91,7 @@ The schema (`prisma/schema.prisma`) is the single source of truth for database s
 ```
 3. Commit both the schema change **and** the new folder created in `prisma/migrations/` to git.
 
-### After pulling teammates' changes
+#### After pulling teammates' changes
  
 If someone else added migrations, sync your local database:
  
@@ -99,7 +99,7 @@ If someone else added migrations, sync your local database:
 npx prisma migrate dev
 ```
 
-### Using Prisma in code
+#### Using Prisma in code
  
 Always import the shared singleton, **do not** call `new PrismaClient()` directly outside of `lib/prisma.ts`:
  
