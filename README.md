@@ -5,7 +5,7 @@
 ![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ## CI Information
-
+ADD LINK FOR CODEQL AND DEPENDABOT DASHBOARD
 ## Project Summary
 
 ## Developer Getting Started Guide
