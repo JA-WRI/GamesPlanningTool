@@ -46,6 +46,8 @@ To check it's running:
 docker ps
 ```
  or open docker desktop and see the running container.
+ 
+ ⚠️ If you get an error running docker compose up -d -> open docker desktop first, check that you don't have a virtualization error and run command again.
 
 To stop it later:
  
@@ -110,9 +112,42 @@ const games = await prisma.games.findMany() //this is an example
  
 This avoids exhausting database connections during Next.js hot-reload in dev.
 
+### 9. File organization
+ 
+You don't need to worry about most of the top-level files in this repo (configs, lockfiles, etc). Day-to-day, you'll mainly be working inside three folders:
+ 
+```
+games-planning-tool/
+├── src/          → all application code
+├── prisma/       → database schema + migrations
+├── public/       → static assets (images, icons, etc.)
+```
+ 
+#### `src/`
+ 
+This is where all the actual app code lives. We're using the **App Router**, so routing is based on folders inside `src/app/`:
+ 
+```
+src/
+├── app/          → pages & routes (App Router — folder structure = URL structure)
+├── lib/          → shared code, utility functions
+├── generated/    → auto-generated Prisma Client — don't edit, don't worry about it
+```
+
+### `prisma/`
+ 
+Holds the database schema and migration history:
+ 
+```
+prisma/
+├── schema.prisma     → defines all our tables/models — edit this to change the DB structure
+├── migrations/        → auto-generated history of every schema change — don't edit by hand
+```
+ 
+You'll edit `schema.prisma` directly when adding/changing a model, then run a migration. 
 ## Quick reference — common commands
  
-```bash
+```bash 
 docker compose up -d              # start Postgres
 docker compose down               # stop Postgres
 npm run dev                       # start Next.js dev server
