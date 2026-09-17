@@ -5,7 +5,8 @@
 ![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ## CI Information
-
+[![CodeQL](https://github.com/JA-WRI/GamesPlanningTool/actions/workflows/codeql.yml/badge.svg)](https://github.com/JA-WRI/GamesPlanningTool/security/code-scanning)
+[![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white)](https://github.com/JA-WRI/GamesPlanningTool/security/dependabot)
 ## Project Summary
 
 ## Developer Getting Started Guide
