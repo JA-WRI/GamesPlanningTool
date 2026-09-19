@@ -25,8 +25,7 @@ jobs:
       with:
         node-version: 22
         cache: "npm"
-          cache-dependency-path: |
-            games-planning-tool/package-lock.json
+        cache-dependency-path: games-planning-tool/package-lock.json
 
     - name: Install Dependencies
       run: npm ci
