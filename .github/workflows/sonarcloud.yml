@@ -28,6 +28,7 @@ jobs:
         cache-dependency-path: games-planning-tool/package-lock.json
 
     - name: Install Dependencies
+      working-directory: games-planning-tool
       run: npm ci
     
     - name: Analyze with SonarCloud
