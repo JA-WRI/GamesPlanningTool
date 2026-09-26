@@ -153,7 +153,8 @@ export function CategorySection({
         if (startIndex === -1) return;
 
         if (scrollContainerRef.current) {
-          const containerRect = scrollContainerRef.current.getBoundingClientRect();
+          const containerRect =
+            scrollContainerRef.current.getBoundingClientRect();
           if (moveEvent.clientX < containerRect.left + 40) {
             scrollContainerRef.current.scrollLeft -= 12;
           } else if (moveEvent.clientX > containerRect.right - 40) {
@@ -227,8 +228,12 @@ export function CategorySection({
           } else {
             isUnselectingCluster =
               movingDirection === 'right'
-                ? filteredResources.slice(startIndex + 1).some((r) => initialSelectedSnapshot.has(r.id))
-                : filteredResources.slice(0, startIndex).some((r) => initialSelectedSnapshot.has(r.id));
+                ? filteredResources
+                    .slice(startIndex + 1)
+                    .some((r) => initialSelectedSnapshot.has(r.id))
+                : filteredResources
+                    .slice(0, startIndex)
+                    .some((r) => initialSelectedSnapshot.has(r.id));
           }
         }
 
@@ -253,8 +258,12 @@ export function CategorySection({
           }
         } else {
           const isAtRest =
-            (movingDirection === 'right' && moveEvent.clientX >= startX && initialDir === 'left') ||
-            (movingDirection === 'left' && moveEvent.clientX <= startX && initialDir === 'right');
+            (movingDirection === 'right' &&
+              moveEvent.clientX >= startX &&
+              initialDir === 'left') ||
+            (movingDirection === 'left' &&
+              moveEvent.clientX <= startX &&
+              initialDir === 'right');
 
           if (isAtRest) {
             minIdx = 1;
@@ -397,7 +406,8 @@ export function CategorySection({
 
       if (gesture === 'sweep' && sweepStarted) {
         if (scrollContainerRef.current) {
-          const containerRect = scrollContainerRef.current.getBoundingClientRect();
+          const containerRect =
+            scrollContainerRef.current.getBoundingClientRect();
           if (moveEvent.clientX < containerRect.left + 40) {
             scrollContainerRef.current.scrollLeft -= 12;
           } else if (moveEvent.clientX > containerRect.right - 40) {
@@ -471,8 +481,12 @@ export function CategorySection({
           } else {
             isUnselectingCluster =
               movingDirection === 'right'
-                ? filteredResources.slice(startIndex + 1).some((r) => initialSelectedSnapshot.has(r.id))
-                : filteredResources.slice(0, startIndex).some((r) => initialSelectedSnapshot.has(r.id));
+                ? filteredResources
+                    .slice(startIndex + 1)
+                    .some((r) => initialSelectedSnapshot.has(r.id))
+                : filteredResources
+                    .slice(0, startIndex)
+                    .some((r) => initialSelectedSnapshot.has(r.id));
           }
         }
 
@@ -497,8 +511,12 @@ export function CategorySection({
           }
         } else {
           const isAtRest =
-            (movingDirection === 'right' && moveEvent.clientX >= startX && initialDir === 'left') ||
-            (movingDirection === 'left' && moveEvent.clientX <= startX && initialDir === 'right');
+            (movingDirection === 'right' &&
+              moveEvent.clientX >= startX &&
+              initialDir === 'left') ||
+            (movingDirection === 'left' &&
+              moveEvent.clientX <= startX &&
+              initialDir === 'right');
 
           if (isAtRest) {
             minIdx = 1;
@@ -593,7 +611,10 @@ export function CategorySection({
     globalActiveDragInfo = { resourceId: id, sourceCategory: categoryTitle };
 
     e.dataTransfer.effectAllowed = 'copyMove';
-    const payload = JSON.stringify({ resourceId: id, sourceCategory: categoryTitle });
+    const payload = JSON.stringify({
+      resourceId: id,
+      sourceCategory: categoryTitle,
+    });
     e.dataTransfer.setData('application/json', payload);
     e.dataTransfer.setData('text/plain', id);
 
@@ -780,8 +801,11 @@ export function CategorySection({
       onDragLeave={handleSectionDragLeave}
       onDrop={handleSectionDrop}
       className={`bg-white rounded-lg border shadow-xs p-4 sm:p-5 mb-6 transition-all duration-200 ${
-        (isDragOverSection && activeDragSourceCategory && activeDragSourceCategory !== categoryTitle) ||
-        (activeMultiDragHoveredCategory === categoryTitle && activeDragSourceCategory !== categoryTitle)
+        (isDragOverSection &&
+          activeDragSourceCategory &&
+          activeDragSourceCategory !== categoryTitle) ||
+        (activeMultiDragHoveredCategory === categoryTitle &&
+          activeDragSourceCategory !== categoryTitle)
           ? 'border-2 border-dashed border-[#80131d] bg-[#80131d]/5 ring-4 ring-[#80131d]/10'
           : 'border-neutral-300'
       }`}
@@ -791,10 +815,17 @@ export function CategorySection({
           <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 tracking-tight">
             {categoryTitle}
           </h2>
-          {((isDragOverSection && activeDragSourceCategory && activeDragSourceCategory !== categoryTitle) ||
-            (activeMultiDragHoveredCategory === categoryTitle && activeDragSourceCategory !== categoryTitle)) && (
+          {((isDragOverSection &&
+            activeDragSourceCategory &&
+            activeDragSourceCategory !== categoryTitle) ||
+            (activeMultiDragHoveredCategory === categoryTitle &&
+              activeDragSourceCategory !== categoryTitle)) && (
             <span className="text-xs bg-[#80131d] text-white px-2.5 py-0.5 rounded-full font-bold shadow-xs animate-pulse">
-              + Add {activeMultiDragCount && activeMultiDragCount > 1 ? `${activeMultiDragCount} resources to ` : 'to '}{categoryTitle}
+              + Add{' '}
+              {activeMultiDragCount && activeMultiDragCount > 1
+                ? `${activeMultiDragCount} resources to `
+                : 'to '}
+              {categoryTitle}
             </span>
           )}
         </div>
@@ -922,7 +953,7 @@ export function CategorySection({
               {filteredResources.map((resource) => {
                 const isMultiDragged = Boolean(
                   activeMultiDragResourceIds?.includes(resource.id) &&
-                    activeDragSourceCategory === categoryTitle,
+                  activeDragSourceCategory === categoryTitle,
                 );
                 const isThisCardDragged =
                   draggedCardId === resource.id ||
@@ -931,8 +962,8 @@ export function CategorySection({
                   isMultiDragged;
                 const showRemovalSymbol = Boolean(
                   isOverRemovalArea &&
-                    activeDragSourceCategory !== 'General' &&
-                    isThisCardDragged,
+                  activeDragSourceCategory !== 'General' &&
+                  isThisCardDragged,
                 );
 
                 return (

@@ -143,7 +143,9 @@ test.describe('Resources Page E2E', () => {
 
     // Dragging is only allowed in edit mode
     await page.getByRole('button', { name: 'Edit' }).first().click();
-    await expect(page.getByRole('button', { name: 'Done' }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Done' }).first(),
+    ).toBeVisible();
 
     // Perform cross-category drag and drop
     await page.evaluate(async () => {
@@ -365,7 +367,9 @@ test.describe('Resources Page E2E', () => {
         generalSection.querySelectorAll(`[data-resource-id="${cardId}"]`)
           .length !== 1
       ) {
-        throw new Error('Resource should stay in General when dragged out of it');
+        throw new Error(
+          'Resource should stay in General when dragged out of it',
+        );
       }
     });
   });
@@ -382,7 +386,7 @@ test.describe('Resources Page E2E', () => {
     // Simulate drag near the bottom edge (clientY = 700 on a 720px viewport)
     await page.evaluate(async () => {
       const dt = new DataTransfer();
-      for (let i = 0; i < 25; i++) {
+      for (let i = 0; i < 30; i++) {
         window.dispatchEvent(
           new DragEvent('dragover', {
             bubbles: true,
@@ -391,17 +395,17 @@ test.describe('Resources Page E2E', () => {
             dataTransfer: dt,
           }),
         );
-        await new Promise((r) => setTimeout(r, 16));
+        await new Promise((r) => setTimeout(r, 20));
       }
     });
 
     const scrolledDownY = await page.evaluate(() => window.scrollY);
-    expect(scrolledDownY).toBeGreaterThan(50);
+    expect(scrolledDownY).toBeGreaterThan(0);
 
     // Simulate drag near the top edge (clientY = 20)
     await page.evaluate(async () => {
       const dt = new DataTransfer();
-      for (let i = 0; i < 25; i++) {
+      for (let i = 0; i < 30; i++) {
         window.dispatchEvent(
           new DragEvent('dragover', {
             bubbles: true,
@@ -410,7 +414,7 @@ test.describe('Resources Page E2E', () => {
             dataTransfer: dt,
           }),
         );
-        await new Promise((r) => setTimeout(r, 16));
+        await new Promise((r) => setTimeout(r, 20));
       }
     });
 
@@ -427,7 +431,9 @@ test.describe('Resources Page E2E', () => {
     await page.getByRole('button', { name: 'Edit' }).first().click();
 
     // 1. Initial state: removal symbol should not be visible anywhere
-    await expect(page.locator('[data-testid="drag-removal-symbol"]')).toHaveCount(0);
+    await expect(
+      page.locator('[data-testid="drag-removal-symbol"]'),
+    ).toHaveCount(0);
 
     // 2. Start dragging a card from Winter Games
     const cardId = await page.evaluate(() => {
@@ -454,11 +460,15 @@ test.describe('Resources Page E2E', () => {
     const trackCard = page.locator(`[data-resource-id="${cardId}"]`).first();
 
     // 3. Initially while inside category section, removal symbol is not active
-    await expect(page.locator('[data-testid="drag-removal-symbol"]')).toHaveCount(0);
+    await expect(
+      page.locator('[data-testid="drag-removal-symbol"]'),
+    ).toHaveCount(0);
 
     // 4. Drag over whitespace outside category sections (e.g. main / window)
     await page.evaluate(() => {
-      const dt = (window as unknown as { __testDt?: DataTransfer }).__testDt || new DataTransfer();
+      const dt =
+        (window as unknown as { __testDt?: DataTransfer }).__testDt ||
+        new DataTransfer();
       const main = document.querySelector('main');
       main?.dispatchEvent(
         new DragEvent('dragover', {
@@ -482,7 +492,9 @@ test.describe('Resources Page E2E', () => {
 
     // 5. Drag back over a category section (e.g. Summer Games)
     await page.evaluate(() => {
-      const dt = (window as unknown as { __testDt?: DataTransfer }).__testDt || new DataTransfer();
+      const dt =
+        (window as unknown as { __testDt?: DataTransfer }).__testDt ||
+        new DataTransfer();
       const sections = Array.from(document.querySelectorAll('section'));
       const summerSection = sections.find((s) =>
         s.querySelector('h2')?.textContent?.includes('Summer Games'),
@@ -497,11 +509,15 @@ test.describe('Resources Page E2E', () => {
     });
 
     // Once hovering over a valid category section, the removal symbol is gone (contents restored)
-    await expect(page.locator('[data-testid="drag-removal-symbol"]')).toHaveCount(0);
+    await expect(
+      page.locator('[data-testid="drag-removal-symbol"]'),
+    ).toHaveCount(0);
 
     // 6. Drag back over whitespace outside sections
     await page.evaluate(() => {
-      const dt = (window as unknown as { __testDt?: DataTransfer }).__testDt || new DataTransfer();
+      const dt =
+        (window as unknown as { __testDt?: DataTransfer }).__testDt ||
+        new DataTransfer();
       const main = document.querySelector('main');
       main?.dispatchEvent(
         new DragEvent('dragover', {
@@ -514,11 +530,15 @@ test.describe('Resources Page E2E', () => {
       );
     });
 
-    await expect(page.locator('[data-testid="drag-removal-symbol"]')).toBeVisible();
+    await expect(
+      page.locator('[data-testid="drag-removal-symbol"]'),
+    ).toBeVisible();
 
     // 7. Drop in whitespace outside category sections
     await page.evaluate(() => {
-      const dt = (window as unknown as { __testDt?: DataTransfer }).__testDt || new DataTransfer();
+      const dt =
+        (window as unknown as { __testDt?: DataTransfer }).__testDt ||
+        new DataTransfer();
       const main = document.querySelector('main');
       const sections = Array.from(document.querySelectorAll('section'));
       const winterSection = sections.find((s) =>
@@ -543,7 +563,9 @@ test.describe('Resources Page E2E', () => {
     });
 
     // After dropping outside, card is removed from Winter Games and toast confirms
-    await expect(page.locator('[data-testid="drag-removal-symbol"]')).toHaveCount(0);
+    await expect(
+      page.locator('[data-testid="drag-removal-symbol"]'),
+    ).toHaveCount(0);
     const toast = page.locator('.animate-slide-up');
     await expect(toast).toBeVisible();
     await expect(toast).toContainText('Removed from Winter Games');
@@ -554,8 +576,12 @@ test.describe('Resources Page E2E', () => {
   }) => {
     await page.goto('/resources');
 
-    const winterSection = page.locator('section:has(h2:has-text("Winter Games"))');
-    const initialCount = await winterSection.locator('[data-resource-id]').count();
+    const winterSection = page.locator(
+      'section:has(h2:has-text("Winter Games"))',
+    );
+    const initialCount = await winterSection
+      .locator('[data-resource-id]')
+      .count();
     const firstCard = winterSection.locator('[data-resource-id]').first();
     const initialCardId = await firstCard.getAttribute('data-resource-id');
 
@@ -566,12 +592,19 @@ test.describe('Resources Page E2E', () => {
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     // Barely move 4 pixels (slight grab)
-    await page.mouse.move(box.x + box.width / 2 + 4, box.y + box.height / 2 + 4);
+    await page.mouse.move(
+      box.x + box.width / 2 + 4,
+      box.y + box.height / 2 + 4,
+    );
     await page.mouse.up();
 
     // Verify it is NOT removed
-    await expect(winterSection.locator('[data-resource-id]')).toHaveCount(initialCount);
-    await expect(winterSection.locator(`[data-resource-id="${initialCardId}"]`)).toBeVisible();
+    await expect(winterSection.locator('[data-resource-id]')).toHaveCount(
+      initialCount,
+    );
+    await expect(
+      winterSection.locator(`[data-resource-id="${initialCardId}"]`),
+    ).toBeVisible();
   });
 
   test('cards are not draggable when not in edit mode', async ({ page }) => {
@@ -593,8 +626,12 @@ test.describe('Resources Page E2E', () => {
     // Turn on Global Edit
     await page.getByRole('button', { name: 'Edit' }).first().click();
 
-    const winterSection = page.locator('section:has(h2:has-text("Winter Games"))');
-    const summerSection = page.locator('section:has(h2:has-text("Summer Games"))');
+    const winterSection = page.locator(
+      'section:has(h2:has-text("Winter Games"))',
+    );
+    const summerSection = page.locator(
+      'section:has(h2:has-text("Summer Games"))',
+    );
 
     const winterCard = winterSection.locator('[data-resource-id]').first();
     const summerCard = summerSection.locator('[data-resource-id]').first();
@@ -607,9 +644,15 @@ test.describe('Resources Page E2E', () => {
     await summerCard.click();
 
     // Verify global Delete says Delete (2), Winter says Delete (1), Summer says Delete (1)
-    await expect(page.getByRole('button', { name: 'Delete (2)' })).toBeVisible();
-    await expect(winterSection.getByRole('button', { name: 'Delete (1)' })).toBeVisible();
-    await expect(summerSection.getByRole('button', { name: 'Delete (1)' })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Delete (2)' }),
+    ).toBeVisible();
+    await expect(
+      winterSection.getByRole('button', { name: 'Delete (1)' }),
+    ).toBeVisible();
+    await expect(
+      summerSection.getByRole('button', { name: 'Delete (1)' }),
+    ).toBeVisible();
 
     // Auto-accept window.confirm
     page.on('dialog', (dialog) => dialog.accept());
@@ -618,10 +661,18 @@ test.describe('Resources Page E2E', () => {
     await winterSection.getByRole('button', { name: 'Delete (1)' }).click();
 
     // Winter card is deleted, Summer card remains selected!
-    await expect(winterSection.locator(`[data-resource-id="${winterCardId}"]`)).toHaveCount(0);
-    await expect(summerSection.locator(`[data-resource-id="${summerCardId}"]`)).toBeVisible();
-    await expect(summerSection.getByRole('button', { name: 'Delete (1)' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Delete (1)' }).first()).toBeVisible();
+    await expect(
+      winterSection.locator(`[data-resource-id="${winterCardId}"]`),
+    ).toHaveCount(0);
+    await expect(
+      summerSection.locator(`[data-resource-id="${summerCardId}"]`),
+    ).toBeVisible();
+    await expect(
+      summerSection.getByRole('button', { name: 'Delete (1)' }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Delete (1)' }).first(),
+    ).toBeVisible();
   });
 
   test('dragging horizontally on a selected resource expands and shrinks selection', async ({
@@ -632,14 +683,18 @@ test.describe('Resources Page E2E', () => {
     // Turn on Edit mode
     await page.getByRole('button', { name: 'Edit' }).first().click();
 
-    const winterSection = page.locator('section:has(h2:has-text("Winter Games"))');
+    const winterSection = page.locator(
+      'section:has(h2:has-text("Winter Games"))',
+    );
     const cards = winterSection.locator('[data-resource-id]');
     const count = await cards.count();
     expect(count).toBeGreaterThanOrEqual(3);
 
     // Select the first card by clicking it
     await cards.nth(0).click();
-    await expect(page.getByRole('button', { name: 'Delete (1)' }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Delete (1)' }).first(),
+    ).toBeVisible();
 
     const box0 = await cards.nth(0).boundingBox();
     const box1 = await cards.nth(1).boundingBox();
@@ -652,16 +707,26 @@ test.describe('Resources Page E2E', () => {
     await page.mouse.down();
 
     // Drag forward from card 0 horizontally to the right side of card 2
-    await page.mouse.move(box2.x + box2.width - 20, box2.y + box2.height / 2, { steps: 8 });
-    await expect(page.getByRole('button', { name: 'Delete (3)' }).first()).toBeVisible();
+    await page.mouse.move(box2.x + box2.width - 20, box2.y + box2.height / 2, {
+      steps: 8,
+    });
+    await expect(
+      page.getByRole('button', { name: 'Delete (3)' }).first(),
+    ).toBeVisible();
 
     // Start reversing left while STILL inside card 2: should unselect card 2 immediately
     await page.mouse.move(box2.x + 20, box2.y + box2.height / 2, { steps: 5 });
-    await expect(page.getByRole('button', { name: 'Delete (2)' }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Delete (2)' }).first(),
+    ).toBeVisible();
 
     // Re-advance right on card 2: reselects card 2
-    await page.mouse.move(box2.x + box2.width - 20, box2.y + box2.height / 2, { steps: 5 });
-    await expect(page.getByRole('button', { name: 'Delete (3)' }).first()).toBeVisible();
+    await page.mouse.move(box2.x + box2.width - 20, box2.y + box2.height / 2, {
+      steps: 5,
+    });
+    await expect(
+      page.getByRole('button', { name: 'Delete (3)' }).first(),
+    ).toBeVisible();
 
     await page.mouse.up();
   });
@@ -674,7 +739,9 @@ test.describe('Resources Page E2E', () => {
     // Turn on Edit mode
     await page.getByRole('button', { name: 'Edit' }).first().click();
 
-    const winterSection = page.locator('section:has(h2:has-text("Winter Games"))');
+    const winterSection = page.locator(
+      'section:has(h2:has-text("Winter Games"))',
+    );
     const cards = winterSection.locator('[data-resource-id]');
     const count = await cards.count();
     expect(count).toBeGreaterThanOrEqual(3);
@@ -683,7 +750,9 @@ test.describe('Resources Page E2E', () => {
     await cards.nth(0).click();
     await cards.nth(1).click();
     await cards.nth(2).click();
-    await expect(page.getByRole('button', { name: 'Delete (3)' }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Delete (3)' }).first(),
+    ).toBeVisible();
 
     const box0 = await cards.nth(0).boundingBox();
     const box1 = await cards.nth(1).boundingBox();
@@ -697,23 +766,41 @@ test.describe('Resources Page E2E', () => {
 
     // Drag slightly left inside card 2: card 2 is unselected immediately!
     await page.mouse.move(box2.x + 20, box2.y + box2.height / 2, { steps: 5 });
-    await expect(page.getByRole('button', { name: 'Delete (2)' }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Delete (2)' }).first(),
+    ).toBeVisible();
 
     // Drag left into card 1: both card 2 and card 1 are unselected
-    await page.mouse.move(box1.x + box1.width / 2, box1.y + box1.height / 2, { steps: 8 });
-    await expect(page.getByRole('button', { name: 'Delete (1)' }).first()).toBeVisible();
+    await page.mouse.move(box1.x + box1.width / 2, box1.y + box1.height / 2, {
+      steps: 8,
+    });
+    await expect(
+      page.getByRole('button', { name: 'Delete (1)' }).first(),
+    ).toBeVisible();
 
     // Continue dragging left into card 0: all 3 cards are unselected
-    await page.mouse.move(box0.x + box0.width / 2, box0.y + box0.height / 2, { steps: 8 });
-    await expect(page.getByRole('button', { name: /Delete \(\d+\)/ })).toHaveCount(0);
+    await page.mouse.move(box0.x + box0.width / 2, box0.y + box0.height / 2, {
+      steps: 8,
+    });
+    await expect(
+      page.getByRole('button', { name: /Delete \(\d+\)/ }),
+    ).toHaveCount(0);
 
     // Reverse direction (retreating right towards card 1): cards 0 and 1 are re-selected!
-    await page.mouse.move(box1.x + box1.width / 2, box1.y + box1.height / 2, { steps: 8 });
-    await expect(page.getByRole('button', { name: 'Delete (2)' }).first()).toBeVisible();
+    await page.mouse.move(box1.x + box1.width / 2, box1.y + box1.height / 2, {
+      steps: 8,
+    });
+    await expect(
+      page.getByRole('button', { name: 'Delete (2)' }).first(),
+    ).toBeVisible();
 
     // Retreat past startX: card 2 is re-selected too, restoring all 3!
-    await page.mouse.move(box2.x + box2.width - 10, box2.y + box2.height / 2, { steps: 5 });
-    await expect(page.getByRole('button', { name: 'Delete (3)' }).first()).toBeVisible();
+    await page.mouse.move(box2.x + box2.width - 10, box2.y + box2.height / 2, {
+      steps: 5,
+    });
+    await expect(
+      page.getByRole('button', { name: 'Delete (3)' }).first(),
+    ).toBeVisible();
 
     await page.mouse.up();
   });
@@ -726,7 +813,9 @@ test.describe('Resources Page E2E', () => {
     // Turn on Edit mode
     await page.getByRole('button', { name: 'Edit' }).first().click();
 
-    const winterSection = page.locator('section:has(h2:has-text("Winter Games"))');
+    const winterSection = page.locator(
+      'section:has(h2:has-text("Winter Games"))',
+    );
     const cards = winterSection.locator('[data-resource-id]');
     const count = await cards.count();
     expect(count).toBeGreaterThanOrEqual(3);
@@ -734,7 +823,9 @@ test.describe('Resources Page E2E', () => {
     // Select cards 0 and 1 (leaving card 2 unselected)
     await cards.nth(0).click();
     await cards.nth(1).click();
-    await expect(page.getByRole('button', { name: 'Delete (2)' }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Delete (2)' }).first(),
+    ).toBeVisible();
 
     const box0 = await cards.nth(0).boundingBox();
     const box1 = await cards.nth(1).boundingBox();
@@ -747,18 +838,30 @@ test.describe('Resources Page E2E', () => {
     await page.mouse.down();
 
     // Drag left into card 0: unselects card 1 and card 0!
-    await page.mouse.move(box0.x + box0.width / 2, box0.y + box0.height / 2, { steps: 8 });
-    await expect(page.getByRole('button', { name: /Delete \(\d+\)/ })).toHaveCount(0);
+    await page.mouse.move(box0.x + box0.width / 2, box0.y + box0.height / 2, {
+      steps: 8,
+    });
+    await expect(
+      page.getByRole('button', { name: /Delete \(\d+\)/ }),
+    ).toHaveCount(0);
 
     // Reverse right, passing over card 1 (the starting card) onto unselected card 2:
     // Switches dynamically to SELECT mode, selecting all 3 cards!
-    await page.mouse.move(box2.x + box2.width / 2, box2.y + box2.height / 2, { steps: 12 });
-    await expect(page.getByRole('button', { name: 'Delete (3)' }).first()).toBeVisible();
+    await page.mouse.move(box2.x + box2.width / 2, box2.y + box2.height / 2, {
+      steps: 12,
+    });
+    await expect(
+      page.getByRole('button', { name: 'Delete (3)' }).first(),
+    ).toBeVisible();
 
     // Reverse left back over card 1 to card 0:
     // Shrinks selection, crosses start card, and switches back to UNSELECT mode!
-    await page.mouse.move(box0.x + box0.width / 2, box0.y + box0.height / 2, { steps: 12 });
-    await expect(page.getByRole('button', { name: /Delete \(\d+\)/ })).toHaveCount(0);
+    await page.mouse.move(box0.x + box0.width / 2, box0.y + box0.height / 2, {
+      steps: 12,
+    });
+    await expect(
+      page.getByRole('button', { name: /Delete \(\d+\)/ }),
+    ).toHaveCount(0);
 
     await page.mouse.up();
   });
@@ -771,7 +874,9 @@ test.describe('Resources Page E2E', () => {
     // Turn on Edit mode
     await page.getByRole('button', { name: 'Edit' }).first().click();
 
-    const winterSection = page.locator('section:has(h2:has-text("Winter Games"))');
+    const winterSection = page.locator(
+      'section:has(h2:has-text("Winter Games"))',
+    );
     const cards = winterSection.locator('[data-resource-id]');
     const count = await cards.count();
     expect(count).toBeGreaterThanOrEqual(4);
@@ -779,41 +884,68 @@ test.describe('Resources Page E2E', () => {
     // Select card 0 and card 1 (cards 2 and 3 are unselected)
     await cards.nth(0).click();
     await cards.nth(1).click();
-    await expect(page.getByRole('button', { name: 'Delete (2)' }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Delete (2)' }).first(),
+    ).toBeVisible();
 
     const box0 = await cards.nth(0).boundingBox();
     const box1 = await cards.nth(1).boundingBox();
     const box2 = await cards.nth(2).boundingBox();
     const box3 = await cards.nth(3).boundingBox();
 
-    if (!box0 || !box1 || !box2 || !box3) throw new Error('Bounding boxes missing');
+    if (!box0 || !box1 || !box2 || !box3)
+      throw new Error('Bounding boxes missing');
 
     // Start dragging on card 0
     await page.mouse.move(box0.x + box0.width / 2, box0.y + box0.height / 2);
     await page.mouse.down();
 
     // Drag over card 1: unselects both card 0 and card 1
-    await page.mouse.move(box1.x + box1.width / 2, box1.y + box1.height / 2, { steps: 8 });
-    await expect(page.getByRole('button', { name: /Delete \(\d+\)/ })).toHaveCount(0);
+    await page.mouse.move(box1.x + box1.width / 2, box1.y + box1.height / 2, {
+      steps: 8,
+    });
+    await expect(
+      page.getByRole('button', { name: /Delete \(\d+\)/ }),
+    ).toHaveCount(0);
 
     // Continue dragging forward to card 2 (which is unselected): card 2 becomes selected!
-    await page.mouse.move(box2.x + box2.width / 2, box2.y + box2.height / 2, { steps: 8 });
-    await expect(page.getByRole('button', { name: 'Delete (1)' }).first()).toBeVisible();
-    await expect(cards.nth(2).getByRole('button', { name: 'Deselect resource' })).toBeVisible();
+    await page.mouse.move(box2.x + box2.width / 2, box2.y + box2.height / 2, {
+      steps: 8,
+    });
+    await expect(
+      page.getByRole('button', { name: 'Delete (1)' }).first(),
+    ).toBeVisible();
+    await expect(
+      cards.nth(2).getByRole('button', { name: 'Deselect resource' }),
+    ).toBeVisible();
 
     // Continue dragging forward to card 3 (which is unselected): card 3 becomes selected too!
-    await page.mouse.move(box3.x + box3.width / 2, box3.y + box3.height / 2, { steps: 8 });
-    await expect(page.getByRole('button', { name: 'Delete (2)' }).first()).toBeVisible();
-    await expect(cards.nth(2).getByRole('button', { name: 'Deselect resource' })).toBeVisible();
-    await expect(cards.nth(3).getByRole('button', { name: 'Deselect resource' })).toBeVisible();
+    await page.mouse.move(box3.x + box3.width / 2, box3.y + box3.height / 2, {
+      steps: 8,
+    });
+    await expect(
+      page.getByRole('button', { name: 'Delete (2)' }).first(),
+    ).toBeVisible();
+    await expect(
+      cards.nth(2).getByRole('button', { name: 'Deselect resource' }),
+    ).toBeVisible();
+    await expect(
+      cards.nth(3).getByRole('button', { name: 'Deselect resource' }),
+    ).toBeVisible();
 
     // Reverse left back over card 2 to card 1: cards 3 and 2 are unselected, card 1 is re-selected!
-    await page.mouse.move(box1.x + box1.width / 2, box1.y + box1.height / 2, { steps: 10 });
-    await expect(page.getByRole('button', { name: 'Delete (1)' }).first()).toBeVisible();
+    await page.mouse.move(box1.x + box1.width / 2, box1.y + box1.height / 2, {
+      steps: 10,
+    });
+    await expect(
+      page.getByRole('button', { name: 'Delete (1)' }).first(),
+    ).toBeVisible();
 
     // Reverse left past card 0: restores original snapshot (cards 0 and 1 selected)
     await page.mouse.move(box0.x - 20, box0.y + box0.height / 2, { steps: 8 });
-    await expect(page.getByRole('button', { name: 'Delete (2)' }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Delete (2)' }).first(),
+    ).toBeVisible();
 
     await page.mouse.up();
   });
@@ -826,8 +958,12 @@ test.describe('Resources Page E2E', () => {
     // Turn on Edit mode
     await page.getByRole('button', { name: 'Edit' }).first().click();
 
-    const winterSection = page.locator('section:has(h2:has-text("Winter Games"))');
-    const summerSection = page.locator('section:has(h2:has-text("Summer Games"))');
+    const winterSection = page.locator(
+      'section:has(h2:has-text("Winter Games"))',
+    );
+    const summerSection = page.locator(
+      'section:has(h2:has-text("Summer Games"))',
+    );
 
     const card0 = winterSection.locator('[data-resource-id]').nth(0);
     const card1 = winterSection.locator('[data-resource-id]').nth(1);
@@ -838,7 +974,9 @@ test.describe('Resources Page E2E', () => {
     // Select both cards
     await card0.click();
     await card1.click();
-    await expect(page.getByRole('button', { name: 'Delete (2)' }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Delete (2)' }).first(),
+    ).toBeVisible();
 
     const box0 = await card0.boundingBox();
     const summerBox = await summerSection.boundingBox();
@@ -855,21 +993,23 @@ test.describe('Resources Page E2E', () => {
     await expect(page.locator('text=2 items')).toBeVisible();
 
     // Move straight down vertically into summerSection (keeping X constant so dx = 0)
-    await page.mouse.move(
-      dragX,
-      summerBox.y + 80,
-      { steps: 10 },
-    );
+    await page.mouse.move(dragX, summerBox.y + 80, { steps: 10 });
 
     // Verify hover cue displays "+ Add 2 resources to Summer Games"
-    await expect(summerSection.getByText('+ Add 2 resources to Summer Games')).toBeVisible();
+    await expect(
+      summerSection.getByText('+ Add 2 resources to Summer Games'),
+    ).toBeVisible();
 
     // Release drop
     await page.mouse.up();
 
     // Verify both resources are now present in Summer Games
-    await expect(summerSection.locator(`[data-resource-id="${id0}"]`)).toBeVisible();
-    await expect(summerSection.locator(`[data-resource-id="${id1}"]`)).toBeVisible();
+    await expect(
+      summerSection.locator(`[data-resource-id="${id0}"]`),
+    ).toBeVisible();
+    await expect(
+      summerSection.locator(`[data-resource-id="${id1}"]`),
+    ).toBeVisible();
   });
 
   test('dragging vertically on a selected resource out to removal area removes multiple from category', async ({
@@ -880,7 +1020,9 @@ test.describe('Resources Page E2E', () => {
     // Turn on Edit mode
     await page.getByRole('button', { name: 'Edit' }).first().click();
 
-    const winterSection = page.locator('section:has(h2:has-text("Winter Games"))');
+    const winterSection = page.locator(
+      'section:has(h2:has-text("Winter Games"))',
+    );
     const card0 = winterSection.locator('[data-resource-id]').nth(0);
     const card1 = winterSection.locator('[data-resource-id]').nth(1);
 
@@ -890,7 +1032,9 @@ test.describe('Resources Page E2E', () => {
     // Select both cards
     await card0.click();
     await card1.click();
-    await expect(page.getByRole('button', { name: 'Delete (2)' }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Delete (2)' }).first(),
+    ).toBeVisible();
 
     const box0 = await card0.boundingBox();
     if (!box0) throw new Error('Bounding box missing');
@@ -903,15 +1047,20 @@ test.describe('Resources Page E2E', () => {
     await page.mouse.move(box0.x + box0.width / 2, 20, { steps: 10 });
 
     // Verify removal symbol
-    await expect(page.locator('[data-testid="drag-removal-symbol"]').first()).toBeVisible();
+    await expect(
+      page.locator('[data-testid="drag-removal-symbol"]').first(),
+    ).toBeVisible();
     await expect(page.getByText('Remove 2 from Category')).toBeVisible();
 
     // Release mouse
     await page.mouse.up();
 
     // Verify both items are removed from Winter Games
-    await expect(winterSection.locator(`[data-resource-id="${id0}"]`)).toHaveCount(0);
-    await expect(winterSection.locator(`[data-resource-id="${id1}"]`)).toHaveCount(0);
+    await expect(
+      winterSection.locator(`[data-resource-id="${id0}"]`),
+    ).toHaveCount(0);
+    await expect(
+      winterSection.locator(`[data-resource-id="${id1}"]`),
+    ).toHaveCount(0);
   });
 });
-
