@@ -1,5 +1,3 @@
-import React from 'react';
+import ResourcesPage from '../resources/page';
 
-export default function page() {
-  return <div>page</div>;
-}
+export default ResourcesPage;
