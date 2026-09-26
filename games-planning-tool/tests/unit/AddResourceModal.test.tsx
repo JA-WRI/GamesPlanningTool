@@ -51,6 +51,16 @@ describe('AddResourceModal', () => {
     expect(
       screen.getByText('Please provide a valid URL for the resource.'),
     ).toBeInTheDocument();
+
+    const fileTab = screen.getByRole('button', { name: /Upload File/i });
+    fireEvent.click(fileTab);
+    fireEvent.click(submitBtn);
+    expect(
+      screen.getByText('Please select or drop a file to upload.'),
+    ).toBeInTheDocument();
+
+    const linkTab = screen.getByRole('button', { name: /Website Link/i });
+    fireEvent.click(linkTab);
   });
 
   it('submits a new link resource with selected categories and preview image', () => {
@@ -168,7 +178,7 @@ describe('AddResourceModal', () => {
 
     const dropzone = screen
       .getByText(/Click to upload or drag and drop/i)
-      .closest('div[class*="border-dashed"]')!;
+      .closest('[class*="border-dashed"]')!;
     fireEvent.dragOver(dropzone);
     fireEvent.dragLeave(dropzone);
 
