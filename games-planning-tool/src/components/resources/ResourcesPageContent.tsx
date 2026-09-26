@@ -16,6 +16,7 @@ import {
 import { CategorySection, globalActiveDragInfo } from './CategorySection';
 import { AddResourceModal } from './AddResourceModal';
 import { ResourceDetailModal } from './ResourceDetailModal';
+import { SearchPill } from './SearchPill';
 
 export function ResourcesPageContent() {
   const resources = useSyncExternalStore(
@@ -361,7 +362,10 @@ export function ResourcesPageContent() {
     const cur = activeMultiDragRef.current;
     if (!cur) return;
 
-    const elem = document.elementFromPoint(pos.x, pos.y);
+    const elem =
+      typeof document.elementFromPoint === 'function'
+        ? document.elementFromPoint(pos.x, pos.y)
+        : null;
     const section = elem?.closest('section[data-category-title]');
     const hoveredTitle = section?.getAttribute('data-category-title') || null;
 
@@ -583,6 +587,10 @@ export function ResourcesPageContent() {
   const nsoCategoriesWithResources = allExistingCategories.filter(
     (c) => !standardSections.includes(c),
   );
+  const allCategorySections = [
+    ...standardSections,
+    ...nsoCategoriesWithResources,
+  ];
 
   const isCategoryEditing = (cat: string) => {
     return isGlobalEditing || !!categoryEditModes[cat];
@@ -594,14 +602,8 @@ export function ResourcesPageContent() {
 
     if (isCurrentlyEditing) {
       if (isGlobalEditing) {
-        const allCats = [
-          'Winter Games',
-          'Summer Games',
-          'General',
-          ...nsoCategoriesWithResources,
-        ];
         const newModes: Record<string, boolean> = {};
-        allCats.forEach((c) => {
+        allCategorySections.forEach((c) => {
           if (c !== cat) newModes[c] = true;
         });
         setCategoryEditModes(newModes);
@@ -699,48 +701,7 @@ export function ResourcesPageContent() {
             Add
           </button>
 
-          <div className="relative min-w-[220px] sm:min-w-[260px]">
-            <input
-              type="text"
-              value={globalSearch}
-              onChange={(e) => setGlobalSearch(e.target.value)}
-              placeholder="Search by name, category..."
-              className="w-full pl-4 pr-9 py-1.5 text-sm bg-white border border-[#80131d] rounded-full focus:outline-hidden focus:ring-2 focus:ring-[#80131d]/20 placeholder:text-neutral-500 transition-all"
-            />
-            {globalSearch ? (
-              <button
-                type="button"
-                onClick={() => setGlobalSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-              >
-                <svg
-                  className="w-3.5 h-3.5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            ) : (
-              <svg
-                className="w-4 h-4 text-[#80131d] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            )}
-          </div>
+          <SearchPill value={globalSearch} onChange={setGlobalSearch} />
         </div>
       </div>
 
@@ -751,146 +712,20 @@ export function ResourcesPageContent() {
             setIsOverRemovalArea(false);
           }
         }}
-        onDrop={(e) => {
-          const targetElem = e.target as HTMLElement;
-          const insideSection = Boolean(targetElem.closest('section'));
-          if (!insideSection) {
-            e.preventDefault();
-            const resId =
-              activeDragResourceIdRef.current ||
-              activeDragResourceId ||
-              globalActiveDragInfo?.resourceId;
-            const cat =
-              activeDragCategoryRef.current ||
-              activeDragCategory ||
-              globalActiveDragInfo?.sourceCategory;
-            if (resId && cat) {
-              handleRemoveCategoryFromResource(resId, cat);
-              activeDragCategoryRef.current = null;
-              activeDragResourceIdRef.current = null;
-              isOverRemovalAreaRef.current = false;
-              setActiveDragCategory(null);
-              setActiveDragResourceId(null);
-              setIsOverRemovalArea(false);
-            }
-          }
-        }}
+        onDrop={handlePageDrop}
         className="max-w-[1600px] mx-auto px-4 sm:px-6 relative"
       >
-        <CategorySection
-          categoryTitle="Winter Games"
-          resources={getFilteredCategoryResources('Winter Games')}
-          isEditing={isCategoryEditing('Winter Games')}
-          selectedIds={selectedIds}
-          activeDragSourceCategory={activeDragCategory}
-          activeDragResourceId={activeDragResourceId}
-          activeMultiDragResourceIds={
-            activeMultiDrag?.sourceCategory === 'Winter Games'
-              ? activeMultiDrag.resourceIds
-              : []
-          }
-          activeMultiDragHoveredCategory={activeMultiDrag?.hoveredCategoryTitle}
-          activeMultiDragCount={activeMultiDrag?.resourceIds.length || 0}
-          isOverRemovalArea={isOverRemovalArea}
-          onToggleEdit={() => toggleCategoryEdit('Winter Games')}
-          onOpenAddModal={() => handleOpenAddModal('Winter Games')}
-          onToggleSelect={handleToggleSelect}
-          onSelectMultiple={handleSelectMultiple}
-          onUpdateSelectedIds={setSelectedIds}
-          onDeleteSelected={() =>
-            handleDeleteSelectedInCategory('Winter Games')
-          }
-          onSelectResourceDetail={setDetailResource}
-          onReorderResources={handleReorderResources}
-          onStartDragCard={handleStartDragCard}
-          onEndDragCard={handleEndDragCard}
-          onStartMultiDrag={handleStartMultiDrag}
-          onMoveMultiDrag={handleMoveMultiDrag}
-          onEndMultiDrag={handleEndMultiDrag}
-          onDropOnCategory={handleDropOnCategory}
-          onRemoveFromCategory={handleRemoveFromCategory}
-          onDragOverSection={handleHoverSection}
-        />
-
-        <CategorySection
-          categoryTitle="Summer Games"
-          resources={getFilteredCategoryResources('Summer Games')}
-          isEditing={isCategoryEditing('Summer Games')}
-          selectedIds={selectedIds}
-          activeDragSourceCategory={activeDragCategory}
-          activeDragResourceId={activeDragResourceId}
-          activeMultiDragResourceIds={
-            activeMultiDrag?.sourceCategory === 'Summer Games'
-              ? activeMultiDrag.resourceIds
-              : []
-          }
-          activeMultiDragHoveredCategory={activeMultiDrag?.hoveredCategoryTitle}
-          activeMultiDragCount={activeMultiDrag?.resourceIds.length || 0}
-          isOverRemovalArea={isOverRemovalArea}
-          onToggleEdit={() => toggleCategoryEdit('Summer Games')}
-          onOpenAddModal={() => handleOpenAddModal('Summer Games')}
-          onToggleSelect={handleToggleSelect}
-          onSelectMultiple={handleSelectMultiple}
-          onUpdateSelectedIds={setSelectedIds}
-          onDeleteSelected={() =>
-            handleDeleteSelectedInCategory('Summer Games')
-          }
-          onSelectResourceDetail={setDetailResource}
-          onReorderResources={handleReorderResources}
-          onStartDragCard={handleStartDragCard}
-          onEndDragCard={handleEndDragCard}
-          onStartMultiDrag={handleStartMultiDrag}
-          onMoveMultiDrag={handleMoveMultiDrag}
-          onEndMultiDrag={handleEndMultiDrag}
-          onDropOnCategory={handleDropOnCategory}
-          onRemoveFromCategory={handleRemoveFromCategory}
-          onDragOverSection={handleHoverSection}
-        />
-
-        <CategorySection
-          categoryTitle="General"
-          resources={getFilteredCategoryResources('General')}
-          isEditing={isCategoryEditing('General')}
-          selectedIds={selectedIds}
-          activeDragSourceCategory={activeDragCategory}
-          activeDragResourceId={activeDragResourceId}
-          activeMultiDragResourceIds={
-            activeMultiDrag?.sourceCategory === 'General'
-              ? activeMultiDrag.resourceIds
-              : []
-          }
-          activeMultiDragHoveredCategory={activeMultiDrag?.hoveredCategoryTitle}
-          activeMultiDragCount={activeMultiDrag?.resourceIds.length || 0}
-          isOverRemovalArea={isOverRemovalArea}
-          onToggleEdit={() => toggleCategoryEdit('General')}
-          onOpenAddModal={() => handleOpenAddModal('General')}
-          onToggleSelect={handleToggleSelect}
-          onSelectMultiple={handleSelectMultiple}
-          onUpdateSelectedIds={setSelectedIds}
-          onDeleteSelected={() => handleDeleteSelectedInCategory('General')}
-          onSelectResourceDetail={setDetailResource}
-          onReorderResources={handleReorderResources}
-          onStartDragCard={handleStartDragCard}
-          onEndDragCard={handleEndDragCard}
-          onStartMultiDrag={handleStartMultiDrag}
-          onMoveMultiDrag={handleMoveMultiDrag}
-          onEndMultiDrag={handleEndMultiDrag}
-          onDropOnCategory={handleDropOnCategory}
-          onRemoveFromCategory={handleRemoveFromCategory}
-          onDragOverSection={handleHoverSection}
-        />
-
-        {nsoCategoriesWithResources.map((nsoCategory) => (
+        {allCategorySections.map((categoryTitle) => (
           <CategorySection
-            key={nsoCategory}
-            categoryTitle={nsoCategory}
-            resources={getFilteredCategoryResources(nsoCategory)}
-            isEditing={isCategoryEditing(nsoCategory)}
+            key={categoryTitle}
+            categoryTitle={categoryTitle}
+            resources={getFilteredCategoryResources(categoryTitle)}
+            isEditing={isCategoryEditing(categoryTitle)}
             selectedIds={selectedIds}
             activeDragSourceCategory={activeDragCategory}
             activeDragResourceId={activeDragResourceId}
             activeMultiDragResourceIds={
-              activeMultiDrag?.sourceCategory === nsoCategory
+              activeMultiDrag?.sourceCategory === categoryTitle
                 ? activeMultiDrag.resourceIds
                 : []
             }
@@ -899,12 +734,14 @@ export function ResourcesPageContent() {
             }
             activeMultiDragCount={activeMultiDrag?.resourceIds.length || 0}
             isOverRemovalArea={isOverRemovalArea}
-            onToggleEdit={() => toggleCategoryEdit(nsoCategory)}
-            onOpenAddModal={() => handleOpenAddModal(nsoCategory)}
+            onToggleEdit={() => toggleCategoryEdit(categoryTitle)}
+            onOpenAddModal={() => handleOpenAddModal(categoryTitle)}
             onToggleSelect={handleToggleSelect}
             onSelectMultiple={handleSelectMultiple}
             onUpdateSelectedIds={setSelectedIds}
-            onDeleteSelected={() => handleDeleteSelectedInCategory(nsoCategory)}
+            onDeleteSelected={() =>
+              handleDeleteSelectedInCategory(categoryTitle)
+            }
             onSelectResourceDetail={setDetailResource}
             onReorderResources={handleReorderResources}
             onStartDragCard={handleStartDragCard}

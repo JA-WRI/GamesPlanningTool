@@ -3,6 +3,13 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Resource } from '@/types/resource';
 import { ResourceCard } from './ResourceCard';
+import { SearchPill } from './SearchPill';
+import {
+  createSweepState,
+  runSweepStep,
+  extractDragPayload,
+  SweepGestureState,
+} from './sweep-selection';
 
 export let globalActiveDragInfo: {
   resourceId: string;
@@ -124,12 +131,7 @@ export function CategorySection({
     cardId: string,
   ) => {
     let sweepStarted = false;
-    let initialSelectedSnapshot = new Set<string>();
-    let startIndex = -1;
-    let initialDir: 'right' | 'left' = 'right';
-    let lastCurrentIndex = -1;
-    let lastClientX = startX;
-    let movingDirection: 'right' | 'left' = 'right';
+    let sweepState: SweepGestureState | null = null;
 
     const onMoveCheck = (moveEvent: PointerEvent) => {
       const dist = Math.hypot(
@@ -138,177 +140,32 @@ export function CategorySection({
       );
       if (dist > 6) {
         if (!sweepStarted) {
+          const startIndex = filteredResources.findIndex(
+            (r) => r.id === cardId,
+          );
+          if (startIndex === -1) return;
           sweepStarted = true;
           isSweepSelecting.current = true;
-          initialSelectedSnapshot = new Set(selectedIds);
-          startIndex = filteredResources.findIndex((r) => r.id === cardId);
-          if (startIndex === -1) return;
-
-          initialDir = moveEvent.clientX >= startX ? 'right' : 'left';
-          lastCurrentIndex = startIndex;
-          lastClientX = moveEvent.clientX;
-          movingDirection = initialDir;
-        }
-
-        if (startIndex === -1) return;
-
-        if (scrollContainerRef.current) {
-          const containerRect =
-            scrollContainerRef.current.getBoundingClientRect();
-          if (moveEvent.clientX < containerRect.left + 40) {
-            scrollContainerRef.current.scrollLeft -= 12;
-          } else if (moveEvent.clientX > containerRect.right - 40) {
-            scrollContainerRef.current.scrollLeft += 12;
-          }
-        }
-
-        const deltaX = moveEvent.clientX - lastClientX;
-        if (deltaX > 2) {
-          movingDirection = 'right';
-          lastClientX = moveEvent.clientX;
-        } else if (deltaX < -2) {
-          movingDirection = 'left';
-          lastClientX = moveEvent.clientX;
-        }
-
-        const elem = document.elementFromPoint(
-          moveEvent.clientX,
-          moveEvent.clientY,
-        );
-        const cardElem = elem?.closest('[data-resource-id]');
-        const hoveredCardId = cardElem?.getAttribute('data-resource-id');
-
-        let currentIndex = lastCurrentIndex;
-        if (hoveredCardId) {
-          const idx = filteredResources.findIndex(
-            (r) => r.id === hoveredCardId,
+          sweepState = createSweepState(
+            startIndex,
+            cardId,
+            startX,
+            moveEvent.clientX,
+            selectedIds,
+            filteredResources,
+            scrollContainerRef.current,
           );
-          if (idx !== -1) {
-            currentIndex = idx;
-            lastCurrentIndex = idx;
-          }
-        } else if (scrollContainerRef.current) {
-          const cards = Array.from(
-            scrollContainerRef.current.querySelectorAll('[data-resource-id]'),
+        }
+
+        if (sweepState) {
+          runSweepStep(
+            moveEvent,
+            sweepState,
+            filteredResources,
+            selectedIds,
+            onUpdateSelectedIds,
+            onSelectMultiple,
           );
-          let closestIdx = -1;
-          let closestDist = Infinity;
-          cards.forEach((c) => {
-            const rect = c.getBoundingClientRect();
-            const cardMidX = rect.left + rect.width / 2;
-            const d = Math.abs(moveEvent.clientX - cardMidX);
-            if (d < closestDist) {
-              closestDist = d;
-              const cId = c.getAttribute('data-resource-id');
-              closestIdx = filteredResources.findIndex((r) => r.id === cId);
-            }
-          });
-          if (closestIdx !== -1) {
-            currentIndex = closestIdx;
-            lastCurrentIndex = closestIdx;
-          }
-        }
-
-        if (currentIndex > startIndex) {
-          initialDir = 'right';
-        } else if (currentIndex < startIndex) {
-          initialDir = 'left';
-        }
-
-        let isUnselectingCluster = false;
-        if (initialSelectedSnapshot.has(cardId)) {
-          if (currentIndex > startIndex) {
-            isUnselectingCluster = filteredResources
-              .slice(startIndex + 1)
-              .some((r) => initialSelectedSnapshot.has(r.id));
-          } else if (currentIndex < startIndex) {
-            isUnselectingCluster = filteredResources
-              .slice(0, startIndex)
-              .some((r) => initialSelectedSnapshot.has(r.id));
-          } else {
-            isUnselectingCluster =
-              movingDirection === 'right'
-                ? filteredResources
-                    .slice(startIndex + 1)
-                    .some((r) => initialSelectedSnapshot.has(r.id))
-                : filteredResources
-                    .slice(0, startIndex)
-                    .some((r) => initialSelectedSnapshot.has(r.id));
-          }
-        }
-
-        let minIdx = startIndex;
-        let maxIdx = startIndex;
-
-        if (currentIndex > startIndex) {
-          if (movingDirection === 'right') {
-            minIdx = startIndex;
-            maxIdx = currentIndex;
-          } else {
-            minIdx = startIndex;
-            maxIdx = Math.max(startIndex, currentIndex - 1);
-          }
-        } else if (currentIndex < startIndex) {
-          if (movingDirection === 'left') {
-            minIdx = currentIndex;
-            maxIdx = startIndex;
-          } else {
-            minIdx = Math.min(startIndex, currentIndex + 1);
-            maxIdx = startIndex;
-          }
-        } else {
-          const isAtRest =
-            (movingDirection === 'right' &&
-              moveEvent.clientX >= startX &&
-              initialDir === 'left') ||
-            (movingDirection === 'left' &&
-              moveEvent.clientX <= startX &&
-              initialDir === 'right');
-
-          if (isAtRest) {
-            minIdx = 1;
-            maxIdx = 0;
-          } else {
-            minIdx = startIndex;
-            maxIdx = startIndex;
-          }
-        }
-
-        const nextSelection = new Set(initialSelectedSnapshot);
-        for (let i = 0; i < filteredResources.length; i++) {
-          const resId = filteredResources[i].id;
-          if (i >= minIdx && i <= maxIdx) {
-            if (isUnselectingCluster) {
-              if (initialSelectedSnapshot.has(resId)) {
-                nextSelection.delete(resId);
-              } else {
-                nextSelection.add(resId);
-              }
-            } else {
-              nextSelection.add(resId);
-            }
-          } else {
-            if (initialSelectedSnapshot.has(resId)) {
-              nextSelection.add(resId);
-            } else {
-              nextSelection.delete(resId);
-            }
-          }
-        }
-
-        if (onUpdateSelectedIds) {
-          onUpdateSelectedIds(nextSelection);
-        } else {
-          const toAdd: string[] = [];
-          const toRemove: string[] = [];
-          filteredResources.forEach((r) => {
-            const shouldBeSelected = nextSelection.has(r.id);
-            const isCurrentlySelected = selectedIds.has(r.id);
-            if (shouldBeSelected && !isCurrentlySelected) toAdd.push(r.id);
-            if (!shouldBeSelected && isCurrentlySelected) toRemove.push(r.id);
-          });
-          if (toAdd.length > 0) onSelectMultiple(toAdd, true);
-          if (toRemove.length > 0) onSelectMultiple(toRemove, false);
         }
       }
     };
@@ -346,23 +203,15 @@ export function CategorySection({
   };
 
   const handleCardPointerDown = (e: React.PointerEvent, cardId: string) => {
-    if (!isEditing) return;
-    if (selectedIds.size === 0) return;
+    if (!isEditing || selectedIds.size === 0) return;
 
     const startX = e.clientX;
     const startY = e.clientY;
     const isCardSelected = selectedIds.has(cardId);
 
     let gesture: 'undecided' | 'sweep' | 'vertical-drag' = 'undecided';
-
     let sweepStarted = false;
-    let initialSelectedSnapshot = new Set<string>();
-    let startIndex = -1;
-    let initialDir: 'right' | 'left' = 'right';
-    let lastCurrentIndex = -1;
-    let lastClientX = startX;
-    let movingDirection: 'right' | 'left' = 'right';
-
+    let sweepState: SweepGestureState | null = null;
     let grabbedResourceIds: string[] = [];
 
     const onMoveCheck = (moveEvent: PointerEvent) => {
@@ -373,29 +222,30 @@ export function CategorySection({
       if (dist > 6) {
         if (gesture === 'undecided') {
           if (Math.abs(dx) > Math.abs(dy)) {
+            const startIndex = filteredResources.findIndex(
+              (r) => r.id === cardId,
+            );
+            if (startIndex === -1) return;
             gesture = 'sweep';
             isSweepSelecting.current = true;
-            initialSelectedSnapshot = new Set(selectedIds);
-            startIndex = filteredResources.findIndex((r) => r.id === cardId);
-            if (startIndex === -1) return;
-
-            initialDir = moveEvent.clientX >= startX ? 'right' : 'left';
-            lastCurrentIndex = startIndex;
-            lastClientX = moveEvent.clientX;
-            movingDirection = initialDir;
             sweepStarted = true;
+            sweepState = createSweepState(
+              startIndex,
+              cardId,
+              startX,
+              moveEvent.clientX,
+              selectedIds,
+              filteredResources,
+              scrollContainerRef.current,
+            );
           } else {
             gesture = 'vertical-drag';
-            if (isCardSelected) {
-              grabbedResourceIds = filteredResources
-                .filter((r) => selectedIds.has(r.id))
-                .map((r) => r.id);
-            } else {
-              grabbedResourceIds = [cardId];
-            }
-            if (grabbedResourceIds.length === 0) {
-              grabbedResourceIds = [cardId];
-            }
+            grabbedResourceIds = isCardSelected
+              ? filteredResources
+                  .filter((r) => selectedIds.has(r.id))
+                  .map((r) => r.id)
+              : [cardId];
+            if (grabbedResourceIds.length === 0) grabbedResourceIds = [cardId];
             onStartMultiDrag?.(grabbedResourceIds, categoryTitle, {
               x: moveEvent.clientX,
               y: moveEvent.clientY,
@@ -404,165 +254,15 @@ export function CategorySection({
         }
       }
 
-      if (gesture === 'sweep' && sweepStarted) {
-        if (scrollContainerRef.current) {
-          const containerRect =
-            scrollContainerRef.current.getBoundingClientRect();
-          if (moveEvent.clientX < containerRect.left + 40) {
-            scrollContainerRef.current.scrollLeft -= 12;
-          } else if (moveEvent.clientX > containerRect.right - 40) {
-            scrollContainerRef.current.scrollLeft += 12;
-          }
-        }
-
-        const deltaX = moveEvent.clientX - lastClientX;
-        if (deltaX > 2) {
-          movingDirection = 'right';
-          lastClientX = moveEvent.clientX;
-        } else if (deltaX < -2) {
-          movingDirection = 'left';
-          lastClientX = moveEvent.clientX;
-        }
-
-        const elem = document.elementFromPoint(
-          moveEvent.clientX,
-          moveEvent.clientY,
+      if (gesture === 'sweep' && sweepStarted && sweepState) {
+        runSweepStep(
+          moveEvent,
+          sweepState,
+          filteredResources,
+          selectedIds,
+          onUpdateSelectedIds,
+          onSelectMultiple,
         );
-        const cardElem = elem?.closest('[data-resource-id]');
-        const hoveredCardId = cardElem?.getAttribute('data-resource-id');
-
-        let currentIndex = lastCurrentIndex;
-        if (hoveredCardId) {
-          const idx = filteredResources.findIndex(
-            (r) => r.id === hoveredCardId,
-          );
-          if (idx !== -1) {
-            currentIndex = idx;
-            lastCurrentIndex = idx;
-          }
-        } else if (scrollContainerRef.current) {
-          const cards = Array.from(
-            scrollContainerRef.current.querySelectorAll('[data-resource-id]'),
-          );
-          let closestIdx = -1;
-          let closestDist = Infinity;
-          cards.forEach((c) => {
-            const rect = c.getBoundingClientRect();
-            const cardMidX = rect.left + rect.width / 2;
-            const d = Math.abs(moveEvent.clientX - cardMidX);
-            if (d < closestDist) {
-              closestDist = d;
-              const cId = c.getAttribute('data-resource-id');
-              closestIdx = filteredResources.findIndex((r) => r.id === cId);
-            }
-          });
-          if (closestIdx !== -1) {
-            currentIndex = closestIdx;
-            lastCurrentIndex = closestIdx;
-          }
-        }
-
-        if (currentIndex > startIndex) {
-          initialDir = 'right';
-        } else if (currentIndex < startIndex) {
-          initialDir = 'left';
-        }
-
-        let isUnselectingCluster = false;
-        if (initialSelectedSnapshot.has(cardId)) {
-          if (currentIndex > startIndex) {
-            isUnselectingCluster = filteredResources
-              .slice(startIndex + 1)
-              .some((r) => initialSelectedSnapshot.has(r.id));
-          } else if (currentIndex < startIndex) {
-            isUnselectingCluster = filteredResources
-              .slice(0, startIndex)
-              .some((r) => initialSelectedSnapshot.has(r.id));
-          } else {
-            isUnselectingCluster =
-              movingDirection === 'right'
-                ? filteredResources
-                    .slice(startIndex + 1)
-                    .some((r) => initialSelectedSnapshot.has(r.id))
-                : filteredResources
-                    .slice(0, startIndex)
-                    .some((r) => initialSelectedSnapshot.has(r.id));
-          }
-        }
-
-        let minIdx = startIndex;
-        let maxIdx = startIndex;
-
-        if (currentIndex > startIndex) {
-          if (movingDirection === 'right') {
-            minIdx = startIndex;
-            maxIdx = currentIndex;
-          } else {
-            minIdx = startIndex;
-            maxIdx = Math.max(startIndex, currentIndex - 1);
-          }
-        } else if (currentIndex < startIndex) {
-          if (movingDirection === 'left') {
-            minIdx = currentIndex;
-            maxIdx = startIndex;
-          } else {
-            minIdx = Math.min(startIndex, currentIndex + 1);
-            maxIdx = startIndex;
-          }
-        } else {
-          const isAtRest =
-            (movingDirection === 'right' &&
-              moveEvent.clientX >= startX &&
-              initialDir === 'left') ||
-            (movingDirection === 'left' &&
-              moveEvent.clientX <= startX &&
-              initialDir === 'right');
-
-          if (isAtRest) {
-            minIdx = 1;
-            maxIdx = 0;
-          } else {
-            minIdx = startIndex;
-            maxIdx = startIndex;
-          }
-        }
-
-        const nextSelection = new Set(initialSelectedSnapshot);
-        for (let i = 0; i < filteredResources.length; i++) {
-          const resId = filteredResources[i].id;
-          if (i >= minIdx && i <= maxIdx) {
-            if (isUnselectingCluster) {
-              if (initialSelectedSnapshot.has(resId)) {
-                nextSelection.delete(resId);
-              } else {
-                nextSelection.add(resId);
-              }
-            } else {
-              nextSelection.add(resId);
-            }
-          } else {
-            if (initialSelectedSnapshot.has(resId)) {
-              nextSelection.add(resId);
-            } else {
-              nextSelection.delete(resId);
-            }
-          }
-        }
-
-        if (onUpdateSelectedIds) {
-          onUpdateSelectedIds(nextSelection);
-        } else {
-          const toAdd: string[] = [];
-          const toRemove: string[] = [];
-          filteredResources.forEach((r) => {
-            const shouldBeSelected = nextSelection.has(r.id);
-            const isCurrentlySelected = selectedIds.has(r.id);
-            if (shouldBeSelected && !isCurrentlySelected) toAdd.push(r.id);
-            if (!shouldBeSelected && isCurrentlySelected) toRemove.push(r.id);
-          });
-          if (toAdd.length > 0) onSelectMultiple(toAdd, true);
-          if (toRemove.length > 0) onSelectMultiple(toRemove, false);
-        }
       }
 
       if (gesture === 'vertical-drag') {
@@ -673,25 +373,11 @@ export function CategorySection({
     e.stopPropagation();
     setIsDragOverSection(false);
 
-    let resourceId = globalActiveDragInfo?.resourceId || '';
-    let sourceCat =
-      globalActiveDragInfo?.sourceCategory || activeDragSourceCategory || '';
-
-    if (!resourceId) {
-      try {
-        const raw = e.dataTransfer.getData('application/json');
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          resourceId = parsed.resourceId || '';
-          sourceCat = parsed.sourceCategory || sourceCat;
-        }
-      } catch {
-        // fallback
-      }
-      if (!resourceId) {
-        resourceId = e.dataTransfer.getData('text/plain');
-      }
-    }
+    const { resourceId, sourceCat } = extractDragPayload(
+      e,
+      globalActiveDragInfo,
+      activeDragSourceCategory,
+    );
 
     if (resourceId && sourceCat && sourceCat !== categoryTitle) {
       onDropOnCategory?.(resourceId, categoryTitle);
@@ -758,25 +444,11 @@ export function CategorySection({
     e.preventDefault();
     setIsDragOverSection(false);
 
-    let resourceId = globalActiveDragInfo?.resourceId || '';
-    let sourceCat =
-      globalActiveDragInfo?.sourceCategory || activeDragSourceCategory || '';
-
-    if (!resourceId) {
-      try {
-        const raw = e.dataTransfer.getData('application/json');
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          resourceId = parsed.resourceId || '';
-          sourceCat = parsed.sourceCategory || sourceCat;
-        }
-      } catch {
-        // fallback
-      }
-      if (!resourceId) {
-        resourceId = e.dataTransfer.getData('text/plain');
-      }
-    }
+    const { resourceId, sourceCat } = extractDragPayload(
+      e,
+      globalActiveDragInfo,
+      activeDragSourceCategory,
+    );
 
     if (resourceId && sourceCat && sourceCat !== categoryTitle) {
       e.stopPropagation();
@@ -884,48 +556,7 @@ export function CategorySection({
             Add
           </button>
 
-          <div className="relative min-w-[220px] sm:min-w-[260px]">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, category..."
-              className="w-full pl-4 pr-9 py-1 text-xs sm:text-sm bg-white border border-[#80131d] rounded-full focus:outline-hidden focus:ring-2 focus:ring-[#80131d]/20 placeholder:text-neutral-500 transition-all"
-            />
-            {searchQuery ? (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-              >
-                <svg
-                  className="w-3.5 h-3.5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            ) : (
-              <svg
-                className="w-4 h-4 text-[#80131d] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            )}
-          </div>
+          <SearchPill value={searchQuery} onChange={setSearchQuery} />
         </div>
       </div>
 
