@@ -1,6 +1,11 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useSyncExternalStore } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useSyncExternalStore,
+} from 'react';
 import { Resource } from '@/types/resource';
 import {
   INITIAL_RESOURCES,
@@ -125,8 +130,12 @@ export function ResourcesPageContent() {
     updateResources(updated);
   };
 
-  const [activeDragCategory, setActiveDragCategory] = useState<string | null>(null);
-  const [activeDragResourceId, setActiveDragResourceId] = useState<string | null>(null);
+  const [activeDragCategory, setActiveDragCategory] = useState<string | null>(
+    null,
+  );
+  const [activeDragResourceId, setActiveDragResourceId] = useState<
+    string | null
+  >(null);
   const [isOverRemovalArea, setIsOverRemovalArea] = useState(false);
   const dragHandledRef = useRef(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -139,7 +148,8 @@ export function ResourcesPageContent() {
     isOverRemoval: boolean;
     hoveredCategoryTitle: string | null;
   }
-  const [activeMultiDrag, setActiveMultiDrag] = useState<ActiveMultiDrag | null>(null);
+  const [activeMultiDrag, setActiveMultiDrag] =
+    useState<ActiveMultiDrag | null>(null);
   const activeMultiDragRef = useRef<ActiveMultiDrag | null>(null);
 
   const showToast = (msg: string) => {
@@ -174,7 +184,9 @@ export function ResourcesPageContent() {
 
     const updatedMap = new Map<string, Resource>();
     resourcesToUpdate.forEach((targetResource) => {
-      const withoutGeneral = targetResource.categories.filter((c) => c !== 'General');
+      const withoutGeneral = targetResource.categories.filter(
+        (c) => c !== 'General',
+      );
       const newCategories = [...withoutGeneral, targetCategory];
       updatedMap.set(targetResource.id, {
         ...targetResource,
@@ -202,9 +214,13 @@ export function ResourcesPageContent() {
 
     updateResources(updated);
     if (newUpdatedItems.length === 1) {
-      showToast(`Added "${newUpdatedItems[0].name}" to the front of ${targetCategory}`);
+      showToast(
+        `Added "${newUpdatedItems[0].name}" to the front of ${targetCategory}`,
+      );
     } else {
-      showToast(`Added ${newUpdatedItems.length} resources to the front of ${targetCategory}`);
+      showToast(
+        `Added ${newUpdatedItems.length} resources to the front of ${targetCategory}`,
+      );
     }
   };
 
@@ -217,9 +233,13 @@ export function ResourcesPageContent() {
     if (sourceCategory === 'General') {
       if (resourceIds.length === 1) {
         const r = resources.find((res) => res.id === resourceIds[0]);
-        showToast(`"${r?.name || 'Resource'}" remains in General (must have at least one category)`);
+        showToast(
+          `"${r?.name || 'Resource'}" remains in General (must have at least one category)`,
+        );
       } else {
-        showToast(`Selected resources remain in General (must have at least one category)`);
+        showToast(
+          `Selected resources remain in General (must have at least one category)`,
+        );
       }
       return;
     }
@@ -281,7 +301,9 @@ export function ResourcesPageContent() {
           `Removed ${resourceIds.length} resources from ${sourceCategory} (${sentToGeneral.length} moved to General)`,
         );
       } else {
-        showToast(`Removed ${resourceIds.length} resources from ${sourceCategory}`);
+        showToast(
+          `Removed ${resourceIds.length} resources from ${sourceCategory}`,
+        );
       }
     }
   };
@@ -371,7 +393,10 @@ export function ResourcesPageContent() {
   const handleEndMultiDrag = () => {
     const cur = activeMultiDragRef.current;
     if (cur) {
-      if (cur.hoveredCategoryTitle && cur.hoveredCategoryTitle !== cur.sourceCategory) {
+      if (
+        cur.hoveredCategoryTitle &&
+        cur.hoveredCategoryTitle !== cur.sourceCategory
+      ) {
         handleAddCategoryToResources(cur.resourceIds, cur.hoveredCategoryTitle);
       } else if (cur.isOverRemoval) {
         handleRemoveCategoryFromResources(cur.resourceIds, cur.sourceCategory);
@@ -401,7 +426,9 @@ export function ResourcesPageContent() {
     targetCategory: string,
   ) => {
     dragHandledRef.current = true;
-    const ids = Array.isArray(resourceIdOrIds) ? resourceIdOrIds : [resourceIdOrIds];
+    const ids = Array.isArray(resourceIdOrIds)
+      ? resourceIdOrIds
+      : [resourceIdOrIds];
     handleAddCategoryToResources(ids, targetCategory);
     handleEndDragCard();
   };
@@ -411,7 +438,9 @@ export function ResourcesPageContent() {
     sourceCategory: string,
   ) => {
     if (!dragHandledRef.current) {
-      const ids = Array.isArray(resourceIdOrIds) ? resourceIdOrIds : [resourceIdOrIds];
+      const ids = Array.isArray(resourceIdOrIds)
+        ? resourceIdOrIds
+        : [resourceIdOrIds];
       handleRemoveCategoryFromResources(ids, sourceCategory);
     }
     handleEndDragCard();
@@ -565,7 +594,12 @@ export function ResourcesPageContent() {
 
     if (isCurrentlyEditing) {
       if (isGlobalEditing) {
-        const allCats = ['Winter Games', 'Summer Games', 'General', ...nsoCategoriesWithResources];
+        const allCats = [
+          'Winter Games',
+          'Summer Games',
+          'General',
+          ...nsoCategoriesWithResources,
+        ];
         const newModes: Record<string, boolean> = {};
         allCats.forEach((c) => {
           if (c !== cat) newModes[c] = true;
@@ -763,7 +797,9 @@ export function ResourcesPageContent() {
           onToggleSelect={handleToggleSelect}
           onSelectMultiple={handleSelectMultiple}
           onUpdateSelectedIds={setSelectedIds}
-          onDeleteSelected={() => handleDeleteSelectedInCategory('Winter Games')}
+          onDeleteSelected={() =>
+            handleDeleteSelectedInCategory('Winter Games')
+          }
           onSelectResourceDetail={setDetailResource}
           onReorderResources={handleReorderResources}
           onStartDragCard={handleStartDragCard}
@@ -796,7 +832,9 @@ export function ResourcesPageContent() {
           onToggleSelect={handleToggleSelect}
           onSelectMultiple={handleSelectMultiple}
           onUpdateSelectedIds={setSelectedIds}
-          onDeleteSelected={() => handleDeleteSelectedInCategory('Summer Games')}
+          onDeleteSelected={() =>
+            handleDeleteSelectedInCategory('Summer Games')
+          }
           onSelectResourceDetail={setDetailResource}
           onReorderResources={handleReorderResources}
           onStartDragCard={handleStartDragCard}
@@ -856,7 +894,9 @@ export function ResourcesPageContent() {
                 ? activeMultiDrag.resourceIds
                 : []
             }
-            activeMultiDragHoveredCategory={activeMultiDrag?.hoveredCategoryTitle}
+            activeMultiDragHoveredCategory={
+              activeMultiDrag?.hoveredCategoryTitle
+            }
             activeMultiDragCount={activeMultiDrag?.resourceIds.length || 0}
             isOverRemovalArea={isOverRemovalArea}
             onToggleEdit={() => toggleCategoryEdit(nsoCategory)}
@@ -949,25 +989,36 @@ export function ResourcesPageContent() {
               })}
 
               <div className="relative w-36 h-36 sm:w-40 sm:h-40 rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-[#80131d] to-[#4a0a10] ring-4 ring-white/90 flex flex-col items-center justify-center p-3 text-center">
-                {resources.find((r) => r.id === activeMultiDrag.resourceIds[0])?.previewUrl && (
+                {resources.find((r) => r.id === activeMultiDrag.resourceIds[0])
+                  ?.previewUrl && (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
-                    src={resources.find((r) => r.id === activeMultiDrag.resourceIds[0])?.previewUrl}
+                    src={
+                      resources.find(
+                        (r) => r.id === activeMultiDrag.resourceIds[0],
+                      )?.previewUrl
+                    }
                     alt=""
                     className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none"
                   />
                 )}
                 <span className="text-white font-bold text-base sm:text-lg tracking-tight leading-snug drop-shadow-md line-clamp-2 px-2 z-10">
-                  {resources.find((r) => r.id === activeMultiDrag.resourceIds[0])?.name || 'Selected items'}
+                  {resources.find(
+                    (r) => r.id === activeMultiDrag.resourceIds[0],
+                  )?.name || 'Selected items'}
                 </span>
                 {activeMultiDrag.hoveredCategoryTitle &&
-                activeMultiDrag.hoveredCategoryTitle !== activeMultiDrag.sourceCategory ? (
+                activeMultiDrag.hoveredCategoryTitle !==
+                  activeMultiDrag.sourceCategory ? (
                   <span className="mt-2 text-xs bg-white text-[#80131d] font-bold px-2.5 py-0.5 rounded-full shadow-md z-10 animate-bounce">
                     + Add to {activeMultiDrag.hoveredCategoryTitle}
                   </span>
                 ) : (
                   <span className="mt-2 text-xs bg-black/70 text-white font-semibold px-2 py-0.5 rounded-full z-10 shadow-xs">
-                    {activeMultiDrag.resourceIds.length} {activeMultiDrag.resourceIds.length === 1 ? 'item' : 'items'}
+                    {activeMultiDrag.resourceIds.length}{' '}
+                    {activeMultiDrag.resourceIds.length === 1
+                      ? 'item'
+                      : 'items'}
                   </span>
                 )}
               </div>
