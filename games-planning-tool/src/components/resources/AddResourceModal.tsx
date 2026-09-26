@@ -115,7 +115,7 @@ function AddResourceForm({
     const finalCategories =
       selectedCategories.length > 0 ? selectedCategories : [DEFAULT_CATEGORY];
 
-    const newId = `res-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const newId = `res-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
     const nowIso = new Date().toISOString();
 
     if (resourceType === 'link') {
@@ -231,10 +231,14 @@ function AddResourceForm({
         )}
 
         <div>
-          <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1.5">
+          <label
+            htmlFor="resource-name"
+            className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1.5"
+          >
             Resource Name <span className="text-red-600">*</span>
           </label>
           <input
+            id="resource-name"
             type="text"
             required
             value={resourceName}
@@ -245,9 +249,9 @@ function AddResourceForm({
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-2">
+          <span className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-2">
             Input Type <span className="text-red-600">*</span>
-          </label>
+          </span>
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
@@ -304,10 +308,14 @@ function AddResourceForm({
         {resourceType === 'link' ? (
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1.5">
+              <label
+                htmlFor="website-url"
+                className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1.5"
+              >
                 Website URL <span className="text-red-600">*</span>
               </label>
               <input
+                id="website-url"
                 type="text"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
@@ -317,9 +325,9 @@ function AddResourceForm({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1.5">
+              <span className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1.5">
                 Card Background Preview Image
-              </label>
+              </span>
               <p className="text-[11px] text-neutral-500 mb-2">
                 Select a theme preview or enter an image URL:
               </p>
@@ -359,11 +367,12 @@ function AddResourceForm({
           </div>
         ) : (
           <div className="space-y-3">
-            <label className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1.5">
+            <span className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1.5">
               File Input <span className="text-red-600">*</span>
-            </label>
+            </span>
 
-            <div
+            <label
+              htmlFor="file-upload-input"
               onDragOver={(e) => {
                 e.preventDefault();
                 setIsDraggingFile(true);
@@ -376,8 +385,7 @@ function AddResourceForm({
                   handleFileChange(e.dataTransfer.files[0]);
                 }
               }}
-              onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
+              className={`block border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
                 isDraggingFile
                   ? 'border-[#80131d] bg-red-50/50'
                   : selectedFile
@@ -386,6 +394,7 @@ function AddResourceForm({
               }`}
             >
               <input
+                id="file-upload-input"
                 ref={fileInputRef}
                 type="file"
                 onChange={(e) => {
@@ -434,15 +443,15 @@ function AddResourceForm({
                   </p>
                 </div>
               )}
-            </div>
+            </label>
           </div>
         )}
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs font-bold text-neutral-800 uppercase tracking-wider">
+            <span className="text-xs font-bold text-neutral-800 uppercase tracking-wider">
               Categories
-            </label>
+            </span>
             <span className="text-[11px] text-neutral-500 italic">
               {selectedCategories.length === 0
                 ? 'None selected ("General" will be assigned automatically)'
