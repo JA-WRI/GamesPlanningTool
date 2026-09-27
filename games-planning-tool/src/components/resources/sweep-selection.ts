@@ -1,3 +1,4 @@
+// Made with AI agents (Antigravity)
 import { Resource } from '@/types/resource';
 
 export interface SweepGestureState {

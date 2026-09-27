@@ -1,3 +1,4 @@
+// Made with AI agents (Antigravity)
 import { Resource, DEFAULT_CATEGORY } from '@/types/resource';
 
 export const INITIAL_RESOURCES: Resource[] = [

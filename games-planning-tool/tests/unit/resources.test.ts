@@ -1,3 +1,4 @@
+// Made with AI agents (Antigravity)
 import { describe, it, expect } from 'vitest';
 import {
   normalizeResourceCategories,
