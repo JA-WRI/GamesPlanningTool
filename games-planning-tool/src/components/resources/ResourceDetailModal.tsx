@@ -1,3 +1,4 @@
+// Made with AI agents (Antigravity)
 'use client';
 
 /* eslint-disable @next/next/no-img-element */

@@ -1,3 +1,4 @@
+// Made with AI agents (Antigravity)
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import React from 'react';

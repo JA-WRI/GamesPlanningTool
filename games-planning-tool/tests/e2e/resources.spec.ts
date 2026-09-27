@@ -1,3 +1,4 @@
+// Made with AI agents (Antigravity)
 import { test, expect, Page, Locator } from '@playwright/test';
 
 async function setupWinterCards(page: Page, requiredCount = 2) {

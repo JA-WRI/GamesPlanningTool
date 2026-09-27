@@ -1,3 +1,4 @@
+// Made with AI agents (Antigravity)
 import { redirect } from 'next/navigation';
 
 export default function Home() {

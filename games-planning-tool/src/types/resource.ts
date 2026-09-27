@@ -1,3 +1,4 @@
+// Made with AI agents (Antigravity)
 export interface BaseResource {
   id: string;
   name: string;
