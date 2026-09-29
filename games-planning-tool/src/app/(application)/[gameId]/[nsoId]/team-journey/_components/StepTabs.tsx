@@ -27,10 +27,16 @@ export default function StepTabs({ activeStep, onStepChange }: StepTabsProps) {
             type="button"
             onClick={() => onStepChange(step.number)}
             className={`flex flex-col items-center py-3 text-sm ${
-              isActive ? 'border border-[#7B1A15] bg-white text-[#7B1A15]' : 'text-gray-800 hover:bg-gray-100'
+              isActive
+                ? 'border border-[#7B1A15] bg-white text-[#7B1A15]'
+                : 'text-gray-800 hover:bg-gray-100'
             }`}
           >
-            <span className={`text-xs ${isActive ? 'font-semibold' : 'text-gray-500'}`}>Step {step.number}</span>
+            <span
+              className={`text-xs ${isActive ? 'font-semibold' : 'text-gray-500'}`}
+            >
+              Step {step.number}
+            </span>
             <span className="font-semibold">{step.label}</span>
           </button>
         );
