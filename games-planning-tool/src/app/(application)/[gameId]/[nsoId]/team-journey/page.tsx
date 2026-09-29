@@ -3,11 +3,26 @@
 import { useState } from 'react';
 import StepTabs, { STEPS } from './_components/StepTabs';
 import TeamSizeStep, { TeamSize } from './_components/TeamSizeStep';
+import AccreditationStep, {
+  AccreditationRow,
+  createEmptyAccreditationRow,
+  FinishedDateBoxes,
+} from './_components/AccreditationStep';
 
 export default function TeamJourneyPage() {
   const [activeStep, setActiveStep] = useState(1);
-  // Stored here (not inside the step) so values survive switching tabs.
-  const [teamSize, setTeamSize] = useState<TeamSize>({ athletes: '', staff: '' });
+  // kept here so nothing is lost when switching tabs
+  const [teamSize, setTeamSize] = useState<TeamSize>({
+    athletes: '',
+    staff: '',
+  });
+  // 4 empty rows to start
+  const [accreditations, setAccreditations] = useState<AccreditationRow[]>(() =>
+    [1, 2, 3, 4].map(createEmptyAccreditationRow),
+  );
+  // date fields the user already left
+  const [accreditationFinishedDateBoxes, setAccreditationFinishedDateBoxes] =
+    useState<FinishedDateBoxes>({});
 
   const currentStep = STEPS.find((step) => step.number === activeStep);
 
@@ -25,10 +40,24 @@ export default function TeamJourneyPage() {
           </button>
         </div>
 
-        {activeStep === 1 && <TeamSizeStep teamSize={teamSize} onChange={setTeamSize} />}
+        {activeStep === 1 && (
+          <TeamSizeStep teamSize={teamSize} onChange={setTeamSize} />
+        )}
+        {activeStep === 2 && (
+          <AccreditationStep
+            rows={accreditations}
+            onChange={setAccreditations}
+            finishedDateBoxes={accreditationFinishedDateBoxes}
+            onFinishedDateBoxesChange={setAccreditationFinishedDateBoxes}
+          />
+        )}
 
-        {/* Placeholder: the other steps will replace this */}
-        {activeStep !== 1 && <p className="mt-8 text-gray-700">Content for: {currentStep?.label}</p>}
+        {/* placeholder, temporary until the other steps are built */}
+        {activeStep > 2 && (
+          <p className="mt-8 text-gray-700">
+            Content for: {currentStep?.label}
+          </p>
+        )}
       </div>
     </div>
   );
