@@ -2,9 +2,12 @@
 
 import { useState } from 'react';
 import StepTabs, { STEPS } from './_components/StepTabs';
+import TeamSizeStep, { TeamSize } from './_components/TeamSizeStep';
 
 export default function TeamJourneyPage() {
   const [activeStep, setActiveStep] = useState(1);
+  // Stored here (not inside the step) so values survive switching tabs.
+  const [teamSize, setTeamSize] = useState<TeamSize>({ athletes: '', staff: '' });
 
   const currentStep = STEPS.find((step) => step.number === activeStep);
 
@@ -22,8 +25,10 @@ export default function TeamJourneyPage() {
           </button>
         </div>
 
-        {/* Placeholder: each step's real content will replace this */}
-        <p className="mt-8 text-gray-700">Content for: {currentStep?.label}</p>
+        {activeStep === 1 && <TeamSizeStep teamSize={teamSize} onChange={setTeamSize} />}
+
+        {/* Placeholder: the other steps will replace this */}
+        {activeStep !== 1 && <p className="mt-8 text-gray-700">Content for: {currentStep?.label}</p>}
       </div>
     </div>
   );
