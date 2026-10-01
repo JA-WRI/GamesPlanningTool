@@ -3,18 +3,14 @@ import React from 'react';
 import { Games } from '@/lib/data';
 import { Role } from '@/lib/types';
 import { useRouter, useParams } from 'next/navigation';
+import { gameSwitchHref } from '@/lib/routing/navigation';
 
 export default function GamesSelector({ role }: { role: Role }) {
   const router = useRouter();
   const params = useParams<{ gameId?: string; nsoId?: string }>();
+
   function handleChange(newGameId: string) {
-    //when NSO changes games they will be redirected to own dashboard.
-    // When COC/Admin change games they will be redirected to their own dashabord.
-    router.push(
-      role === 'nso' && params.nsoId
-        ? `/${newGameId}/${params.nsoId}/dashboard`
-        : `/${newGameId}/dashboard`,
-    );
+    router.push(gameSwitchHref(newGameId, role, params.nsoId));
   }
 
   return (

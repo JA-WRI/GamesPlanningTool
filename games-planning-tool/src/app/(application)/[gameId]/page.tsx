@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/data';
-import { landingPage } from '@/lib/landing-page';
+import { landingPage } from '@/lib/routing/landing-page';
 
 export default async function GamePage({
   params,

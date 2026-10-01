@@ -1,4 +1,4 @@
-import { Role } from './types';
+import { Role } from '../types';
 export function landingPage(
   user: { role: Role; nsoId?: string },
   gameId: string,

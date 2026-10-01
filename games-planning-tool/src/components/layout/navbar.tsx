@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Role } from '@/lib/types';
 import { Games, Nsos } from '@/lib/data';
+import { tabRoute, isActive } from '@/lib/routing/navigation';
 
 type NavItem = {
   label: string;
@@ -95,25 +96,13 @@ export default function Navbar({
   const visible = navItems.filter((item) => item.roles.includes(role));
 
   const items = visible.map(({ label, path, icon }) => {
-    const route = path.startsWith('/')
-      ? path
-      : path === 'dashboard'
-        ? role === 'nso'
-          ? `/${game}/${nso}/dashboard`
-          : `/${game}/dashboard`
-        : `/${game}/${nso}/${path}`;
-
-    const href = path === 'dashboard' ? withNso(route) : route;
-
-    const active = pathname === route || pathname.startsWith(`${route}/`);
-
-    return {
-      label,
-      path,
-      icon,
-      href,
-      active,
-    };
+    const { route, href } = tabRoute(path, {
+      role,
+      game,
+      nso,
+      picked: pickedNso,
+    });
+    return { label, path, icon, href, active: isActive(pathname, route) };
   });
 
   /*
@@ -319,7 +308,7 @@ export default function Navbar({
       {menuOpen && overflowItems.length > 0 && (
         <ul
           ref={dropdownRef}
-          className="absolute right-0 top-full z-20 min-w-[180px] divide-y divide-gray-200 border border-gray-200 bg-white shadow-lg"
+          className="absolute right-0 top-full z-20 min-w-45 divide-y divide-gray-200 border border-gray-200 bg-white shadow-lg"
         >
           {overflowItems.map(({ label, href, icon, active }) => (
             <li key={href}>
