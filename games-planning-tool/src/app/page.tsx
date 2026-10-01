@@ -1,5 +1,8 @@
-import Image from 'next/image';
+import { redirect } from 'next/navigation';
+import { getSession, Games } from '@/lib/data';
+import { landingPage } from '@/lib/landing-page';
 
-export default function Home() {
-  return <div>Hello</div>;
+export default async function RootPage() {
+  const session = await getSession();
+  redirect(landingPage(session.user, Games[0].id));
 }
