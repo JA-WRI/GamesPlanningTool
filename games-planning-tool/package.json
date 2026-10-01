@@ -12,7 +12,11 @@
     "format:check": "prettier --check .",
     "prepare": "husky",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prisma:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "e2e:install": "playwright install --with-deps",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",

@@ -28,7 +28,7 @@ jobs:
           cache-dependency-path: games-planning-tool/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Run ESLint
         run: npm run lint
@@ -53,10 +53,10 @@ jobs:
           cache-dependency-path: games-planning-tool/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Generate Prisma Client
-        run: npx prisma generate
+        run: npm run prisma:generate
 
       - name: Run Vitest
         run: npm run test
@@ -65,6 +65,8 @@ jobs:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
     timeout-minutes: 24
+    env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/games_planning_tool_test?schema=public
 
     services:
       postgres:
@@ -93,23 +95,20 @@ jobs:
           cache-dependency-path: games-planning-tool/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Generate Prisma Client
-        run: npx prisma generate
+        run: npm run prisma:generate
 
       - name: Apply database migrations
-        run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/games_planning_tool_test?schema=public
-
+        run: npm run db:migrate
+      
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npm run e2e:install
 
       - name: Run Playwright tests
-        run: npx playwright test
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/games_planning_tool_test?schema=public
+        run: npm run e2e
+      
 
       - name: Upload Playwright report
         if: failure()
