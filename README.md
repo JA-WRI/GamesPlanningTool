@@ -7,6 +7,7 @@
 ## CI Information
 [![CodeQL](https://github.com/JA-WRI/GamesPlanningTool/actions/workflows/codeql.yml/badge.svg)](https://github.com/JA-WRI/GamesPlanningTool/security/code-scanning)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white)](https://github.com/JA-WRI/GamesPlanningTool/security/dependabot)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=JA-WRI_GamesPlanningTool&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=JA-WRI_GamesPlanningTool)
 ## Project Summary
 
 ## Developer Getting Started Guide
