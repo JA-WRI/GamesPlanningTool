@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 
 export default function Header({ role }: { role: Role }) {
   return (
-    <div className="flex items-center justify-between bg-[#BD6915] p-3">
+    <div className="flex items-center justify-between bg-terracotta p-3">
       <div className="page-container justify-between flex items-center">
         <div className="flex items-center">
           <div className="flex items-center gap-5">

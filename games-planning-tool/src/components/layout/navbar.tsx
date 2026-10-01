@@ -270,7 +270,7 @@ export default function Navbar({
             <Link
               href={href}
               className={`flex items-center justify-center gap-2 whitespace-nowrap px-20 py-4 text-sm font-medium hover:bg-gray-50 ${
-                active ? 'text-[#870606]' : 'text-gray-700'
+                active ? 'text-burgundy' : 'text-gray-700'
               }`}
             >
               <Image
@@ -316,7 +316,7 @@ export default function Navbar({
                 href={href}
                 onClick={() => setMenuOpen(false)}
                 className={`flex items-center gap-2 whitespace-nowrap px-4 py-3 text-sm font-medium hover:bg-gray-50 ${
-                  active ? 'text-[#870606]' : 'text-gray-700'
+                  active ? 'text-burgundy' : 'text-gray-700'
                 }`}
               >
                 <Image
