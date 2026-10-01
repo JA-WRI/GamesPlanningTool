@@ -7,6 +7,7 @@ import {
   usePathname,
   useSearchParams,
 } from 'next/navigation';
+import { nsoSwitchHref } from '@/lib/routing/navigation';
 
 export default function NsoSelector() {
   const router = useRouter();
@@ -19,21 +20,16 @@ export default function NsoSelector() {
   const selected = params.nsoId ?? searchParams.get('nso') ?? '';
 
   function handleChange(newNsoId: string) {
-    const { gameId, nsoId } = params;
-
-    if (nsoId) {
-      // /game1/usa/calculator -> section = "calculator"
-      const section = pathname.split('/')[3];
-      router.push(
-        section === 'dashboard'
-          ? `/${gameId}/dashboard?nso=${newNsoId}` // COC/Admin never see the NSO dashboard
-          : `/${gameId}/${newNsoId}/${section}`,
-      );
-    } else {
-      // /game1/dashboard or /game1/resources: same page, new ?nso=
-      router.push(`${pathname}?nso=${newNsoId}`);
-    }
+    router.push(
+      nsoSwitchHref({
+        pathname,
+        gameId: params.gameId,
+        nsoId: params.nsoId,
+        newNso: newNsoId,
+      }),
+    );
   }
+
   return (
     <select
       value={selected}
