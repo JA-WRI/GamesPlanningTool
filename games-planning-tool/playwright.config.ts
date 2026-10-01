@@ -1,3 +1,4 @@
+//100% AI
 import { defineConfig, devices } from '@playwright/test';
 
 /**
