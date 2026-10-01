@@ -1,8 +1,10 @@
 import Image from 'next/image';
 import GamesSelector from './GamesSelector';
 import NsoSelector from './NsoSelector';
+import { Role } from '@/lib/types';
+import { Suspense } from 'react';
 
-export default function Header() {
+export default function Header({ role }: { role: Role }) {
   return (
     <div className="flex items-center justify-between bg-[#BD6915] p-3">
       <div className="page-container justify-between flex items-center">
@@ -13,15 +15,19 @@ export default function Header() {
               alt="team canada logo"
               width={30}
               height={30}
-              className="gap-2"
+              className="gap-2 w-auto"
             />
             <div className="text-xl font-bold text-white lg:pr-10 2xl:pr-15">
               Games Planning Tool
             </div>
           </div>
           <div className="flex gap-8">
-            <GamesSelector />
-            <NsoSelector />
+            <GamesSelector role={role} />
+            {(role === 'coc' || role === 'admin') && (
+              <Suspense>
+                <NsoSelector />
+              </Suspense>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-8">
