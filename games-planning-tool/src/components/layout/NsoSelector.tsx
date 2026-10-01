@@ -35,7 +35,7 @@ export default function NsoSelector() {
       value={selected}
       onChange={(e) => handleChange(e.target.value)}
       aria-label="Select Nso"
-      className="rounded-full bg-white px-6 p-2 pr-5 text-xs font-semibold outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#870606]"
+      className="rounded-full bg-white px-6 p-2 pr-5 text-xs font-semibold outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-burgundy"
     >
       {!params.nsoId && (
         <option value="" disabled>
