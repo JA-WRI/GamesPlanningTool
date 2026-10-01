@@ -17,3 +17,9 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer components {
+  .page-container {
+    @apply mx-auto w-full px-2;
+  }
+}
