@@ -1,5 +1,6 @@
-import Image from 'next/image';
+// Made with AI agents (Antigravity)
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-  return <div>Hello</div>;
+  redirect('/resources');
 }
