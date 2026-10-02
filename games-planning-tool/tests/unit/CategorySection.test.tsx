@@ -291,4 +291,53 @@ describe('CategorySection', () => {
       expect.any(Array),
     );
   });
+
+  it('handles section dragover, dragleave, and drop reorder', () => {
+    const handleReorder = vi.fn();
+    render(
+      <CategorySection
+        {...defaultProps}
+        isEditing={true}
+        onReorderResources={handleReorder}
+      />,
+    );
+    const cardEl = document.querySelector('[data-resource-id="res-w-1"]')!;
+    const secEl = screen.getByText('Winter Games').closest('section')!;
+
+    const payloadTransfer = {
+      effectAllowed: 'all',
+      setData: vi.fn(),
+      getData: () => '{"resourceId":"res-w-1","sourceCategory":"Winter Games"}',
+      dropEffect: 'copy',
+    };
+
+    fireEvent.dragStart(cardEl, { dataTransfer: payloadTransfer });
+    fireEvent.dragOver(secEl, { dataTransfer: payloadTransfer });
+    fireEvent.dragLeave(secEl, { relatedTarget: document.body });
+    fireEvent.drop(secEl, { dataTransfer: payloadTransfer });
+
+    expect(handleReorder).toHaveBeenCalledWith('Winter Games', expect.any(Array));
+  });
+
+  it('triggers onRemoveFromCategory on dragEnd when over removal area', () => {
+    const handleRemove = vi.fn();
+    render(
+      <CategorySection
+        {...defaultProps}
+        isEditing={true}
+        isOverRemovalArea={true}
+        onRemoveFromCategory={handleRemove}
+      />,
+    );
+    const firstCard = document.querySelector('[data-resource-id="res-w-1"]')!;
+    const dt = {
+      effectAllowed: '',
+      setData: vi.fn(),
+      getData: vi.fn(),
+      dropEffect: '',
+    };
+    fireEvent.dragStart(firstCard, { dataTransfer: dt });
+    fireEvent.dragEnd(firstCard);
+    expect(handleRemove).toHaveBeenCalledWith('res-w-1', 'Winter Games');
+  });
 });
