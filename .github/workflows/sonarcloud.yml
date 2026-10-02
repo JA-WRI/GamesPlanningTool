@@ -32,10 +32,18 @@ jobs:
         working-directory: games-planning-tool
         run: npm ci --ignore-scripts
 
+      - name: Run tests with coverage
+        working-directory: games-planning-tool
+        run: npx vitest run --coverage
+
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
+          projectBaseDir: games-planning-tool
           args: -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
             -Dsonar.organization=${{ secrets.SONAR_ORG }}
+            -Dsonar.sources=src
+            -Dsonar.tests=tests
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
