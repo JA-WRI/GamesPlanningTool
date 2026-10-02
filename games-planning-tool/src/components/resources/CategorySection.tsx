@@ -12,10 +12,14 @@ import {
   SweepGestureState,
 } from './sweep-selection';
 
-export let globalActiveDragInfo: {
-  resourceId: string;
-  sourceCategory: string;
-} | null = null;
+export const activeDragStore: {
+  current: {
+    resourceId: string;
+    sourceCategory: string;
+  } | null;
+} = {
+  current: null,
+};
 
 interface CategorySectionProps {
   categoryTitle: string;
@@ -309,7 +313,7 @@ export function CategorySection({
     draggedCardIdRef.current = id;
     setDraggedCardId(id);
     dragDroppedSuccessfullyRef.current = false;
-    globalActiveDragInfo = { resourceId: id, sourceCategory: categoryTitle };
+    activeDragStore.current = { resourceId: id, sourceCategory: categoryTitle };
 
     e.dataTransfer.effectAllowed = 'copyMove';
     const payload = JSON.stringify({
@@ -328,7 +332,7 @@ export function CategorySection({
     onDragOverSection?.();
 
     const sourceCat =
-      globalActiveDragInfo?.sourceCategory || activeDragSourceCategory;
+      activeDragStore.current?.sourceCategory || activeDragSourceCategory;
 
     if (sourceCat && sourceCat !== categoryTitle) {
       e.dataTransfer.dropEffect = 'copy';
@@ -376,13 +380,13 @@ export function CategorySection({
 
     const { resourceId, sourceCat } = extractDragPayload(
       e,
-      globalActiveDragInfo,
+      activeDragStore.current,
       activeDragSourceCategory,
     );
 
     if (resourceId && sourceCat && sourceCat !== categoryTitle) {
       onDropOnCategory?.(resourceId, categoryTitle);
-      globalActiveDragInfo = null;
+      activeDragStore.current = null;
       return;
     }
 
@@ -393,7 +397,7 @@ export function CategorySection({
     }
     draggedCardIdRef.current = null;
     setDraggedCardId(null);
-    globalActiveDragInfo = null;
+    activeDragStore.current = null;
   };
 
   const handleDragEnd = () => {
@@ -417,7 +421,7 @@ export function CategorySection({
     draggedCardIdRef.current = null;
     setDraggedCardId(null);
     dragDroppedSuccessfullyRef.current = false;
-    globalActiveDragInfo = null;
+    activeDragStore.current = null;
     onEndDragCard?.();
   };
 
@@ -425,7 +429,7 @@ export function CategorySection({
     e.preventDefault();
     onDragOverSection?.();
     const sourceCat =
-      globalActiveDragInfo?.sourceCategory || activeDragSourceCategory;
+      activeDragStore.current?.sourceCategory || activeDragSourceCategory;
 
     if (sourceCat && sourceCat !== categoryTitle) {
       e.dataTransfer.dropEffect = 'copy';
@@ -447,14 +451,14 @@ export function CategorySection({
 
     const { resourceId, sourceCat } = extractDragPayload(
       e,
-      globalActiveDragInfo,
+      activeDragStore.current,
       activeDragSourceCategory,
     );
 
     if (resourceId && sourceCat && sourceCat !== categoryTitle) {
       e.stopPropagation();
       onDropOnCategory?.(resourceId, categoryTitle);
-      globalActiveDragInfo = null;
+      activeDragStore.current = null;
       return;
     }
 
@@ -464,7 +468,7 @@ export function CategorySection({
     }
     draggedCardIdRef.current = null;
     setDraggedCardId(null);
-    globalActiveDragInfo = null;
+    activeDragStore.current = null;
   };
 
   return (

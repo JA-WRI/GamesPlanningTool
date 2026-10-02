@@ -14,7 +14,7 @@ import {
   getCachedResources,
   saveResourcesToStorage,
 } from '@/lib/resources-data';
-import { CategorySection, globalActiveDragInfo } from './CategorySection';
+import { CategorySection, activeDragStore } from './CategorySection';
 import { AddResourceModal } from './AddResourceModal';
 import { ResourceDetailModal } from './ResourceDetailModal';
 import { SearchPill } from './SearchPill';
@@ -460,7 +460,7 @@ export function ResourcesPageContent() {
     const curCat =
       activeDragCategoryRef.current ||
       activeDragCategory ||
-      globalActiveDragInfo?.sourceCategory;
+      activeDragStore.current?.sourceCategory;
     if (curCat) {
       e.preventDefault();
       const targetElem = e.target as HTMLElement;
@@ -481,11 +481,11 @@ export function ResourcesPageContent() {
       const resId =
         activeDragResourceIdRef.current ||
         activeDragResourceId ||
-        globalActiveDragInfo?.resourceId;
+        activeDragStore.current?.resourceId;
       const cat =
         activeDragCategoryRef.current ||
         activeDragCategory ||
-        globalActiveDragInfo?.sourceCategory;
+        activeDragStore.current?.sourceCategory;
       if (resId && cat) {
         handleRemoveCategoryFromResource(resId, cat);
       }

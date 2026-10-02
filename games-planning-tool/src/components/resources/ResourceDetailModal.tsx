@@ -23,13 +23,16 @@ export function ResourceDetailModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="detail-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in"
-      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
     >
-      <div
-        className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-label="Close dialog"
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs animate-in fade-in cursor-default border-none"
+        onClick={onClose}
+      />
+      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden z-10">
         <div className="relative h-48 w-full overflow-hidden bg-neutral-900">
           <img
             src={
