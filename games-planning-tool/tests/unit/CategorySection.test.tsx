@@ -316,7 +316,10 @@ describe('CategorySection', () => {
     fireEvent.dragLeave(secEl, { relatedTarget: document.body });
     fireEvent.drop(secEl, { dataTransfer: payloadTransfer });
 
-    expect(handleReorder).toHaveBeenCalledWith('Winter Games', expect.any(Array));
+    expect(handleReorder).toHaveBeenCalledWith(
+      'Winter Games',
+      expect.any(Array),
+    );
   });
 
   it('triggers onRemoveFromCategory on dragEnd when over removal area', () => {

@@ -342,7 +342,9 @@ describe('ResourcesPageContent', () => {
     fireEvent.click(allCards[0]);
     fireEvent.click(allCards[1]);
 
-    const deleteBtn = screen.getAllByRole('button', { name: /Delete \(2\)/ })[0];
+    const deleteBtn = screen.getAllByRole('button', {
+      name: /Delete \(2\)/,
+    })[0];
     fireEvent.click(deleteBtn);
     expect(window.confirm).toHaveBeenCalled();
   });
