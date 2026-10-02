@@ -240,4 +240,110 @@ describe('ResourcesPageContent', () => {
 
     expect(screen.queryByTestId('multi-drag-avatar')).not.toBeInTheDocument();
   });
+
+  it('does not delete when user cancels confirm prompt', () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    render(<ResourcesPageContent />);
+
+    const summerSec = enterCategoryEdit('Summer Games');
+    const summerCard = within(summerSec).getByText(/Athletics/i);
+    fireEvent.click(summerCard);
+
+    const deleteBtn = within(summerSec).getByRole('button', {
+      name: /Delete \(1\)/,
+    });
+    fireEvent.click(deleteBtn);
+    expect(window.confirm).toHaveBeenCalled();
+  });
+
+  it('shows toast when attempting to remove resource from General category', () => {
+    render(<ResourcesPageContent />);
+    const generalSection = enterCategoryEdit('General');
+    const card = within(generalSection)
+      .getByText(/Athlete Code of Conduct/i)
+      .closest('[data-resource-id]')!;
+
+    const dt = createMockDataTransfer();
+    fireEvent.dragStart(card, { dataTransfer: dt });
+
+    const root = document.querySelector('.min-h-screen')!;
+    fireEvent.dragOver(root, { clientX: 10, clientY: 10 });
+    fireEvent.drop(root, { dataTransfer: dt });
+    fireEvent.dragEnd(card);
+
+    expect(screen.getByText(/remains in General/i)).toBeInTheDocument();
+  });
+
+  it('handles reordering resources within category in ResourcesPageContent', () => {
+    render(<ResourcesPageContent />);
+    const winterSection = enterCategoryEdit('Winter Games');
+    const cards = within(winterSection).getAllByRole('button', {
+      name: /Manual|Guide/i,
+    });
+    const firstCard = cards[0].closest('[data-resource-id]')!;
+    const secondCard = cards[1].closest('[data-resource-id]')!;
+
+    const dt = createMockDataTransfer();
+    dt.getData = vi.fn(() =>
+      JSON.stringify({
+        resourceId: 'res-w-1',
+        sourceCategory: 'Winter Games',
+      }),
+    );
+
+    fireEvent.dragStart(firstCard, { dataTransfer: dt });
+    fireEvent.dragOver(secondCard, { clientX: 250, dataTransfer: dt });
+    fireEvent.drop(secondCard, { dataTransfer: dt });
+  });
+
+  it('handles auto-scroll edge detection on window dragover and pointermove', () => {
+    render(<ResourcesPageContent />);
+    fireEvent(window, new MouseEvent('dragover', { clientY: 10 }));
+    fireEvent(window, new MouseEvent('dragover', { clientY: 200 }));
+    fireEvent(
+      window,
+      new PointerEvent('pointermove', { clientY: 10, buttons: 1 }),
+    );
+    fireEvent(window, new MouseEvent('dragend'));
+  });
+
+  it('handles multi-drag drop over removal area to remove multiple items from category', () => {
+    render(<ResourcesPageContent />);
+    const winterSection = enterCategoryEdit('Winter Games');
+
+    const cards = within(winterSection).getAllByRole('button', {
+      name: /Manual|Guide/i,
+    });
+    fireEvent.click(cards[0]);
+    fireEvent.click(cards[1]);
+
+    const firstCard = cards[0].closest('[data-resource-id]')!;
+    const origElementFromPoint = document.elementFromPoint;
+    document.elementFromPoint = () => null;
+
+    act(() => {
+      fireEvent.pointerDown(firstCard, { clientX: 100, clientY: 100 });
+      window.dispatchEvent(
+        new PointerEvent('pointermove', { clientX: 100, clientY: 150 }),
+      );
+      window.dispatchEvent(new PointerEvent('pointerup'));
+    });
+    document.elementFromPoint = origElementFromPoint;
+  });
+
+  it('deletes multiple selected resources when confirmed', () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    render(<ResourcesPageContent />);
+
+    const globalEditBtn = screen.getAllByRole('button', { name: 'Edit' })[0];
+    fireEvent.click(globalEditBtn);
+
+    const allCards = document.querySelectorAll('[data-resource-id]');
+    fireEvent.click(allCards[0]);
+    fireEvent.click(allCards[1]);
+
+    const deleteBtn = screen.getAllByRole('button', { name: /Delete \(2\)/ })[0];
+    fireEvent.click(deleteBtn);
+    expect(window.confirm).toHaveBeenCalled();
+  });
 });

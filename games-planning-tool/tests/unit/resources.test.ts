@@ -1,8 +1,12 @@
 // Made with AI agents (Antigravity)
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   normalizeResourceCategories,
   INITIAL_RESOURCES,
+  loadResourcesFromStorage,
+  saveResourcesToStorage,
+  getCachedResources,
+  subscribeToResources,
 } from '@/lib/resources-data';
 import {
   Resource,
@@ -145,5 +149,38 @@ describe('Resource Management and Logic', () => {
 
     expect(remaining.length).toBe(1);
     expect(remaining[0].id).toBe('2');
+  });
+
+  it('handles loadResourcesFromStorage fallbacks and valid storage', () => {
+    localStorage.clear();
+    expect(loadResourcesFromStorage().length).toBeGreaterThan(0);
+
+    localStorage.setItem('gpt_resources_v1', 'invalid-json');
+    expect(loadResourcesFromStorage().length).toBeGreaterThan(0);
+
+    localStorage.setItem('gpt_resources_v1', '[]');
+    expect(loadResourcesFromStorage().length).toBeGreaterThan(0);
+
+    const testItem = [
+      { id: 't1', name: 'T1', type: 'link', categories: ['General'] },
+    ];
+    saveResourcesToStorage(testItem);
+    expect(loadResourcesFromStorage()).toEqual(testItem);
+    expect(getCachedResources()).toEqual(testItem);
+
+    const listener = vi.fn();
+    const unsub = subscribeToResources(listener);
+    window.dispatchEvent(new Event('gpt-resources-change'));
+    window.dispatchEvent(new Event('storage'));
+    expect(listener).toHaveBeenCalledTimes(2);
+    unsub();
+
+    const setItemSpy = vi
+      .spyOn(Storage.prototype, 'setItem')
+      .mockImplementation(() => {
+        throw new Error('quota');
+      });
+    saveResourcesToStorage(testItem);
+    setItemSpy.mockRestore();
   });
 });
