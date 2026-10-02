@@ -88,6 +88,15 @@ export function ResourceCard({
   return (
     <div
       data-resource-id={resource.id}
+      role="button"
+      tabIndex={0}
+      aria-label={resource.name}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick(e as unknown as React.MouseEvent);
+        }
+      }}
       draggable={isCardDraggable}
       onDragStart={handleDragStartInternal}
       onDragOver={(e) => onDragOver?.(e, resource.id)}
