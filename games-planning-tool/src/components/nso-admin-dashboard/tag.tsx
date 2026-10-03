@@ -1,10 +1,10 @@
-//AI usage -> 100%bn
+//AI usage -> 100%
 export type TagColor = 'maroon' | 'blue' | 'green' | 'red' | 'yellow' | 'gray';
 
 const colorClasses: Record<TagColor, string> = {
   maroon: 'bg-[#8B1010] text-white',
   blue: 'bg-sky-500 text-white',
-  green: 'bg-lime-300 text-white',
+  green: 'bg-lime-500 text-white',
   red: 'bg-red-600 text-white',
   yellow: 'bg-amber-400 text-white',
   gray: 'bg-gray-500 text-white',
