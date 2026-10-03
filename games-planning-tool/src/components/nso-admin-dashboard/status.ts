@@ -5,9 +5,9 @@ export type Status =
   'Submitted' | 'In Progress' | 'Completed' | 'Not Started' | 'Requires Update';
 
 export const statusColor: Record<Status, TagColor> = {
-  Submitted: 'blue',
+  'Submitted': 'blue',
   'In Progress': 'yellow',
-  Completed: 'green',
+  'Completed': 'green',
   'Not Started': 'gray',
   'Requires Update': 'red',
 };
