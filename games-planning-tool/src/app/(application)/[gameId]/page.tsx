@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/data';
-import { gameSwitchHref } from '@/lib/routing/navigation';
+import { gameSwitchHref } from '@/lib/routing/Navigation';
 
 export default async function GamePage({
   params,
