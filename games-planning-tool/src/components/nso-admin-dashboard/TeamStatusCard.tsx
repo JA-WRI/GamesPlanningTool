@@ -8,20 +8,18 @@ type Column = {
   href: string;
 };
 
-const columns: Column[] = [
-  { title: 'Team Size', status: 'Submitted', href: '#' },
-  { title: 'Accreditation', status: 'Completed', href: '#' },
-  { title: 'Arrival/Travel Out', status: 'Requires Update', href: '#' },
-  { title: 'Departure/Travel Out', status: 'In Progress', href: '#' },
-  { title: 'Review and Completion Status', status: 'Not Started', href: '#' },
-];
+type TeamStatusCardProps = {
+  teamName: string;
+  logo: string;
+  columns: Column[];
+}
 
-export default function TeamStatusCard() {
+export default function TeamStatusCard({teamName, logo, columns}: TeamStatusCardProps) {
   return (
     <div className="inline-flex items-center gap-10 rounded-2xl border border-gray-400 bg-white px-6 py-5">
       <Image
-        src="/Badminton_Canada_logo.png"
-        alt="Badminton Canada"
+        src={logo}
+        alt={teamName}
         width={100}
         height={80}
         className="shrink-0"
