@@ -20,7 +20,7 @@ export default function SearchBar({value, onChange, placeholder = "Type to searc
                     border
                     border-gray-300
                     bg white
-                    px 4
+                    px-4
                     pr-12
                     text-sm
                     text-gray-900
