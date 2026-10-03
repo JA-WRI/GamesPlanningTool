@@ -24,7 +24,22 @@ const teams: Team[] = [
         {title: 'Arrival/Travel Out', status: 'Requires Update', href: '#'},
         {title: 'Departure/Travel Out', status: 'In Progress', href: '#'},
         {title: 'Review and Completion Status', status: 'Not Started', href: '#'}
-    ]}
+    ]},
+    {name: 'Basketball Canada', logo: '/Basketball_Canada_logo.png', columns: [
+        {title: 'Team Size', status: 'Submitted', href: '#'},
+        {title: 'Accreditation', status: 'Not Started', href: '#'},
+        {title: 'Arrival/Travel Out', status: 'Not Started', href: '#'},
+        {title: 'Departure/Travel Out', status: 'Not Started', href: '#'},
+        {title: 'Review and Completion Status', status: 'Not Started', href: '#'}
+    ]},
+    {name: 'Archery Canada', logo: '/Archery_Canada_logo.png', columns: [
+        {title: 'Team Size', status: 'Not Started', href: '#'},
+        {title: 'Accreditation', status: 'Not Started', href: '#'},
+        {title: 'Arrival/Travel Out', status: 'Not Started', href: '#'},
+        {title: 'Departure/Travel Out', status: 'Not Started', href: '#'},
+        {title: 'Review and Completion Status', status: 'Not Started', href: '#'}
+    ]
+    }
 ]
 
 export default function Home() {
@@ -35,14 +50,16 @@ export default function Home() {
     return (
     <main className="p-8">
         {/* Page name */}
-        <h1>NSOs Progress Overview</h1>
+        <h1 className="text-2xl font-bold">NSOs Progress Overview</h1>
+        <h1>[Progress pie charts]</h1>
+        <h1 className="text-xl font-bold">NSOs</h1>
 
         {/* Search bar */}
-        <div className="my-4 w-1/2">
+        <div className="my-4 w-full">
             <SearchBar value={search} onChange={setSearch} placeholder="Search by team name" />
         </div>
 
-        <div>
+        <div className="flex flex-col gap-4 my-4">
             {/* Team cards */}
             {filteredTeams.map((team) => (
                 <TeamStatusCard
