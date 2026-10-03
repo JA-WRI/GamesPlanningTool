@@ -1,7 +1,7 @@
 //60% AI to create the 3 dot overflow view of the navbar.
 'use client';
 
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePathname, useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -67,6 +67,23 @@ const navItems: NavItem[] = [
   },
 ];
 
+// Layout constants used by the overflow calculation.
+const BUFFER = 4;
+const FALLBACK_MORE_WIDTH = 48;
+
+// Icon + label, shared by the visible tabs, the dropdown, and the measuring row.
+function NavLabel({ icon, label }: { icon: string; label: string }) {
+  return (
+    <>
+      <Image src={icon} alt="" width={13} height={13} className="w-auto" />
+      {label}
+    </>
+  );
+}
+
+const tabBorder = (active: boolean) =>
+  active ? 'border-b-4 border-burgundy' : 'border-b-4 border-transparent';
+
 export default function Navbar({
   role,
   userNsoId,
@@ -76,183 +93,170 @@ export default function Navbar({
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  const { nsoId, gameId } = useParams<{
-    nsoId?: string;
-    gameId?: string;
-  }>();
+  const { nsoId, gameId } = useParams<{ nsoId?: string; gameId?: string }>();
 
   const game = gameId ?? Games[0].id;
   const pickedNso = nsoId ?? searchParams.get('nso');
-
   const nso =
     role === 'nso' ? (userNsoId ?? Nsos[0].id) : (pickedNso ?? Nsos[0].id);
 
-  // Keeps the selected NSO when COC/Admin navigate between pages.
-  const withNso = (url: string) =>
-    role !== 'nso' && pickedNso ? `${url}?nso=${pickedNso}` : url;
-
   // Only show navigation items allowed for the current role.
-  const visible = navItems.filter((item) => item.roles.includes(role));
-
-  const items = visible.map(({ label, path, icon }) => {
-    const { route, href } = tabRoute(path, {
-      role,
-      game,
-      nso,
-      picked: pickedNso,
+  const items = navItems
+    .filter((item) => item.roles.includes(role))
+    .map(({ label, path, icon }) => {
+      const { route, href } = tabRoute(path, {
+        role,
+        game,
+        nso,
+        picked: pickedNso,
+      });
+      return { label, path, icon, href, active: isActive(pathname, route) };
     });
-    return { label, path, icon, href, active: isActive(pathname, route) };
-  });
 
-  /*
-   * References used to measure how much space each navigation item needs.
-   */
+  const itemCount = items.length;
+  const activeIndex = items.findIndex((item) => item.active);
+
+  // Refs used to measure how much space each item needs.
   const containerRef = useRef<HTMLUListElement>(null);
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
-  const moreBtnRef = useRef<HTMLButtonElement>(null);
   const moreBtnMeasureRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLUListElement>(null);
 
-  const [visibleCount, setVisibleCount] = useState(items.length);
+  const [visibleCount, setVisibleCount] = useState(itemCount);
+  // Stays false until the first measurement, so the server-rendered (unmeasured)
+  // navbar is never visible.
+  const [measured, setMeasured] = useState(false);
+
+  const routeKey = `${pathname}?${searchParams.toString()}`;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [lastRouteKey, setLastRouteKey] = useState(routeKey);
 
-  /*
-   * Calculate how many navigation items can fit.
-   *
-   * This is intentionally inside the effect instead of useCallback.
-   * That avoids the react-hooks/preserve-manual-memoization ESLint error.
-   */
+  // Close the menu whenever the route changes (link click, Back/Forward, etc.).
+  // Setting state during render is React's recommended way to reset state when
+  // a value changes, and it avoids an extra effect.
+  if (lastRouteKey !== routeKey) {
+    setLastRouteKey(routeKey);
+    setMenuOpen(false);
+  }
+
+  // Work out how many items fit; the rest go into the three-dot menu.
   useLayoutEffect(() => {
     const container = containerRef.current;
-
     if (!container) return;
 
     const recalculate = () => {
-      const containerWidth = container.clientWidth;
+      const available = container.clientWidth - BUFFER;
+      const moreWidth =
+        moreBtnMeasureRef.current?.offsetWidth ?? FALLBACK_MORE_WIDTH;
 
-      // Width of the three-dot button.
-      const moreWidth = moreBtnMeasureRef.current?.offsetWidth ?? 48;
+      // Measured widths already include each item's divider border.
+      const widthOf = (i: number) =>
+        itemRefs.current[i]?.getBoundingClientRect().width ?? 0;
 
-      const borderWidth = 1;
-      const buffer = 4;
+      // How many of `indexes` fit in `space`, taken in order.
+      const countFitting = (
+        indexes: number[],
+        space: number,
+        alwaysReserveMore: boolean,
+      ) => {
+        let used = 0;
+        let count = 0;
 
-      let usedWidth = 0;
-      let count = 0;
+        for (let n = 0; n < indexes.length; n++) {
+          const isLast = n === indexes.length - 1;
+          const limit =
+            alwaysReserveMore || !isLast ? space - moreWidth : space;
 
-      for (let i = 0; i < items.length; i++) {
-        const element = itemRefs.current[i];
+          used += widthOf(indexes[n]);
+          if (used > limit) break;
 
-        if (!element) continue;
-
-        const itemWidth = element.getBoundingClientRect().width;
-
-        // We only need to reserve space for the three-dot button
-        // if there are still items left after this one.
-        const hasMoreItems = i < items.length - 1;
-
-        const availableWidth = hasMoreItems
-          ? containerWidth - moreWidth - buffer
-          : containerWidth - buffer;
-
-        const projectedWidth =
-          usedWidth + itemWidth + (count > 0 ? borderWidth : 0);
-
-        if (projectedWidth <= availableWidth) {
-          usedWidth = projectedWidth;
           count++;
-        } else {
-          break;
         }
+        return count;
+      };
+
+      const all = Array.from({ length: itemCount }, (_, i) => i);
+      let count = countFitting(all, available, false);
+
+      // The active tab didn't fit, so reserve its width and fit the rest around it.
+      if (activeIndex >= count) {
+        const others = all.filter((i) => i !== activeIndex);
+        const space = available - widthOf(activeIndex);
+        count = countFitting(others, space, true) + 1;
       }
 
       setVisibleCount(count);
+      setMeasured(true);
     };
 
-    // Calculate immediately.
     recalculate();
 
-    // Recalculate whenever the navbar changes size.
+    // Also covers window resizes, since the container is fluid.
     const observer = new ResizeObserver(recalculate);
     observer.observe(container);
+    return () => observer.disconnect();
+  }, [itemCount, activeIndex]);
 
-    // Also handle browser resizing.
-    window.addEventListener('resize', recalculate);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', recalculate);
-    };
-  }, [items.length]);
-
-  /*
-   * Close the three-dot menu when clicking outside of it.
-   */
-  useLayoutEffect(() => {
+  // Close the three-dot menu on outside click or Escape.
+  useEffect(() => {
     if (!menuOpen) return;
 
-    const handleClick = (event: MouseEvent) => {
-      const target = event.target as Node;
-
-      const clickedMoreButton = moreBtnRef.current?.contains(target);
-
-      const clickedDropdown = dropdownRef.current?.contains(target);
-
-      if (!clickedMoreButton && !clickedDropdown) {
+    const handleMouseDown = (event: MouseEvent) => {
+      if (!(event.target as Element).closest('[data-more-menu]')) {
         setMenuOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClick);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
 
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [menuOpen]);
 
-  const shownItems = items.slice(0, visibleCount);
-  const overflowItems = items.slice(visibleCount);
+  // If the active tab would be hidden, move it into the last visible slot.
+  const ordered = [...items];
+  if (activeIndex >= visibleCount) {
+    const [active] = ordered.splice(activeIndex, 1);
+    ordered.splice(visibleCount - 1, 0, active);
+  }
+
+  const shownItems = ordered.slice(0, visibleCount);
+  const overflowItems = ordered.slice(visibleCount);
+  const hasOverflow = overflowItems.length > 0;
 
   return (
-    <nav className="relative border-b border-gray-200">
-      {/* 
-        Hidden row used only to measure the natural width
-        of every navigation item.
-      */}
+    <nav aria-label="Main" className="relative border-b border-gray-200">
+      {/* Hidden row used only to measure the natural width of each item. */}
       <div
-        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
-        style={{ visibility: 'hidden' }}
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 invisible overflow-hidden"
       >
         <ul className="flex w-max divide-x divide-gray-200">
-          {items.map(({ label, icon, href }, index) => (
+          {items.map(({ label, path, icon }, index) => (
             <li
-              key={href}
+              key={path}
               ref={(element) => {
                 itemRefs.current[index] = element;
               }}
               className="shrink-0"
             >
-              <span className="flex items-center justify-center gap-2 whitespace-nowrap px-20 py-4 text-sm font-medium">
-                <Image
-                  src={icon}
-                  alt=""
-                  width={16}
-                  height={16}
-                  className="w-auto"
-                />
-
-                {label}
+              <span className="flex items-center justify-center gap-2 whitespace-nowrap px-10 lg:px-20 py-3 text-sm font-medium">
+                <NavLabel icon={icon} label={label} />
               </span>
             </li>
           ))}
 
-          {/* Hidden three-dot button used for measuring its width */}
           <li className="shrink-0">
             <button
               ref={moreBtnMeasureRef}
               type="button"
               tabIndex={-1}
-              className="flex h-full items-center justify-center px-4 py-4 text-sm font-medium"
+              className="flex h-full items-center justify-center px-4 py-3 text-sm font-medium"
             >
               &#8942;
             </button>
@@ -263,38 +267,29 @@ export default function Navbar({
       {/* Actual navbar */}
       <ul
         ref={containerRef}
-        className="flex overflow-hidden divide-x divide-gray-200"
+        className={`flex divide-x divide-gray-200 overflow-hidden ${
+          measured ? '' : 'invisible'
+        }`}
       >
-        {shownItems.map(({ label, href, icon, active }) => (
-          <li key={href} className="flex-1 shrink-0">
+        {shownItems.map(({ label, path, href, icon, active }) => (
+          <li key={path} className="flex flex-1 shrink-0">
             <Link
               href={href}
-              className={`flex items-center justify-center gap-2 whitespace-nowrap px-20 py-4 text-sm font-medium hover:bg-gray-50 ${
-                active ? 'text-burgundy' : 'text-gray-700'
-              }`}
+              aria-current={active ? 'page' : undefined}
+              className={`flex flex-1 items-center justify-center gap-2 whitespace-nowrap px-20 py-3 text-sm font-medium hover:bg-gray-50 ${tabBorder(active)}`}
             >
-              <Image
-                src={icon}
-                alt=""
-                width={16}
-                height={16}
-                className="w-auto"
-              />
-
-              {label}
+              <NavLabel icon={icon} label={label} />
             </Link>
           </li>
         ))}
 
-        {/* Three-dot button */}
-        {overflowItems.length > 0 && (
+        {hasOverflow && (
           <li className="shrink-0">
             <button
-              ref={moreBtnRef}
+              data-more-menu
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
-              className="flex h-full items-center justify-center px-4 py-4 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              aria-haspopup="true"
+              className="flex h-full items-center justify-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
               aria-expanded={menuOpen}
               aria-label="More navigation options"
             >
@@ -305,29 +300,20 @@ export default function Navbar({
       </ul>
 
       {/* Three-dot dropdown */}
-      {menuOpen && overflowItems.length > 0 && (
+      {menuOpen && hasOverflow && (
         <ul
-          ref={dropdownRef}
+          data-more-menu
           className="absolute right-0 top-full z-20 min-w-45 divide-y divide-gray-200 border border-gray-200 bg-white shadow-lg"
         >
-          {overflowItems.map(({ label, href, icon, active }) => (
-            <li key={href}>
+          {overflowItems.map(({ label, path, href, icon, active }) => (
+            <li key={path}>
               <Link
                 href={href}
+                aria-current={active ? 'page' : undefined}
                 onClick={() => setMenuOpen(false)}
-                className={`flex items-center gap-2 whitespace-nowrap px-4 py-3 text-sm font-medium hover:bg-gray-50 ${
-                  active ? 'text-burgundy' : 'text-gray-700'
-                }`}
+                className={`flex items-center gap-2 whitespace-nowrap px-4 py-3 text-sm font-medium hover:bg-gray-50 ${tabBorder(active)}`}
               >
-                <Image
-                  src={icon}
-                  alt=""
-                  width={16}
-                  height={16}
-                  className="w-auto"
-                />
-
-                {label}
+                <NavLabel icon={icon} label={label} />
               </Link>
             </li>
           ))}
