@@ -7,7 +7,7 @@ import {
   usePathname,
   useSearchParams,
 } from 'next/navigation';
-import { nsoSwitchHref } from '@/lib/routing/navigation';
+import { nsoSwitchHref } from '@/lib/routing/Navigation';
 
 export default function NsoSelector() {
   const router = useRouter();

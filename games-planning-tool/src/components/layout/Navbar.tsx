@@ -7,7 +7,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Role } from '@/lib/types';
 import { Games, Nsos } from '@/lib/data';
-import { tabRoute, isActive } from '@/lib/routing/navigation';
+import { tabRoute, isActive } from '@/lib/routing/Navigation';
+import {
+  countVisibleItems,
+  moveActiveIntoView,
+} from '@/lib/routing/NavOverflow';
 
 type NavItem = {
   label: string;
@@ -144,47 +148,21 @@ export default function Navbar({
     if (!container) return;
 
     const recalculate = () => {
-      const available = container.clientWidth - BUFFER;
-      const moreWidth =
-        moreBtnMeasureRef.current?.offsetWidth ?? FALLBACK_MORE_WIDTH;
-
       // Measured widths already include each item's divider border.
-      const widthOf = (i: number) =>
-        itemRefs.current[i]?.getBoundingClientRect().width ?? 0;
+      const widths = Array.from(
+        { length: itemCount },
+        (_, i) => itemRefs.current[i]?.getBoundingClientRect().width ?? 0,
+      );
 
-      // How many of `indexes` fit in `space`, taken in order.
-      const countFitting = (
-        indexes: number[],
-        space: number,
-        alwaysReserveMore: boolean,
-      ) => {
-        let used = 0;
-        let count = 0;
-
-        for (let n = 0; n < indexes.length; n++) {
-          const isLast = n === indexes.length - 1;
-          const limit =
-            alwaysReserveMore || !isLast ? space - moreWidth : space;
-
-          used += widthOf(indexes[n]);
-          if (used > limit) break;
-
-          count++;
-        }
-        return count;
-      };
-
-      const all = Array.from({ length: itemCount }, (_, i) => i);
-      let count = countFitting(all, available, false);
-
-      // The active tab didn't fit, so reserve its width and fit the rest around it.
-      if (activeIndex >= count) {
-        const others = all.filter((i) => i !== activeIndex);
-        const space = available - widthOf(activeIndex);
-        count = countFitting(others, space, true) + 1;
-      }
-
-      setVisibleCount(count);
+      setVisibleCount(
+        countVisibleItems({
+          widths,
+          available: container.clientWidth - BUFFER,
+          moreWidth:
+            moreBtnMeasureRef.current?.offsetWidth ?? FALLBACK_MORE_WIDTH,
+          activeIndex,
+        }),
+      );
       setMeasured(true);
     };
 
@@ -219,11 +197,7 @@ export default function Navbar({
   }, [menuOpen]);
 
   // If the active tab would be hidden, move it into the last visible slot.
-  const ordered = [...items];
-  if (activeIndex >= visibleCount) {
-    const [active] = ordered.splice(activeIndex, 1);
-    ordered.splice(visibleCount - 1, 0, active);
-  }
+  const ordered = moveActiveIntoView(items, activeIndex, visibleCount);
 
   const shownItems = ordered.slice(0, visibleCount);
   const overflowItems = ordered.slice(visibleCount);
@@ -245,7 +219,7 @@ export default function Navbar({
               }}
               className="shrink-0"
             >
-              <span className="flex items-center justify-center gap-2 whitespace-nowrap px-10 lg:px-20 py-3 text-sm font-medium">
+              <span className="flex items-center justify-center gap-2 whitespace-nowrap px-20 py-3 text-sm font-medium">
                 <NavLabel icon={icon} label={label} />
               </span>
             </li>

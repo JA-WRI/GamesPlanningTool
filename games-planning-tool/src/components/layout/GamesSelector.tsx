@@ -3,7 +3,7 @@ import React from 'react';
 import { Games } from '@/lib/data';
 import { Role } from '@/lib/types';
 import { useRouter, useParams } from 'next/navigation';
-import { gameSwitchHref } from '@/lib/routing/navigation';
+import { gameSwitchHref } from '@/lib/routing/Navigation';
 
 export default function GamesSelector({ role }: { role: Role }) {
   const router = useRouter();
