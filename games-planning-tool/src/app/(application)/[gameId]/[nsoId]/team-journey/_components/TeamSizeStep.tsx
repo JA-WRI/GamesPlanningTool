@@ -59,28 +59,42 @@ function SummaryCard({
 
 function Card({
   title,
+  icon,
   children,
 }: {
   title: string;
+  icon: 'users' | 'user' | 'trophy';
   children: React.ReactNode;
 }) {
+  const iconMap = {
+    users: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+        <path d="M16 19v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="10" cy="7" r="3" />
+        <path d="M20 19v-1a4 4 0 0 0-3-3.87" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+    user: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 19a8 8 0 0 1 16 0" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+    trophy: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+        <path d="M8 4h8v3a4 4 0 0 1-8 0V4Z" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M6 7H4a2 2 0 0 0 2 2M18 7h2a2 2 0 0 1-2 2M12 11v5M9 20h6" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M8 20h8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  };
+
   return (
     <div className="rounded-[14px] border border-gray-200 bg-white p-3 shadow-[0_1px_3px_rgba(15,23,42,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_22px_rgba(15,23,42,0.1)] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
       <div className="mb-3 flex items-center gap-2">
         <span className="flex h-7 w-7 items-center justify-center rounded-md bg-red-50 text-[#7d1a16]">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            className="h-4 w-4"
-          >
-            <path
-              d="M7 18V9.5A2.5 2.5 0 0 1 9.5 7H14.5A2.5 2.5 0 0 1 17 9.5V18M9 7V5.5A1.5 1.5 0 0 1 10.5 4H13.5A1.5 1.5 0 0 1 15 5.5V7M3 18h18"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          {iconMap[icon]}
         </span>
         <h3 className="text-base font-bold text-gray-900">{title}</h3>
       </div>
@@ -95,6 +109,7 @@ export default function TeamSizeStep({
 }: TeamSizeStepProps) {
   const [showNotes, setShowNotes] = useState(false);
 
+  // Keeps the step compact while still allowing the user to expand notes when needed.
   const athleteRows = [
     { key: 'male' as const, label: 'Male' },
     { key: 'female' as const, label: 'Female' },
@@ -167,7 +182,7 @@ export default function TeamSizeStep({
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <Card title="Athletes">
+        <Card title="Athletes" icon="users">
           <div className="space-y-2">
             <div className="grid grid-cols-[1.3fr_repeat(3,minmax(58px,1fr))] gap-2 text-center text-[11px] font-semibold text-gray-700">
               <div />
@@ -242,7 +257,7 @@ export default function TeamSizeStep({
         </Card>
 
         <div className="space-y-4">
-          <Card title="Support Staff">
+          <Card title="Support Staff" icon="user">
             <label
               htmlFor="staff"
               className="mb-1 block text-xs font-semibold text-gray-700"
@@ -262,7 +277,7 @@ export default function TeamSizeStep({
             />
           </Card>
 
-          <Card title="Performance Objectives">
+          <Card title="Performance Objectives" icon="trophy">
             <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
               NSO-projected medals
             </div>
@@ -342,26 +357,6 @@ export default function TeamSizeStep({
         )}
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-3">
-        <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] text-gray-700">
-          <div>Athletes (best guess)</div>
-          <div className="mt-1 text-base font-bold text-gray-900">
-            {athletesBestGuessTotal}
-          </div>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] text-gray-700">
-          <div>Staff</div>
-          <div className="mt-1 text-base font-bold text-gray-900">
-            {toNumber(teamSize.staff || 0)}
-          </div>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] text-gray-700">
-          <div>Estimated total team size</div>
-          <div className="mt-1 text-base font-bold text-gray-900">
-            {estimatedTotalTeamSize}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
