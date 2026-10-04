@@ -8,14 +8,12 @@ import AccreditationStep, {
   createEmptyAccreditationRow,
   FinishedDateBoxes,
 } from './_components/AccreditationStep';
+import { INITIAL_TEAM_SIZE } from './_lib/mockData';
 
 export default function TeamJourneyPage() {
   const [activeStep, setActiveStep] = useState(1);
   // kept here so nothing is lost when switching tabs
-  const [teamSize, setTeamSize] = useState<TeamSize>({
-    athletes: '',
-    staff: '',
-  });
+  const [teamSize, setTeamSize] = useState<TeamSize>(INITIAL_TEAM_SIZE);
   // 4 empty rows to start
   const [accreditations, setAccreditations] = useState<AccreditationRow[]>(() =>
     [1, 2, 3, 4].map(createEmptyAccreditationRow),
