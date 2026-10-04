@@ -77,17 +77,45 @@ function Card({
 }) {
   const iconMap = {
     users: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-        <path d="M16 19v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1" strokeLinecap="round" strokeLinejoin="round" />
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        className="h-4 w-4"
+      >
+        <path
+          d="M16 19v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
         <circle cx="10" cy="7" r="3" />
-        <path d="M20 19v-1a4 4 0 0 0-3-3.87" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M20 19v-1a4 4 0 0 0-3-3.87"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M16 3.13a4 4 0 0 1 0 7.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     ),
     user: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        className="h-4 w-4"
+      >
         <circle cx="12" cy="8" r="4" />
-        <path d="M4 19a8 8 0 0 1 16 0" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M4 19a8 8 0 0 1 16 0"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     ),
     medal: <span className="text-[16px] leading-none">🏅</span>,
@@ -111,7 +139,6 @@ export default function TeamSizeStep({
   onChange,
 }: TeamSizeStepProps) {
   const [showNotes, setShowNotes] = useState(false);
-
 
   const athleteRows = [
     { key: 'male' as const, label: 'Male' },
@@ -170,7 +197,10 @@ export default function TeamSizeStep({
       : null;
 
   return (
-    <div className="step-fade mx-auto max-w-[1100px] px-4 pt-[14px]" style={{ animation: 'fadeIn 220ms ease-out' }}>
+    <div
+      className="step-fade mx-auto max-w-[1100px] px-4 pt-[14px]"
+      style={{ animation: 'fadeIn 220ms ease-out' }}
+    >
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(4px); }
@@ -185,13 +215,21 @@ export default function TeamSizeStep({
 
       {/* Show the main team totals at a glance. */}
       <div className="grid gap-[12px] md:grid-cols-3">
-        <SummaryCard title="Total team size" value={estimatedTotalTeamSize} accent="red" />
+        <SummaryCard
+          title="Total team size"
+          value={estimatedTotalTeamSize}
+          accent="red"
+        />
         <SummaryCard
           title="Athletes (best guess)"
           value={athletesBestGuessTotal}
           accent="navy"
         />
-        <SummaryCard title="Projected medals" value={projectedMedalsValue} accent="gold" />
+        <SummaryCard
+          title="Projected medals"
+          value={projectedMedalsValue}
+          accent="gold"
+        />
       </div>
 
       <div className="mt-[12px] grid gap-[12px] lg:grid-cols-[2fr_1fr]">
@@ -288,7 +326,9 @@ export default function TeamSizeStep({
                     id="notes"
                     rows={3}
                     value={teamSize.notes}
-                    onChange={(e) => onChange({ ...teamSize, notes: e.target.value })}
+                    onChange={(e) =>
+                      onChange({ ...teamSize, notes: e.target.value })
+                    }
                     className={`${inputClass} min-h-[72px] w-full resize-none border border-gray-300 bg-gray-50 px-2 py-2 text-sm text-gray-900 transition-all duration-200 focus:border-[#b5372f] focus:ring-4 focus:ring-red-100`}
                   />
                 </div>
