@@ -31,10 +31,12 @@ function SummaryCard({
   title,
   value,
   accent,
+  range,
 }: {
   title: string;
   value: string | number;
   accent: 'red' | 'navy' | 'gold';
+  range?: string;
 }) {
   const gradientMap = {
     red: 'from-[#7d1a16] to-[#b5372f]',
@@ -47,10 +49,17 @@ function SummaryCard({
       className={`relative overflow-hidden rounded-[18px] bg-gradient-to-r ${gradientMap[accent]} p-4 text-white shadow-[0_2px_10px_rgba(15,23,42,0.12)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(15,23,42,0.14)] motion-reduce:transition-none motion-reduce:hover:translate-y-0`}
     >
       <div className="pointer-events-none absolute -right-5 -top-5 h-20 w-20 rounded-full bg-white/10" />
-      <div className="relative z-10 flex h-full flex-col justify-between">
+      <div className="relative z-10 flex h-full min-h-[128px] flex-col justify-between">
         <div className="text-sm font-medium text-white/90">{title}</div>
-        <div className="mt-4 text-[2rem] font-bold leading-none tracking-tight">
-          {value}
+        <div className="mt-4 flex flex-col justify-end">
+          <div className="text-[2rem] font-bold leading-none tracking-tight">
+            {value}
+          </div>
+          {range && (
+            <div className="mt-1 text-[11px] font-medium text-white/80">
+              {range}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -144,6 +153,8 @@ export default function TeamSizeStep({
   );
 
   const athletesBestGuessTotal = totals.bestGuess;
+  const athletesLowTotal = totals.low;
+  const athletesHighTotal = totals.high;
   const estimatedTotalTeamSize =
     athletesBestGuessTotal + toNumber(teamSize.staff || 0);
 
@@ -151,8 +162,8 @@ export default function TeamSizeStep({
   const projectedMedalsHigh = teamSize.projectedMedalsHigh;
   const projectedMedalsValue =
     projectedMedalsLow || projectedMedalsHigh
-      ? `${projectedMedalsLow || '–'} – ${projectedMedalsHigh || '–'}`
-      : '–';
+      ? `${projectedMedalsLow || 'Not set'} – ${projectedMedalsHigh || 'Not set'}`
+      : 'Not set';
 
   const projectedMedalsMessage =
     projectedMedalsLow !== '' &&
@@ -177,7 +188,12 @@ export default function TeamSizeStep({
 
       <div className="grid gap-4 md:grid-cols-3">
         <SummaryCard title="Total team size" value={estimatedTotalTeamSize} accent="red" />
-        <SummaryCard title="Athletes (best guess)" value={athletesBestGuessTotal} accent="navy" />
+        <SummaryCard
+          title="Athletes (best guess)"
+          value={athletesBestGuessTotal}
+          accent="navy"
+          range={`Range: ${athletesLowTotal} – ${athletesHighTotal}`}
+        />
         <SummaryCard title="Projected medals" value={projectedMedalsValue} accent="gold" />
       </div>
 
@@ -253,6 +269,34 @@ export default function TeamSizeStep({
                 {totals.high}
               </div>
             </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setShowNotes((current) => !current)}
+                className="text-sm font-bold text-[#7d1a16] underline-offset-4 outline-none transition-all duration-200 hover:underline focus-visible:ring-4 focus-visible:ring-red-100 focus-visible:ring-offset-2"
+              >
+                {showNotes ? 'Hide notes' : '+ Add notes'}
+              </button>
+
+              {showNotes && (
+                <div className="mt-3 rounded-[14px] border border-gray-200 bg-white p-3 shadow-[0_1px_3px_rgba(15,23,42,0.08)]">
+                  <label
+                    htmlFor="notes"
+                    className="mb-1 block text-xs font-semibold text-gray-700"
+                  >
+                    Notes / factors influencing athlete team size
+                  </label>
+                  <textarea
+                    id="notes"
+                    rows={3}
+                    value={teamSize.notes}
+                    onChange={(e) => onChange({ ...teamSize, notes: e.target.value })}
+                    className={`${inputClass} min-h-[72px] w-full resize-none border border-gray-300 bg-gray-50 px-2 py-2 text-sm text-gray-900 transition-all duration-200 focus:border-[#b5372f] focus:ring-4 focus:ring-red-100`}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </Card>
 
@@ -273,7 +317,7 @@ export default function TeamSizeStep({
               onChange={(e) =>
                 onChange({ ...teamSize, staff: onlyDigits(e.target.value) })
               }
-              className={`${inputClass} w-full border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm text-gray-900 transition-all duration-200 focus:border-[#b5372f] focus:ring-4 focus:ring-red-100`}
+              className={`${inputClass} w-[6rem] border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm text-gray-900 transition-all duration-200 focus:border-[#b5372f] focus:ring-4 focus:ring-red-100`}
             />
           </Card>
 
@@ -329,33 +373,6 @@ export default function TeamSizeStep({
         </div>
       </div>
 
-      <div className="pt-1">
-        <button
-          type="button"
-          onClick={() => setShowNotes((current) => !current)}
-          className="text-sm font-bold text-[#7d1a16] underline-offset-4 hover:underline"
-        >
-          {showNotes ? 'Hide notes' : '+ Add notes'}
-        </button>
-
-        {showNotes && (
-          <div className="mt-3 rounded-[14px] border border-gray-200 bg-white p-3 shadow-[0_1px_3px_rgba(15,23,42,0.08)]">
-            <label
-              htmlFor="notes"
-              className="mb-1 block text-xs font-semibold text-gray-700"
-            >
-              Notes / factors influencing athlete team size
-            </label>
-            <textarea
-              id="notes"
-              rows={3}
-              value={teamSize.notes}
-              onChange={(e) => onChange({ ...teamSize, notes: e.target.value })}
-              className={`${inputClass} min-h-[72px] w-full resize-none border border-gray-300 bg-gray-50 px-2 py-2 text-sm text-gray-900 transition-all duration-200 focus:border-[#b5372f] focus:ring-4 focus:ring-red-100`}
-            />
-          </div>
-        )}
-      </div>
 
     </div>
   );
