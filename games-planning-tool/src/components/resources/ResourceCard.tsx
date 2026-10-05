@@ -144,7 +144,16 @@ export function ResourceCard({
           ? 'text-sm sm:text-base font-extrabold bg-transparent text-amber-950 border-b-2 border-amber-900/40'
           : 'text-lg sm:text-xl font-bold bg-transparent text-white tracking-tight leading-snug drop-shadow-md border-b-2 border-white/50'
       }`}
-      style={{ border: 'none', borderBottom: variant === 'folder' ? '2px solid rgba(69,26,3,0.4)' : '2px solid rgba(255,255,255,0.5)', borderRadius: 0, padding: 0, background: 'transparent' }}
+      style={{
+        border: 'none',
+        borderBottom:
+          variant === 'folder'
+            ? '2px solid rgba(69,26,3,0.4)'
+            : '2px solid rgba(255,255,255,0.5)',
+        borderRadius: 0,
+        padding: 0,
+        background: 'transparent',
+      }}
       onClick={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
     />
@@ -296,16 +305,52 @@ export function ResourceCard({
                   stroke="#94a3b8"
                   strokeWidth="0.9"
                 />
-                <line x1="26" y1="14" x2="48" y2="14" stroke="#475569" strokeWidth="1.6" strokeLinecap="round" />
-                <line x1="26" y1="19" x2="65" y2="19" stroke="#64748b" strokeWidth="1.3" strokeLinecap="round" />
-                <line x1="26" y1="24" x2="58" y2="24" stroke="#94a3b8" strokeWidth="1.2" strokeLinecap="round" />
+                <line
+                  x1="26"
+                  y1="14"
+                  x2="48"
+                  y2="14"
+                  stroke="#475569"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+                <line
+                  x1="26"
+                  y1="19"
+                  x2="65"
+                  y2="19"
+                  stroke="#64748b"
+                  strokeWidth="1.3"
+                  strokeLinecap="round"
+                />
+                <line
+                  x1="26"
+                  y1="24"
+                  x2="58"
+                  y2="24"
+                  stroke="#94a3b8"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                />
               </g>
             )}
 
             {/* Front flap */}
-            <rect x="0" y="12" width="100" height="94" rx="13.6" fill="url(#folderFrontGrad)" />
+            <rect
+              x="0"
+              y="12"
+              width="100"
+              height="94"
+              rx="13.6"
+              fill="url(#folderFrontGrad)"
+            />
             {/* Highlight rim */}
-            <path d="M 13.6 13 L 86.4 13" stroke="#fff" strokeWidth="0.9" strokeOpacity="0.6" />
+            <path
+              d="M 13.6 13 L 86.4 13"
+              stroke="#fff"
+              strokeWidth="0.9"
+              strokeOpacity="0.6"
+            />
 
             {/* Folder name centered on front flap */}
             <foreignObject x="5" y="20" width="90" height="80">
@@ -405,7 +450,11 @@ export function ResourceCard({
                 }`}
               >
                 {isSelected && (
-                  <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                  <svg
+                    className="w-4 h-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M16.707 5.293a1 1 0 011.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -420,7 +469,11 @@ export function ResourceCard({
           {/* Drag grip — HTML positioned outside SVG (identical to resource cards) */}
           {isEditing && canReorder && (
             <div className="absolute bottom-2 right-2 z-20 opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none">
-              <svg className="w-4 h-4 text-white/80" fill="currentColor" viewBox="0 0 20 20">
+              <svg
+                className="w-4 h-4 text-white/80"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
                 <path d="M7 4a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0zM7 16a2 2 0 11-4 0 2 2 0 014 0zM17 4a2 2 0 11-4 0 2 2 0 014 0zM17 10a2 2 0 11-4 0 2 2 0 014 0zM17 16a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
@@ -495,7 +548,11 @@ export function ResourceCard({
                 }`}
               >
                 {isSelected && (
-                  <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                  <svg
+                    className="w-4 h-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M16.707 5.293a1 1 0 011.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -509,7 +566,11 @@ export function ResourceCard({
 
           {isEditing && canReorder && (
             <div className="absolute bottom-2 right-2 z-20 opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none">
-              <svg className="w-4 h-4 text-white/80" fill="currentColor" viewBox="0 0 20 20">
+              <svg
+                className="w-4 h-4 text-white/80"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
                 <path d="M7 4a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0zM7 16a2 2 0 11-4 0 2 2 0 014 0zM17 4a2 2 0 11-4 0 2 2 0 014 0zM17 10a2 2 0 11-4 0 2 2 0 014 0zM17 16a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>

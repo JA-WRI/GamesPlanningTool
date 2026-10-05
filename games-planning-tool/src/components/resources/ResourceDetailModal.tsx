@@ -76,7 +76,13 @@ export function ResourceDetailModal({
                   if (e.key === 'Escape') setIsEditingName(false);
                 }}
                 className="text-2xl font-bold text-white bg-transparent text-center outline-none drop-shadow-md w-full max-w-xs"
-                style={{ background: 'transparent', border: 'none', borderBottom: '2px solid rgba(255,255,255,0.5)', borderRadius: 0, padding: 0 }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: '2px solid rgba(255,255,255,0.5)',
+                  borderRadius: 0,
+                  padding: 0,
+                }}
               />
             ) : (
               <h2

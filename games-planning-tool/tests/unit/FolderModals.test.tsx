@@ -59,12 +59,16 @@ describe('FolderDirectoryModal & FolderRemovalConfirmModal', () => {
     expect(screen.getByText('Alpine Schedule PDF')).toBeInTheDocument();
 
     // Clicking a child file card opens its detail
-    const fileCard = document.querySelector('[data-resource-id="file-1"]') as HTMLElement;
+    const fileCard = document.querySelector(
+      '[data-resource-id="file-1"]',
+    ) as HTMLElement;
     fireEvent.click(fileCard);
     expect(handleSelectDetail).toHaveBeenCalledWith(childFile);
 
     // Filter items
-    const searchInput = screen.getByPlaceholderText('Search by name, category...');
+    const searchInput = screen.getByPlaceholderText(
+      'Search by name, category...',
+    );
     fireEvent.change(searchInput, { target: { value: 'Day 1' } });
     expect(screen.getByText('Day 1 Runs')).toBeInTheDocument();
     expect(screen.queryByText('Alpine Schedule PDF')).not.toBeInTheDocument();
@@ -87,7 +91,9 @@ describe('FolderDirectoryModal & FolderRemovalConfirmModal', () => {
     expect(handleAddResource).toHaveBeenCalledWith('folder-root');
 
     // Drill down into subfolder
-    const subfolderCard = document.querySelector('[data-resource-id="folder-sub-1"]') as HTMLElement;
+    const subfolderCard = document.querySelector(
+      '[data-resource-id="folder-sub-1"]',
+    ) as HTMLElement;
     fireEvent.click(subfolderCard);
     expect(screen.getByText('This folder is empty.')).toBeInTheDocument();
 

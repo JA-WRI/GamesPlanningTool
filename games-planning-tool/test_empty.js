@@ -1,4 +1,4 @@
 function test() {
-    console.log("empty drop logic");
+  console.log('empty drop logic');
 }
 test();

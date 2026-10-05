@@ -1,1 +1,1 @@
-console.log("We can add onDeleteResources to FolderDirectoryModalProps.");
+console.log('We can add onDeleteResources to FolderDirectoryModalProps.');

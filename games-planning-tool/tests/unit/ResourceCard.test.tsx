@@ -153,7 +153,7 @@ describe('ResourceCard', () => {
         {...defaultProps}
         resource={folderResource}
         onRename={handleRename}
-      />
+      />,
     );
 
     const title = screen.getByText('Old Folder');
@@ -169,7 +169,7 @@ describe('ResourceCard', () => {
     fireEvent.doubleClick(screen.getByText('Old Folder'));
     const input2 = screen.getByDisplayValue('Old Folder');
     fireEvent.keyDown(input2, { key: 'Escape' });
-    
+
     // Input should be gone
     expect(screen.queryByDisplayValue('Old Folder')).not.toBeInTheDocument();
   });

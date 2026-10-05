@@ -1,1 +1,1 @@
-console.log("Found it! Cycle prevention bypass in pointerUp.");
+console.log('Found it! Cycle prevention bypass in pointerUp.');
