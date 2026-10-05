@@ -1,0 +1,60 @@
+// Made with AI agents (Antigravity)
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import React from 'react';
+import { FolderDirectoryModal } from '@/components/resources/FolderDirectoryModal';
+import { FolderResource, FileResource } from '@/types/resource';
+
+describe('FolderDirectoryModal Drag Coverage', () => {
+  const rootFolder: FolderResource = { id: 'folder-root', name: 'Root', type: 'folder', categories: ['Winter'] };
+  const subFolder: FolderResource = { id: 'folder-sub-1', name: 'Sub', type: 'folder', parentId: 'folder-root', categories: ['Winter'] };
+  const childFile: FileResource = { id: 'file-1', name: 'File 1', type: 'file', parentId: 'folder-root', categories: ['Winter'] };
+  const allResources = [rootFolder, subFolder, childFile];
+
+  it('triggers drag and drop on a subfolder', () => {
+    const handleMove = vi.fn();
+    render(
+      <FolderDirectoryModal
+        folder={rootFolder}
+        allResources={allResources}
+        currentCategory="Winter"
+        onClose={vi.fn()}
+        onMoveResourceToFolder={handleMove}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    expect(screen.getByRole('button', { name: 'Done' })).not.toBeNull();
+
+    const fileEl = document.querySelector('[data-folder-item-id="file-1"]') as HTMLElement;
+    const folderEl = document.querySelector('[data-folder-item-id="folder-sub-1"]') as HTMLElement;
+    
+    expect(fileEl).not.toBeNull();
+    expect(folderEl).not.toBeNull();
+
+    // Start dragging file
+    const cardEl = fileEl.querySelector('[data-resource-id="file-1"]') as HTMLElement;
+    
+    console.log("cardEl class", cardEl?.className);
+
+    const origElementFromPoint = document.elementFromPoint;
+    document.elementFromPoint = vi.fn(() => document.body);
+
+    act(() => {
+      fireEvent.pointerDown(cardEl, { clientX: 10, clientY: 10, pointerId: 1, preventDefault: vi.fn() });
+      document.dispatchEvent(new PointerEvent('pointermove', { clientX: 30, clientY: 30, pointerId: 1 }));
+    });
+
+    document.elementFromPoint = vi.fn(() => folderEl);
+    folderEl.getBoundingClientRect = vi.fn(() => ({ left: 40, right: 60, top: 40, bottom: 60, width: 20, height: 20, x: 40, y: 40, toJSON: () => {} })) as unknown as DOMRect;
+
+    act(() => {
+      document.dispatchEvent(new PointerEvent('pointermove', { clientX: 50, clientY: 50, pointerId: 1 }));
+      document.dispatchEvent(new PointerEvent('pointerup', { clientX: 50, clientY: 50, pointerId: 1 }));
+    });
+
+    document.elementFromPoint = origElementFromPoint;
+
+    expect(handleMove).toHaveBeenCalledWith(['file-1'], 'folder-sub-1');
+  });
+});
