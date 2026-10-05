@@ -1,9 +1,17 @@
 'use client';
 
 import TeamStatusCard from '@/components/coc-admin-dashboard/TeamStatusCard';
+import { Status } from '@/components/coc-admin-dashboard/status';
 import SearchBar from '@/components/commons/SearchBar';
 import { useState } from 'react';
-import { Status } from '@/components/coc-admin-dashboard/status';
+
+import {
+  statusToSegments,
+  statusLegendItems,
+} from '@/components/coc-admin-dashboard/status';
+import DonutChartCard from '@/components/coc-admin-dashboard/chart/donutChartCard';
+import ChartLegend from '@/components/coc-admin-dashboard/chart/chartLegend';
+import { mockDashboard } from '@/lib/mock-data-chart';
 
 type Column = {
   title: string;
@@ -26,11 +34,7 @@ const teams: Team[] = [
       { title: 'Accreditation', status: 'Completed', href: '#' },
       { title: 'Arrival/Travel Out', status: 'Requires Update', href: '#' },
       { title: 'Departure/Travel Out', status: 'In Progress', href: '#' },
-      {
-        title: 'Review and Completion Status',
-        status: 'Not Started',
-        href: '#',
-      },
+      { title: 'Review and Completion', status: 'Not Started', href: '#' },
     ],
   },
   {
@@ -74,10 +78,21 @@ export default function Home() {
 
   return (
     <main className="p-8">
-      {/* Page name */}
       <h1 className="text-2xl font-bold">NSOs Progress Overview</h1>
-      <h1>[Progress pie charts]</h1>
-      <h1 className="text-xl font-bold">NSOs</h1>
+      <div className="flex justify-center gap-20 px-10 mt-10">
+        {mockDashboard.map((d) => (
+          <DonutChartCard
+            key={d.title}
+            title={d.title}
+            segments={statusToSegments(d.counts)}
+          />
+        ))}
+      </div>
+      {/* Page name */}
+      <div className="mt-8 flex items-center justify-between mr-10">
+        <h1 className="text-xl font-bold ml-6">NSOs</h1>
+        <ChartLegend items={statusLegendItems} />
+      </div>
 
       {/* Search bar */}
       <div className="my-4 w-full">
