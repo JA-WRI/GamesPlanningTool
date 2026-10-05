@@ -1,4 +1,3 @@
-/* istanbul ignore file */
 // Made with AI agents (Antigravity)
 'use client';
 
@@ -181,11 +180,9 @@ export function FolderDirectoryModal({
   const pointerMoveHandlerRef = useRef<(e: PointerEvent) => void>(() => {});
   const pointerUpHandlerRef = useRef<(e: PointerEvent) => void>(() => {});
 
-   /* istanbul ignore next */
   const stablePointerMove = useCallback((e: PointerEvent) => {
     pointerMoveHandlerRef.current(e);
   }, []);
-   /* istanbul ignore next */
   const stablePointerUp = useCallback((e: PointerEvent) => {
     pointerUpHandlerRef.current(e);
   }, []);
@@ -493,7 +490,6 @@ export function FolderDirectoryModal({
     };
   }); // Close the useEffect around handler refs
 
-   /* istanbul ignore next */
   const startPointerDrag = (e: React.PointerEvent, itemId: string) => {
     if (!isEditingFolder) return;
     e.preventDefault();

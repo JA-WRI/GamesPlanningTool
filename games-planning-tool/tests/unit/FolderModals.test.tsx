@@ -1,6 +1,6 @@
 // Made with AI agents (Antigravity)
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, act, within } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
 import { FolderDirectoryModal } from '@/components/resources/FolderDirectoryModal';
 import { FolderRemovalConfirmModal } from '@/components/resources/FolderRemovalConfirmModal';
@@ -112,7 +112,6 @@ describe('FolderDirectoryModal & FolderRemovalConfirmModal', () => {
   it('handles edit mode, selection, renaming, and removal', () => {
     const handleRemoveFromFolder = vi.fn();
     const handleDeleteResources = vi.fn();
-    const handleRenameResource = vi.fn();
     
     render(
       <FolderDirectoryModal
