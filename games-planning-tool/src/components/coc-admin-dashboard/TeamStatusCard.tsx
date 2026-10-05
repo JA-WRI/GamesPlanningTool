@@ -20,7 +20,7 @@ export default function TeamStatusCard({
   columns,
 }: TeamStatusCardProps) {
   return (
-    <div className="inline-flex items-center gap-10 rounded-2xl border border-gray-400 bg-white px-6 py-5">
+    <div className="flex w-full flex-wrap items-center gap-x-10 gap-y-4 rounded-2xl border border-gray-400 bg-white px-6 py-5">
       <Image
         src={logo}
         alt={teamName}
