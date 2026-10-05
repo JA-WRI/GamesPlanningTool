@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import StepTabs, { STEPS } from './_components/StepTabs';
-import TeamSizeStep, { TeamSize } from './_components/TeamSizeStep';
-import AccreditationStep, {
+import TeamSizeStep from './_components/TeamSizeStep';
+import AccreditationStep from './_components/AccreditationStep';
+import { TeamSize } from './_lib/teamSizeLogic';
+import {
   AccreditationRow,
   createEmptyAccreditationRow,
   FinishedDateBoxes,
-} from './_components/AccreditationStep';
+} from './_lib/accreditationLogic';
 import { INITIAL_TEAM_SIZE } from './_lib/mockData';
 
 export default function TeamJourneyPage() {
