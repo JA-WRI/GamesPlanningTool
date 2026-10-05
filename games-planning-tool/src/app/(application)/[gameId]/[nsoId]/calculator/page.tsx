@@ -1,13 +1,15 @@
 // 80% AI generated code:
-// The following was generated:
-// - Original layout of the page content
+// The following was AI generated:
+// - Original page layout and calculator tab structure
+// - Component organization and basic state handling
+// The code was reviewed and modified to fit the calculator requirements.
 
 "use client";
 
 import { useState } from "react";
 import { Box, Button, Tab, Tabs } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import "./globalcalculator.css";
+import "./globalpage.css";
 import CalculatorContent from "./calculatorcontent";
 
 type Calculator = { id: number; name: string };
@@ -19,7 +21,8 @@ export default function CalculatorPage() {
   const [selectedCalculatorId, setSelectedCalculatorId] = useState(1);
 
   const createNewCalculator = () => {
-    const id = Math.max(0, ...calculators.map((item) => item.id)) + 1;
+    const id = Math.max(0, ...calculators.map((calculator) => calculator.id)) + 1;
+
     setCalculators((previous) => [
       ...previous,
       { id, name: `Calculator ${id}` },
@@ -29,7 +32,7 @@ export default function CalculatorPage() {
 
   return (
     <Box component="main" className="calculator-page">
-      {/* Temporary placeholder. Replace with the shared navbar component later. */}
+      {/* placeholder for navbar */}
       <Box className="calculator-page-navbar" aria-hidden="true">
         Navbar placeholder
       </Box>
@@ -50,9 +53,11 @@ export default function CalculatorPage() {
                 value={calculator.id}
                 label={calculator.name}
                 className="calculator-page-tab"
+                disableRipple
               />
             ))}
           </Tabs>
+
           <Button
             variant="contained"
             size="small"
@@ -67,7 +72,7 @@ export default function CalculatorPage() {
         <CalculatorContent calculatorId={selectedCalculatorId} />
 
         <Box className="calculator-page-save-row">
-          {/* Disabled until actual row-data persistence is implemented. */}
+          {/* save stays disabled til db conn is added */}
           <Button
             variant="contained"
             size="small"
