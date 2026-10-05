@@ -94,7 +94,6 @@ test.describe('Resources Page E2E', () => {
   }) => {
     await page.goto('/game-1/nso-1/resources');
 
-
     await expect(
       page.getByRole('heading', { name: 'Winter Games' }),
     ).toBeVisible();
@@ -139,7 +138,10 @@ test.describe('Resources Page E2E', () => {
       'https://olympic.ca/e2e-handbook',
     );
 
-    await page.getByRole('dialog').getByRole('button', { name: 'Add Resource' }).click();
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: 'Add Resource' })
+      .click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await page.screenshot({ path: 'add-resource-fail.png', fullPage: true });
 
@@ -540,7 +542,9 @@ test.describe('Resources Page E2E', () => {
     ).toBeVisible();
   });
 
-  test.skip('cards are not draggable when not in edit mode', async ({ page }) => {
+  test.skip('cards are not draggable when not in edit mode', async ({
+    page,
+  }) => {
     await page.goto('/game-1/nso-1/resources');
 
     const card = page.locator('[data-resource-id]').first();

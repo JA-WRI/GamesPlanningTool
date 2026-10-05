@@ -270,7 +270,7 @@ describe('ResourcesPageContent', () => {
     });
 
     expect(screen.getByTestId('multi-drag-avatar')).toBeInTheDocument();
-    
+
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     act(() => {
       window.dispatchEvent(new PointerEvent('pointerup'));
@@ -279,22 +279,40 @@ describe('ResourcesPageContent', () => {
 
   it('handles drop over a folder resource', () => {
     render(<ResourcesPageContent />);
-    
+
     const winterSection = screen.getByText('Winter Games').closest('section')!;
-    const fileCard = within(winterSection).getByText(/Milano/i).closest('[data-resource-id]')!;
-    const folderCard = within(winterSection).getByText(/Competition Schedules/i).closest('[data-resource-id]')!;
-    
+    const fileCard = within(winterSection)
+      .getByText(/Milano/i)
+      .closest('[data-resource-id]')!;
+    const folderCard = within(winterSection)
+      .getByText(/Competition Schedules/i)
+      .closest('[data-resource-id]')!;
+
     const dt = {
       effectAllowed: 'move',
       setData: vi.fn(),
-      getData: () => JSON.stringify({ resourceId: fileCard.getAttribute('data-resource-id'), sourceCategory: 'Winter Games' }),
+      getData: () =>
+        JSON.stringify({
+          resourceId: fileCard.getAttribute('data-resource-id'),
+          sourceCategory: 'Winter Games',
+        }),
       dropEffect: 'move',
     };
 
     fireEvent.dragStart(fileCard, { dataTransfer: dt });
-    
-    folderCard.getBoundingClientRect = vi.fn(() => ({ left: 0, right: 100, top: 0, bottom: 100, width: 100, height: 100, x: 0, y: 0, toJSON: () => {} })) as unknown as DOMRect;
-    
+
+    folderCard.getBoundingClientRect = vi.fn(() => ({
+      left: 0,
+      right: 100,
+      top: 0,
+      bottom: 100,
+      width: 100,
+      height: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    })) as unknown as DOMRect;
+
     fireEvent.dragOver(folderCard, { clientX: 50, dataTransfer: dt });
     fireEvent.drop(folderCard, { dataTransfer: dt });
   });
@@ -435,5 +453,26 @@ describe('ResourcesPageContent', () => {
     expect(
       screen.getByRole('dialog', { name: 'New Test Folder' }),
     ).toBeInTheDocument();
+  });
+
+  it('allows canceling folder creation via backdrop and cancel button', () => {
+    render(<ResourcesPageContent />);
+
+    // Open Create Folder
+    const createBtn = screen.getAllByRole('button', {
+      name: 'Create Folder',
+    })[0];
+    fireEvent.click(createBtn);
+
+    // Cancel via button
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByLabelText('Close dialog')).not.toBeInTheDocument();
+
+    // Open again
+    fireEvent.click(createBtn);
+
+    // Cancel via backdrop
+    fireEvent.click(screen.getByLabelText('Close dialog'));
+    expect(screen.queryByLabelText('Close dialog')).not.toBeInTheDocument();
   });
 });

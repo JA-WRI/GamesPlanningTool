@@ -182,7 +182,7 @@ describe('ResourceCard', () => {
       type: 'folder',
       categories: ['Winter Games'],
     };
-    
+
     const handleRoundPointer = vi.fn();
     render(
       <ResourceCard
@@ -192,9 +192,12 @@ describe('ResourceCard', () => {
         onRoundButtonPointerDown={handleRoundPointer}
       />,
     );
-    
+
     const selectBtn = screen.getByRole('button', { name: 'Select resource' });
     fireEvent.pointerDown(selectBtn);
-    expect(handleRoundPointer).toHaveBeenCalledWith(expect.anything(), 'folder-1');
+    expect(handleRoundPointer).toHaveBeenCalledWith(
+      expect.anything(),
+      'folder-1',
+    );
   });
 });
