@@ -11,6 +11,7 @@ import {
   extractDragPayload,
   SweepGestureState,
 } from './sweep-selection';
+import { getFolderChildren } from '@/lib/resources-data';
 
 export const activeDragStore: {
   current: {
@@ -24,6 +25,7 @@ export const activeDragStore: {
 interface CategorySectionProps {
   categoryTitle: string;
   resources: Resource[];
+  allResources?: Resource[];
   isEditing: boolean;
   selectedIds: Set<string>;
   activeDragSourceCategory?: string | null;
@@ -34,12 +36,17 @@ interface CategorySectionProps {
   isOverRemovalArea?: boolean;
   onToggleEdit: () => void;
   onOpenAddModal: (preselectedCategory: string) => void;
+  onOpenCreateFolderModal?: (category: string) => void;
   onToggleSelect: (id: string) => void;
   onSelectMultiple: (ids: string[], select: boolean) => void;
   onUpdateSelectedIds?: (newIds: Set<string>) => void;
   onDeleteSelected: () => void;
   onSelectResourceDetail: (resource: Resource) => void;
   onReorderResources: (category: string, newOrderedList: Resource[]) => void;
+  onDropIntoFolder?: (
+    draggedResourceId: string,
+    targetFolderId: string,
+  ) => void;
   onStartDragCard?: (
     resourceId: string,
     sourceCategory: string,
@@ -62,11 +69,14 @@ interface CategorySectionProps {
     sourceCategory: string,
   ) => void;
   onDragOverSection?: () => void;
+  onRenameResource?: (id: string, newName: string) => void;
+  multiDragHoveredFolderId?: string | null;
 }
 
 export function CategorySection({
   categoryTitle,
   resources,
+  allResources,
   isEditing,
   selectedIds,
   activeDragSourceCategory,
@@ -77,12 +87,14 @@ export function CategorySection({
   isOverRemovalArea,
   onToggleEdit,
   onOpenAddModal,
+  onOpenCreateFolderModal,
   onToggleSelect,
   onSelectMultiple,
   onUpdateSelectedIds,
   onDeleteSelected,
   onSelectResourceDetail,
   onReorderResources,
+  onDropIntoFolder,
   onStartDragCard,
   onEndDragCard,
   onStartMultiDrag,
@@ -91,12 +103,18 @@ export function CategorySection({
   onDropOnCategory,
   onRemoveFromCategory,
   onDragOverSection,
+  onRenameResource,
+  multiDragHoveredFolderId,
 }: CategorySectionProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [isDragOverSection, setIsDragOverSection] = useState(false);
   const dragDroppedSuccessfullyRef = useRef(false);
+  const [hoverFolderDropTargetId, setHoverFolderDropTargetId] = useState<
+    string | null
+  >(null);
+  const hoverFolderDropTargetIdRef = useRef<string | null>(null);
 
   const [localOrderedResources, setLocalOrderedResources] =
     useState<Resource[]>(resources);
@@ -344,6 +362,24 @@ export function CategorySection({
     const sourceId = draggedCardIdRef.current;
     if (!sourceId || sourceId === targetId) return;
 
+    const targetResource = localOrderedResources.find((r) => r.id === targetId);
+
+    // If hovering over a folder, check if in the central drop-into-folder zone
+    if (targetResource?.type === 'folder') {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const relativeX = (e.clientX - rect.left) / rect.width;
+      if (relativeX >= 0.25 && relativeX <= 0.75) {
+        setHoverFolderDropTargetId(targetId);
+        hoverFolderDropTargetIdRef.current = targetId;
+        return;
+      }
+    }
+
+    if (hoverFolderDropTargetIdRef.current) {
+      setHoverFolderDropTargetId(null);
+      hoverFolderDropTargetIdRef.current = null;
+    }
+
     if (canReorder) {
       const rect = e.currentTarget.getBoundingClientRect();
       const midX = rect.left + rect.width / 2;
@@ -373,7 +409,7 @@ export function CategorySection({
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent, targetId?: string) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOverSection(false);
@@ -387,7 +423,34 @@ export function CategorySection({
     if (resourceId && sourceCat && sourceCat !== categoryTitle) {
       onDropOnCategory?.(resourceId, categoryTitle);
       activeDragStore.current = null;
+      setHoverFolderDropTargetId(null);
+      hoverFolderDropTargetIdRef.current = null;
       return;
+    }
+
+    const targetResource = targetId
+      ? localOrderedResources.find((r) => r.id === targetId)
+      : null;
+    const isTargetAFolder = targetResource?.type === 'folder';
+
+    const folderDropTarget =
+      hoverFolderDropTargetIdRef.current ||
+      hoverFolderDropTargetId ||
+      (isTargetAFolder ? targetId : null);
+
+    // Check if dropping directly into a folder
+    if (folderDropTarget && (draggedCardIdRef.current || resourceId)) {
+      const itemToMove = draggedCardIdRef.current || resourceId;
+      if (itemToMove && itemToMove !== folderDropTarget) {
+        onDropIntoFolder?.(itemToMove, folderDropTarget);
+        dragDroppedSuccessfullyRef.current = true;
+        draggedCardIdRef.current = null;
+        setDraggedCardId(null);
+        setHoverFolderDropTargetId(null);
+        hoverFolderDropTargetIdRef.current = null;
+        activeDragStore.current = null;
+        return;
+      }
     }
 
     dragDroppedSuccessfullyRef.current = true;
@@ -397,6 +460,8 @@ export function CategorySection({
     }
     draggedCardIdRef.current = null;
     setDraggedCardId(null);
+    setHoverFolderDropTargetId(null);
+    hoverFolderDropTargetIdRef.current = null;
     activeDragStore.current = null;
   };
 
@@ -420,6 +485,7 @@ export function CategorySection({
 
     draggedCardIdRef.current = null;
     setDraggedCardId(null);
+    setHoverFolderDropTargetId(null);
     dragDroppedSuccessfullyRef.current = false;
     activeDragStore.current = null;
     onEndDragCard?.();
@@ -556,9 +622,17 @@ export function CategorySection({
           <button
             type="button"
             onClick={() => onOpenAddModal(categoryTitle)}
-            className="px-4 py-1 rounded-md text-sm font-semibold bg-[#374151] hover:bg-[#1f2937] text-white transition-colors cursor-pointer"
+            className="px-3.5 py-1 rounded-md text-sm font-semibold bg-[#374151] hover:bg-[#1f2937] text-white transition-colors cursor-pointer"
           >
-            Add
+            Add Resource
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onOpenCreateFolderModal?.(categoryTitle)}
+            className="px-3.5 py-1 rounded-md text-sm font-semibold bg-[#374151] hover:bg-[#1f2937] text-white transition-colors cursor-pointer"
+          >
+            Create Folder
           </button>
 
           <SearchPill value={searchQuery} onChange={setSearchQuery} />
@@ -584,7 +658,7 @@ export function CategorySection({
               ref={scrollContainerRef}
               onDragOver={handleSectionDragOver}
               onDrop={handleSectionDrop}
-              className="flex items-center space-x-5 overflow-x-auto scroll-smooth py-2 px-1"
+              className="flex items-end space-x-5 overflow-x-auto scroll-smooth pt-4 pb-4 px-1"
             >
               {filteredResources.map((resource) => {
                 const isMultiDragged = Boolean(
@@ -612,11 +686,25 @@ export function CategorySection({
                     canDrag={isEditing && selectedIds.size === 0}
                     isDraggingThisCard={isThisCardDragged}
                     showRemovalSymbol={showRemovalSymbol}
+                    isFolderDropTarget={
+                      hoverFolderDropTargetId === resource.id ||
+                      multiDragHoveredFolderId === resource.id
+                    }
+                    itemCount={
+                      resource.type === 'folder'
+                        ? (resource.childrenIds?.length ??
+                          getFolderChildren(
+                            allResources ?? resources,
+                            resource.id,
+                          ).length)
+                        : undefined
+                    }
                     onToggleSelect={handleToggleSelectSafe}
                     onRoundButtonPointerDown={handleRoundButtonPointerDown}
                     onRoundButtonClick={handleRoundButtonClick}
                     onCardPointerDown={handleCardPointerDown}
                     onClick={onSelectResourceDetail}
+                    onRename={onRenameResource}
                     onDragStart={handleDragStart}
                     onDragOver={handleDragOver}
                     onDragEnd={handleDragEnd}

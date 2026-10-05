@@ -2,5 +2,5 @@
 import { redirect } from 'next/navigation';
 
 export default function Home() {
-  redirect('/resources');
+  redirect('/game-1/nso-1/resources');
 }

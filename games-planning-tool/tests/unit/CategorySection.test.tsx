@@ -47,7 +47,7 @@ describe('CategorySection', () => {
     expect(screen.getByText('Curling Manual')).toBeInTheDocument();
     expect(screen.getByText('Skating Guide')).toBeInTheDocument();
 
-    const addBtn = screen.getByRole('button', { name: 'Add' });
+    const addBtn = screen.getByRole('button', { name: 'Add Resource' });
     fireEvent.click(addBtn);
     expect(handleOpenAdd).toHaveBeenCalledWith('Winter Games');
   });
@@ -342,5 +342,84 @@ describe('CategorySection', () => {
     fireEvent.dragStart(firstCard, { dataTransfer: dt });
     fireEvent.dragEnd(firstCard);
     expect(handleRemove).toHaveBeenCalledWith('res-w-1', 'Winter Games');
+  });
+
+  it('triggers onOpenCreateFolderModal when Create Folder button is clicked', () => {
+    const handleOpenFolderModal = vi.fn();
+    render(
+      <CategorySection
+        {...defaultProps}
+        onOpenCreateFolderModal={handleOpenFolderModal}
+      />,
+    );
+    const folderBtn = screen.getByRole('button', { name: /Create Folder/i });
+    fireEvent.click(folderBtn);
+    expect(handleOpenFolderModal).toHaveBeenCalledWith('Winter Games');
+  });
+
+  it('handles dropping an item into a folder card when hovering over center', () => {
+    const handleDropIntoFolder = vi.fn();
+    const folderResources: Resource[] = [
+      {
+        id: 'res-w-1',
+        name: 'Curling Manual',
+        type: 'link',
+        URL: 'https://example.com/curling',
+        categories: ['Winter Games'],
+      },
+      {
+        id: 'folder-target',
+        name: 'Winter Folder',
+        type: 'folder',
+        categories: ['Winter Games'],
+      },
+    ];
+
+    render(
+      <CategorySection
+        {...defaultProps}
+        resources={folderResources}
+        isEditing={true}
+        onDropIntoFolder={handleDropIntoFolder}
+      />,
+    );
+
+    const draggedCard = document.querySelector('[data-resource-id="res-w-1"]')!;
+    const folderCard = document.querySelector(
+      '[data-resource-id="folder-target"]',
+    )!;
+
+    const dt = {
+      effectAllowed: '',
+      setData: vi.fn(),
+      getData: vi.fn(
+        () => '{"resourceId":"res-w-1","sourceCategory":"Winter Games"}',
+      ),
+      dropEffect: '',
+    };
+
+    fireEvent.dragStart(draggedCard, { dataTransfer: dt });
+
+    // Mock folder bounding box
+    folderCard.getBoundingClientRect = vi.fn(() => ({
+      left: 100,
+      width: 200,
+      right: 300,
+      top: 100,
+      bottom: 200,
+      height: 100,
+      x: 100,
+      y: 100,
+      toJSON: () => {},
+    }));
+
+    // clientX = 200 is right in the center (relativeX = 0.5)
+    fireEvent.dragOver(folderCard, { clientX: 200, dataTransfer: dt });
+    fireEvent.drop(folderCard, { dataTransfer: dt });
+
+    expect(handleDropIntoFolder).toHaveBeenCalledWith(
+      'res-w-1',
+      'folder-target',
+    );
   });
 });

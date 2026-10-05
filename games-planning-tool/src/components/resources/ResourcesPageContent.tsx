@@ -7,16 +7,22 @@ import React, {
   useEffect,
   useSyncExternalStore,
 } from 'react';
-import { Resource } from '@/types/resource';
+import { Resource, FolderResource } from '@/types/resource';
 import {
   INITIAL_RESOURCES,
   subscribeToResources,
   getCachedResources,
   saveResourcesToStorage,
+  createFolder,
+  cascadeRemoveCategoryFromFolder,
+  removeFolderKeepContentsInTopLevel,
+  getDescendantResourceIds,
 } from '@/lib/resources-data';
 import { CategorySection, activeDragStore } from './CategorySection';
 import { AddResourceModal } from './AddResourceModal';
 import { ResourceDetailModal } from './ResourceDetailModal';
+import { FolderDirectoryModal } from './FolderDirectoryModal';
+import { FolderRemovalConfirmModal } from './FolderRemovalConfirmModal';
 import { SearchPill } from './SearchPill';
 
 export function ResourcesPageContent() {
@@ -39,7 +45,24 @@ export function ResourcesPageContent() {
   const [preselectedCategory, setPreselectedCategory] = useState<
     string | undefined
   >(undefined);
+  const [preselectedFolderId, setPreselectedFolderId] = useState<
+    string | undefined
+  >(undefined);
   const [detailResource, setDetailResource] = useState<Resource | null>(null);
+
+  const [activeDirectoryFolder, setActiveDirectoryFolder] =
+    useState<FolderResource | null>(null);
+  const [activeDirectoryCategory, setActiveDirectoryCategory] =
+    useState<string>('General');
+  const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false);
+  const [createFolderCategory, setCreateFolderCategory] =
+    useState<string>('General');
+  const [newFolderNameInput, setNewFolderNameInput] = useState('');
+
+  const [pendingFolderRemoval, setPendingFolderRemoval] = useState<{
+    folder: FolderResource;
+    categoryTitle: string;
+  } | null>(null);
 
   const updateResources = (newResources: Resource[]) => {
     saveResourcesToStorage(newResources);
@@ -127,6 +150,12 @@ export function ResourcesPageContent() {
     updateResources(merged);
   };
 
+  const handleReorderInFolder = (orderedChildren: Resource[]) => {
+    const childIds = new Set(orderedChildren.map((r) => r.id));
+    const others = resources.filter((r) => !childIds.has(r.id));
+    updateResources([...others, ...orderedChildren]);
+  };
+
   const handleAddResource = (newResource: Resource) => {
     const updated = [newResource, ...resources];
     updateResources(updated);
@@ -149,6 +178,7 @@ export function ResourcesPageContent() {
     currentY: number;
     isOverRemoval: boolean;
     hoveredCategoryTitle: string | null;
+    hoveredFolderId: string | null;
   }
   const [activeMultiDrag, setActiveMultiDrag] =
     useState<ActiveMultiDrag | null>(null);
@@ -194,6 +224,30 @@ export function ResourcesPageContent() {
         ...targetResource,
         categories: newCategories.length > 0 ? newCategories : ['General'],
       });
+
+      // If targetResource is a folder, cascade the new category to all descendants as well
+      if (targetResource.type === 'folder') {
+        const descendantIds = getDescendantResourceIds(
+          resources,
+          targetResource.id,
+        );
+        descendantIds.forEach((descId) => {
+          const descResource = resources.find((r) => r.id === descId);
+          if (
+            descResource &&
+            !descResource.categories.includes(targetCategory)
+          ) {
+            const descWithoutGen = descResource.categories.filter(
+              (c) => c !== 'General',
+            );
+            const descNewCats = [...descWithoutGen, targetCategory];
+            updatedMap.set(descResource.id, {
+              ...descResource,
+              categories: descNewCats.length > 0 ? descNewCats : ['General'],
+            });
+          }
+        });
+      }
     });
 
     const otherResources = resources.filter((r) => !updatedMap.has(r.id));
@@ -244,6 +298,20 @@ export function ResourcesPageContent() {
         );
       }
       return;
+    }
+
+    if (resourceIds.length === 1) {
+      const singleRes = resources.find((r) => r.id === resourceIds[0]);
+      if (singleRes && singleRes.type === 'folder') {
+        const children = resources.filter((r) => r.parentId === singleRes.id);
+        if (children.length > 0) {
+          setPendingFolderRemoval({
+            folder: singleRes as FolderResource,
+            categoryTitle: sourceCategory,
+          });
+          return;
+        }
+      }
     }
 
     const targetIdsSet = new Set(resourceIds);
@@ -317,6 +385,34 @@ export function ResourcesPageContent() {
     handleRemoveCategoryFromResources([resourceId], sourceCategory);
   };
 
+  const handleConfirmCascadeFolderRemoval = () => {
+    if (!pendingFolderRemoval) return;
+    const { folder, categoryTitle } = pendingFolderRemoval;
+    const updated = cascadeRemoveCategoryFromFolder(
+      resources,
+      folder.id,
+      categoryTitle,
+    );
+    updateResources(updated);
+    setPendingFolderRemoval(null);
+    showToast(
+      `Removed "${folder.name}" and all contents from ${categoryTitle}`,
+    );
+  };
+
+  const handleConfirmKeepFolderContentsInTopLevel = () => {
+    if (!pendingFolderRemoval) return;
+    const { folder, categoryTitle } = pendingFolderRemoval;
+    const updated = removeFolderKeepContentsInTopLevel(
+      resources,
+      folder.id,
+      categoryTitle,
+    );
+    updateResources(updated);
+    setPendingFolderRemoval(null);
+    showToast(`Removed "${folder.name}" from ${categoryTitle} (contents kept)`);
+  };
+
   const activeDragCategoryRef = useRef<string | null>(null);
   const activeDragResourceIdRef = useRef<string | null>(null);
   const isOverRemovalAreaRef = useRef(false);
@@ -354,6 +450,7 @@ export function ResourcesPageContent() {
       currentY: pos.y,
       isOverRemoval: false,
       hoveredCategoryTitle: null,
+      hoveredFolderId: null,
     };
     activeMultiDragRef.current = initialDrag;
     setActiveMultiDrag(initialDrag);
@@ -369,6 +466,15 @@ export function ResourcesPageContent() {
         : null;
     const section = elem?.closest('section[data-category-title]');
     const hoveredTitle = section?.getAttribute('data-category-title') || null;
+
+    // Detect folder hover
+    const folderEl = elem?.closest('[data-resource-type="folder"]');
+    const hoveredFolderId = folderEl?.getAttribute('data-resource-id') || null;
+    // Don't allow dropping into a folder that is itself being dragged
+    const validFolderId =
+      hoveredFolderId && !cur.resourceIds.includes(hoveredFolderId)
+        ? hoveredFolderId
+        : null;
 
     let isOverRemoval = false;
     let hoveredCat: string | null = null;
@@ -389,6 +495,7 @@ export function ResourcesPageContent() {
       currentY: pos.y,
       isOverRemoval,
       hoveredCategoryTitle: hoveredCat,
+      hoveredFolderId: validFolderId,
     };
     activeMultiDragRef.current = updated;
     setActiveMultiDrag(updated);
@@ -398,7 +505,24 @@ export function ResourcesPageContent() {
   const handleEndMultiDrag = () => {
     const cur = activeMultiDragRef.current;
     if (cur) {
-      if (
+      if (cur.hoveredFolderId) {
+        // Batch-move all dragged resources into the target folder
+        const targetFolder = resources.find((r) => r.id === cur.hoveredFolderId);
+        if (targetFolder) {
+          const idsToMove = new Set(
+            cur.resourceIds.filter((id) => id !== cur.hoveredFolderId),
+          );
+          const updated = resources.map((r) =>
+            idsToMove.has(r.id) ? { ...r, parentId: cur.hoveredFolderId } : r,
+          );
+          updateResources(updated);
+          showToast(
+            idsToMove.size === 1
+              ? `Moved 1 item into "${targetFolder.name}"`
+              : `Moved ${idsToMove.size} items into "${targetFolder.name}"`,
+          );
+        }
+      } else if (
         cur.hoveredCategoryTitle &&
         cur.hoveredCategoryTitle !== cur.sourceCategory
       ) {
@@ -577,6 +701,7 @@ export function ResourcesPageContent() {
 
   const handleOpenAddModal = (cat?: string) => {
     setPreselectedCategory(cat);
+    setPreselectedFolderId(undefined);
     setIsAddModalOpen(true);
   };
 
@@ -630,10 +755,20 @@ export function ResourcesPageContent() {
     setCategoryEditModes({});
   };
 
+  /* Made with AI agents (Antigravity) */
   const getFilteredCategoryResources = (category: string) => {
     return resources.filter((res) => {
       const belongsToCategory = res.categories.includes(category);
       if (!belongsToCategory) return false;
+      // When not searching, only show top-level items in the category bar 
+      // (items inside folders belong inside their folder, UNLESS their parent folder isn't in this category)
+      if (!globalSearch.trim() && res.parentId) {
+        const parent = resources.find((r) => r.id === res.parentId);
+        // If the parent folder exists AND it belongs to this category, hide the resource from the root
+        if (parent && parent.categories.includes(category)) {
+          return false;
+        }
+      }
       if (!globalSearch.trim()) return true;
 
       const q = globalSearch.toLowerCase();
@@ -642,6 +777,134 @@ export function ResourcesPageContent() {
         res.categories.some((c) => c.toLowerCase().includes(q))
       );
     });
+  };
+
+  const handleSelectResourceOrFolder = (
+    resource: Resource,
+    categoryTitle: string,
+  ) => {
+    if (resource.type === 'folder') {
+      setActiveDirectoryFolder(resource as FolderResource);
+      setActiveDirectoryCategory(categoryTitle);
+    } else {
+      setDetailResource(resource);
+    }
+  };
+
+  const handleDropIntoFolder = (
+    draggedResourceId: string,
+    targetFolderId: string,
+  ) => {
+    if (draggedResourceId === targetFolderId) return;
+    const targetFolder = resources.find((r) => r.id === targetFolderId);
+    const draggedItem = resources.find((r) => r.id === draggedResourceId);
+    if (!targetFolder || !draggedItem) return;
+
+    // Prevent cycle: folder cannot be moved into itself or into any of its descendants
+    if (draggedItem.type === 'folder') {
+      const descendants = getDescendantResourceIds(resources, draggedItem.id);
+      if (descendants.includes(targetFolderId)) {
+        showToast('Cannot move a folder into its own subfolder');
+        return;
+      }
+    }
+
+    const updated = resources.map((r) => {
+      if (r.id === draggedResourceId) {
+        return {
+          ...r,
+          parentId: targetFolderId,
+        };
+      }
+      return r;
+    });
+
+    updateResources(updated);
+    showToast(`Moved "${draggedItem.name}" into "${targetFolder.name}"`);
+  };
+
+  const handleRenameResource = (id: string, newName: string) => {
+    const updated = resources.map((r) =>
+      r.id === id ? { ...r, name: newName } : r,
+    );
+    updateResources(updated);
+  };
+
+  const handleOpenCreateFolderModal = (category: string) => {
+    setCreateFolderCategory(category);
+    setNewFolderNameInput('');
+    setIsCreateFolderModalOpen(true);
+  };
+
+  const handleCreateTopLevelFolder = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFolderNameInput.trim()) return;
+
+    const newFolder = createFolder(newFolderNameInput.trim(), [
+      createFolderCategory,
+    ]);
+
+    updateResources([newFolder, ...resources]);
+    setIsCreateFolderModalOpen(false);
+    setNewFolderNameInput('');
+    showToast(`Created folder "${newFolder.name}" in ${createFolderCategory}`);
+  };
+
+  const handleCreateSubfolder = (name: string, parentFolderId: string) => {
+    const parentFolder = resources.find((r) => r.id === parentFolderId);
+    const newFolder = createFolder(
+      name,
+      parentFolder?.categories || [activeDirectoryCategory],
+      parentFolderId,
+    );
+    updateResources([newFolder, ...resources]);
+    showToast(`Created subfolder "${name}"`);
+  };
+
+  /* Made with AI agents (Antigravity) */
+  const handleAddResourceToFolderModal = (parentFolderId: string) => {
+    const parent = resources.find((r) => r.id === parentFolderId);
+    setPreselectedCategory(parent?.categories[0] || activeDirectoryCategory);
+    setPreselectedFolderId(parentFolderId);
+    setIsAddModalOpen(true);
+  };
+
+  const handleMoveResourceWithinDirectory = (
+    resourceIds: string[],
+    targetFolderId: string | null,
+  ) => {
+    if (!targetFolderId) {
+      // Move to root
+      const updated = resources.map((r) => {
+        if (resourceIds.includes(r.id)) {
+          return { ...r, parentId: undefined };
+        }
+        return r;
+      });
+      updateResources(updated);
+      showToast(`Moved ${resourceIds.length} item(s) to main view`);
+      return;
+    }
+    // For dropping into a folder, handleDropIntoFolder supports one ID.
+    // Let's modify it or just implement the bulk move here!
+    const targetFolder = resources.find((r) => r.id === targetFolderId);
+    if (!targetFolder) return;
+    
+    const updated = resources.map((r) => {
+      if (resourceIds.includes(r.id)) {
+        // Prevent cycle: folder cannot be moved into itself or into any of its descendants
+        if (r.type === 'folder') {
+          const descendants = getDescendantResourceIds(resources, r.id);
+          if (descendants.includes(targetFolderId) || r.id === targetFolderId) {
+            return r; // skip this one
+          }
+        }
+        return { ...r, parentId: targetFolderId };
+      }
+      return r;
+    });
+    updateResources(updated);
+    showToast(`Moved ${resourceIds.length} item(s) into "${targetFolder.name}"`);
   };
 
   return (
@@ -697,9 +960,17 @@ export function ResourcesPageContent() {
           <button
             type="button"
             onClick={() => handleOpenAddModal()}
-            className="px-4 py-1.5 rounded-md text-sm font-semibold bg-[#374151] hover:bg-[#1f2937] text-white transition-colors cursor-pointer"
+            className="px-3.5 py-1.5 rounded-md text-sm font-semibold bg-[#374151] hover:bg-[#1f2937] text-white transition-colors cursor-pointer"
           >
-            Add
+            Add Resource
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleOpenCreateFolderModal('General')}
+            className="px-3.5 py-1.5 rounded-md text-sm font-semibold bg-[#374151] hover:bg-[#1f2937] text-white transition-colors cursor-pointer"
+          >
+            Create Folder
           </button>
 
           <SearchPill value={globalSearch} onChange={setGlobalSearch} />
@@ -721,6 +992,7 @@ export function ResourcesPageContent() {
             key={categoryTitle}
             categoryTitle={categoryTitle}
             resources={getFilteredCategoryResources(categoryTitle)}
+            allResources={resources}
             isEditing={isCategoryEditing(categoryTitle)}
             selectedIds={selectedIds}
             activeDragSourceCategory={activeDragCategory}
@@ -737,14 +1009,20 @@ export function ResourcesPageContent() {
             isOverRemovalArea={isOverRemovalArea}
             onToggleEdit={() => toggleCategoryEdit(categoryTitle)}
             onOpenAddModal={() => handleOpenAddModal(categoryTitle)}
+            onOpenCreateFolderModal={() =>
+              handleOpenCreateFolderModal(categoryTitle)
+            }
             onToggleSelect={handleToggleSelect}
             onSelectMultiple={handleSelectMultiple}
             onUpdateSelectedIds={setSelectedIds}
             onDeleteSelected={() =>
               handleDeleteSelectedInCategory(categoryTitle)
             }
-            onSelectResourceDetail={setDetailResource}
+            onSelectResourceDetail={(res) =>
+              handleSelectResourceOrFolder(res, categoryTitle)
+            }
             onReorderResources={handleReorderResources}
+            onDropIntoFolder={handleDropIntoFolder}
             onStartDragCard={handleStartDragCard}
             onEndDragCard={handleEndDragCard}
             onStartMultiDrag={handleStartMultiDrag}
@@ -753,6 +1031,8 @@ export function ResourcesPageContent() {
             onDropOnCategory={handleDropOnCategory}
             onRemoveFromCategory={handleRemoveFromCategory}
             onDragOverSection={handleHoverSection}
+            onRenameResource={handleRenameResource}
+            multiDragHoveredFolderId={activeMultiDrag?.hoveredFolderId ?? null}
           />
         ))}
       </main>
@@ -884,17 +1164,165 @@ export function ResourcesPageContent() {
         </div>
       )}
 
+      {/* FolderDirectoryModal renders FIRST so overlay modals appear on top */}
+      <FolderDirectoryModal
+        key={activeDirectoryFolder?.id || 'empty'}
+        folder={activeDirectoryFolder}
+        allResources={resources}
+        currentCategory={activeDirectoryCategory}
+        onClose={() => setActiveDirectoryFolder(null)}
+        onSelectResourceDetail={setDetailResource}
+        onCreateSubfolder={handleCreateSubfolder}
+        onAddResourceToFolder={handleAddResourceToFolderModal}
+        onMoveResourceToFolder={handleMoveResourceWithinDirectory}
+        onReorderInFolder={handleReorderInFolder}
+        onRenameResource={handleRenameResource}
+        /* Made with AI agents (Antigravity) */
+        onDropOnCategory={(ids, cat) => {
+          const catToRemove = cat ? null : activeDirectoryCategory;
+          
+          const updated = resources.map((r) => {
+            if (ids.includes(r.id)) {
+              let newCats = [...r.categories];
+              let shouldClearParentId = false;
+
+              if (cat) {
+                if (newCats.includes(cat)) {
+                  // Dropped onto a category it already has -> pull it out to the main view
+                  shouldClearParentId = true;
+                } else {
+                  // Dropped onto a new category -> add category, keep it in original folder
+                  newCats.push(cat);
+                  shouldClearParentId = false;
+                }
+              } else {
+                // Dropped into void -> remove from current category and pull it out
+                if (catToRemove) {
+                  newCats = newCats.filter((c) => c !== catToRemove);
+                }
+                shouldClearParentId = true;
+              }
+
+              return { 
+                ...r, 
+                categories: newCats, 
+                parentId: shouldClearParentId ? undefined : r.parentId 
+              };
+            }
+            return r;
+          });
+          
+          updateResources(updated);
+          
+          if (cat) {
+            showToast(`Moved ${ids.length} item(s) to ${cat}`);
+          } else {
+            showToast(`Removed ${ids.length} item(s) from current category`);
+          }
+        }}
+        onDeleteResources={(ids) => {
+          const idsToDelete = new Set(ids);
+          const updated = resources.filter((r) => !idsToDelete.has(r.id));
+          updateResources(updated);
+          showToast(`Deleted ${ids.length} item(s)`);
+        }}
+      />
+
       <AddResourceModal
         isOpen={isAddModalOpen}
         preselectedCategory={preselectedCategory}
+        preselectedFolderId={preselectedFolderId}
         onClose={() => setIsAddModalOpen(false)}
         onAddResource={handleAddResource}
       />
 
       <ResourceDetailModal
-        resource={detailResource}
+        resource={detailResource ? resources.find(r => r.id === detailResource.id) ?? detailResource : null}
         onClose={() => setDetailResource(null)}
+        onRename={handleRenameResource}
       />
+
+      <FolderRemovalConfirmModal
+        isOpen={Boolean(pendingFolderRemoval)}
+        folderName={pendingFolderRemoval?.folder.name || ''}
+        categoryTitle={pendingFolderRemoval?.categoryTitle || ''}
+        onConfirmCascade={handleConfirmCascadeFolderRemoval}
+        onConfirmKeepInTopLevel={handleConfirmKeepFolderContentsInTopLevel}
+        onCancel={() => setPendingFolderRemoval(null)}
+      />
+
+      {isCreateFolderModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="create-folder-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label="Close dialog"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs animate-in fade-in cursor-default border-none"
+            onClick={() => setIsCreateFolderModalOpen(false)}
+          />
+          <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden z-10 p-6 space-y-4">
+            <div className="flex items-center space-x-2.5">
+              <div className="p-2 bg-amber-100 rounded-lg text-amber-700">
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                </svg>
+              </div>
+              <h3
+                id="create-folder-title"
+                className="text-lg font-bold text-neutral-900"
+              >
+                New Folder in {createFolderCategory}
+              </h3>
+            </div>
+
+            <form onSubmit={handleCreateTopLevelFolder} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="new-folder-name"
+                  className="block text-xs font-semibold text-neutral-700 mb-1"
+                >
+                  Folder Name
+                </label>
+                <input
+                  id="new-folder-name"
+                  type="text"
+                  autoFocus
+                  required
+                  placeholder="e.g. Venue Maps"
+                  value={newFolderNameInput}
+                  onChange={(e) => setNewFolderNameInput(e.target.value)}
+                  className="w-full text-sm bg-neutral-50 border border-neutral-300 rounded-lg px-3 py-2 text-neutral-900 focus:outline-hidden focus:ring-2 focus:ring-[#80131d]"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateFolderModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold rounded-lg text-neutral-700 hover:bg-neutral-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#80131d] hover:bg-[#600f16] text-white transition-colors cursor-pointer shadow-xs"
+                >
+                  Create Folder
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

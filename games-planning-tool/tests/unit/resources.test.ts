@@ -183,4 +183,106 @@ describe('Resource Management and Logic', () => {
     saveResourcesToStorage(testItem);
     setItemSpy.mockRestore();
   });
+
+  it('correctly operates folder helpers (descendants, cascade add, cascade remove, keep top-level)', async () => {
+    const {
+      getCategoryTopLevelResources,
+      getFolderChildren,
+      getDescendantResourceIds,
+      cascadeAddCategoryToFolder,
+      cascadeRemoveCategoryFromFolder,
+      removeFolderKeepContentsInTopLevel,
+    } = await import('@/lib/resources-data');
+
+    const sampleResources: Resource[] = [
+      {
+        id: 'f1',
+        name: 'Root Folder',
+        type: 'folder',
+        categories: ['Winter Games'],
+      },
+      {
+        id: 'f2',
+        name: 'Nested Folder',
+        type: 'folder',
+        parentId: 'f1',
+        categories: ['Winter Games'],
+      },
+      {
+        id: 'file1',
+        name: 'File In Nested',
+        type: 'file',
+        parentId: 'f2',
+        categories: ['Winter Games'],
+      },
+      {
+        id: 'file2',
+        name: 'Top Level File',
+        type: 'file',
+        categories: ['Winter Games'],
+      },
+    ];
+
+    // getCategoryTopLevelResources
+    const topLevel = getCategoryTopLevelResources(
+      sampleResources,
+      'Winter Games',
+    );
+    expect(topLevel.map((r) => r.id)).toEqual(['f1', 'file2']);
+
+    // getFolderChildren
+    const f1Children = getFolderChildren(sampleResources, 'f1');
+    expect(f1Children.map((r) => r.id)).toEqual(['f2']);
+
+    // getDescendantResourceIds
+    const descIds = getDescendantResourceIds(sampleResources, 'f1');
+    expect(descIds).toEqual(['f2', 'file1']);
+
+    // cascadeAddCategoryToFolder
+    const withSummer = cascadeAddCategoryToFolder(
+      sampleResources,
+      'f1',
+      'Summer Games',
+    );
+    expect(withSummer.find((r) => r.id === 'f1')?.categories).toContain(
+      'Summer Games',
+    );
+    expect(withSummer.find((r) => r.id === 'f2')?.categories).toContain(
+      'Summer Games',
+    );
+    expect(withSummer.find((r) => r.id === 'file1')?.categories).toContain(
+      'Summer Games',
+    );
+    expect(withSummer.find((r) => r.id === 'file2')?.categories).not.toContain(
+      'Summer Games',
+    );
+
+    // cascadeRemoveCategoryFromFolder
+    const withoutWinter = cascadeRemoveCategoryFromFolder(
+      sampleResources,
+      'f1',
+      'Winter Games',
+    );
+    expect(withoutWinter.find((r) => r.id === 'f1')?.categories).toEqual([
+      'General',
+    ]);
+    expect(withoutWinter.find((r) => r.id === 'f2')?.categories).toEqual([
+      'General',
+    ]);
+    expect(withoutWinter.find((r) => r.id === 'file1')?.categories).toEqual([
+      'General',
+    ]);
+
+    // removeFolderKeepContentsInTopLevel
+    const kept = removeFolderKeepContentsInTopLevel(
+      sampleResources,
+      'f1',
+      'Winter Games',
+    );
+    expect(kept.find((r) => r.id === 'f1')?.categories).toEqual(['General']);
+    expect(kept.find((r) => r.id === 'file1')?.parentId).toBeNull();
+    expect(kept.find((r) => r.id === 'file1')?.categories).toEqual([
+      'Winter Games',
+    ]);
+  });
 });

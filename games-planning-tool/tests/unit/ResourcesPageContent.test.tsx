@@ -86,7 +86,7 @@ describe('ResourcesPageContent', () => {
   it('opens and closes Add Resource modal and adds a new resource', () => {
     render(<ResourcesPageContent />);
 
-    const addButtons = screen.getAllByRole('button', { name: 'Add' });
+    const addButtons = screen.getAllByRole('button', { name: 'Add Resource' });
     fireEvent.click(addButtons[0]);
 
     expect(screen.getByText('Add New Resource')).toBeInTheDocument();
@@ -101,7 +101,10 @@ describe('ResourcesPageContent', () => {
         target: { value: 'https://newresource.ca' },
       },
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Add Resource' }));
+    const modal = screen.getByRole('dialog');
+    fireEvent.click(
+      within(modal).getByRole('button', { name: 'Add Resource' }),
+    );
 
     expect(screen.getByText('Brand New Resource')).toBeInTheDocument();
   });
@@ -347,5 +350,35 @@ describe('ResourcesPageContent', () => {
     })[0];
     fireEvent.click(deleteBtn);
     expect(window.confirm).toHaveBeenCalled();
+  });
+
+  it('allows creating a folder and opening folder directory modal', () => {
+    render(<ResourcesPageContent />);
+
+    // Click Create Folder button in Winter Games
+    const winterSection = screen.getByText('Winter Games').closest('section')!;
+    const addFolderBtn = within(winterSection).getByRole('button', {
+      name: /Create Folder/i,
+    });
+    fireEvent.click(addFolderBtn);
+
+    // Fill folder name in modal
+    const nameInput = screen.getByPlaceholderText('e.g. Venue Maps');
+    fireEvent.change(nameInput, { target: { value: 'New Test Folder' } });
+    const modalDialog = screen.getByRole('dialog', {
+      name: /New Folder in Winter Games/i,
+    });
+    fireEvent.click(
+      within(modalDialog).getByRole('button', { name: 'Create Folder' }),
+    );
+
+    // Verify created folder card is displayed
+    expect(screen.getByText('New Test Folder')).toBeInTheDocument();
+
+    // Click the folder card to open directory modal
+    fireEvent.click(screen.getByText('New Test Folder'));
+    expect(
+      screen.getByRole('dialog', { name: 'New Test Folder' }),
+    ).toBeInTheDocument();
   });
 });
