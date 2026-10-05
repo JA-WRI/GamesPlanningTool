@@ -136,7 +136,9 @@ describe('FolderDirectoryModal & FolderRemovalConfirmModal', () => {
     fireEvent.click(fileCheckbox);
 
     // Click the card itself to trigger onToggleSelect and unselect it, then click it again
-    const fileCardClick = document.querySelector('[data-resource-id="file-1"]') as HTMLElement;
+    const fileCardClick = document.querySelector(
+      '[data-resource-id="file-1"]',
+    ) as HTMLElement;
     fireEvent.click(fileCardClick); // unselects
     fireEvent.click(fileCardClick); // selects again
 
@@ -221,5 +223,34 @@ describe('FolderDirectoryModal & FolderRemovalConfirmModal', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(handleCancel).toHaveBeenCalled();
+  });
+
+  it('handles renaming the current folder title', () => {
+    const handleRenameResource = vi.fn();
+    render(
+      <FolderDirectoryModal
+        folder={rootFolder}
+        allResources={allResources}
+        currentCategory="Winter Games"
+        onClose={vi.fn()}
+        onRenameResource={handleRenameResource}
+      />,
+    );
+
+    const titleEl = screen.getByRole('heading', {
+      name: 'Competition Schedules',
+    });
+    fireEvent.click(titleEl);
+
+    const input = screen.getByDisplayValue('Competition Schedules');
+    expect(input).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: 'New Folder Name' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+
+    expect(handleRenameResource).toHaveBeenCalledWith(
+      'folder-root',
+      'New Folder Name',
+    );
   });
 });
