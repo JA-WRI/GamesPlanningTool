@@ -156,6 +156,7 @@ describe('ResourceCard', () => {
       />,
     );
 
+    // Double click to rename
     const title = screen.getByText('Old Folder');
     fireEvent.doubleClick(title);
 
@@ -172,5 +173,28 @@ describe('ResourceCard', () => {
 
     // Input should be gone
     expect(screen.queryByDisplayValue('Old Folder')).not.toBeInTheDocument();
+  });
+
+  it('renders a folder round button when in edit mode', () => {
+    const folderResource: Resource = {
+      id: 'folder-1',
+      name: 'Old Folder',
+      type: 'folder',
+      categories: ['Winter Games'],
+    };
+    
+    const handleRoundPointer = vi.fn();
+    render(
+      <ResourceCard
+        {...defaultProps}
+        resource={folderResource}
+        isEditing={true}
+        onRoundButtonPointerDown={handleRoundPointer}
+      />,
+    );
+    
+    const selectBtn = screen.getByRole('button', { name: 'Select resource' });
+    fireEvent.pointerDown(selectBtn);
+    expect(handleRoundPointer).toHaveBeenCalledWith(expect.anything(), 'folder-1');
   });
 });
