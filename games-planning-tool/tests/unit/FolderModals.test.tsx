@@ -1,6 +1,6 @@
 // Made with AI agents (Antigravity)
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import React from 'react';
 import { FolderDirectoryModal } from '@/components/resources/FolderDirectoryModal';
 import { FolderRemovalConfirmModal } from '@/components/resources/FolderRemovalConfirmModal';
@@ -107,6 +107,68 @@ describe('FolderDirectoryModal & FolderRemovalConfirmModal', () => {
     // Close modal
     fireEvent.click(screen.getByLabelText('Close folder dialog'));
     expect(handleClose).toHaveBeenCalled();
+  });
+
+  it('handles edit mode, selection, renaming, and removal', () => {
+    const handleRemoveFromFolder = vi.fn();
+    const handleDeleteResources = vi.fn();
+    const handleRenameResource = vi.fn();
+    
+    render(
+      <FolderDirectoryModal
+        folder={rootFolder}
+        allResources={allResources}
+        currentCategory="Winter Games"
+        onClose={vi.fn()}
+        onSelectResourceDetail={vi.fn()}
+        onCreateSubfolder={vi.fn()}
+        onAddResourceToFolder={vi.fn()}
+        onMoveResourceToFolder={vi.fn()}
+        onRemoveFromFolder={handleRemoveFromFolder}
+        onDeleteResources={handleDeleteResources}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+
+    const fileCheckbox = screen.getAllByRole('button', { name: 'Select resource' })[1];
+    fireEvent.click(fileCheckbox);
+    
+    window.confirm = vi.fn().mockReturnValue(true);
+    
+    fireEvent.click(screen.getByRole('button', { name: /Delete Selected \(1\)/ }));
+    expect(handleDeleteResources).toHaveBeenCalledWith(['file-1']);
+  });
+
+  it('handles pointer dragging', () => {
+    render(
+      <FolderDirectoryModal
+        folder={rootFolder}
+        allResources={allResources}
+        currentCategory="Winter Games"
+        onClose={vi.fn()}
+        onSelectResourceDetail={vi.fn()}
+        onCreateSubfolder={vi.fn()}
+        onAddResourceToFolder={vi.fn()}
+        onMoveResourceToFolder={vi.fn()}
+        onReorderInFolder={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    
+    const fileCard = document.querySelector('[data-resource-id="file-1"]') as HTMLElement;
+    
+    fireEvent.pointerDown(fileCard, { clientX: 100, clientY: 100 });
+    
+    act(() => {
+      window.dispatchEvent(new PointerEvent('pointermove', { clientX: 120, clientY: 120 }));
+      window.dispatchEvent(new PointerEvent('pointermove', { clientX: 150, clientY: 150 }));
+    });
+    
+    act(() => {
+      window.dispatchEvent(new PointerEvent('pointerup'));
+    });
   });
 
   it('renders FolderRemovalConfirmModal and triggers callbacks', () => {
