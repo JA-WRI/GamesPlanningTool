@@ -29,7 +29,7 @@ describe('ResourceDetailModal', () => {
         resource={mockFile}
         onClose={vi.fn()}
         onRename={handleRename}
-      />
+      />,
     );
 
     // Click to rename
@@ -39,10 +39,10 @@ describe('ResourceDetailModal', () => {
     // Find input and change value
     const input = screen.getByDisplayValue('Old Name');
     fireEvent.change(input, { target: { value: 'New Name' } });
-    
+
     // Press Enter to save
     fireEvent.keyDown(input, { key: 'Enter' });
-    
+
     expect(handleRename).toHaveBeenCalledWith('file-1', 'New Name');
   });
 
@@ -52,13 +52,13 @@ describe('ResourceDetailModal', () => {
         resource={mockFile}
         onClose={vi.fn()}
         onRename={vi.fn()}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByText('Old Name'));
     const input = screen.getByDisplayValue('Old Name');
     fireEvent.keyDown(input, { key: 'Escape' });
-    
+
     // Input should be gone
     expect(screen.queryByDisplayValue('Old Name')).not.toBeInTheDocument();
   });

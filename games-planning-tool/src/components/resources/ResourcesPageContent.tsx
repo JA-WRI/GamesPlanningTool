@@ -507,7 +507,9 @@ export function ResourcesPageContent() {
     if (cur) {
       if (cur.hoveredFolderId) {
         // Batch-move all dragged resources into the target folder
-        const targetFolder = resources.find((r) => r.id === cur.hoveredFolderId);
+        const targetFolder = resources.find(
+          (r) => r.id === cur.hoveredFolderId,
+        );
         if (targetFolder) {
           const idsToMove = new Set(
             cur.resourceIds.filter((id) => id !== cur.hoveredFolderId),
@@ -760,7 +762,7 @@ export function ResourcesPageContent() {
     return resources.filter((res) => {
       const belongsToCategory = res.categories.includes(category);
       if (!belongsToCategory) return false;
-      // When not searching, only show top-level items in the category bar 
+      // When not searching, only show top-level items in the category bar
       // (items inside folders belong inside their folder, UNLESS their parent folder isn't in this category)
       if (!globalSearch.trim() && res.parentId) {
         const parent = resources.find((r) => r.id === res.parentId);
@@ -889,7 +891,7 @@ export function ResourcesPageContent() {
     // Let's modify it or just implement the bulk move here!
     const targetFolder = resources.find((r) => r.id === targetFolderId);
     if (!targetFolder) return;
-    
+
     const updated = resources.map((r) => {
       if (resourceIds.includes(r.id)) {
         // Prevent cycle: folder cannot be moved into itself or into any of its descendants
@@ -904,7 +906,9 @@ export function ResourcesPageContent() {
       return r;
     });
     updateResources(updated);
-    showToast(`Moved ${resourceIds.length} item(s) into "${targetFolder.name}"`);
+    showToast(
+      `Moved ${resourceIds.length} item(s) into "${targetFolder.name}"`,
+    );
   };
 
   return (
@@ -1180,7 +1184,7 @@ export function ResourcesPageContent() {
         /* Made with AI agents (Antigravity) */
         onDropOnCategory={(ids, cat) => {
           const catToRemove = cat ? null : activeDirectoryCategory;
-          
+
           const updated = resources.map((r) => {
             if (ids.includes(r.id)) {
               let newCats = [...r.categories];
@@ -1203,17 +1207,17 @@ export function ResourcesPageContent() {
                 shouldClearParentId = true;
               }
 
-              return { 
-                ...r, 
-                categories: newCats, 
-                parentId: shouldClearParentId ? undefined : r.parentId 
+              return {
+                ...r,
+                categories: newCats,
+                parentId: shouldClearParentId ? undefined : r.parentId,
               };
             }
             return r;
           });
-          
+
           updateResources(updated);
-          
+
           if (cat) {
             showToast(`Moved ${ids.length} item(s) to ${cat}`);
           } else {
@@ -1237,7 +1241,12 @@ export function ResourcesPageContent() {
       />
 
       <ResourceDetailModal
-        resource={detailResource ? resources.find(r => r.id === detailResource.id) ?? detailResource : null}
+        resource={
+          detailResource
+            ? (resources.find((r) => r.id === detailResource.id) ??
+              detailResource)
+            : null
+        }
         onClose={() => setDetailResource(null)}
         onRename={handleRenameResource}
       />

@@ -248,7 +248,6 @@ describe('CategorySection', () => {
     })[0];
     fireEvent.pointerDown(selectBtn, { clientX: 100, clientY: 100 });
 
-    
     act(() => {
       window.dispatchEvent(
         new PointerEvent('pointermove', { clientX: 140, clientY: 100 }),
