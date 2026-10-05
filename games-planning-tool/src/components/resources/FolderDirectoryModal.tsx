@@ -238,6 +238,7 @@ export function FolderDirectoryModal({
 
       // 2. Hit-test using elementFromPoint AFTER instantaneous DOM updates
       const elem = document.elementFromPoint(e.clientX, e.clientY);
+
       if (!elem) return;
 
       if (isDraggingOutsideRef.current) {
@@ -405,6 +406,7 @@ export function FolderDirectoryModal({
       }
 
       const elem = document.elementFromPoint(e.clientX, e.clientY);
+
 
       // If they dropped outside the panel, it's a drag-out, regardless of pointerMove state
       if (!isInsidePanel || isDraggingOutsideRef.current) {
@@ -867,15 +869,7 @@ export function FolderDirectoryModal({
                         }}
                         onClick={(resource) => {
                           if (justDraggedRef.current) return;
-                          if (isEditingFolder) {
-                            setSelectedIds((prev) => {
-                              const next = new Set(prev);
-                              if (next.has(resource.id))
-                                next.delete(resource.id);
-                              else next.add(resource.id);
-                              return next;
-                            });
-                          } else if (resource.type === 'folder') {
+                          if (resource.type === 'folder') {
                             setCurrentFolderId(resource.id);
                           } else {
                             onSelectResourceDetail(resource);

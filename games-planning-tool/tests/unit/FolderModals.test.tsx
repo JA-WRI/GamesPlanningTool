@@ -135,6 +135,11 @@ describe('FolderDirectoryModal & FolderRemovalConfirmModal', () => {
     })[1];
     fireEvent.click(fileCheckbox);
 
+    // Click the card itself to trigger onToggleSelect and unselect it, then click it again
+    const fileCardClick = document.querySelector('[data-resource-id="file-1"]') as HTMLElement;
+    fireEvent.click(fileCardClick); // unselects
+    fireEvent.click(fileCardClick); // selects again
+
     window.confirm = vi.fn().mockReturnValue(true);
 
     fireEvent.click(
