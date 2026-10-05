@@ -1,13 +1,13 @@
 //AI usage -> 100%
 export type TagColor = 'maroon' | 'blue' | 'green' | 'red' | 'yellow' | 'gray';
 
-const colorClasses: Record<TagColor, string> = {
-  maroon: 'bg-[#8B1010] text-white',
-  blue: 'bg-sky-500 text-white',
-  green: 'bg-lime-500 text-white',
-  red: 'bg-red-600 text-white',
-  yellow: 'bg-amber-400 text-white',
-  gray: 'bg-gray-500 text-white',
+export const tagHex: Record<TagColor, string> = {
+  maroon: '#8B1010',
+  blue: '#0ea5e9',
+  green: '#84cc16',
+  red: '#dc2626',
+  yellow: '#fbbf24',
+  gray: '#6b7280',
 };
 
 type TagProps = {
@@ -19,7 +19,8 @@ type TagProps = {
 export default function Tag({ label, color, className = '' }: TagProps) {
   return (
     <span
-      className={`inline-block rounded-full px-4 py-0.5 text-xs font-bold ${colorClasses[color]} ${className}`}
+      style={{ backgroundColor: tagHex[color] }}
+      className={`inline-block rounded-full px-4 py-0.5 text-xs font-bold text-white ${className}`}
     >
       {' '}
       {label}{' '}
