@@ -475,4 +475,58 @@ describe('ResourcesPageContent', () => {
     fireEvent.click(screen.getByLabelText('Close dialog'));
     expect(screen.queryByLabelText('Close dialog')).not.toBeInTheDocument();
   });
+
+  it('handles drag and drop from folder modal to category tabs and folder deletion', () => {
+    vi.useFakeTimers();
+    render(<ResourcesPageContent />);
+    
+    // Open the folder
+    fireEvent.click(screen.getByText('Competition Schedules'));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    
+    // Click edit in the modal
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Edit' }));
+
+    // Find file inside folder
+    const fileInside = document.querySelector('[data-resource-id="res-w-child-1"]') as HTMLElement;
+    
+    // Start drag
+    fireEvent.pointerDown(fileInside, { clientX: 100, clientY: 100 });
+    
+    const summerSection = document.querySelector('[data-category-title="Summer Games"]') as HTMLElement;
+    const origElementFromPoint = document.elementFromPoint;
+    document.elementFromPoint = () => summerSection;
+    
+    act(() => {
+      document.dispatchEvent(new PointerEvent('pointermove', { clientX: 110, clientY: 110, buttons: 1 }));
+      vi.advanceTimersByTime(200);
+      document.dispatchEvent(new PointerEvent('pointermove', { clientX: 120, clientY: 120, buttons: 1 }));
+      vi.advanceTimersByTime(200);
+    });
+    
+    // Drop onto a category tab (e.g. Summer Games)
+    act(() => {
+      document.dispatchEvent(new PointerEvent('pointerup', { clientX: 110, clientY: 110 }));
+    });
+    document.elementFromPoint = origElementFromPoint;
+    
+    vi.useRealTimers();
+  });
+
+  it('deletes selected items within the folder directory modal', () => {
+    render(<ResourcesPageContent />);
+    
+    // Open the folder
+    fireEvent.click(screen.getByText('Competition Schedules'));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    
+    // Click edit in the modal
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Edit' }));
+    
+    const selectBtn = screen.getAllByRole('button', { name: 'Select resource' })[0];
+    fireEvent.click(selectBtn);
+    
+    window.confirm = vi.fn().mockReturnValue(true);
+    fireEvent.click(screen.getByRole('button', { name: /Delete Selected \(1\)/ }));
+  });
 });

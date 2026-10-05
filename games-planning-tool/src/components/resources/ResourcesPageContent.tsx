@@ -1183,6 +1183,7 @@ export function ResourcesPageContent() {
         onRenameResource={handleRenameResource}
         /* Made with AI agents (Antigravity) */
         onDropOnCategory={(ids, cat) => {
+
           const catToRemove = cat ? null : activeDirectoryCategory;
 
           const updated = resources.map((r) => {
