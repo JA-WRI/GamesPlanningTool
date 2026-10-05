@@ -1,31 +1,19 @@
 import { useState } from 'react';
 import { inputClass, onlyDigits } from '../_lib/utils';
-
-export type AthleteEstimate = {
-  low: string;
-  bestGuess: string;
-  high: string;
-};
-
-export type TeamSize = {
-  athletes: {
-    male: AthleteEstimate;
-    female: AthleteEstimate;
-  };
-  staff: string;
-  notes: string;
-  projectedMedalsLow: string;
-  projectedMedalsHigh: string;
-};
+import {
+  TeamSize,
+  formatMedalRange,
+  getAthleteRangeErrors,
+  getAthleteTotals,
+  getMedalsMessage,
+  getTotalTeamSize,
+  updateAthleteField,
+} from '../_lib/teamSizeLogic';
 
 type TeamSizeStepProps = {
   teamSize: TeamSize;
   onChange: (teamSize: TeamSize) => void;
 };
-
-function toNumber(value: string | number) {
-  return Number(value || 0);
-}
 
 function SummaryCard({
   title,
@@ -145,56 +133,19 @@ export default function TeamSizeStep({
     { key: 'female' as const, label: 'Female' },
   ];
 
-  // Keep athlete fields numeric only
-  function updateAthleteField(
-    key: 'male' | 'female',
-    field: keyof AthleteEstimate,
-    value: string,
-  ) {
-    onChange({
-      ...teamSize,
-      athletes: {
-        ...teamSize.athletes,
-        [key]: {
-          ...teamSize.athletes[key],
-          [field]: onlyDigits(value),
-        },
-      },
-    });
-  }
-
-  // Add male and female estimates for the summary row.
-  const totals = athleteRows.reduce(
-    (acc, row) => {
-      const estimate = teamSize.athletes[row.key];
-      acc.low += toNumber(estimate.low);
-      acc.bestGuess += toNumber(estimate.bestGuess);
-      acc.high += toNumber(estimate.high);
-      return acc;
-    },
-    { low: 0, bestGuess: 0, high: 0 },
-  );
-
+  const totals = getAthleteTotals(teamSize.athletes);
   const athletesBestGuessTotal = totals.bestGuess;
-  const athletesLowTotal = totals.low;
-  const athletesHighTotal = totals.high;
-  const estimatedTotalTeamSize =
-    athletesBestGuessTotal + toNumber(teamSize.staff || 0);
+  const estimatedTotalTeamSize = getTotalTeamSize(teamSize);
 
-  const projectedMedalsLow = teamSize.projectedMedalsLow;
-  const projectedMedalsHigh = teamSize.projectedMedalsHigh;
-  const projectedMedalsValue =
-    projectedMedalsLow || projectedMedalsHigh
-      ? `${projectedMedalsLow || '0'} – ${projectedMedalsHigh || '0'}`
-      : '0 – 0';
-
-  // Validate medals only after both estimates are entered.
-  const projectedMedalsMessage =
-    projectedMedalsLow !== '' &&
-    projectedMedalsHigh !== '' &&
-    toNumber(projectedMedalsHigh) < toNumber(projectedMedalsLow)
-      ? 'High estimate must be greater than or equal to low estimate.'
-      : null;
+  const projectedMedalsValue = formatMedalRange(
+    teamSize.projectedMedalsLow,
+    teamSize.projectedMedalsHigh,
+  );
+  // medals are only checked once both estimates are entered
+  const projectedMedalsMessage = getMedalsMessage(
+    teamSize.projectedMedalsLow,
+    teamSize.projectedMedalsHigh,
+  );
 
   return (
     <div
@@ -244,14 +195,8 @@ export default function TeamSizeStep({
 
             {athleteRows.map((row) => {
               const estimate = teamSize.athletes[row.key];
-              const lowIsInvalid =
-                estimate.low !== '' &&
-                estimate.bestGuess !== '' &&
-                toNumber(estimate.low) > toNumber(estimate.bestGuess);
-              const bestIsInvalid =
-                estimate.bestGuess !== '' &&
-                estimate.high !== '' &&
-                toNumber(estimate.bestGuess) > toNumber(estimate.high);
+              const { lowIsInvalid, bestIsInvalid } =
+                getAthleteRangeErrors(estimate);
 
               return (
                 <div key={row.key} className="space-y-1">
@@ -274,7 +219,14 @@ export default function TeamSizeStep({
                           value={value}
                           aria-label={`${row.label} ${field === 'low' ? 'Low' : field === 'bestGuess' ? 'Best guess' : 'High'}`}
                           onChange={(e) =>
-                            updateAthleteField(row.key, field, e.target.value)
+                            onChange(
+                              updateAthleteField(
+                                teamSize,
+                                row.key,
+                                field,
+                                e.target.value,
+                              ),
+                            )
                           }
                           className={`${inputClass} w-full border border-gray-300 bg-gray-50 px-2 py-[7px] text-center text-sm text-gray-900 shadow-sm transition-all duration-200 focus:border-[#b5372f] focus:ring-4 focus:ring-red-100 ${isInvalid ? 'border-red-300 bg-red-50 text-red-700' : ''}`}
                         />

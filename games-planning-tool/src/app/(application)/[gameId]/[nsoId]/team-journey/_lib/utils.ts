@@ -1,4 +1,3 @@
-// digits only, so "-", "+", "." and letters are blocked on purpose
 export function onlyDigits(value: string) {
   return value.replace(/\D/g, '');
 }

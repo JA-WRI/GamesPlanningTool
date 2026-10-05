@@ -1,4 +1,4 @@
-import type { TeamSize } from '../_components/TeamSizeStep';
+import type { TeamSize } from './teamSizeLogic';
 
 export const PARTICIPANT_CATEGORIES = [
   'Athlete',
