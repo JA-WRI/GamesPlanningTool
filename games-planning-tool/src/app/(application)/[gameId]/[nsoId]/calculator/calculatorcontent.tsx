@@ -1,13 +1,14 @@
-// 90% AI generated code for original layout of the calculator content
+// 70% AI generated code:
+// The following was generated:
+// - Original layout of the calculator content, including the basic structure of the table and inputs
+
 "use client";
+
+import { useState } from "react";
 
 import {
   Box,
-  Button,
   Divider,
-  IconButton,
-  InputAdornment,
-  MenuItem,
   Paper,
   Table,
   TableBody,
@@ -19,64 +20,64 @@ import {
   Typography,
 } from "@mui/material";
 
-import AddIcon from "@mui/icons-material/Add";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
+// Fixed categories from the calculator spreadsheet.
+const TRAVEL_CATEGORIES = [
+  {
+    id: 1,
+    title:
+      "Travelling Accredited Alternate Athletes @ partial NSO cost (Ap)",
+  },
+  {
+    id: 2,
+    title:
+      "Travelling Non-accredited Alternate Athletes @ full NSO cost",
+  },
+  {
+    id: 3,
+    title:
+      "Support staff @ partial NSO cost (e.g., partial Ao)",
+  },
+  {
+    id: 4,
+    title:
+      "Support staff @ full NSO cost (incl. non-accredited)",
+  },
+] as const;
 
-// Replace defaults values later!!
-const RATES = {
-  accommodationPerNight: 0,
-  foodPerDay: 0,
-  simPerPerson: 0,
-  insurancePerPerson: 0,
-};
-
-export type Traveler = {
+type CalculatorRow = {
   id: number;
-  category: string;
+  teamMembers: number;
+  daysOnSite: number;
+  travel: number;
   number: number;
   checkIn: string;
   checkOut: string;
-  accommodationRate: number;
-  travelCost: number;
+  days: number;
+  nights: number;
+  accommodationBudget: number;
+  travelBudget: number;
 };
-
-export function createTraveler(id: number): Traveler {
-  return {
-    id,
-    category: "",
-    number: 1,
-    checkIn: "",
-    checkOut: "",
-    accommodationRate: RATES.accommodationPerNight,
-    travelCost: 0,
-  };
-}
 
 type CalculatorContentProps = {
   readonly calculatorId: number;
-  readonly travelers: Traveler[];
-  readonly onTravelersChange: (travelers: Traveler[]) => void;
 };
 
-// Calculate the difference between two calendar dates.
-// Using UTC avoids daylight-saving-time calculation errors.
-function getNights(checkIn: string, checkOut: string): number {
-  if (!checkIn || !checkOut) return 0;
-
-  const start = Date.parse(`${checkIn}T00:00:00Z`);
-  const end = Date.parse(`${checkOut}T00:00:00Z`);
-
-  if (!Number.isFinite(start) || !Number.isFinite(end)) return 0;
-
-  return Math.max(0, Math.round((end - start) / 86400000));
-}
-
-function getDays(checkIn: string, checkOut: string): number {
-  if (!checkIn || !checkOut) return 0;
-
-  const nights = getNights(checkIn, checkOut);
-
-  return nights > 0 ? nights + 1 : 0;
+// Every calculator starts with four fixed rows.
+// All numeric values are initialized to zero.
+function createInitialRows(): CalculatorRow[] {
+  return TRAVEL_CATEGORIES.map((category) => ({
+    id: category.id,
+    teamMembers: 0,
+    daysOnSite: 0,
+    travel: 0,
+    number: 0,
+    checkIn: "",
+    checkOut: "",
+    days: 0,
+    nights: 0,
+    accommodationBudget: 0,
+    travelBudget: 0,
+  }));
 }
 
 function formatCurrency(amount: number): string {
@@ -88,77 +89,42 @@ function formatCurrency(amount: number): string {
 
 export default function CalculatorContent({
   calculatorId,
-  travelers,
-  onTravelersChange,
 }: CalculatorContentProps) {
+  const [rowsByCalculator, setRowsByCalculator] = useState<
+    Record<number, CalculatorRow[]>
+  >({});
 
-  // Update one field for a specific traveler.
-  const updateTraveler = (
-    id: number,
-    field: keyof Traveler,
+  const rows =
+    rowsByCalculator[calculatorId] ?? createInitialRows();
+
+  // Updates an input without performing calculations.
+  const updateRow = (
+    rowId: number,
+    field: keyof CalculatorRow,
     value: string | number
   ) => {
-    const updated = travelers.map((traveler) =>
-      traveler.id === id
-        ? { ...traveler, [field]: value }
-        : traveler
-    );
+    setRowsByCalculator((previous) => {
+      const currentRows =
+        previous[calculatorId] ?? createInitialRows();
 
-    onTravelersChange(updated);
+      return {
+        ...previous,
+        [calculatorId]: currentRows.map((row) =>
+          row.id === rowId
+            ? { ...row, [field]: value }
+            : row
+        ),
+      };
+    });
   };
 
-  const addTraveler = () => {
-    const newId =
-      Math.max(0, ...travelers.map((traveler) => traveler.id)) + 1;
-
-    onTravelersChange([...travelers, createTraveler(newId)]);
-  };
-
-  const removeTraveler = (id: number) => {
-    onTravelersChange(
-      travelers.filter((traveler) => traveler.id !== id)
-    );
-  };
-
-  // Live calculations.
-  const accommodationTotal = travelers.reduce((sum, traveler) => {
-    const nights = getNights(traveler.checkIn, traveler.checkOut);
-
-    return (
-      sum +
-      nights * traveler.number * traveler.accommodationRate
-    );
-  }, 0);
-
-  const travelTotal = travelers.reduce(
-    (sum, traveler) =>
-      sum + traveler.travelCost * traveler.number,
-    0
-  );
-
-  const foodTotal = travelers.reduce((sum, traveler) => {
-    const days = getDays(traveler.checkIn, traveler.checkOut);
-
-    return sum + days * traveler.number * RATES.foodPerDay;
-  }, 0);
-
-  const totalPeople = travelers.reduce(
-    (sum, traveler) => sum + traveler.number,
-    0
-  );
-
-  const insuranceTotal =
-    totalPeople * RATES.insurancePerPerson;
-
-  const simTotal =
-    totalPeople * RATES.simPerPerson;
-
-  const estimatedTotal =
-    accommodationTotal +
-    travelTotal +
-    foodTotal +
-    insuranceTotal +
-    simTotal;
+  // Placeholder values until calculation logic is implemented.
+  const accommodationTotal = 0;
+  const travelTotal = 0;
+  const foodTotal = 0;
+  const insuranceTotal = 0;
+  const simTotal = 0;
+  const estimatedTotal = 0;
 
   const summary = [
     { label: "Accommodation:", value: accommodationTotal },
@@ -168,29 +134,69 @@ export default function CalculatorContent({
     { label: "SIM card:", value: simTotal },
   ];
 
+  // Reusable numeric MUI input.
+  const renderNumberInput = (
+    row: CalculatorRow,
+    field: keyof CalculatorRow
+  ) => (
+    <TextField
+      className="calculator-content-input"
+      type="number"
+      size="small"
+      fullWidth
+      value={row[field]}
+      onChange={(event) =>
+        updateRow(
+          row.id,
+          field,
+          Math.max(0, Number(event.target.value) || 0)
+        )
+      }
+      slotProps={{
+        htmlInput: {
+          min: 0,
+          step: 1,
+          "aria-label": `${field} for category ${row.id}`,
+        },
+      }}
+    />
+  );
+
   return (
-    <Box className="calculator" data-calculator-id={calculatorId}>
+    <Box
+      className="calculator"
+      data-calculator-id={calculatorId}
+    >
       {/* TRAVELERS SECTION */}
       <Paper
-        className="calculator__panel"
+        className="calculator-content-panel"
         variant="outlined"
       >
-        <Box className="calculator__section-heading">
-          <Typography>
-            Travelers
-          </Typography>
+        <Box className="calculator-content-section-heading">
+          <Typography>NSO FUNDED TEAM MEMBERS ESTIMATED COSTS</Typography>
         </Box>
 
-        {/* Horizontal scrolling table */}
-        <TableContainer className="calculator__table-container">
+        <TableContainer className="calculator-content-table-container">
           <Table
-            className="calculator__table"
+            className="calculator-content-table"
             size="small"
           >
             <TableHead>
-              <TableRow className="calculator__table-head-row">
+              <TableRow className="calculator-content-table-head-row">
                 <TableCell>
-                  Travel Category
+                  {/* Empty cell*/}
+                </TableCell>
+
+                <TableCell>
+                  Number of Team Members
+                </TableCell>
+
+                <TableCell>
+                  Days on Site per Team Member
+                </TableCell>
+
+                <TableCell>
+                  Travel
                 </TableCell>
 
                 <TableCell>
@@ -222,230 +228,155 @@ export default function CalculatorContent({
                 </TableCell>
 
                 <TableCell>
-                  Action
+                  SIM Card Budget
+                </TableCell>
+
+                <TableCell>
+                  Meals Budget
+                </TableCell>
+
+                <TableCell>
+                  Village Meals Budget
+                </TableCell>
+
+                <TableCell>
+                  Insurance Budget
+                </TableCell>
+
+                <TableCell>
+                  Total
                 </TableCell>
               </TableRow>
             </TableHead>
 
             <TableBody>
-              {travelers.map((traveler) => {
-                const nights = getNights(
-                  traveler.checkIn,
-                  traveler.checkOut
+              {rows.map((row) => {
+                const category = TRAVEL_CATEGORIES.find(
+                  (item) => item.id === row.id
                 );
-
-                const days = getDays(
-                  traveler.checkIn,
-                  traveler.checkOut
-                );
-
-                const invalidDates =
-                  !!traveler.checkIn &&
-                  !!traveler.checkOut &&
-                  traveler.checkOut <= traveler.checkIn;
 
                 return (
-                  <TableRow key={traveler.id} hover>
-                    {/* Category */}
-                    <TableCell className="calculator__cell">
-                      <TextField
-                        select
-                        fullWidth
-                        size="small"
-                        variant="standard"
-                        value={traveler.category}
-                        onChange={(event) =>
-                          updateTraveler(
-                            traveler.id,
-                            "category",
-                            event.target.value
-                          )
-                        }
-                        slotProps={{
-                          select: { displayEmpty: true },
-                        }}
-                        className="calculator__category"
-                      >
-                        <MenuItem value="" disabled>
-                          Select
-                        </MenuItem>
-                        <MenuItem value="Athlete">
-                          Athlete
-                        </MenuItem>
-                        <MenuItem value="Coach">
-                          Coach
-                        </MenuItem>
-                        <MenuItem value="Staff">
-                          Staff
-                        </MenuItem>
-                        <MenuItem value="Official">
-                          Official
-                        </MenuItem>
-                        <MenuItem value="Other">
-                          Other
-                        </MenuItem>
-                      </TextField>
+                  <TableRow
+                    key={row.id}
+                    className="calculator-content-data-row"
+                  >
+                    {/* Fixed category title */}
+                    <TableCell className="calculator-content-category-cell">
+                      <Typography className="calculator-content-category-title">
+                        {category?.title}
+                      </Typography>
                     </TableCell>
 
-                    {/* Number of travelers */}
-                    <TableCell className="calculator__cell">
+                    {/* Number of team members */}
+                    <TableCell className="calculator-content-editable-cell">
+                      {renderNumberInput(row, "teamMembers")}
+                    </TableCell>
+
+                    {/* Days on site */}
+                    <TableCell className="calculator-content-editable-cell">
+                      {renderNumberInput(row, "daysOnSite")}
+                    </TableCell>
+
+                    {/* Travel */}
+                    <TableCell className="calculator-content-editable-cell">
                       <TextField
+                        className="calculator-content-input"
                         type="number"
                         size="small"
                         fullWidth
-                        value={traveler.number}
+                        value={row.travel}
                         onChange={(event) =>
-                          updateTraveler(
-                            traveler.id,
-                            "number",
+                          updateRow(
+                            row.id,
+                            "travel",
                             Math.max(
                               0,
-                              Math.floor(Number(event.target.value) || 0)
+                              Number(event.target.value) || 0
                             )
                           )
                         }
-                        slotProps={{ htmlInput: { min: 0, step: 1 } }}
-                        className="calculator__input"
+                        slotProps={{
+                          htmlInput: { min: 0, step: 0.01 },
+                          input: {
+                            startAdornment: (
+                              <Typography sx={{ mr: 0.5, fontSize: 12 }}>
+                                $
+                              </Typography>
+                            ),
+                          },
+                        }}
                       />
                     </TableCell>
 
+                    {/* Number */}
+                    <TableCell className="calculator-content-editable-cell">
+                      {renderNumberInput(row, "number")}
+                    </TableCell>
+
                     {/* Check-in */}
-                    <TableCell className="calculator__cell">
+                    <TableCell className="calculator-content-editable-cell">
                       <TextField
+                        className="calculator-content-input"
                         type="date"
                         size="small"
                         fullWidth
-                        value={traveler.checkIn}
+                        value={row.checkIn}
                         onChange={(event) =>
-                          updateTraveler(
-                            traveler.id,
+                          updateRow(
+                            row.id,
                             "checkIn",
                             event.target.value
                           )
                         }
-                        slotProps={{ inputLabel: { shrink: true } }}
-                        className="calculator__input"
+                        slotProps={{
+                          htmlInput: {
+                            "aria-label": "Check-in date",
+                          },
+                        }}
                       />
                     </TableCell>
 
                     {/* Check-out */}
-                    <TableCell className="calculator__cell">
+                    <TableCell className="calculator-content-editable-cell">
                       <TextField
+                        className="calculator-content-input"
                         type="date"
                         size="small"
                         fullWidth
-                        value={traveler.checkOut}
-                        error={invalidDates}
+                        value={row.checkOut}
                         onChange={(event) =>
-                          updateTraveler(
-                            traveler.id,
+                          updateRow(
+                            row.id,
                             "checkOut",
                             event.target.value
                           )
                         }
                         slotProps={{
                           htmlInput: {
-                            min: traveler.checkIn || undefined,
+                            "aria-label": "Check-out date",
                           },
-                          inputLabel: { shrink: true },
                         }}
-                        className="calculator__input"
                       />
                     </TableCell>
 
-                    {/* Calculated days */}
-                    <TableCell
-                      align="center"
-                      className="calculator__cell"
-                    >
-                      {days}
+                    {/* Days */}
+                    <TableCell className="calculator-content-editable-cell">
+                      {renderNumberInput(row, "days")}
                     </TableCell>
 
-                    {/* Calculated nights */}
-                    <TableCell
-                      align="center"
-                      className="calculator__cell"
-                    >
-                      {nights}
+                    {/* Nights */}
+                    <TableCell className="calculator-content-editable-cell">
+                      {renderNumberInput(row, "nights")}
                     </TableCell>
 
-                    {/* Accommodation nightly rate */}
-                    <TableCell className="calculator__cell">
-                      <TextField
-                        type="number"
-                        size="small"
-                        fullWidth
-                        value={traveler.accommodationRate}
-                        onChange={(event) =>
-                          updateTraveler(
-                            traveler.id,
-                            "accommodationRate",
-                            Math.max(
-                              0,
-                              Number(event.target.value) || 0
-                            )
-                          )
-                        }
-                        slotProps={{
-                          htmlInput: { min: 0, step: 0.01 },
-                          input: {
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                $
-                              </InputAdornment>
-                            ),
-                          },
-                        }}
-                        className="calculator__input"
-                      />
+                    {/* Accommodation Budget */}
+                    <TableCell className="calculator-content-editable-cell">
+                      {renderNumberInput(row, "accommodationBudget")}
                     </TableCell>
 
-                    {/* Travel cost per person */}
-                    <TableCell className="calculator__cell">
-                      <TextField
-                        type="number"
-                        size="small"
-                        fullWidth
-                        value={traveler.travelCost}
-                        onChange={(event) =>
-                          updateTraveler(
-                            traveler.id,
-                            "travelCost",
-                            Math.max(
-                              0,
-                              Number(event.target.value) || 0
-                            )
-                          )
-                        }
-                        slotProps={{
-                          htmlInput: { min: 0, step: 0.01 },
-                          input: {
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                $
-                              </InputAdornment>
-                            ),
-                          },
-                        }}
-                        className="calculator__input"
-                      />
-                    </TableCell>
-
-                    {/* Remove traveler */}
-                    <TableCell
-                      align="center"
-                      className="calculator__cell"
-                    >
-                      <IconButton
-                        size="small"
-                        color="error"
-                        aria-label="Remove traveler"
-                        onClick={() =>
-                          removeTraveler(traveler.id)
-                        }
-                      >
-                        <DeleteOutlineIcon fontSize="small" />
-                      </IconButton>
+                    {/* Travel Budget */}
+                    <TableCell className="calculator-content-editable-cell">
+                      {renderNumberInput(row, "travelBudget")}
                     </TableCell>
                   </TableRow>
                 );
@@ -453,35 +384,22 @@ export default function CalculatorContent({
             </TableBody>
           </Table>
         </TableContainer>
-
-        {/* Add traveler footer */}
-        <Box className="calculator__table-footer">
-          <Button
-            variant="contained"
-            size="small"
-            startIcon={<AddIcon />}
-            onClick={addTraveler}
-            className="calculator__add-button"
-          >
-            Add New Traveler
-          </Button>
-        </Box>
       </Paper>
 
       {/* COST SUMMARY */}
       <Paper
-        className="calculator__panel calculator__summary"
+        className="calculator-content-panel calculator-content-summary"
         variant="outlined"
       >
-        <Box className="calculator__summary-content">
-          <Typography className="calculator__summary-title">
+        <Box className="calculator-content-summary-content">
+          <Typography className="calculator-content-summary-title">
             Cost Summary
           </Typography>
 
           {summary.map((item) => (
             <Box
               key={item.label}
-              className="calculator__summary-row"
+              className="calculator-content-summary-row"
             >
               <Typography>
                 {item.label}
@@ -496,19 +414,18 @@ export default function CalculatorContent({
 
         <Divider />
 
-        {/* Estimated total */}
-        <Box className="calculator__estimated-total">
+        <Box className="calculator-content-estimated-total">
           <Box>
-            <Typography className="calculator__estimated-label">
+            <Typography className="calculator-content-estimated-label">
               Estimated Total:
             </Typography>
 
-            <Typography className="calculator__note">
+            <Typography className="calculator-content-note">
               Excludes clothing packages (individual need)
             </Typography>
           </Box>
 
-          <Typography className="calculator__estimated-amount">
+          <Typography className="calculator-content-estimated-amount">
             {formatCurrency(estimatedTotal)}
           </Typography>
         </Box>
