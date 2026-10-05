@@ -112,7 +112,7 @@ describe('FolderDirectoryModal & FolderRemovalConfirmModal', () => {
   it('handles edit mode, selection, renaming, and removal', () => {
     const handleRemoveFromFolder = vi.fn();
     const handleDeleteResources = vi.fn();
-    
+
     render(
       <FolderDirectoryModal
         folder={rootFolder}
@@ -130,12 +130,16 @@ describe('FolderDirectoryModal & FolderRemovalConfirmModal', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
 
-    const fileCheckbox = screen.getAllByRole('button', { name: 'Select resource' })[1];
+    const fileCheckbox = screen.getAllByRole('button', {
+      name: 'Select resource',
+    })[1];
     fireEvent.click(fileCheckbox);
-    
+
     window.confirm = vi.fn().mockReturnValue(true);
-    
-    fireEvent.click(screen.getByRole('button', { name: /Delete Selected \(1\)/ }));
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /Delete Selected \(1\)/ }),
+    );
     expect(handleDeleteResources).toHaveBeenCalledWith(['file-1']);
   });
 
@@ -155,16 +159,22 @@ describe('FolderDirectoryModal & FolderRemovalConfirmModal', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
-    
-    const fileCard = document.querySelector('[data-resource-id="file-1"]') as HTMLElement;
-    
+
+    const fileCard = document.querySelector(
+      '[data-resource-id="file-1"]',
+    ) as HTMLElement;
+
     fireEvent.pointerDown(fileCard, { clientX: 100, clientY: 100 });
-    
+
     act(() => {
-      window.dispatchEvent(new PointerEvent('pointermove', { clientX: 120, clientY: 120 }));
-      window.dispatchEvent(new PointerEvent('pointermove', { clientX: 150, clientY: 150 }));
+      window.dispatchEvent(
+        new PointerEvent('pointermove', { clientX: 120, clientY: 120 }),
+      );
+      window.dispatchEvent(
+        new PointerEvent('pointermove', { clientX: 150, clientY: 150 }),
+      );
     });
-    
+
     act(() => {
       window.dispatchEvent(new PointerEvent('pointerup'));
     });

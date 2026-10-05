@@ -353,7 +353,10 @@ export function createFolder(
   categories: string[],
   parentId?: string | null,
 ): import('@/types/resource').FolderResource {
-  const randomSuffix = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID().split('-')[0] : Date.now().toString(36);
+  const randomSuffix =
+    typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID().split('-')[0]
+      : Date.now().toString(36);
   return {
     id: `folder-${randomSuffix}`,
     name,

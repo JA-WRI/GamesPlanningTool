@@ -293,7 +293,7 @@ describe('ResourcesPageContent', () => {
 
     fireEvent.dragStart(fileCard, { dataTransfer: dt });
     
-    folderCard.getBoundingClientRect = vi.fn(() => ({ left: 0, right: 100, top: 0, bottom: 100, width: 100, height: 100, x: 0, y: 0, toJSON: () => {} })) as any;
+    folderCard.getBoundingClientRect = vi.fn(() => ({ left: 0, right: 100, top: 0, bottom: 100, width: 100, height: 100, x: 0, y: 0, toJSON: () => {} })) as unknown as DOMRect;
     
     fireEvent.dragOver(folderCard, { clientX: 50, dataTransfer: dt });
     fireEvent.drop(folderCard, { dataTransfer: dt });
