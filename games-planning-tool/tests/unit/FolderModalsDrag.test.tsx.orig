@@ -1,0 +1,143 @@
+// Made with AI agents (Antigravity)
+import { describe, it, expect, vi } from 'vitest';
+import { render, fireEvent, act } from '@testing-library/react';
+import React from 'react';
+import { FolderDirectoryModal } from '@/components/resources/FolderDirectoryModal';
+import { FolderResource, FileResource } from '@/types/resource';
+
+describe('FolderDirectoryModal Drag and Drop', () => {
+  const rootFolder: FolderResource = { id: 'folder-root', name: 'Root', type: 'folder', categories: ['Winter'] };
+  const subFolder: FolderResource = { id: 'folder-sub-1', name: 'Sub', type: 'folder', parentId: 'folder-root', categories: ['Winter'] };
+  const childFile: FileResource = { id: 'file-1', name: 'File 1', type: 'file', parentId: 'folder-root', categories: ['Winter'] };
+  const allResources = [rootFolder, subFolder, childFile];
+
+  it('handles dropping onto a subfolder inside the modal', () => {
+    const handleMove = vi.fn();
+
+    render(
+      <FolderDirectoryModal
+        folder={rootFolder}
+        allResources={allResources}
+        currentCategory="Winter"
+        onClose={vi.fn()}
+        onMoveResourceToFolder={handleMove}
+        onReorderInFolder={vi.fn()}
+      />
+    );
+
+    const fileCard = document.querySelector('[data-resource-id="file-1"]') as HTMLElement;
+    const subFolderCard = document.querySelector('[data-resource-id="folder-sub-1"]') as HTMLElement;
+    
+    // add required custom attributes for FolderDirectoryModal internals
+    subFolderCard.setAttribute('data-folder-item-id', 'folder-sub-1');
+    subFolderCard.setAttribute('data-folder-item-type', 'folder');
+
+    // Simulate drag start on file
+    fireEvent.pointerDown(fileCard, { clientX: 10, clientY: 10, pointerId: 1 });
+    
+    act(() => {
+      window.dispatchEvent(new PointerEvent('pointermove', { clientX: 20, clientY: 20, pointerId: 1 }));
+      window.dispatchEvent(new PointerEvent('pointermove', { clientX: 50, clientY: 50, pointerId: 1 }));
+    });
+
+    // Mock document.elementFromPoint to return the subfolder card
+    document.elementFromPoint = vi.fn(() => subFolderCard);
+
+    // Mock subFolderCard.getBoundingClientRect so relativeX is exactly 0.5
+    subFolderCard.getBoundingClientRect = vi.fn(() => ({ left: 40, right: 60, top: 40, bottom: 60, width: 20, height: 20, x: 40, y: 40, toJSON: () => {} })) as any;
+
+    act(() => {
+      window.dispatchEvent(new PointerEvent('pointermove', { clientX: 50, clientY: 50, pointerId: 1 }));
+    });
+
+    // Drop
+    act(() => {
+      window.dispatchEvent(new PointerEvent('pointerup', { clientX: 50, clientY: 50, pointerId: 1 }));
+    });
+    
+    // Expect move to be called
+    expect(handleMove).toHaveBeenCalledWith(['file-1'], 'folder-sub-1');
+  });
+  
+  it('handles reordering when dropping outside of center of subfolder', () => {
+    const handleReorder = vi.fn();
+
+    render(
+      <FolderDirectoryModal
+        folder={rootFolder}
+        allResources={allResources}
+        currentCategory="Winter"
+        onClose={vi.fn()}
+        onMoveResourceToFolder={vi.fn()}
+        onReorderInFolder={handleReorder}
+      />
+    );
+
+    const fileCard = document.querySelector('[data-resource-id="file-1"]') as HTMLElement;
+    
+    // Simulate drag start on file
+    fireEvent.pointerDown(fileCard, { clientX: 10, clientY: 10, pointerId: 1 });
+    
+    act(() => {
+      window.dispatchEvent(new PointerEvent('pointermove', { clientX: 20, clientY: 20, pointerId: 1 }));
+      window.dispatchEvent(new PointerEvent('pointermove', { clientX: 50, clientY: 50, pointerId: 1 }));
+    });
+
+    // Mock document.elementFromPoint to return the modal panel itself (not a subfolder)
+    document.elementFromPoint = vi.fn(() => document.querySelector('.bg-white.rounded-2xl'));
+
+    act(() => {
+      window.dispatchEvent(new PointerEvent('pointermove', { clientX: 50, clientY: 50, pointerId: 1 }));
+    });
+
+    // Drop
+    act(() => {
+      window.dispatchEvent(new PointerEvent('pointerup', { clientX: 50, clientY: 50, pointerId: 1 }));
+    });
+    
+    // Expect reorder to be called
+    expect(handleReorder).toHaveBeenCalled();
+  });
+  
+  it('handles dropping outside the modal to drop on a category', () => {
+    const handleDropOnCategory = vi.fn();
+
+    render(
+      <FolderDirectoryModal
+        folder={rootFolder}
+        allResources={allResources}
+        currentCategory="Winter"
+        onClose={vi.fn()}
+        onDropOnCategory={handleDropOnCategory}
+      />
+    );
+
+    const fileCard = document.querySelector('[data-resource-id="file-1"]') as HTMLElement;
+    
+    // Simulate drag start on file
+    fireEvent.pointerDown(fileCard, { clientX: 100, clientY: 100, pointerId: 1 });
+    
+    act(() => {
+      window.dispatchEvent(new PointerEvent('pointermove', { clientX: 120, clientY: 120, pointerId: 1 }));
+    });
+
+    // Mock document.elementFromPoint to return an element representing the outside category section
+    const dummyCategoryElement = document.createElement('div');
+    dummyCategoryElement.setAttribute('data-category-title', 'Summer');
+    document.body.appendChild(dummyCategoryElement);
+    
+    document.elementFromPoint = vi.fn(() => dummyCategoryElement);
+
+    // Drop out of bounds (1000, 1000)
+    act(() => {
+      window.dispatchEvent(new PointerEvent('pointermove', { clientX: 1000, clientY: 1000, pointerId: 1 }));
+    });
+
+    act(() => {
+      window.dispatchEvent(new PointerEvent('pointerup', { clientX: 1000, clientY: 1000, pointerId: 1 }));
+    });
+    
+    expect(handleDropOnCategory).toHaveBeenCalledWith(['file-1'], 'Summer');
+    document.body.removeChild(dummyCategoryElement);
+  });
+});

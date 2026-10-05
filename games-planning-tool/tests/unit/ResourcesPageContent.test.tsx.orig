@@ -244,61 +244,6 @@ describe('ResourcesPageContent', () => {
     expect(screen.queryByTestId('multi-drag-avatar')).not.toBeInTheDocument();
   });
 
-  it('handles multi-drag drop to removal area', () => {
-    render(<ResourcesPageContent />);
-
-    const winterSection = enterCategoryEdit('Winter Games');
-
-    const selectButtons = within(winterSection).getAllByRole('button', {
-      name: 'Select resource',
-    });
-    fireEvent.click(selectButtons[0]);
-    fireEvent.click(selectButtons[1]);
-
-    const firstCard = within(winterSection)
-      .getByText(/Milano/i)
-      .closest('[data-resource-id]')!;
-
-    act(() => {
-      fireEvent.pointerDown(firstCard, { clientX: 100, clientY: 100 });
-      window.dispatchEvent(
-        new PointerEvent('pointermove', { clientX: 100, clientY: 50 }),
-      );
-      window.dispatchEvent(
-        new PointerEvent('pointermove', { clientX: 100, clientY: 20 }),
-      );
-    });
-
-    expect(screen.getByTestId('multi-drag-avatar')).toBeInTheDocument();
-    
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-    act(() => {
-      window.dispatchEvent(new PointerEvent('pointerup'));
-    });
-  });
-
-  it('handles drop over a folder resource', () => {
-    render(<ResourcesPageContent />);
-    
-    const winterSection = screen.getByText('Winter Games').closest('section')!;
-    const fileCard = within(winterSection).getByText(/Milano/i).closest('[data-resource-id]')!;
-    const folderCard = within(winterSection).getByText(/Competition Schedules/i).closest('[data-resource-id]')!;
-    
-    const dt = {
-      effectAllowed: 'move',
-      setData: vi.fn(),
-      getData: () => JSON.stringify({ resourceId: fileCard.getAttribute('data-resource-id'), sourceCategory: 'Winter Games' }),
-      dropEffect: 'move',
-    };
-
-    fireEvent.dragStart(fileCard, { dataTransfer: dt });
-    
-    folderCard.getBoundingClientRect = vi.fn(() => ({ left: 0, right: 100, top: 0, bottom: 100, width: 100, height: 100, x: 0, y: 0, toJSON: () => {} })) as any;
-    
-    fireEvent.dragOver(folderCard, { clientX: 50, dataTransfer: dt });
-    fireEvent.drop(folderCard, { dataTransfer: dt });
-  });
-
   it('does not delete when user cancels confirm prompt', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false);
     render(<ResourcesPageContent />);

@@ -140,6 +140,40 @@ describe('FolderDirectoryModal & FolderRemovalConfirmModal', () => {
     expect(handleDeleteResources).toHaveBeenCalledWith(['file-1']);
   });
 
+  it('handles navigation, toggling selection, and renaming', () => {
+    const handleSetFolderPath = vi.fn();
+    const handleRenameResource = vi.fn();
+
+    render(
+      <FolderDirectoryModal
+        folder={rootFolder}
+        allResources={[rootFolder, childFile, subFolder]}
+        currentCategory="Winter Games"
+        onClose={vi.fn()}
+        onSetFolderPath={handleSetFolderPath}
+        onRenameResource={handleRenameResource}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+
+    const items = screen.getAllByRole('button', { name: /Select resource/i });
+    fireEvent.click(items[0]);
+    fireEvent.click(items[0]); // toggle off
+    
+    // click on the card to toggle on
+    const subFolderCard = screen.getByText('Day 1 Runs').closest('[data-resource-id]')!;
+    fireEvent.click(subFolderCard);
+    
+    // double click to rename
+    const title = within(subFolderCard).getByText('Day 1 Runs');
+    fireEvent.doubleClick(title);
+    
+    const input = screen.getByDisplayValue('Day 1 Runs');
+    fireEvent.change(input, { target: { value: 'New Subfolder 1' } });
+    fireEvent.blur(input);
+  });
+
   it('handles pointer dragging', () => {
     render(
       <FolderDirectoryModal
