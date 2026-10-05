@@ -317,10 +317,14 @@ export default function TeamSizeStep({
 
             <div className="mt-3 grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-gray-700">
+                <label
+                  htmlFor="medals-low"
+                  className="mb-1 block text-xs font-semibold text-gray-700"
+                >
                   Low estimate
                 </label>
                 <input
+                  id="medals-low"
                   type="text"
                   inputMode="numeric"
                   value={teamSize.projectedMedalsLow}
@@ -335,10 +339,14 @@ export default function TeamSizeStep({
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-semibold text-gray-700">
+                <label
+                  htmlFor="medals-high"
+                  className="mb-1 block text-xs font-semibold text-gray-700"
+                >
                   High estimate
                 </label>
                 <input
+                  id="medals-high"
                   type="text"
                   inputMode="numeric"
                   value={teamSize.projectedMedalsHigh}
