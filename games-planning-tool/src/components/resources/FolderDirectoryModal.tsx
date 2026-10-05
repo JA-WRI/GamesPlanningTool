@@ -407,7 +407,6 @@ export function FolderDirectoryModal({
 
       const elem = document.elementFromPoint(e.clientX, e.clientY);
 
-
       // If they dropped outside the panel, it's a drag-out, regardless of pointerMove state
       if (!isInsidePanel || isDraggingOutsideRef.current) {
         const catElem = elem?.closest('[data-category-title]');

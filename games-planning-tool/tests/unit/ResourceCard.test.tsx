@@ -68,6 +68,9 @@ describe('ResourceCard', () => {
     fireEvent.pointerDown(selectBtn);
     expect(handleRoundPointer).toHaveBeenCalledWith(expect.anything(), 'res-1');
 
+    // trigger pointer up on window to hit the event listener
+    fireEvent.pointerUp(window);
+
     fireEvent.click(selectBtn);
     expect(handleRoundClick).toHaveBeenCalledWith('res-1');
   });
@@ -199,5 +202,28 @@ describe('ResourceCard', () => {
       expect.anything(),
       'folder-1',
     );
+  });
+
+  it('allows double-click rename on file resource', () => {
+    const handleRename = vi.fn();
+    render(
+      <ResourceCard
+        resource={defaultProps.resource}
+        isSelected={false}
+        isEditing={false}
+        onToggleSelect={vi.fn()}
+        onClick={vi.fn()}
+        onRename={handleRename}
+      />,
+    );
+
+    const nameSpan = screen.getByText('Sample Guide');
+    fireEvent.doubleClick(nameSpan);
+
+    const input = screen.getByDisplayValue('Sample Guide');
+    fireEvent.change(input, { target: { value: 'Updated Guide' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+
+    expect(handleRename).toHaveBeenCalledWith('res-1', 'Updated Guide');
   });
 });
