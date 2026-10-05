@@ -8,7 +8,9 @@ export default function ContactInfoLayout({
   return (
     <div className="flex flex-col md:flex-row min-h-screen">
       <ContactsSideMenu />
-      <main className="flex-1 p-6 bg-white overflow-x-hidden">{children}</main>
+      <main className="flex-1 p-6 bg-white overflow-x-hidden">
+        <div className="max-w-7xl mx-auto">{children}</div>
+      </main>
     </div>
   );
 }
