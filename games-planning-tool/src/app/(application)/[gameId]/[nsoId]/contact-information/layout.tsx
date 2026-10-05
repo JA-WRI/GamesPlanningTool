@@ -1,0 +1,14 @@
+import ContactsSideMenu from '@/components/layout/ContactsSideMenu';
+
+export default function ContactInfoLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col md:flex-row min-h-screen">
+      <ContactsSideMenu />
+      <main className="flex-1 p-6 bg-white overflow-x-hidden">{children}</main>
+    </div>
+  );
+}
