@@ -52,7 +52,6 @@ describe('ResourceCard', () => {
 
   it('handles round selection button click and pointerdown in edit mode', () => {
     const handleRoundClick = vi.fn();
-    const handleRoundPointer = vi.fn();
 
     render(
       <ResourceCard
@@ -153,15 +152,16 @@ describe('ResourceCard', () => {
         {...defaultProps}
         resource={folderResource}
         onRename={handleRename}
-      />
+      />,
     );
 
+    // Double click to rename
     const title = screen.getByText('Old Folder');
     fireEvent.doubleClick(title);
 
     const input = screen.getByDisplayValue('Old Folder');
     fireEvent.change(input, { target: { value: 'New Folder' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.blur(input);
 
     expect(handleRename).toHaveBeenCalledWith('folder-1', 'New Folder');
 
@@ -169,8 +169,31 @@ describe('ResourceCard', () => {
     fireEvent.doubleClick(screen.getByText('Old Folder'));
     const input2 = screen.getByDisplayValue('Old Folder');
     fireEvent.keyDown(input2, { key: 'Escape' });
-    
+
     // Input should be gone
     expect(screen.queryByDisplayValue('Old Folder')).not.toBeInTheDocument();
+  });
+
+  it('renders a folder round button when in edit mode', () => {
+    const folderResource: Resource = {
+      id: 'folder-1',
+      name: 'Old Folder',
+      type: 'folder',
+      categories: ['Winter Games'],
+    };
+    
+    const handleRoundPointer = vi.fn();
+    render(
+      <ResourceCard
+        {...defaultProps}
+        resource={folderResource}
+        isEditing={true}
+        onRoundButtonPointerDown={handleRoundPointer}
+      />,
+    );
+    
+    const selectBtn = screen.getByRole('button', { name: 'Select resource' });
+    fireEvent.pointerDown(selectBtn);
+    expect(handleRoundPointer).toHaveBeenCalledWith(expect.anything(), 'folder-1');
   });
 });
