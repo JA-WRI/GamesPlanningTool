@@ -2,18 +2,39 @@
 'use client';
 
 /* eslint-disable @next/next/no-img-element */
-import React from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Resource } from '@/types/resource';
 
 interface ResourceDetailModalProps {
   resource: Resource | null;
   onClose: () => void;
+  onRename?: (id: string, newName: string) => void;
 }
 
 export function ResourceDetailModal({
   resource,
   onClose,
+  onRename,
 }: ResourceDetailModalProps) {
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editNameValue, setEditNameValue] = useState('');
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditingName && nameInputRef.current) {
+      nameInputRef.current.focus();
+      nameInputRef.current.select();
+    }
+  }, [isEditingName]);
+
+  const commitNameEdit = useCallback(() => {
+    const trimmed = editNameValue.trim();
+    if (resource && trimmed && trimmed !== resource.name) {
+      onRename?.(resource.id, trimmed);
+    }
+    setIsEditingName(false);
+  }, [editNameValue, resource, onRename]);
+
   if (!resource) return null;
 
   const isLink = resource.type === 'link';
@@ -43,12 +64,34 @@ export function ResourceDetailModal({
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-[#80131d]/75 flex items-center justify-center p-6 text-center">
-            <h2
-              id="detail-title"
-              className="text-2xl font-bold text-white drop-shadow-md"
-            >
-              {resource.name}
-            </h2>
+            {isEditingName ? (
+              <input
+                ref={nameInputRef}
+                type="text"
+                value={editNameValue}
+                onChange={(e) => setEditNameValue(e.target.value)}
+                onBlur={commitNameEdit}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitNameEdit();
+                  if (e.key === 'Escape') setIsEditingName(false);
+                }}
+                className="text-2xl font-bold text-white bg-transparent text-center outline-none drop-shadow-md w-full max-w-xs"
+                style={{ background: 'transparent', border: 'none', borderBottom: '2px solid rgba(255,255,255,0.5)', borderRadius: 0, padding: 0 }}
+              />
+            ) : (
+              <h2
+                id="detail-title"
+                className="text-2xl font-bold text-white drop-shadow-md cursor-pointer hover:underline decoration-white/50 underline-offset-4"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditNameValue(resource.name);
+                  setIsEditingName(true);
+                }}
+                title="Click to rename"
+              >
+                {resource.name}
+              </h2>
+            )}
           </div>
           <button
             type="button"

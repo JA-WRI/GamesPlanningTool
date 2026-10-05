@@ -129,7 +129,7 @@ test.describe('Resources Page E2E', () => {
   }) => {
     await page.goto('/resources');
 
-    await page.getByRole('button', { name: 'Add' }).first().click();
+    await page.getByRole('button', { name: 'Add Resource' }).first().click();
     await expect(page.getByText('Add New Resource')).toBeVisible();
 
     await page.fill(

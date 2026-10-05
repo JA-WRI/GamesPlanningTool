@@ -755,7 +755,6 @@ export function ResourcesPageContent() {
     setCategoryEditModes({});
   };
 
-  /* Made with AI agents (Antigravity) */
   const getFilteredCategoryResources = (category: string) => {
     return resources.filter((res) => {
       const belongsToCategory = res.categories.includes(category);
@@ -861,7 +860,6 @@ export function ResourcesPageContent() {
     showToast(`Created subfolder "${name}"`);
   };
 
-  /* Made with AI agents (Antigravity) */
   const handleAddResourceToFolderModal = (parentFolderId: string) => {
     const parent = resources.find((r) => r.id === parentFolderId);
     setPreselectedCategory(parent?.categories[0] || activeDirectoryCategory);
@@ -1177,7 +1175,6 @@ export function ResourcesPageContent() {
         onMoveResourceToFolder={handleMoveResourceWithinDirectory}
         onReorderInFolder={handleReorderInFolder}
         onRenameResource={handleRenameResource}
-        /* Made with AI agents (Antigravity) */
         onDropOnCategory={(ids, cat) => {
           const catToRemove = cat ? null : activeDirectoryCategory;
           

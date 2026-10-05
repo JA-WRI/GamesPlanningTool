@@ -14,6 +14,7 @@ import {
 interface AddResourceModalProps {
   isOpen: boolean;
   preselectedCategory?: string;
+  preselectedFolderId?: string;
   onClose: () => void;
   onAddResource: (newResource: Resource) => void;
 }
@@ -47,10 +48,12 @@ const SAMPLE_LINK_PREVIEWS = [
 
 function AddResourceForm({
   preselectedCategory,
+  preselectedFolderId,
   onClose,
   onAddResource,
 }: {
   preselectedCategory?: string;
+  preselectedFolderId?: string;
   onClose: () => void;
   onAddResource: (newResource: Resource) => void;
 }) {
@@ -137,6 +140,7 @@ function AddResourceForm({
         URL: formattedUrl,
         categories: finalCategories,
         previewUrl: customPreviewUrl || SAMPLE_LINK_PREVIEWS[0].url,
+        parentId: preselectedFolderId,
         createdAt: nowIso,
         order: Date.now(),
       };
@@ -164,6 +168,7 @@ function AddResourceForm({
           filePreviewUrl ||
           'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=600&q=80',
         categories: finalCategories,
+        parentId: preselectedFolderId,
         createdAt: nowIso,
         order: Date.now(),
       };
@@ -552,6 +557,7 @@ function AddResourceForm({
 export function AddResourceModal({
   isOpen,
   preselectedCategory,
+  preselectedFolderId,
   onClose,
   onAddResource,
 }: AddResourceModalProps) {
@@ -566,6 +572,7 @@ export function AddResourceModal({
     >
       <AddResourceForm
         preselectedCategory={preselectedCategory}
+        preselectedFolderId={preselectedFolderId}
         onClose={onClose}
         onAddResource={onAddResource}
       />

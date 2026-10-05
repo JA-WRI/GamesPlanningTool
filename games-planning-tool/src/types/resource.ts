@@ -6,6 +6,7 @@ export interface BaseResource {
   previewUrl?: string;
   createdAt?: string;
   order?: number;
+  parentId?: string | null;
 }
 
 export interface LinkResource extends BaseResource {
@@ -24,7 +25,13 @@ export interface FileResource extends BaseResource {
   fileUrl?: string;
 }
 
-export type Resource = LinkResource | FileResource;
+export interface FolderResource extends BaseResource {
+  type: 'folder';
+  parentId?: string | null;
+  childrenIds?: string[];
+}
+
+export type Resource = LinkResource | FileResource | FolderResource;
 
 export const DEFAULT_CATEGORY = 'General';
 

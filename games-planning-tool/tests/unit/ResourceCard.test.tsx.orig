@@ -137,40 +137,4 @@ describe('ResourceCard', () => {
     fireEvent.dragEnd(card);
     expect(handleDragEnd).toHaveBeenCalled();
   });
-
-  it('renders a folder and allows double-click rename', () => {
-    const folderResource: Resource = {
-      id: 'folder-1',
-      name: 'Old Folder',
-      type: 'folder',
-      categories: ['Winter Games'],
-    };
-
-    const handleRename = vi.fn();
-
-    render(
-      <ResourceCard
-        {...defaultProps}
-        resource={folderResource}
-        onRenameFolder={handleRename}
-      />
-    );
-
-    const title = screen.getByText('Old Folder');
-    fireEvent.doubleClick(title);
-
-    const input = screen.getByDisplayValue('Old Folder');
-    fireEvent.change(input, { target: { value: 'New Folder' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
-
-    expect(handleRename).toHaveBeenCalledWith('folder-1', 'New Folder');
-
-    // Test escape to cancel
-    fireEvent.doubleClick(screen.getByText('Old Folder'));
-    const input2 = screen.getByDisplayValue('Old Folder');
-    fireEvent.keyDown(input2, { key: 'Escape' });
-    
-    // Input should be gone
-    expect(screen.queryByDisplayValue('Old Folder')).not.toBeInTheDocument();
-  });
 });
