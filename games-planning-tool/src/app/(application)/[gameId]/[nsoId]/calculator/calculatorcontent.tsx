@@ -1,11 +1,12 @@
-// 70% AI generated code:
-// The following was generated:
-// - Original layout of the calculator content, including the basic structure of the table and inputs
+// 80% AI generated code:
+// The following was AI generated:
+// - Original calculator layout, table/input scaffolding, and component organization
+// - Temporary calculator-specific state used before backend persistence is added
+// The table fields and calculator requirements were reviewed and modified manually.
 
 "use client";
 
 import { useState } from "react";
-
 import {
   Box,
   Divider,
@@ -19,65 +20,85 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import ConversionRates from "./conversionrates";
+import EstimatedCosts, { EstimatedCostsData } from "./estimatedcosts";
+import "./calculatorcontent.css";
 
-// Fixed categories from the calculator spreadsheet.
 const TRAVEL_CATEGORIES = [
   {
     id: 1,
-    title:
-      "Travelling Accredited Alternate Athletes @ partial NSO cost (Ap)",
+    title: "Travelling Accredited Alternate Athletes @ partial NSO cost (Ap)",
   },
   {
     id: 2,
-    title:
-      "Travelling Non-accredited Alternate Athletes @ full NSO cost",
+    title: "Travelling Non-accredited Alternate Athletes @ full NSO cost"
   },
   {
     id: 3,
-    title:
-      "Support staff @ partial NSO cost (e.g., partial Ao)",
+    title: "Support staff @ partial NSO cost (e.g., partial Ao)",
   },
   {
     id: 4,
-    title:
-      "Support staff @ full NSO cost (incl. non-accredited)",
+    title: "Support staff @ full NSO cost (incl. non-accredited)",
   },
 ] as const;
 
 type CalculatorRow = {
   id: number;
   teamMembers: number;
-  daysOnSite: number;
-  travel: number;
-  number: number;
+  travelBudget: number;
   checkIn: string;
   checkOut: string;
-  days: number;
-  nights: number;
   accommodationBudget: number;
-  travelBudget: number;
+  simCardBudget: number;
+  mealsBudget: number;
+  villageMealsBudget: number;
+  insuranceBudget: number;
+  totalCostPerTeamMember: number;
+};
+
+type CalculatorData = {
+  rows: CalculatorRow[];
+  estimatedCosts: EstimatedCostsData;
 };
 
 type CalculatorContentProps = {
   readonly calculatorId: number;
 };
 
-// Every calculator starts with four fixed rows.
-// All numeric values are initialized to zero.
+const INITIAL_ESTIMATED_COSTS: EstimatedCostsData = {
+  clothingPackage: 3200,
+  travelEconomyFare: 2400,
+  athleteInsurance: 50,
+  supportStaffInsurance: 28,
+  cellphone: 108,
+  mealsPerDay: 118,
+  villageMealVoucher: 57,
+  knifeAndFork: 2279,
+  accommodation: 0,
+};
+
 function createInitialRows(): CalculatorRow[] {
   return TRAVEL_CATEGORIES.map((category) => ({
     id: category.id,
     teamMembers: 0,
-    daysOnSite: 0,
-    travel: 0,
-    number: 0,
+    travelBudget: 0,
     checkIn: "",
     checkOut: "",
-    days: 0,
-    nights: 0,
     accommodationBudget: 0,
-    travelBudget: 0,
+    simCardBudget: 0,
+    mealsBudget: 0,
+    villageMealsBudget: 0,
+    insuranceBudget: 0,
+    totalCostPerTeamMember: 0,
   }));
+}
+
+function createInitialCalculatorData(): CalculatorData {
+  return {
+    rows: createInitialRows(),
+    estimatedCosts: { ...INITIAL_ESTIMATED_COSTS },
+  };
 }
 
 function formatCurrency(amount: number): string {
@@ -87,38 +108,51 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+function getStayDuration(checkIn: string, checkOut: string) {
+  if (!checkIn || !checkOut) return { days: 0, nights: 0 };
+
+  const start = Date.parse(`${checkIn}T00:00:00Z`);
+  const end = Date.parse(`${checkOut}T00:00:00Z`);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
+    return { days: 0, nights: 0 };
+  }
+
+  const nights = Math.round((end - start) / 86400000);
+  return { days: nights + 1, nights };
+}
+
 export default function CalculatorContent({
   calculatorId,
 }: CalculatorContentProps) {
-  const [rowsByCalculator, setRowsByCalculator] = useState<
-    Record<number, CalculatorRow[]>
+  const [calculatorData, setCalculatorData] = useState<
+    Record<number, CalculatorData>
   >({});
 
-  const rows =
-    rowsByCalculator[calculatorId] ?? createInitialRows();
+  const currentData =
+    calculatorData[calculatorId] ?? createInitialCalculatorData();
 
-  // Updates an input without performing calculations.
+  const updateCurrentCalculator = (
+    update: (data: CalculatorData) => CalculatorData
+  ) => {
+    setCalculatorData((previous) => {
+      const current = previous[calculatorId] ?? createInitialCalculatorData();
+      return { ...previous, [calculatorId]: update(current) };
+    });
+  };
+
   const updateRow = (
     rowId: number,
     field: keyof CalculatorRow,
     value: string | number
   ) => {
-    setRowsByCalculator((previous) => {
-      const currentRows =
-        previous[calculatorId] ?? createInitialRows();
-
-      return {
-        ...previous,
-        [calculatorId]: currentRows.map((row) =>
-          row.id === rowId
-            ? { ...row, [field]: value }
-            : row
-        ),
-      };
-    });
+    updateCurrentCalculator((data) => ({
+      ...data,
+      rows: data.rows.map((row) =>
+        row.id === rowId ? { ...row, [field]: value } : row
+      ),
+    }));
   };
 
-  // Placeholder values until calculation logic is implemented.
   const accommodationTotal = 0;
   const travelTotal = 0;
   const foodTotal = 0;
@@ -134,249 +168,157 @@ export default function CalculatorContent({
     { label: "SIM card:", value: simTotal },
   ];
 
-  // Reusable numeric MUI input.
-  const renderNumberInput = (
-    row: CalculatorRow,
-    field: keyof CalculatorRow
-  ) => (
+  const renderTeamMemberInput = (row: CalculatorRow) => (
     <TextField
       className="calculator-content-input"
       type="number"
+      variant="standard"
       size="small"
       fullWidth
-      value={row[field]}
+      value={row.teamMembers}
       onChange={(event) =>
-        updateRow(
-          row.id,
-          field,
-          Math.max(0, Number(event.target.value) || 0)
-        )
+        updateRow(row.id, "teamMembers", Math.max(0, Number(event.target.value) || 0))
       }
       slotProps={{
-        htmlInput: {
-          min: 0,
-          step: 1,
-          "aria-label": `${field} for category ${row.id}`,
-        },
+        htmlInput: { min: 0, step: 1, "aria-label": `Number of team members for category ${row.id}` },
       }}
     />
   );
 
+  const renderReadOnlyValue = (value: number, label: string, isCurrency = false) => (
+    <Typography className="calculator-content-readonly-value" aria-label={label}>
+      {isCurrency ? formatCurrency(value) : value}
+    </Typography>
+  );
+
   return (
-    <Box
-      className="calculator"
-      data-calculator-id={calculatorId}
-    >
-      {/* TRAVELERS SECTION */}
-      <Paper
-        className="calculator-content-panel"
-        variant="outlined"
-      >
+    <Box className="calculator" data-calculator-id={calculatorId}>
+
+      <Box className="calculator-links-conversion-rates">
+        
+        <Box className="calculator-links">
+          <h2>Links</h2>
+          <a
+            href="https://drive.google.com/drive/folders/1YLt82-95BMaAmetoMYpdpUMf-V0jBl9j?usp=drive_link"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Food & Beverage Guidelines
+          </a>
+        
+
+          <a
+            href="https://docs.google.com/spreadsheets/d/1XK2_WWzjYgJN0BHuGRM_yIyyb82rgw59f-hqg-sY7XY/edit?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Access and Privileges
+          </a> 
+        </Box>
+
+        <ConversionRates />
+      </Box>
+
+      <Paper className="calculator-content-panel" variant="outlined">
         <Box className="calculator-content-section-heading">
           <Typography>NSO FUNDED TEAM MEMBERS ESTIMATED COSTS</Typography>
         </Box>
 
         <TableContainer className="calculator-content-table-container">
-          <Table
-            className="calculator-content-table"
-            size="small"
-          >
+          <Table className="calculator-content-table" size="small">
             <TableHead>
               <TableRow className="calculator-content-table-head-row">
-                <TableCell>
-                  {/* Empty cell*/}
-                </TableCell>
-
-                <TableCell>
-                  Number of Team Members
-                </TableCell>
-
-                <TableCell>
-                  Days on Site per Team Member
-                </TableCell>
-
-                <TableCell>
-                  Travel
-                </TableCell>
-
-                <TableCell>
-                  Number
-                </TableCell>
-
-                <TableCell>
-                  Check-in
-                </TableCell>
-
-                <TableCell>
-                  Check-out
-                </TableCell>
-
-                <TableCell>
-                  Number of Days
-                </TableCell>
-
-                <TableCell>
-                  Number of Nights
-                </TableCell>
-
-                <TableCell>
-                  Accommodation Budget
-                </TableCell>
-
-                <TableCell>
-                  Travel Budget
-                </TableCell>
-
-                <TableCell>
-                  SIM Card Budget
-                </TableCell>
-
-                <TableCell>
-                  Meals Budget
-                </TableCell>
-
-                <TableCell>
-                  Village Meals Budget
-                </TableCell>
-
-                <TableCell>
-                  Insurance Budget
-                </TableCell>
-
-                <TableCell>
-                  Total
-                </TableCell>
+                <TableCell>{/* Empty cell */}</TableCell>
+                <TableCell>Number of Team Members</TableCell>
+                <TableCell>Travel Budget</TableCell>
+                <TableCell>Check-in Date</TableCell>
+                <TableCell>Check-out Date</TableCell>
+                <TableCell>Days on Site per Team Member </TableCell>
+                <TableCell>Nights on Site Per Team Member</TableCell>
+                <TableCell>Accommodation Budget</TableCell>
+                <TableCell>SIM Card Budget</TableCell>
+                <TableCell>Meals Budget</TableCell>
+                <TableCell>Village Meals Budget</TableCell>
+                <TableCell>Insurance Budget</TableCell>
+                <TableCell>Total Cost per Team Member</TableCell>
               </TableRow>
             </TableHead>
 
             <TableBody>
-              {rows.map((row) => {
+              {currentData.rows.map((row) => {
                 const category = TRAVEL_CATEGORIES.find(
                   (item) => item.id === row.id
                 );
+                const stayDuration = getStayDuration(row.checkIn, row.checkOut);
 
                 return (
-                  <TableRow
-                    key={row.id}
-                    className="calculator-content-data-row"
-                  >
-                    {/* Fixed category title */}
+                  <TableRow key={row.id} className="calculator-content-data-row">
                     <TableCell className="calculator-content-category-cell">
                       <Typography className="calculator-content-category-title">
                         {category?.title}
                       </Typography>
                     </TableCell>
 
-                    {/* Number of team members */}
                     <TableCell className="calculator-content-editable-cell">
-                      {renderNumberInput(row, "teamMembers")}
+                      {renderTeamMemberInput(row)}
+                    </TableCell>
+                    <TableCell className="calculator-content-readonly-cell">
+                      {renderReadOnlyValue(row.travelBudget, "Travel budget", true)}
                     </TableCell>
 
-                    {/* Days on site */}
-                    <TableCell className="calculator-content-editable-cell">
-                      {renderNumberInput(row, "daysOnSite")}
-                    </TableCell>
-
-                    {/* Travel */}
                     <TableCell className="calculator-content-editable-cell">
                       <TextField
-                        className="calculator-content-input"
-                        type="number"
-                        size="small"
-                        fullWidth
-                        value={row.travel}
-                        onChange={(event) =>
-                          updateRow(
-                            row.id,
-                            "travel",
-                            Math.max(
-                              0,
-                              Number(event.target.value) || 0
-                            )
-                          )
-                        }
-                        slotProps={{
-                          htmlInput: { min: 0, step: 0.01 },
-                          input: {
-                            startAdornment: (
-                              <Typography sx={{ mr: 0.5, fontSize: 12 }}>
-                                $
-                              </Typography>
-                            ),
-                          },
-                        }}
-                      />
-                    </TableCell>
-
-                    {/* Number */}
-                    <TableCell className="calculator-content-editable-cell">
-                      {renderNumberInput(row, "number")}
-                    </TableCell>
-
-                    {/* Check-in */}
-                    <TableCell className="calculator-content-editable-cell">
-                      <TextField
-                        className="calculator-content-input"
+                        className="calculator-content-input calculator-content-date-input"
                         type="date"
+                        variant="standard"
                         size="small"
                         fullWidth
                         value={row.checkIn}
                         onChange={(event) =>
-                          updateRow(
-                            row.id,
-                            "checkIn",
-                            event.target.value
-                          )
+                          updateRow(row.id, "checkIn", event.target.value)
                         }
-                        slotProps={{
-                          htmlInput: {
-                            "aria-label": "Check-in date",
-                          },
-                        }}
+                        slotProps={{ htmlInput: { "aria-label": "Check-in date" } }}
                       />
                     </TableCell>
 
-                    {/* Check-out */}
                     <TableCell className="calculator-content-editable-cell">
                       <TextField
-                        className="calculator-content-input"
+                        className="calculator-content-input calculator-content-date-input"
                         type="date"
+                        variant="standard"
                         size="small"
                         fullWidth
                         value={row.checkOut}
                         onChange={(event) =>
-                          updateRow(
-                            row.id,
-                            "checkOut",
-                            event.target.value
-                          )
+                          updateRow(row.id, "checkOut", event.target.value)
                         }
-                        slotProps={{
-                          htmlInput: {
-                            "aria-label": "Check-out date",
-                          },
-                        }}
+                        slotProps={{ htmlInput: { "aria-label": "Check-out date" } }}
                       />
                     </TableCell>
 
-                    {/* Days */}
-                    <TableCell className="calculator-content-editable-cell">
-                      {renderNumberInput(row, "days")}
+                    <TableCell className="calculator-content-readonly-cell">
+                      {renderReadOnlyValue(stayDuration.days, "Number of days")}
                     </TableCell>
-
-                    {/* Nights */}
-                    <TableCell className="calculator-content-editable-cell">
-                      {renderNumberInput(row, "nights")}
+                    <TableCell className="calculator-content-readonly-cell">
+                      {renderReadOnlyValue(stayDuration.nights, "Number of nights")}
                     </TableCell>
-
-                    {/* Accommodation Budget */}
-                    <TableCell className="calculator-content-editable-cell">
-                      {renderNumberInput(row, "accommodationBudget")}
+                    <TableCell className="calculator-content-readonly-cell">
+                      {renderReadOnlyValue(row.accommodationBudget, "Accommodation budget", true)}
                     </TableCell>
-
-                    {/* Travel Budget */}
-                    <TableCell className="calculator-content-editable-cell">
-                      {renderNumberInput(row, "travelBudget")}
+                    <TableCell className="calculator-content-readonly-cell">
+                      {renderReadOnlyValue(row.simCardBudget, "SIM card budget", true)}
+                    </TableCell>
+                    <TableCell className="calculator-content-readonly-cell">
+                      {renderReadOnlyValue(row.mealsBudget, "Meals budget", true)}
+                    </TableCell>
+                    <TableCell className="calculator-content-readonly-cell">
+                      {renderReadOnlyValue(row.villageMealsBudget, "Village meals budget", true)}
+                    </TableCell>
+                    <TableCell className="calculator-content-readonly-cell">
+                      {renderReadOnlyValue(row.insuranceBudget, "Insurance budget", true)}
+                    </TableCell>
+                    <TableCell className="calculator-content-readonly-cell">
+                      {renderReadOnlyValue(row.totalCostPerTeamMember, "Total cost per team member", true)}
                     </TableCell>
                   </TableRow>
                 );
@@ -386,7 +328,10 @@ export default function CalculatorContent({
         </TableContainer>
       </Paper>
 
-      {/* COST SUMMARY */}
+      <EstimatedCosts
+        costs={currentData.estimatedCosts}
+      />
+
       <Paper
         className="calculator-content-panel calculator-content-summary"
         variant="outlined"
@@ -397,17 +342,9 @@ export default function CalculatorContent({
           </Typography>
 
           {summary.map((item) => (
-            <Box
-              key={item.label}
-              className="calculator-content-summary-row"
-            >
-              <Typography>
-                {item.label}
-              </Typography>
-
-              <Typography>
-                {formatCurrency(item.value)}
-              </Typography>
+            <Box key={item.label} className="calculator-content-summary-row">
+              <Typography>{item.label}</Typography>
+              <Typography>{formatCurrency(item.value)}</Typography>
             </Box>
           ))}
         </Box>
@@ -419,7 +356,6 @@ export default function CalculatorContent({
             <Typography className="calculator-content-estimated-label">
               Estimated Total:
             </Typography>
-
             <Typography className="calculator-content-note">
               Excludes clothing packages (individual need)
             </Typography>

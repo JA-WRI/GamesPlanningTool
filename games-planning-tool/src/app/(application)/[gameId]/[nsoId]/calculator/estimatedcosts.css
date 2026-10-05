@@ -1,0 +1,37 @@
+/* 40% AI generated
+most of the original ai generated layout was modified to fit the wanted design
+*/
+.calculator-estimated-costs.MuiPaper-root { margin-top: 24px; }
+.calculator-estimated-costs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 24px;
+  padding: 0 16px 16px;
+}
+.calculator-estimated-cost-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 54px;
+  border-bottom: 1px solid #e2e2e2;
+}
+.calculator-estimated-cost-text > .MuiTypography-root { font-size: 12px; }
+.calculator-estimated-cost-note.MuiTypography-root { margin-top: 2px; color: #666; font-size: 10px; }
+.calculator-estimated-cost-value.MuiTypography-root {
+  min-width: 130px;
+  color: #222;
+  text-align: right;
+}
+
+@media (max-width: 1024px) {
+  .calculator-estimated-costs-grid { padding-right: 12px; padding-left: 12px; }
+}
+
+@media (max-width: 768px) {
+  .calculator-estimated-costs-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .calculator-estimated-cost-item { align-items: flex-start; }
+}

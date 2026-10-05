@@ -1,0 +1,18 @@
+.calculator-currency-selector { 
+    flex-shrink: 0; 
+    margin-left: auto; 
+}
+.calculator-currency-button.MuiButton-root {
+  min-width: 86px;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border: 1px solid #bdbdbd;
+  border-radius: 4px;
+  color: #222;
+  font-size: 16px;
+  text-transform: none;
+}
+.calculator-currency-button.MuiButton-root:hover { 
+    border-color: #777; 
+    background: #f5f5f5; 
+}
