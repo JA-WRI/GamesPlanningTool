@@ -1,7 +1,7 @@
 // Made with AI agents (Antigravity)
 'use client';
 
-/* eslint-disable @next/next/no-img-element */
+
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Resource, FolderResource } from '@/types/resource';
 import { getFolderChildren } from '@/lib/resources-data';
@@ -48,7 +48,6 @@ export function FolderDirectoryModal({
   const [newFolderName, setNewFolderName] = useState('');
   const [isEditingFolder, setIsEditingFolder] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [dropTargetFolderId, setDropTargetFolderId] = useState<string | null>(
     null,
   );
@@ -65,7 +64,6 @@ export function FolderDirectoryModal({
   };
 
   const contentRef = useRef<HTMLDivElement>(null);
-  const dropSucceededRef = useRef(false);
   const modalPanelRef = useRef<HTMLDivElement>(null);
   const modalWrapperRef = useRef<HTMLDivElement>(null);
   const [localOrderedChildren, setLocalOrderedChildren] = useState<Resource[]>([]);
@@ -89,7 +87,6 @@ export function FolderDirectoryModal({
 
   // Cleanup spring timer on unmount
   useEffect(() => () => clearSpringTimer(), []);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
 
   // Nothing to render if no folder — but hooks must run first
   const folder_ = folder;
@@ -130,12 +127,14 @@ export function FolderDirectoryModal({
   };
 
   /* ── Local ordered state for visual reorder during drag ── */
-  const newKey = filteredChildren.map((c) => c.id).join(',');
-  if (newKey !== filteredChildrenKey.current) {
-    filteredChildrenKey.current = newKey;
-    setLocalOrderedChildren(filteredChildren);
-    localOrderedRef.current = filteredChildren;
-  }
+  useEffect(() => {
+    const newKey = filteredChildren.map((c) => c.id).join(',');
+    if (newKey !== filteredChildrenKey.current) {
+      filteredChildrenKey.current = newKey;
+      setLocalOrderedChildren(filteredChildren);
+      localOrderedRef.current = filteredChildren;
+    }
+  }, [filteredChildren]);
 
   /* ── Pointer-based drag system (survives DOM changes) ── */
 
@@ -151,7 +150,7 @@ export function FolderDirectoryModal({
     pointerDragRef.current = null;
     setPointerDragIds([]);
     setGhostPos(null);
-    setDraggedItemId(null);
+    
     setDropTargetFolderId(null);
     setPointerDropTarget(null);
     draggedCardIdRef.current = null;
@@ -168,7 +167,11 @@ export function FolderDirectoryModal({
   const pointerMoveHandlerRef = useRef<(e: PointerEvent) => void>(() => {});
   const pointerUpHandlerRef = useRef<(e: PointerEvent) => void>(() => {});
 
-  pointerMoveHandlerRef.current = (e: PointerEvent) => {
+  const stablePointerMove = useCallback((e: PointerEvent) => { pointerMoveHandlerRef.current(e); }, []);
+  const stablePointerUp = useCallback((e: PointerEvent) => { pointerUpHandlerRef.current(e); }, []);
+
+  useEffect(() => {
+    pointerMoveHandlerRef.current = (e: PointerEvent) => {
     const drag = pointerDragRef.current;
     if (!drag) return;
 
@@ -179,7 +182,7 @@ export function FolderDirectoryModal({
       if (Math.abs(dx) + Math.abs(dy) < 5) return;
       drag.started = true;
       setPointerDragIds(drag.ids);
-      setDraggedItemId(drag.ids[0]);
+      
       draggedCardIdRef.current = drag.ids[0];
     }
 
@@ -449,12 +452,7 @@ export function FolderDirectoryModal({
     }
     endPointerDrag();
   };
-
-  // ─── Stable wrappers: never change identity, always call latest ref ───
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const stablePointerMove = useCallback((e: PointerEvent) => pointerMoveHandlerRef.current(e), []);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const stablePointerUp = useCallback((e: PointerEvent) => pointerUpHandlerRef.current(e), []);
+  }); // Close the useEffect around handler refs
 
   const startPointerDrag = (e: React.PointerEvent, itemId: string) => {
     if (!isEditingFolder) return;

@@ -1,6 +1,6 @@
 // Made with AI agents (Antigravity)
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
 import { CategorySection } from '@/components/resources/CategorySection';
 import { Resource } from '@/types/resource';
@@ -248,12 +248,17 @@ describe('CategorySection', () => {
     })[0];
     fireEvent.pointerDown(selectBtn, { clientX: 100, clientY: 100 });
 
-    window.dispatchEvent(
-      new PointerEvent('pointermove', { clientX: 140, clientY: 100 }),
-    );
+    
+    act(() => {
+      window.dispatchEvent(
+        new PointerEvent('pointermove', { clientX: 140, clientY: 100 }),
+      );
+    });
     expect(handleUpdateSelected).toHaveBeenCalled();
 
-    window.dispatchEvent(new PointerEvent('pointerup'));
+    act(() => {
+      window.dispatchEvent(new PointerEvent('pointerup'));
+    });
   });
 
   it('reorders and drops resource within the same category', () => {

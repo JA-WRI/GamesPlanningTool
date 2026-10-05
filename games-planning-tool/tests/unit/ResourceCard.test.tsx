@@ -152,7 +152,7 @@ describe('ResourceCard', () => {
       <ResourceCard
         {...defaultProps}
         resource={folderResource}
-        onRenameFolder={handleRename}
+        onRename={handleRename}
       />
     );
 
@@ -161,7 +161,7 @@ describe('ResourceCard', () => {
 
     const input = screen.getByDisplayValue('Old Folder');
     fireEvent.change(input, { target: { value: 'New Folder' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.blur(input);
 
     expect(handleRename).toHaveBeenCalledWith('folder-1', 'New Folder');
 
