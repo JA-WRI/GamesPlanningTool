@@ -1,5 +1,104 @@
-import React from 'react';
+'use client';
 
-export default function page() {
-  return <div>coc page</div>;
+import TeamStatusCard from '@/components/coc-admin-dashboard/TeamStatusCard';
+import SearchBar from '@/components/commons/SearchBar';
+import { useState } from 'react';
+import { Status } from '@/components/coc-admin-dashboard/status';
+
+type Column = {
+  title: string;
+  status: Status;
+  href: string;
+};
+
+type Team = {
+  name: string;
+  logo: string;
+  columns: Column[];
+};
+
+const teams: Team[] = [
+  {
+    name: 'Badminton Canada',
+    logo: '/Badminton_Canada_logo.png',
+    columns: [
+      { title: 'Team Size', status: 'Submitted', href: '#' },
+      { title: 'Accreditation', status: 'Completed', href: '#' },
+      { title: 'Arrival/Travel Out', status: 'Requires Update', href: '#' },
+      { title: 'Departure/Travel Out', status: 'In Progress', href: '#' },
+      {
+        title: 'Review and Completion Status',
+        status: 'Not Started',
+        href: '#',
+      },
+    ],
+  },
+  {
+    name: 'Basketball Canada',
+    logo: '/Basketball_Canada_logo.png',
+    columns: [
+      { title: 'Team Size', status: 'Submitted', href: '#' },
+      { title: 'Accreditation', status: 'Not Started', href: '#' },
+      { title: 'Arrival/Travel Out', status: 'Not Started', href: '#' },
+      { title: 'Departure/Travel Out', status: 'Not Started', href: '#' },
+      {
+        title: 'Review and Completion Status',
+        status: 'Not Started',
+        href: '#',
+      },
+    ],
+  },
+  {
+    name: 'Archery Canada',
+    logo: '/Archery_Canada_logo.png',
+    columns: [
+      { title: 'Team Size', status: 'Not Started', href: '#' },
+      { title: 'Accreditation', status: 'Not Started', href: '#' },
+      { title: 'Arrival/Travel Out', status: 'Not Started', href: '#' },
+      { title: 'Departure/Travel Out', status: 'Not Started', href: '#' },
+      {
+        title: 'Review and Completion Status',
+        status: 'Not Started',
+        href: '#',
+      },
+    ],
+  },
+];
+
+export default function Home() {
+  const [search, setSearch] = useState('');
+
+  const filteredTeams = teams.filter((team) =>
+    team.name.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  return (
+    <main className="p-8">
+      {/* Page name */}
+      <h1 className="text-2xl font-bold">NSOs Progress Overview</h1>
+      <h1>[Progress pie charts]</h1>
+      <h1 className="text-xl font-bold">NSOs</h1>
+
+      {/* Search bar */}
+      <div className="my-4 w-full">
+        <SearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Search by team name"
+        />
+      </div>
+
+      <div className="flex flex-col gap-4 my-4">
+        {/* Team cards */}
+        {filteredTeams.map((team) => (
+          <TeamStatusCard
+            key={team.name}
+            teamName={team.name}
+            logo={team.logo}
+            columns={team.columns}
+          />
+        ))}
+      </div>
+    </main>
+  );
 }
