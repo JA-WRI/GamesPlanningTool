@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PlusIcon from '@mui/icons-material/Add';
+import TextBox from '@/components/layout/TextBox';
 
 export interface ColumnDefinition<T> {
   field: keyof T;
@@ -104,7 +105,7 @@ export default function Grid<T extends Record<string, unknown>>({
           <TableBody>
             {rows.map((row, rowIndex) => (
               <TableRow
-                key={row.id || rowIndex}
+                key={(row as { id?: string }).id || rowIndex}
                 sx={{
                   '&:last-child td, &:last-child th': { border: 0 },
                   '&:hover': {
@@ -115,14 +116,11 @@ export default function Grid<T extends Record<string, unknown>>({
                 }}
               >
                 {columns.map((col) => {
-                  const val = row[col.field] ?? '';
+                  const val = (row[col.field] as string) ?? '';
                   return (
                     <TableCell key={String(col.field)} sx={{ py: 1, px: 1.5 }}>
                       {isEditing ? (
-                        <TextField
-                          variant="outlined"
-                          size="small"
-                          fullWidth
+                        <TextBox
                           type={col.type || 'text'}
                           value={val}
                           placeholder={col.placeholder || col.label}
@@ -133,16 +131,6 @@ export default function Grid<T extends Record<string, unknown>>({
                               e.target.value,
                             )
                           }
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              backgroundColor: '#FFFFFF',
-                              borderRadius: '6px',
-                              fontSize: '0.875rem',
-                              '&.Mui-focused fieldset': {
-                                borderColor: 'var(--color-burgundy, #8a181a)',
-                              },
-                            },
-                          }}
                         />
                       ) : (
                         <span className="text-sm text-foreground font-normal">

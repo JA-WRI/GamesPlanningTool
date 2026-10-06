@@ -6,7 +6,7 @@ import Grid, { ColumnDefinition } from '@/components/layout/Grid';
 import ContactInfoHeaderPage from '@/components/layout/ContactInfoHeader';
 import { useGrid } from '@/hooks/useGrid';
 
-export interface ContactRow {
+export interface ContactRow extends Record<string, unknown> {
   id: string;
   firstName: string;
   lastName: string;
