@@ -1,3 +1,4 @@
+// AI use to associate a form label with a control
 'use client';
 
 import React, { useState } from 'react';
@@ -88,11 +89,15 @@ export default function Page() {
           >
             {/* Discipline Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor={`discipline-name-${discipline.id}`}
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Name of Discipline
               </label>
               {isEditing ? (
                 <input
+                  id={`discipline-name-${discipline.id}`}
                   type="text"
                   value={discipline.name}
                   onChange={(e) =>
@@ -117,11 +122,15 @@ export default function Page() {
               {/* Date and Times */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
+                  <label
+                    htmlFor={`arrival-date-${discipline.id}`}
+                    className="block text-xs text-gray-600 mb-1"
+                  >
                     Arrival Date
                   </label>
                   {isEditing ? (
                     <input
+                      id={`arrival-date-${discipline.id}`}
                       type="date"
                       value={discipline.arrivalDate}
                       onChange={(e) =>
@@ -141,11 +150,15 @@ export default function Page() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
+                  <label
+                    htmlFor={`arrival-time-${discipline.id}`}
+                    className="block text-xs text-gray-600 mb-1"
+                  >
                     Arrival Time
                   </label>
                   {isEditing ? (
                     <input
+                      id={`arrival-time-${discipline.id}`}
                       type="time"
                       value={discipline.arrivalTime}
                       onChange={(e) =>
@@ -165,11 +178,15 @@ export default function Page() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
+                  <label
+                    htmlFor={`departure-date-${discipline.id}`}
+                    className="block text-xs text-gray-600 mb-1"
+                  >
                     Departure Date
                   </label>
                   {isEditing ? (
                     <input
+                      id={`departure-date-${discipline.id}`}
                       type="date"
                       value={discipline.departureDate}
                       onChange={(e) =>
@@ -189,11 +206,15 @@ export default function Page() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
+                  <label
+                    htmlFor={`departure-time-${discipline.id}`}
+                    className="block text-xs text-gray-600 mb-1"
+                  >
                     Departure Time
                   </label>
                   {isEditing ? (
                     <input
+                      id={`departure-time-${discipline.id}`}
                       type="time"
                       value={discipline.departureTime}
                       onChange={(e) =>
@@ -215,11 +236,15 @@ export default function Page() {
 
               {/* Accommodation Name */}
               <div className="max-w-md">
-                <label className="block text-xs text-gray-600 mb-1">
+                <label
+                  htmlFor={`accommodation-name-${discipline.id}`}
+                  className="block text-xs text-gray-600 mb-1"
+                >
                   Accommodation Name
                 </label>
                 {isEditing ? (
                   <input
+                    id={`accommodation-name-${discipline.id}`}
                     type="text"
                     value={discipline.accommodationName}
                     onChange={(e) =>
@@ -241,11 +266,15 @@ export default function Page() {
               {/* Address */}
               <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
+                  <label
+                    htmlFor={`street-name-${discipline.id}`}
+                    className="block text-xs text-gray-600 mb-1"
+                  >
                     Street Name
                   </label>
                   {isEditing ? (
                     <input
+                      id={`accommodation-name-${discipline.id}`}
                       type="text"
                       value={discipline.streetName}
                       onChange={(e) =>
@@ -265,11 +294,15 @@ export default function Page() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
+                  <label
+                    htmlFor={`street-number-${discipline.id}`}
+                    className="block text-xs text-gray-600 mb-1"
+                  >
                     Street Number
                   </label>
                   {isEditing ? (
                     <input
+                      id={`street-number-${discipline.id}`}
                       type="text"
                       value={discipline.streetNumber}
                       onChange={(e) =>
@@ -289,11 +322,15 @@ export default function Page() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
+                  <label
+                    htmlFor={`zip-code-${discipline.id}`}
+                    className="block text-xs text-gray-600 mb-1"
+                  >
                     Zip Code
                   </label>
                   {isEditing ? (
                     <input
+                      id={`zip-code-${discipline.id}`}
                       type="text"
                       value={discipline.zipCode}
                       onChange={(e) =>
@@ -313,11 +350,15 @@ export default function Page() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
+                  <label
+                    htmlFor={`city-${discipline.id}`}
+                    className="block text-xs text-gray-600 mb-1"
+                  >
                     City
                   </label>
                   {isEditing ? (
                     <input
+                      id={`city-${discipline.id}`}
                       type="text"
                       value={discipline.city}
                       onChange={(e) =>
@@ -333,11 +374,15 @@ export default function Page() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
+                  <label
+                    htmlFor={`state-or-province-${discipline.id}`}
+                    className="block text-xs text-gray-600 mb-1"
+                  >
                     State or Province
                   </label>
                   {isEditing ? (
                     <input
+                      id={`state-or-province-${discipline.id}`}
                       type="text"
                       value={discipline.state}
                       onChange={(e) =>
@@ -357,11 +402,15 @@ export default function Page() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
+                  <label
+                    htmlFor={`country-${discipline.id}`}
+                    className="block text-xs text-gray-600 mb-1"
+                  >
                     Country
                   </label>
                   {isEditing ? (
                     <input
+                      id={`country-${discipline.id}`}
                       type="text"
                       value={discipline.country}
                       onChange={(e) =>
@@ -389,11 +438,15 @@ export default function Page() {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
+                  <label
+                    htmlFor={`travel-method-${discipline.id}`}
+                    className="block text-xs text-gray-600 mb-1"
+                  >
                     Travel Method
                   </label>
                   {isEditing ? (
                     <input
+                      id={`travel-method-${discipline.id}`}
                       type="text"
                       value={discipline.travelMethod}
                       onChange={(e) =>
@@ -413,11 +466,15 @@ export default function Page() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
+                  <label
+                    htmlFor={`point-of-entry-${discipline.id}`}
+                    className="block text-xs text-gray-600 mb-1"
+                  >
                     Point of Entry (POE)
                   </label>
                   {isEditing ? (
                     <input
+                      id={`point-of-entry-${discipline.id}`}
                       type="text"
                       value={discipline.pointOfEntry}
                       onChange={(e) =>
@@ -437,11 +494,15 @@ export default function Page() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">
+                  <label
+                    htmlFor={`additional-notes-${discipline.id}`}
+                    className="block text-xs text-gray-600 mb-1"
+                  >
                     Additional Notes
                   </label>
                   {isEditing ? (
                     <input
+                      id={`additional-notes-${discipline.id}`}
                       type="text"
                       value={discipline.additionalNotes}
                       onChange={(e) =>
