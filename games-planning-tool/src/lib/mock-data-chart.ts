@@ -1,5 +1,5 @@
 // AI usage -> 100%
-import type { StatusCounts } from '@/components/coc-admin-dashboard/status';
+import type { StatusCounts } from '@/components/commons/status';
 
 export const mockDashboard: { title: string; counts: StatusCounts }[] = [
   {

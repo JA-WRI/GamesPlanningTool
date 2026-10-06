@@ -1,5 +1,5 @@
 import StatusColumn from './statusColumn';
-import type { Status } from './status';
+import type { Status } from '../commons/status';
 import Image from 'next/image';
 
 type Column = {
