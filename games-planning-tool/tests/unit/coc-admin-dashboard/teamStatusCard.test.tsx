@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import TeamStatusCard from '../../../src/components/coc-admin-dashboard/TeamStatusCard';
-import type { Status } from '../../../src/components/coc-admin-dashboard/status';
+import type { Status } from '../../../src/components/commons/status';
 
 const columns: { title: string; status: Status; href: string }[] = [
   { title: 'Team Size', status: 'Submitted', href: '/team-size' },

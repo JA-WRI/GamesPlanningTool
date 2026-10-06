@@ -1,5 +1,5 @@
 //AI usage -> 100%
-import type { ChartSegment } from './chart/types';
+import type { ChartSegment } from '../coc-admin-dashboard/chart/types';
 import type { TagColor } from './tag';
 import { tagHex } from './tag';
 
