@@ -1,3 +1,4 @@
+// 100% AI generated to create unit tests
 import { describe, it, expect } from 'vitest';
 import { INITIAL_TEAM_SIZE } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/mockData';
 import {
@@ -94,6 +95,7 @@ describe('getAthleteRangeErrors', () => {
     expect(getAthleteRangeErrors(estimate('1', '2', '3'))).toEqual({
       lowIsInvalid: false,
       bestIsInvalid: false,
+      rangeIsInvalid: false,
     });
   });
 
@@ -101,6 +103,7 @@ describe('getAthleteRangeErrors', () => {
     expect(getAthleteRangeErrors(estimate('5', '5', '5'))).toEqual({
       lowIsInvalid: false,
       bestIsInvalid: false,
+      rangeIsInvalid: false,
     });
   });
 
@@ -108,6 +111,7 @@ describe('getAthleteRangeErrors', () => {
     expect(getAthleteRangeErrors(estimate('0', '0', '0'))).toEqual({
       lowIsInvalid: false,
       bestIsInvalid: false,
+      rangeIsInvalid: false,
     });
   });
 
@@ -115,6 +119,7 @@ describe('getAthleteRangeErrors', () => {
     expect(getAthleteRangeErrors(estimate('5', '4', '9'))).toEqual({
       lowIsInvalid: true,
       bestIsInvalid: false,
+      rangeIsInvalid: false,
     });
   });
 
@@ -122,6 +127,7 @@ describe('getAthleteRangeErrors', () => {
     expect(getAthleteRangeErrors(estimate('1', '6', '5'))).toEqual({
       lowIsInvalid: false,
       bestIsInvalid: true,
+      rangeIsInvalid: false,
     });
   });
 
@@ -129,6 +135,7 @@ describe('getAthleteRangeErrors', () => {
     expect(getAthleteRangeErrors(estimate('9', '5', '1'))).toEqual({
       lowIsInvalid: true,
       bestIsInvalid: true,
+      rangeIsInvalid: true,
     });
   });
 
@@ -136,6 +143,7 @@ describe('getAthleteRangeErrors', () => {
     expect(getAthleteRangeErrors(estimate('9', '10', '11'))).toEqual({
       lowIsInvalid: false,
       bestIsInvalid: false,
+      rangeIsInvalid: false,
     });
   });
 
@@ -143,11 +151,23 @@ describe('getAthleteRangeErrors', () => {
     expect(getAthleteRangeErrors(estimate('', '', ''))).toEqual({
       lowIsInvalid: false,
       bestIsInvalid: false,
+      rangeIsInvalid: false,
     });
-    // Best is empty, so Low and High are never compared
+  });
+
+  it('flags Low > High even when Best is empty', () => {
     expect(getAthleteRangeErrors(estimate('9', '', '1'))).toEqual({
       lowIsInvalid: false,
       bestIsInvalid: false,
+      rangeIsInvalid: true,
+    });
+  });
+
+  it('has no range error when Best is empty and Low ≤ High', () => {
+    expect(getAthleteRangeErrors(estimate('1', '', '9'))).toEqual({
+      lowIsInvalid: false,
+      bestIsInvalid: false,
+      rangeIsInvalid: false,
     });
   });
 });

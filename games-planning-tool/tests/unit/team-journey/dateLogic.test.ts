@@ -1,3 +1,4 @@
+// 100% AI generated to create unit tests
 import { describe, it, expect } from 'vitest';
 import { ALLOWED_YEAR_RANGE } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/constants';
 import {
