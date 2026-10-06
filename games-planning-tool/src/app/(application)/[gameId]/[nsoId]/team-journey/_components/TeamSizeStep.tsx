@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Image from 'next/image';
 import { inputClass, onlyDigits } from '../_lib/utils';
 import {
   TeamSize,
@@ -34,17 +35,17 @@ function SummaryCard({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl bg-gradient-to-r ${gradientMap[accent]} p-[14px_16px] text-white shadow-[0_2px_10px_rgba(15,23,42,0.12)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(15,23,42,0.14)] motion-reduce:transition-none motion-reduce:hover:translate-y-0`}
+      className={`relative overflow-hidden rounded-2xl bg-gradient-to-r ${gradientMap[accent]} px-4 py-3.5 text-white shadow-[0_2px_10px_rgba(15,23,42,0.12)]`}
     >
       <div className="pointer-events-none absolute -right-5 -top-5 h-20 w-20 rounded-full bg-white/10" />
-      <div className="relative z-10 flex h-full min-h-[84px] flex-col justify-between">
-        <div className="text-[12px] font-medium text-white/90">{title}</div>
+      <div className="relative z-10 flex h-full min-h-21 flex-col justify-between">
+        <div className="text-xs font-medium text-white/90">{title}</div>
         <div className="flex flex-1 flex-col justify-end">
-          <div className="text-[30px] font-bold leading-none tracking-tight">
+          <div className="text-3xl font-bold leading-none tracking-tight">
             {value}
           </div>
           {range && (
-            <div className="mt-1 text-[11px] font-medium text-white/80">
+            <div className="mt-1 text-xs font-medium text-white/80">
               {range}
             </div>
           )}
@@ -63,59 +64,14 @@ function Card({
   icon: 'users' | 'user' | 'medal';
   children: React.ReactNode;
 }) {
-  const iconMap = {
-    users: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        className="h-4 w-4"
-      >
-        <path
-          d="M16 19v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <circle cx="10" cy="7" r="3" />
-        <path
-          d="M20 19v-1a4 4 0 0 0-3-3.87"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M16 3.13a4 4 0 0 1 0 7.75"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-    user: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        className="h-4 w-4"
-      >
-        <circle cx="12" cy="8" r="4" />
-        <path
-          d="M4 19a8 8 0 0 1 16 0"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-    medal: <span className="text-[16px] leading-none">🏅</span>,
-  };
-
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-[14px] shadow-[0_1px_3px_rgba(15,23,42,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_22px_rgba(15,23,42,0.1)] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+    <div className="rounded-2xl border border-gray-200 bg-white p-3.5 shadow-[0_1px_3px_rgba(15,23,42,0.08)]">
       <div className="mb-3 flex items-center gap-2">
-        <span className="flex h-[28px] w-[28px] items-center justify-center rounded-md bg-red-50 text-[#7d1a16]">
-          {iconMap[icon]}
+        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-red-50">
+          {/* icon files live in public/icons */}
+          <Image src={`/icons/${icon}.svg`} alt="" width={16} height={16} />
         </span>
-        <h3 className="text-[14px] font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
       </div>
       {children}
     </div>
@@ -148,24 +104,9 @@ export default function TeamSizeStep({
   );
 
   return (
-    <div
-      className="step-fade mx-auto max-w-[1100px] px-4 pt-[14px]"
-      style={{ animation: 'fadeIn 220ms ease-out' }}
-    >
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .step-fade {
-            animation: none !important;
-          }
-        }
-      `}</style>
-
+    <div className="step-fade mx-auto max-w-[1100px] px-4 pt-3.5">
       {/* Show the main team totals at a glance. */}
-      <div className="grid gap-[12px] md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-3">
         <SummaryCard
           title="Total team size"
           value={estimatedTotalTeamSize}
@@ -183,10 +124,10 @@ export default function TeamSizeStep({
         />
       </div>
 
-      <div className="mt-[12px] grid gap-[12px] lg:grid-cols-[2fr_1fr]">
+      <div className="mt-3 grid gap-3 lg:grid-cols-[2fr_1fr]">
         <Card title="Athletes" icon="users">
           <div className="space-y-2">
-            <div className="grid grid-cols-[1.3fr_repeat(3,minmax(58px,1fr))] gap-2 text-center text-[11px] font-semibold text-gray-700">
+            <div className="grid grid-cols-[1.3fr_repeat(3,minmax(58px,1fr))] gap-2 text-center text-xs font-semibold text-gray-700">
               <div />
               <div>Low</div>
               <div>Best guess</div>
@@ -195,8 +136,11 @@ export default function TeamSizeStep({
 
             {athleteRows.map((row) => {
               const estimate = teamSize.athletes[row.key];
-              const { lowIsInvalid, bestIsInvalid } =
+              const { lowIsInvalid, bestIsInvalid, rangeIsInvalid } =
                 getAthleteRangeErrors(estimate);
+              // only needed when the other two messages don't already cover it
+              const showRangeError =
+                rangeIsInvalid && !lowIsInvalid && !bestIsInvalid;
 
               return (
                 <div key={row.key} className="space-y-1">
@@ -208,7 +152,7 @@ export default function TeamSizeStep({
                     {(['low', 'bestGuess', 'high'] as const).map((field) => {
                       const value = estimate[field];
                       const isInvalid =
-                        (field === 'low' && lowIsInvalid) ||
+                        (field === 'low' && (lowIsInvalid || showRangeError)) ||
                         (field === 'bestGuess' && bestIsInvalid);
 
                       return (
@@ -228,16 +172,17 @@ export default function TeamSizeStep({
                               ),
                             )
                           }
-                          className={`${inputClass} w-full border border-gray-300 bg-gray-50 px-2 py-[7px] text-center text-sm text-gray-900 shadow-sm transition-all duration-200 focus:border-[#b5372f] focus:ring-4 focus:ring-red-100 ${isInvalid ? 'border-red-300 bg-red-50 text-red-700' : ''}`}
+                          className={`${inputClass} w-full border border-gray-300 bg-gray-50 px-2 py-1.5 text-center text-sm text-gray-900 shadow-sm transition-all duration-200 focus:border-[#b5372f] focus:ring-4 focus:ring-red-100 ${isInvalid ? 'border-red-300 bg-red-50 text-red-700' : ''}`}
                         />
                       );
                     })}
                   </div>
 
-                  {(lowIsInvalid || bestIsInvalid) && (
-                    <div className="text-[11px] text-red-600">
+                  {(lowIsInvalid || bestIsInvalid || showRangeError) && (
+                    <div className="text-xs text-red-600">
                       {lowIsInvalid && 'Low must be ≤ best guess.'}
                       {bestIsInvalid && 'Best guess must be ≤ high estimate.'}
+                      {showRangeError && 'Low must be ≤ high estimate.'}
                     </div>
                   )}
                 </div>
@@ -246,13 +191,13 @@ export default function TeamSizeStep({
 
             <div className="grid grid-cols-[1.3fr_repeat(3,minmax(58px,1fr))] items-center gap-2 border-t border-gray-200 pt-2 text-sm font-bold text-[#7d1a16]">
               <div className="font-bold">Total</div>
-              <div className="rounded-md bg-red-50 px-2 py-[7px] text-center">
+              <div className="rounded-md bg-red-50 px-2 py-1.5 text-center">
                 {totals.low}
               </div>
-              <div className="rounded-md bg-red-50 px-2 py-[7px] text-center">
+              <div className="rounded-md bg-red-50 px-2 py-1.5 text-center">
                 {totals.bestGuess}
               </div>
-              <div className="rounded-md bg-red-50 px-2 py-[7px] text-center">
+              <div className="rounded-md bg-red-50 px-2 py-1.5 text-center">
                 {totals.high}
               </div>
             </div>
@@ -261,13 +206,13 @@ export default function TeamSizeStep({
               <button
                 type="button"
                 onClick={() => setShowNotes((current) => !current)}
-                className="text-[13px] font-bold text-[#7d1a16] underline-offset-4 outline-none transition-all duration-200 hover:underline focus-visible:ring-4 focus-visible:ring-red-100 focus-visible:ring-offset-2"
+                className="text-sm font-bold text-[#7d1a16] underline-offset-4 outline-none transition-all duration-200 hover:underline focus-visible:ring-4 focus-visible:ring-red-100 focus-visible:ring-offset-2"
               >
                 {showNotes ? 'Hide notes' : '+ Add notes'}
               </button>
 
               {showNotes && (
-                <div className="mt-3 rounded-[14px] border border-gray-200 bg-white p-3 shadow-[0_1px_3px_rgba(15,23,42,0.08)]">
+                <div className="mt-3 rounded-xl border border-gray-200 bg-white p-3 shadow-[0_1px_3px_rgba(15,23,42,0.08)]">
                   <label
                     htmlFor="notes"
                     className="mb-1 block text-xs font-semibold text-gray-700"
@@ -281,7 +226,7 @@ export default function TeamSizeStep({
                     onChange={(e) =>
                       onChange({ ...teamSize, notes: e.target.value })
                     }
-                    className={`${inputClass} min-h-[72px] w-full resize-none border border-gray-300 bg-gray-50 px-2 py-2 text-sm text-gray-900 transition-all duration-200 focus:border-[#b5372f] focus:ring-4 focus:ring-red-100`}
+                    className={`${inputClass} min-h-18 w-full resize-none border border-gray-300 bg-gray-50 px-2 py-2 text-sm text-gray-900 transition-all duration-200 focus:border-[#b5372f] focus:ring-4 focus:ring-red-100`}
                   />
                 </div>
               )}
@@ -306,12 +251,12 @@ export default function TeamSizeStep({
               onChange={(e) =>
                 onChange({ ...teamSize, staff: onlyDigits(e.target.value) })
               }
-              className={`${inputClass} w-[6rem] border border-gray-300 bg-gray-50 px-2 py-[7px] text-sm text-gray-900 transition-all duration-200 focus:border-[#b5372f] focus:ring-4 focus:ring-red-100`}
+              className={`${inputClass} w-[6rem] border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm text-gray-900 transition-all duration-200 focus:border-[#b5372f] focus:ring-4 focus:ring-red-100`}
             />
           </Card>
 
           <Card title="Performance Objectives" icon="medal">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+            <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
               NSO projected medals
             </div>
 
@@ -356,13 +301,13 @@ export default function TeamSizeStep({
                       projectedMedalsHigh: onlyDigits(e.target.value),
                     })
                   }
-                  className={`${inputClass} w-full border border-gray-300 bg-gray-50 px-2 py-[7px] text-sm text-gray-900 transition-all duration-200 focus:border-[#b5372f] focus:ring-4 focus:ring-red-100 ${projectedMedalsMessage ? 'border-red-300 bg-red-50 text-red-700' : ''}`}
+                  className={`${inputClass} w-full border border-gray-300 bg-gray-50 px-2 py-1.5 text-sm text-gray-900 transition-all duration-200 focus:border-[#b5372f] focus:ring-4 focus:ring-red-100 ${projectedMedalsMessage ? 'border-red-300 bg-red-50 text-red-700' : ''}`}
                 />
               </div>
             </div>
 
             {projectedMedalsMessage && (
-              <p className="mt-2 text-[11px] text-red-600">
+              <p className="mt-2 text-xs text-red-600">
                 {projectedMedalsMessage}
               </p>
             )}

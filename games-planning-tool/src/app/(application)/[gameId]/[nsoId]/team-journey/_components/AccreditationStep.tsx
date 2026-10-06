@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { ACCREDITATION_TYPES, PARTICIPANT_CATEGORIES } from '../_lib/mockData';
 import { inputClass, onlyDigits } from '../_lib/utils';
 import {
@@ -150,22 +151,14 @@ export default function AccreditationStep({
                       onClick={() => deleteRow(row.id)}
                       aria-label={`Delete row ${index + 1}`}
                       title="Delete row"
-                      className="flex items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-[#7B1A15]"
+                      className="flex items-center justify-center rounded-md hover:bg-red-50"
                     >
-                      {/* trash can icon */}
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        className="h-5 w-5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M9 7V4h6v3"
-                        />
-                      </svg>
+                      <Image
+                        src="/icons/trash.svg"
+                        alt=""
+                        width={20}
+                        height={20}
+                      />
                     </button>
                   </div>
 
