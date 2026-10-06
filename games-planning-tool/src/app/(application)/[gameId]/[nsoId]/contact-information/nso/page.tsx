@@ -12,7 +12,7 @@ const initialNsoData = [
   },
 ];
 
-export default function page() {
+export default function Page() {
   return (
     <ContactsGridPage
       title="NSO Contacts"

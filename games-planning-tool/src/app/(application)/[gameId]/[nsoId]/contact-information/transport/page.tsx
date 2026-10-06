@@ -78,7 +78,7 @@ const initialData: ContactRow[] = [
   },
 ];
 
-export default function page() {
+export default function Page() {
   const [transportInfo, setTransportInfo] = useState('');
   const {
     rows,

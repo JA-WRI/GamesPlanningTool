@@ -21,7 +21,7 @@ const initialCocData = [
   },
 ];
 
-export default function page() {
+export default function Page() {
   return (
     <ContactsGridPage
       title="COC Contacts"

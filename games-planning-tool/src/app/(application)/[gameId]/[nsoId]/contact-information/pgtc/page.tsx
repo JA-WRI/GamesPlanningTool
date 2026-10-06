@@ -43,7 +43,7 @@ const emptyDiscipline = (): DisciplineData => ({
   additionalNotes: '',
 });
 
-export default function PGTCPage() {
+export default function Page() {
   const [isEditing, setIsEditing] = useState(false);
   const [disciplines, setDisciplines] = useState<DisciplineData[]>([]);
 
