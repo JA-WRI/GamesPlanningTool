@@ -17,7 +17,7 @@ const initialInfo: NSOGeneralInfo = {
   primaryContactEmail: '',
 };
 
-export default function HomePage() {
+export default function Page() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<NSOGeneralInfo>(initialInfo);
 

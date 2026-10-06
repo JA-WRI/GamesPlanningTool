@@ -24,7 +24,7 @@ export interface ColumnDefinition<T> {
   width?: string | number;
 }
 
-interface GridProps<T extends Record<string, any>> {
+interface GridProps<T extends Record<string, unknown>> {
   columns: ColumnDefinition<T>[];
   rows: T[];
   isEditing: boolean;
@@ -33,7 +33,7 @@ interface GridProps<T extends Record<string, any>> {
   addButtonLabel?: string;
 }
 
-export default function Grid<T extends Record<string, any>>({
+export default function Grid<T extends Record<string, unknown>>({
   columns,
   rows,
   isEditing,
