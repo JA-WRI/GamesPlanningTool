@@ -1,3 +1,4 @@
+// 70% AI generated to write the date validation logic
 import { ALLOWED_YEAR_RANGE } from './constants';
 
 // the 3 boxes of a DD / MM / YYYY date

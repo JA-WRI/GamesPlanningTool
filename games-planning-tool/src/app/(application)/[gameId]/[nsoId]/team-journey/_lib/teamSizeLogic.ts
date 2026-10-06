@@ -1,3 +1,4 @@
+// 65% AI generated to write the team size calculations
 import { onlyDigits } from './utils';
 
 export type AthleteEstimate = {

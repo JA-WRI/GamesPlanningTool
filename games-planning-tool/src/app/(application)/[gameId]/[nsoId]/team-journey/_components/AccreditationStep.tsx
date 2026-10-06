@@ -1,3 +1,4 @@
+// 70% AI generated 
 import Image from 'next/image';
 import { ACCREDITATION_TYPES, PARTICIPANT_CATEGORIES } from '../_lib/mockData';
 import { inputClass, onlyDigits } from '../_lib/utils';

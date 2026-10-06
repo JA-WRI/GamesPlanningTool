@@ -1,4 +1,5 @@
 'use client';
+// 65% AI generated to manage the step and form state
 
 import { useState } from 'react';
 import StepTabs, { STEPS } from './StepTabs';
