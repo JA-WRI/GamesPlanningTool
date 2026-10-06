@@ -1,3 +1,4 @@
+// 55% AI generated to write the accreditation validation logic
 import { ALLOWED_YEAR_RANGE } from './constants';
 import {
   DateValue,

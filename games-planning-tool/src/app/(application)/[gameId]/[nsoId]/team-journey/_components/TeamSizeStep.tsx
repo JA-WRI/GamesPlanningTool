@@ -1,3 +1,4 @@
+// 70% AI generated to build the team size form layout
 import { useState } from 'react';
 import Image from 'next/image';
 import { inputClass, onlyDigits } from '../_lib/utils';

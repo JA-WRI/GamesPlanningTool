@@ -1,3 +1,4 @@
+// 55% AI generated to create the mock data
 import type { TeamSize } from './teamSizeLogic';
 
 export const PARTICIPANT_CATEGORIES = [
