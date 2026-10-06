@@ -1,4 +1,4 @@
-import ContactsGridPage from '@/components/layout/ContactsGridPage';
+import ContactsGridPage from '../components/ContactsGridPage';
 
 const initialCocData = [
   {
