@@ -12,14 +12,14 @@ most of the original ai generated layout was modified to fit the wanted design
   max-width: 100%;
 }
 
-.calculator { 
-  min-width: 0; 
+.calculator {
+  min-width: 0;
 }
 .calculator-content-panel.MuiPaper-root,
 .calculator-content-category-cell.MuiTableCell-root,
 .calculator-content-editable-cell.MuiTableCell-root,
-.calculator-content-input .MuiInputBase-root { 
-  background: #fff; 
+.calculator-content-input .MuiInputBase-root {
+  background: #fff;
 }
 
 .calculator-content-panel.MuiPaper-root {
@@ -29,13 +29,13 @@ most of the original ai generated layout was modified to fit the wanted design
   box-shadow: none;
 }
 
-.calculator-content-section-heading { 
+.calculator-content-section-heading {
   height: 55px;
   display: flex;
-  padding: 12px 16px; 
+  padding: 12px 16px;
   justify-content: left;
   align-items: left;
-  background: #AB4C27;
+  background: #ab4c27;
   border-bottom: 2px solid #ab4c277a;
 }
 
@@ -53,32 +53,32 @@ most of the original ai generated layout was modified to fit the wanted design
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
   scrollbar-width: auto;
-  scrollbar-color: #ee9247  #ebeaea;
+  scrollbar-color: #ee9247 #ebeaea;
 }
 
-.calculator-content-table-container::-webkit-scrollbar { 
-  height: 13px; 
+.calculator-content-table-container::-webkit-scrollbar {
+  height: 13px;
 }
-.calculator-content-table-container::-webkit-scrollbar-track { 
-  background: #eee; 
+.calculator-content-table-container::-webkit-scrollbar-track {
+  background: #eee;
 }
-.calculator-content-table-container::-webkit-scrollbar-thumb { 
-  background: #898989; 
-  border: 3px solid #eee; 
-  border-radius: 8px; 
+.calculator-content-table-container::-webkit-scrollbar-thumb {
+  background: #898989;
+  border: 3px solid #eee;
+  border-radius: 8px;
 }
-.calculator-content-table-container::-webkit-scrollbar-thumb:hover { 
-  background: #666666; 
+.calculator-content-table-container::-webkit-scrollbar-thumb:hover {
+  background: #666666;
 }
 
-.calculator-content-table.MuiTable-root { 
-  width: 100%; 
-  min-width: 2050px; 
-  table-layout: fixed; 
-  border-collapse: collapse; 
+.calculator-content-table.MuiTable-root {
+  width: 100%;
+  min-width: 2050px;
+  table-layout: fixed;
+  border-collapse: collapse;
 }
-.calculator-content-table-head-row { 
-  background: #f7f3f1 !important; 
+.calculator-content-table-head-row {
+  background: #f7f3f1 !important;
 }
 .calculator-content-table-head-row .MuiTableCell-root {
   height: 58px;
@@ -97,60 +97,59 @@ most of the original ai generated layout was modified to fit the wanted design
   border-right: 1px solid #ab4c277a;
 }
 
-
 /* all rows*/
 /* first column*/
-.calculator-content-table-head-row .MuiTableCell-root:nth-child(1) { 
-  width: 500px; 
-  padding-left: 18px; 
-  text-align: left; 
+.calculator-content-table-head-row .MuiTableCell-root:nth-child(1) {
+  width: 500px;
+  padding-left: 18px;
+  text-align: left;
 }
 /* number of team members */
-.calculator-content-table-head-row .MuiTableCell-root:nth-child(2) { 
+.calculator-content-table-head-row .MuiTableCell-root:nth-child(2) {
   padding-left: 20px;
-  width: 145px; 
+  width: 145px;
 }
 /* travel budget*/
-.calculator-content-table-head-row .MuiTableCell-root:nth-child(3) { 
-  width: 145px; 
+.calculator-content-table-head-row .MuiTableCell-root:nth-child(3) {
+  width: 145px;
 }
 /* check-in and check-out dates*/
 .calculator-content-table-head-row .MuiTableCell-root:nth-child(4),
-.calculator-content-table-head-row .MuiTableCell-root:nth-child(5) { 
-  width: 155px; 
+.calculator-content-table-head-row .MuiTableCell-root:nth-child(5) {
+  width: 155px;
 }
 /* days and nights on site per mean member*/
-.calculator-content-table-head-row .MuiTableCell-root:nth-child(6), 
-.calculator-content-table-head-row .MuiTableCell-root:nth-child(7) { 
-  width: 170px; 
+.calculator-content-table-head-row .MuiTableCell-root:nth-child(6),
+.calculator-content-table-head-row .MuiTableCell-root:nth-child(7) {
+  width: 170px;
 }
 /* accomodation budget*/
-.calculator-content-table-head-row .MuiTableCell-root:nth-child(8) { 
-  width: 160px; 
+.calculator-content-table-head-row .MuiTableCell-root:nth-child(8) {
+  width: 160px;
 }
 /* sim card + meals + village meals + insurance budgets + total cost per team member */
-.calculator-content-table-head-row .MuiTableCell-root:nth-child(n+9) { 
-  width: 150px; 
+.calculator-content-table-head-row .MuiTableCell-root:nth-child(n + 9) {
+  width: 150px;
 }
 
-.calculator-content-data-row .MuiTableCell-root { 
-  height: 68px; 
+.calculator-content-data-row .MuiTableCell-root {
+  height: 68px;
   border-bottom: 1px solid #e2c1b3;
 }
-.calculator-content-category-cell.MuiTableCell-root { 
-  padding: 14px 18px; 
-  vertical-align: middle; 
+.calculator-content-category-cell.MuiTableCell-root {
+  padding: 14px 18px;
+  vertical-align: middle;
 }
-.calculator-content-category-title.MuiTypography-root { 
-  color: #222; 
-  font-size: 16px; 
-  font-weight: 400; 
-  line-height: 1.5; 
+.calculator-content-category-title.MuiTypography-root {
+  color: #222;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
 }
 .calculator-content-editable-cell.MuiTableCell-root {
-  padding: 10px 12px; 
-  text-align: center; 
-  vertical-align: middle; 
+  padding: 10px 12px;
+  text-align: center;
+  vertical-align: middle;
 }
 .calculator-content-input.MuiTextField-root {
   width: 100%;
@@ -168,18 +167,19 @@ most of the original ai generated layout was modified to fit the wanted design
 .calculator-content-input .MuiInput-root::before {
   border-bottom: 1px solid #ab4c277a;
 }
-.calculator-content-input .MuiInput-root:hover:not(.Mui-disabled, .Mui-error)::before {
+.calculator-content-input
+  .MuiInput-root:hover:not(.Mui-disabled, .Mui-error)::before {
   border-bottom: 1px solid #ffb663;
 }
 .calculator-content-input .MuiInput-root::after {
   border-bottom: 2px solid #ffb663;
 }
-.calculator-content-input input[type="number"] {
+.calculator-content-input input[type='number'] {
   appearance: textfield;
   -moz-appearance: textfield;
 }
-.calculator-content-input input[type="number"]::-webkit-inner-spin-button,
-.calculator-content-input input[type="number"]::-webkit-outer-spin-button {
+.calculator-content-input input[type='number']::-webkit-inner-spin-button,
+.calculator-content-input input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
@@ -202,101 +202,106 @@ most of the original ai generated layout was modified to fit the wanted design
   text-align: center;
 }
 
-.calculator-links-conversion-rates { 
-  display: flex; 
-  align-items: center; 
-  justify-content: space-between; 
-  gap: 16px; 
-  width: 100%; 
-  margin-bottom: 14px; 
+.calculator-links-conversion-rates {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 14px;
 }
 
-
 @media (max-width: 1024px) {
-  .calculator-content-panel { 
-    width: 100%; 
+  .calculator-content-panel {
+    width: 100%;
   }
-  .calculator-content-section-heading { padding: 10px 12px; }
-  .calculator-content-table { min-width: 1600px; }
-  .calculator-content-table-head-row .MuiTableCell-root { 
-    height: 50px; 
-    padding: 9px 8px; 
-    font-size: 11px; 
-    line-height: 1.25; 
+  .calculator-content-section-heading {
+    padding: 10px 12px;
   }
-  .calculator-content-table-head-row .MuiTableCell-root:nth-child(1) { 
-    width: 370px; 
-    padding-left: 12px; 
+  .calculator-content-table {
+    min-width: 1600px;
   }
-  .calculator-content-category-cell { 
-    padding: 10px 12px !important; 
+  .calculator-content-table-head-row .MuiTableCell-root {
+    height: 50px;
+    padding: 9px 8px;
+    font-size: 11px;
+    line-height: 1.25;
   }
-  .calculator-content-category-title.MuiTypography-root { 
-    font-size: 12px; 
-    line-height: 1.4; 
+  .calculator-content-table-head-row .MuiTableCell-root:nth-child(1) {
+    width: 370px;
+    padding-left: 12px;
   }
-  .calculator-content-editable-cell { 
-    padding: 7px 8px !important; 
+  .calculator-content-category-cell {
+    padding: 10px 12px !important;
   }
-  .calculator-content-input .MuiInputBase-root { 
-    min-height: 34px; font-size: 11px; 
+  .calculator-content-category-title.MuiTypography-root {
+    font-size: 12px;
+    line-height: 1.4;
   }
-  .calculator-content-input .MuiInputBase-input { 
-    padding: 7px 6px; font-size: 11px; 
+  .calculator-content-editable-cell {
+    padding: 7px 8px !important;
   }
-  .calculator-content-summary-content { 
-    padding: 12px; 
+  .calculator-content-input .MuiInputBase-root {
+    min-height: 34px;
+    font-size: 11px;
   }
-  .calculator-content-summary-row .MuiTypography-root { 
-    font-size: 11px; 
+  .calculator-content-input .MuiInputBase-input {
+    padding: 7px 6px;
+    font-size: 11px;
   }
-  .calculator-content-estimated-total { 
-    padding: 12px; 
+  .calculator-content-summary-content {
+    padding: 12px;
+  }
+  .calculator-content-summary-row .MuiTypography-root {
+    font-size: 11px;
+  }
+  .calculator-content-estimated-total {
+    padding: 12px;
   }
 }
 
 @media (max-width: 768px) {
-  .calculator-content-table { 
-    min-width: 1450px; 
+  .calculator-content-table {
+    min-width: 1450px;
   }
-  .calculator-content-table-head-row .MuiTableCell-root { 
-    height: 48px; 
-    padding: 8px 6px; 
-    font-size: 10px; 
+  .calculator-content-table-head-row .MuiTableCell-root {
+    height: 48px;
+    padding: 8px 6px;
+    font-size: 10px;
   }
-  .calculator-content-table-head-row .MuiTableCell-root:nth-child(1) { 
-    width: 330px; 
+  .calculator-content-table-head-row .MuiTableCell-root:nth-child(1) {
+    width: 330px;
   }
-  .calculator-content-category-title.MuiTypography-root { 
-    font-size: 11px; 
+  .calculator-content-category-title.MuiTypography-root {
+    font-size: 11px;
   }
-  .calculator-content-editable-cell { 
-    padding: 6px !important; 
+  .calculator-content-editable-cell {
+    padding: 6px !important;
   }
-  .calculator-content-input .MuiInputBase-root { 
-    min-height: 32px; 
-    font-size: 10px; 
+  .calculator-content-input .MuiInputBase-root {
+    min-height: 32px;
+    font-size: 10px;
   }
-  .calculator-content-input .MuiInputBase-input { 
-    padding: 6px 5px; 
+  .calculator-content-input .MuiInputBase-input {
+    padding: 6px 5px;
   }
-  .calculator-content-table-container { 
-    touch-action: pan-x; 
+  .calculator-content-table-container {
+    touch-action: pan-x;
   }
-  .calculator-content-table-container::-webkit-scrollbar { 
-    height: 14px; 
+  .calculator-content-table-container::-webkit-scrollbar {
+    height: 14px;
   }
 }
 
 /*link section*/
 
 @media (max-width: 600px) {
-  .calculator-links-conversion-rates { 
-    align-items: flex-start; 
+  .calculator-links-conversion-rates {
+    align-items: flex-start;
   }
-  .calculator-links { 
-    column-gap: 12px; 
-    row-gap: 8px; 
+  .calculator-links {
+    column-gap: 12px;
+    row-gap: 8px;
   }
 }
 
@@ -340,7 +345,7 @@ most of the original ai generated layout was modified to fit the wanted design
 
 .calculator-links a:focus-visible {
   color: #e06410;
-  outline: 2px solid #e06410 ;
+  outline: 2px solid #e06410;
   outline-offset: 2px;
 }
 

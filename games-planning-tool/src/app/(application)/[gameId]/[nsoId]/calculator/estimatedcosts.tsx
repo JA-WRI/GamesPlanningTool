@@ -4,7 +4,7 @@
 // The layout, cost categories, values, and styling were modified
 // to match the wanted calculator design.
 
-"use client";
+'use client';
 
 import {
   Box,
@@ -12,8 +12,8 @@ import {
   Paper,
   TextField,
   Typography,
-} from "@mui/material";
-import "./estimatedcosts.css";
+} from '@mui/material';
+import './estimatedcosts.css';
 
 export type EstimatedCostsData = {
   clothingPackage: number;
@@ -29,25 +29,22 @@ export type EstimatedCostsData = {
 
 type EstimatedCostsProps = {
   readonly costs: EstimatedCostsData;
-  readonly onChange: (
-    field: keyof EstimatedCostsData,
-    value: number
-  ) => void;
+  readonly onChange: (field: keyof EstimatedCostsData, value: number) => void;
 };
 
 const COST_FIELDS: Array<{
   field: keyof EstimatedCostsData;
   label: string;
 }> = [
-  { field: "clothingPackage", label: "Clothing Package" },
-  { field: "travelEconomyFare", label: "Travel Economy Fare" },
-  { field: "athleteInsurance", label: "Athlete Insurance" },
-  { field: "supportStaffInsurance", label: "Support Staff Insurance" },
-  { field: "cellphone", label: "Cellphone (local plan)" },
-  { field: "mealsPerDay", label: "Meals" },
-  { field: "villageMealVoucher", label: "Village Meal Voucher" },
-  { field: "knifeAndFork", label: "Knife & Fork for Ap" },
-  { field: "accommodation", label: "Accommodation" },
+  { field: 'clothingPackage', label: 'Clothing Package' },
+  { field: 'travelEconomyFare', label: 'Travel Economy Fare' },
+  { field: 'athleteInsurance', label: 'Athlete Insurance' },
+  { field: 'supportStaffInsurance', label: 'Support Staff Insurance' },
+  { field: 'cellphone', label: 'Cellphone (local plan)' },
+  { field: 'mealsPerDay', label: 'Meals' },
+  { field: 'villageMealVoucher', label: 'Village Meal Voucher' },
+  { field: 'knifeAndFork', label: 'Knife & Fork for Ap' },
+  { field: 'accommodation', label: 'Accommodation' },
 ];
 
 export default function EstimatedCosts({
@@ -75,14 +72,14 @@ export default function EstimatedCosts({
               onChange={(event) =>
                 onChange(
                   item.field,
-                  Math.max(0, Number(event.target.value) || 0)
+                  Math.max(0, Number(event.target.value) || 0),
                 )
               }
               slotProps={{
                 htmlInput: {
                   min: 0,
                   step: 0.01,
-                  "aria-label": item.label,
+                  'aria-label': item.label,
                 },
                 input: {
                   startAdornment: (

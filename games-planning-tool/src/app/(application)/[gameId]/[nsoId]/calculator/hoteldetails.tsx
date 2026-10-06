@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 import {
   Box,
   FormControl,
@@ -14,10 +14,10 @@ import {
   TableHead,
   TableRow,
   Typography,
-} from "@mui/material";
-import "./hoteldetails.css";
+} from '@mui/material';
+import './hoteldetails.css';
 
-type OccupancyType = "Single" | "Double";
+type OccupancyType = 'Single' | 'Double';
 
 type Hotel = {
   name: string;
@@ -27,75 +27,75 @@ type Hotel = {
 
 const HOTELS: Hotel[] = [
   {
-    name: "Milano - UNA Mediterraneo",
+    name: 'Milano - UNA Mediterraneo',
     singlePrice: 750,
     doublePrice: 375,
   },
   {
-    name: "Milano - NH Milano Congress Centre",
+    name: 'Milano - NH Milano Congress Centre',
     singlePrice: 750,
     doublePrice: 375,
   },
   {
-    name: "Milano - NH Milano Fiera",
+    name: 'Milano - NH Milano Fiera',
     singlePrice: 750,
     doublePrice: 375,
   },
   {
-    name: "Cortina - Appartamenti da Nica e Diego",
+    name: 'Cortina - Appartamenti da Nica e Diego',
     singlePrice: 525,
     doublePrice: 262.5,
   },
   {
-    name: "Anterselva - Villa Adele",
+    name: 'Anterselva - Villa Adele',
     singlePrice: 780,
     doublePrice: 390,
   },
   {
-    name: "Predazzo - Hotel Liz",
+    name: 'Predazzo - Hotel Liz',
     singlePrice: 495,
     doublePrice: 172.5,
   },
   {
-    name: "Livigno - Hotel Alba",
+    name: 'Livigno - Hotel Alba',
     singlePrice: 720,
     doublePrice: 360,
   },
   {
-    name: "Livigno - Hotel Margherita",
+    name: 'Livigno - Hotel Margherita',
     singlePrice: 480,
     doublePrice: 240,
   },
   {
-    name: "Bormio - Hotel Larice Bianco",
+    name: 'Bormio - Hotel Larice Bianco',
     singlePrice: 420,
     doublePrice: 210,
   },
 ];
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-CA", {
-    style: "currency",
-    currency: "CAD",
+  return new Intl.NumberFormat('en-CA', {
+    style: 'currency',
+    currency: 'CAD',
   }).format(amount);
 }
 
 export default function HotelDetails() {
-  const [selectedHotel, setSelectedHotel] = useState("");
-  const [occupancyType, setOccupancyType] = useState<OccupancyType | "">("");
+  const [selectedHotel, setSelectedHotel] = useState('');
+  const [occupancyType, setOccupancyType] = useState<OccupancyType | ''>('');
 
   const hotel = HOTELS.find((item) => item.name === selectedHotel);
 
   const price =
     hotel && occupancyType
-      ? occupancyType === "Single"
+      ? occupancyType === 'Single'
         ? hotel.singlePrice
         : hotel.doublePrice
       : 0;
 
   const handleHotelChange = (hotelName: string) => {
     setSelectedHotel(hotelName);
-    setOccupancyType("");
+    setOccupancyType('');
   };
 
   return (
@@ -125,11 +125,9 @@ export default function HotelDetails() {
                   <Select
                     value={selectedHotel}
                     displayEmpty
-                    onChange={(event) =>
-                      handleHotelChange(event.target.value)
-                    }
+                    onChange={(event) => handleHotelChange(event.target.value)}
                     inputProps={{
-                      "aria-label": "Hotel",
+                      'aria-label': 'Hotel',
                     }}
                   >
                     <MenuItem value="" disabled>
@@ -156,12 +154,10 @@ export default function HotelDetails() {
                     value={occupancyType}
                     displayEmpty
                     onChange={(event) =>
-                      setOccupancyType(
-                        event.target.value as OccupancyType
-                      )
+                      setOccupancyType(event.target.value as OccupancyType)
                     }
                     inputProps={{
-                      "aria-label": "Occupancy type",
+                      'aria-label': 'Occupancy type',
                     }}
                   >
                     <MenuItem value="" disabled>

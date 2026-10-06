@@ -16,7 +16,6 @@ The original AI generated layout was modified to fit the wanted design.
   border-bottom: 2px solid #ab4c277a;
 }
 
-
 .estimated-costs-heading .MuiTypography-root {
   color: #220c00;
   font-size: 18px;
@@ -81,22 +80,26 @@ The original AI generated layout was modified to fit the wanted design.
   border-radius: 0;
 }
 
-.estimated-cost-input .MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline {
+.estimated-cost-input
+  .MuiInputBase-root:hover
+  .MuiOutlinedInput-notchedOutline {
   border-bottom: 1px solid #ffb663;
 }
 
-.estimated-cost-input .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+.estimated-cost-input
+  .MuiInputBase-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
   border: none;
   border-bottom: 2px solid #ffb663;
 }
 
-.estimated-cost-input input[type="number"] {
+.estimated-cost-input input[type='number'] {
   appearance: textfield;
   -moz-appearance: textfield;
 }
 
-.estimated-cost-input input[type="number"]::-webkit-inner-spin-button,
-.estimated-cost-input input[type="number"]::-webkit-outer-spin-button {
+.estimated-cost-input input[type='number']::-webkit-inner-spin-button,
+.estimated-cost-input input[type='number']::-webkit-outer-spin-button {
   margin: 0;
   -webkit-appearance: none;
 }

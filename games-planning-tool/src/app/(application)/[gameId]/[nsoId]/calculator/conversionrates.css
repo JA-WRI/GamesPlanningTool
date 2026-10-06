@@ -1,6 +1,6 @@
-.calculator-currency-selector { 
-    flex-shrink: 0; 
-    margin-left: auto; 
+.calculator-currency-selector {
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .calculator-currency-button.MuiButton-root {
@@ -14,7 +14,9 @@
   text-transform: none;
   background: #fff;
   box-shadow: none;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .calculator-currency-button.MuiButton-root:hover,

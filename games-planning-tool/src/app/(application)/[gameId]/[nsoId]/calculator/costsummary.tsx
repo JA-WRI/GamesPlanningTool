@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Box, Divider, Paper, Typography } from "@mui/material";
-import "./costsummary.css";
+import { Box, Divider, Paper, Typography } from '@mui/material';
+import './costsummary.css';
 
 export type CostSummaryItem = {
   label: string;
@@ -14,9 +14,9 @@ type CostSummaryProps = {
 };
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-CA", {
-    style: "currency",
-    currency: "CAD",
+  return new Intl.NumberFormat('en-CA', {
+    style: 'currency',
+    currency: 'CAD',
   }).format(amount);
 }
 

@@ -3,17 +3,17 @@
 // - Currency selector component structure
 // The options and layout were reviewed and modified to match the calculator requirements.
 
-"use client";
+'use client';
 
-import { useState } from "react";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import { Button, Menu, MenuItem } from "@mui/material";
-import "./conversionrates.css";
+import { useState } from 'react';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import { Button, Menu, MenuItem } from '@mui/material';
+import './conversionrates.css';
 
-const CURRENCIES = ["EUR", "USD", "CAD"] as const;
+const CURRENCIES = ['EUR', 'USD', 'CAD'] as const;
 
 export default function ConversionRates() {
-  const [currency, setCurrency] = useState<(typeof CURRENCIES)[number]>("CAD");
+  const [currency, setCurrency] = useState<(typeof CURRENCIES)[number]>('CAD');
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const menuOpen = Boolean(menuAnchor);
 

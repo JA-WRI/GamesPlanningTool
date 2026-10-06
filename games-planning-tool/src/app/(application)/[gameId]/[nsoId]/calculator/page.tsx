@@ -4,24 +4,25 @@
 // - Component organization and basic state handling
 // The code was reviewed and modified to fit the calculator requirements.
 
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Box, Button, Tab, Tabs } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import "./globalpage.css";
-import CalculatorContent from "./calculatorcontent";
+import { useState } from 'react';
+import { Box, Button, Tab, Tabs } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import './globalpage.css';
+import CalculatorContent from './calculatorcontent';
 
 type Calculator = { id: number; name: string };
 
 export default function CalculatorPage() {
   const [calculators, setCalculators] = useState<Calculator[]>([
-    { id: 1, name: "Calculator 1" },
+    { id: 1, name: 'Calculator 1' },
   ]);
   const [selectedCalculatorId, setSelectedCalculatorId] = useState(1);
 
   const createNewCalculator = () => {
-    const id = Math.max(0, ...calculators.map((calculator) => calculator.id)) + 1;
+    const id =
+      Math.max(0, ...calculators.map((calculator) => calculator.id)) + 1;
 
     setCalculators((previous) => [
       ...previous,
@@ -32,7 +33,6 @@ export default function CalculatorPage() {
 
   return (
     <Box component="main" className="calculator-page">
-
       <Box className="calculator-page-content">
         <Box className="calculator-page-navigation">
           <Tabs
