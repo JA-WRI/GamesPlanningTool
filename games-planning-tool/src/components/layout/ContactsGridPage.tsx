@@ -25,17 +25,19 @@ export const contactColumns: ColumnDefinition<ContactRow>[] = [
     type: 'email',
     placeholder: 'Enter Email',
   },
-  { field: 'role', label: 'Role', placeholder: 'Enter Role' },
+  { field: 'role', label: 'Role', placeholder: 'Enter Role', align: 'center' },
   {
     field: 'countryCode',
     label: 'Country Code',
     placeholder: 'Enter Country Code',
+    align: 'center',
   },
   {
     field: 'phone',
     label: 'Telephone Number',
     type: 'tel',
     placeholder: 'Enter Phone Number',
+    align: 'center',
   },
 ];
 

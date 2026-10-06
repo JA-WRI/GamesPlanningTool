@@ -6,7 +6,7 @@ import Grid, { ColumnDefinition } from '@/components/layout/Grid';
 import ContactInfoHeaderPage from '@/components/layout/ContactInfoHeader';
 import { useGrid } from '@/hooks/useGrid';
 
-export interface ContactRow {
+export interface ContactRow extends Record<string, unknown> {
   id: string;
   firstName: string;
   lastName: string;
@@ -24,18 +24,21 @@ const contactColumns: ColumnDefinition<ContactRow>[] = [
     field: 'carType',
     label: 'Car Type',
     placeholder: 'Enter Car Type',
+    align: 'center',
   },
-  { field: 'role', label: 'Role', placeholder: 'Enter Role' },
+  { field: 'role', label: 'Role', placeholder: 'Enter Role', align: 'center' },
   {
     field: 'countryCode',
     label: 'Country Code',
     placeholder: 'Enter Country Code',
+    align: 'center',
   },
   {
     field: 'phone',
     label: 'Telephone Number',
     type: 'tel',
     placeholder: 'Enter Phone Number',
+    align: 'center',
   },
   {
     field: 'additionalComments',
@@ -63,7 +66,7 @@ const initialData: ContactRow[] = [
     carType: 'Van',
     role: 'Driver',
     countryCode: '1',
-    phone: '+1 514-555-0144',
+    phone: '514-555-0144',
     additionalComments: '',
   },
   {
@@ -73,7 +76,7 @@ const initialData: ContactRow[] = [
     carType: 'Van',
     role: 'Driver',
     countryCode: '1',
-    phone: '+1 514-555-0188',
+    phone: '514-555-0188',
     additionalComments: '',
   },
 ];
