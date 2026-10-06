@@ -57,7 +57,12 @@ export function getAthleteRangeErrors(estimate: AthleteEstimate) {
     estimate.bestGuess !== '' &&
     estimate.high !== '' &&
     toNumber(estimate.bestGuess) > toNumber(estimate.high);
-  return { lowIsInvalid, bestIsInvalid };
+  // still checks Low ≤ High when Best is empty
+  const rangeIsInvalid =
+    estimate.low !== '' &&
+    estimate.high !== '' &&
+    toNumber(estimate.low) > toNumber(estimate.high);
+  return { lowIsInvalid, bestIsInvalid, rangeIsInvalid };
 }
 
 // medals High ≥ Low
