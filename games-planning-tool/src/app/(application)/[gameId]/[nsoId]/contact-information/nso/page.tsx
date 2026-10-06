@@ -8,7 +8,7 @@ const initialNsoData = [
     email: 'jconner@olympic.ca',
     role: 'Media Attaché',
     countryCode: '1',
-    phone: '+1 514-555-0188',
+    phone: '514-555-0188',
   },
 ];
 

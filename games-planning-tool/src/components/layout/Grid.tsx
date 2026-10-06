@@ -23,6 +23,7 @@ export interface ColumnDefinition<T> {
   type?: 'text' | 'email' | 'tel';
   placeholder?: string;
   width?: string | number;
+  align?: 'left' | 'center' | 'right';
 }
 
 interface GridProps<T extends Record<string, unknown>> {
@@ -80,6 +81,7 @@ export default function Grid<T extends Record<string, unknown>>({
               {columns.map((col) => (
                 <TableCell
                   key={String(col.field)}
+                  align={col.align || 'left'}
                   style={{ width: col.width }}
                   sx={{
                     fontWeight: 600,
@@ -118,7 +120,11 @@ export default function Grid<T extends Record<string, unknown>>({
                 {columns.map((col) => {
                   const val = (row[col.field] as string) ?? '';
                   return (
-                    <TableCell key={String(col.field)} sx={{ py: 1, px: 1.5 }}>
+                    <TableCell
+                      key={String(col.field)}
+                      align={col.align || 'left'}
+                      sx={{ py: 1, px: 1.5 }}
+                    >
                       {isEditing ? (
                         <TextBox
                           type={col.type || 'text'}
@@ -131,6 +137,11 @@ export default function Grid<T extends Record<string, unknown>>({
                               e.target.value,
                             )
                           }
+                          slotProps={{
+                            htmlInput: {
+                              style: { textAlign: col.align || 'left' },
+                            },
+                          }}
                         />
                       ) : (
                         <span className="text-sm text-foreground font-normal">

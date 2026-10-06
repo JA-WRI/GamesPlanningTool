@@ -17,7 +17,7 @@ const initialCocData = [
     email: 'ewilkerson@olympic.ca',
     role: 'Doctor',
     countryCode: '1',
-    phone: '+1 514-555-0144',
+    phone: '514-555-0144',
   },
 ];
 
