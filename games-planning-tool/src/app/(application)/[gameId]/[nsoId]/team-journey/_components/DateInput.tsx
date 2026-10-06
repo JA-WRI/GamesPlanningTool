@@ -1,4 +1,4 @@
-// 60% AI generated 
+// 60% AI generated
 import { inputClass, onlyDigits } from '../_lib/utils';
 import {
   DateValue,
