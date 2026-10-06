@@ -34,3 +34,25 @@ body {
     @apply mx-auto w-full px-2;
   }
 }
+
+/* fade in when switching team journey steps */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step-fade {
+  animation: fadeIn 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-fade {
+    animation: none;
+  }
+}
