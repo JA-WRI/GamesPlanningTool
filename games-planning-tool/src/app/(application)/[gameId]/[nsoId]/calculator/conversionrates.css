@@ -2,17 +2,33 @@
     flex-shrink: 0; 
     margin-left: auto; 
 }
+
 .calculator-currency-button.MuiButton-root {
   min-width: 86px;
   justify-content: space-between;
   padding: 6px 10px;
-  border: 1px solid #bdbdbd;
+  border: 1px solid #ab4c277a;
   border-radius: 4px;
   color: #222;
   font-size: 16px;
   text-transform: none;
+  background: #fff;
+  box-shadow: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
-.calculator-currency-button.MuiButton-root:hover { 
-    border-color: #777; 
-    background: #f5f5f5; 
+
+.calculator-currency-button.MuiButton-root:hover,
+.calculator-currency-button.MuiButton-root:focus-visible,
+.calculator-currency-button.MuiButton-root:active {
+  border-color: #ab4c277a;
+  background: #fbe9e3;
+}
+
+.calculator-currency-button.MuiButton-root:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(171, 76, 39, 0.12);
+}
+
+.calculator-currency-button .MuiButton-endIcon {
+  margin-left: 4px;
 }

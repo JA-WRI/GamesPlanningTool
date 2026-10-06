@@ -8,28 +8,10 @@ the support fr different display dimensions wasa ai generated
   box-sizing: border-box;
 }
 
-.calculator-page,
-.calculator-page-navbar,
-.calculator-page-content {
-  width: 100%;
-}
-
 .calculator-page {
   min-height: 100%;
   background: #fff;
   padding: 0 0 16px;
-}
-
-.calculator-page-navbar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 80px;
-  margin: 0;
-  padding: 0;
-  background: #831010;
-  color: #eee8e8;
-  font-size: 11px;
 }
 
 .calculator-page-content {
@@ -45,7 +27,7 @@ the support fr different display dimensions wasa ai generated
   gap: 8px;
   min-height: 60px;
   margin: 0 0 10px;
-  border-top: 3px solid #4b0000fd;
+  border-top: 3px solid #db8667;
   background: #f2f2f2;
   overflow-x: auto;
 }
@@ -72,12 +54,12 @@ the support fr different display dimensions wasa ai generated
 
 .calculator-page-tab.MuiTab-root.Mui-selected {
   background: transparent;
-  color: #8b0000;
+  color: #cf4e1b;
   font-weight: 700;
 }
 
 .calculator-page-tab.MuiTab-root.Mui-focusVisible {
-  outline: 2px solid #8b0000;
+  outline: 2px solid #cf4e1b;
   outline-offset: -2px;
 }
 
@@ -87,7 +69,7 @@ the support fr different display dimensions wasa ai generated
   min-height: 35px;
   padding: 3px 9px;
   border-radius: 2px;
-  background: #424242;
+  background: #461d0e;
   box-shadow: none;
   font-size: 16px;
   font-weight: 300;
@@ -105,7 +87,8 @@ the support fr different display dimensions wasa ai generated
 }
 
 .calculator-page-add-button.MuiButton-root:hover { 
-  background: #222; box-shadow: none; 
+  background: #6d2207; 
+  box-shadow: none; 
 }
 .calculator-page-add-button .MuiButton-startIcon { 
   margin-right: 3px; 
@@ -139,23 +122,57 @@ the support fr different display dimensions wasa ai generated
 }
 
 @media (max-width: 1024px) {
-  .calculator-page { padding: 12px 16px; }
-  .calculator-page-content { max-width: 100%; }
-  .calculator-page-navigation { min-height: 44px; gap: 5px; padding: 0 6px; }
-  .calculator-page-tab.MuiTab-root { min-width: 95px; min-height: 42px; padding: 6px 10px; font-size: 12px; }
-  .calculator-page-add-button.MuiButton-root { min-width: max-content; padding: 5px 9px; font-size: 10px; }
+  .calculator-page { 
+    padding: 12px 16px; 
+  }
+  .calculator-page-content { 
+    max-width: 100%; 
+  }
+  .calculator-page-navigation { 
+    min-height: 44px; 
+    gap: 5px; 
+    padding: 0 6px; 
+  }
+  .calculator-page-tab.MuiTab-root { 
+    min-width: 95px; 
+    min-height: 42px; 
+    padding: 6px 10px; 
+    font-size: 12px; }
+  .calculator-page-add-button.MuiButton-root { 
+    min-width: max-content; 
+    padding: 5px 9px; 
+    font-size: 10px; }
 }
 
 @media (max-width: 768px) {
-  .calculator-page { padding: 10px 12px; }
-  .calculator-page-navigation { margin-bottom: 10px; }
-  .calculator-page-tabs { flex-shrink: 1; min-width: 0; }
-  .calculator-page-tab.MuiTab-root { min-width: 85px; font-size: 11px; }
-  .calculator-page-add-button.MuiButton-root { font-size: 9px; }
-  .calculator-page-save-button.MuiButton-root { min-height: 34px; padding: 5px 14px; }
+  .calculator-page { 
+    padding: 10px 12px; 
+  }
+  .calculator-page-navigation { 
+    margin-bottom: 10px; 
+  }
+  .calculator-page-tabs { 
+    flex-shrink: 1; 
+    min-width: 0; 
+  }
+  .calculator-page-tab.MuiTab-root { 
+    min-width: 85px; 
+    font-size: 11px; 
+  }
+  .calculator-page-add-button.MuiButton-root { 
+    font-size: 9px; 
+  }
+  .calculator-page-save-button.MuiButton-root { 
+    min-height: 34px; 
+    padding: 5px 14px; 
+  }
 }
 
 @media (max-width: 600px) {
-  .calculator-page-content { padding: 10px 10px 0; }
-  .calculator-page-navigation { padding: 0 4px; }
+  .calculator-page-content { 
+    padding: 10px 10px 0; 
+  }
+  .calculator-page-navigation { 
+    padding: 0 4px; 
+  }
 }

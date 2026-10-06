@@ -21,6 +21,8 @@ export default function ConversionRates() {
     <div className="calculator-currency-selector">
       <Button
         className="calculator-currency-button"
+        disableRipple
+        disableElevation
         endIcon={<ArrowDropDownIcon />}
         aria-label={`Selected currency: ${currency}`}
         aria-haspopup="menu"
