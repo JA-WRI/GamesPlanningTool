@@ -32,10 +32,6 @@ export default function CalculatorPage() {
 
   return (
     <Box component="main" className="calculator-page">
-      {/* placeholder for navbar */}
-      <Box className="calculator-page-navbar" aria-hidden="true">
-        Navbar placeholder
-      </Box>
 
       <Box className="calculator-page-content">
         <Box className="calculator-page-navigation">

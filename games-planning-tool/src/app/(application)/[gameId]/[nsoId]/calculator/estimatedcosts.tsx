@@ -1,11 +1,18 @@
 // 80% AI generated code:
 // The following was AI generated:
-// - Estimated cost component structure and MUI inputs
-// The cost categories and values were reviewed and modified to match the calculator spreadsheet.
+// - Original estimated cost component structure and MUI inputs
+// The layout, cost categories, values, and styling were modified
+// to match the wanted calculator design.
 
 "use client";
 
-import { Box, Paper, Typography } from "@mui/material";
+import {
+  Box,
+  InputAdornment,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
 import "./estimatedcosts.css";
 
 export type EstimatedCostsData = {
@@ -22,50 +29,68 @@ export type EstimatedCostsData = {
 
 type EstimatedCostsProps = {
   readonly costs: EstimatedCostsData;
+  readonly onChange: (
+    field: keyof EstimatedCostsData,
+    value: number
+  ) => void;
 };
 
 const COST_FIELDS: Array<{
   field: keyof EstimatedCostsData;
   label: string;
-  note?: string;
 }> = [
   { field: "clothingPackage", label: "Clothing Package" },
   { field: "travelEconomyFare", label: "Travel Economy Fare" },
   { field: "athleteInsurance", label: "Athlete Insurance" },
   { field: "supportStaffInsurance", label: "Support Staff Insurance" },
   { field: "cellphone", label: "Cellphone (local plan)" },
-  { field: "mealsPerDay", label: "Meals", note: "/ day" },
-  { field: "villageMealVoucher", label: "Village Meal Voucher"},
-  { field: "knifeAndFork", label: "Knife & Fork for Ap"},
+  { field: "mealsPerDay", label: "Meals" },
+  { field: "villageMealVoucher", label: "Village Meal Voucher" },
+  { field: "knifeAndFork", label: "Knife & Fork for Ap" },
   { field: "accommodation", label: "Accommodation" },
 ];
 
-const currencyFormatter = new Intl.NumberFormat("en-CA", {
-  style: "currency",
-  currency: "CAD",
-});
-
-export default function EstimatedCosts({ costs }: Readonly<EstimatedCostsProps>) {
+export default function EstimatedCosts({
+  costs,
+  onChange,
+}: Readonly<EstimatedCostsProps>) {
   return (
-    <Paper className="calculator-content-panel calculator-estimated-costs" variant="outlined">
-      <Box className="calculator-content-section-heading">
+    <Paper className="estimated-costs" variant="outlined">
+      <Box className="estimated-costs-heading">
         <Typography>Estimated Costs</Typography>
       </Box>
 
-      <Box className="calculator-estimated-costs-grid">
+      <Box className="estimated-costs-grid">
         {COST_FIELDS.map((item) => (
-          <Box key={item.field} className="calculator-estimated-cost-item">
-            <Box className="calculator-estimated-cost-text">
-              <Typography>{item.label}</Typography>
-              {item.note && <Typography className="calculator-estimated-cost-note">{item.note}</Typography>}
-            </Box>
-
-            <Typography
-              className="calculator-estimated-cost-value calculator-content-readonly-value"
-              aria-label={`${item.label}: ${currencyFormatter.format(costs[item.field])}`}
-            >
-              {currencyFormatter.format(costs[item.field])}
+          <Box key={item.field} className="estimated-cost-item">
+            <Typography className="estimated-cost-label">
+              {item.label}
             </Typography>
+
+            <TextField
+              className="estimated-cost-input"
+              type="number"
+              size="small"
+              value={costs[item.field]}
+              onChange={(event) =>
+                onChange(
+                  item.field,
+                  Math.max(0, Number(event.target.value) || 0)
+                )
+              }
+              slotProps={{
+                htmlInput: {
+                  min: 0,
+                  step: 0.01,
+                  "aria-label": item.label,
+                },
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">$</InputAdornment>
+                  ),
+                },
+              }}
+            />
           </Box>
         ))}
       </Box>

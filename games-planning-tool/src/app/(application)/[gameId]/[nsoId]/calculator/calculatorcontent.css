@@ -38,10 +38,7 @@ most of the original ai generated layout was modified to fit the wanted design
   border-bottom: 2px solid #9e9e9e;
 }
 
-.calculator-content-section-heading .MuiTypography-root,
-.calculator-content-summary-title.MuiTypography-root,
-.calculator-content-estimated-label.MuiTypography-root,
-.calculator-content-estimated-amount.MuiTypography-root {
+.calculator-content-section-heading .MuiTypography-root {
   color: #111;
   font-size: 18px;
   font-weight: 600;
@@ -204,38 +201,6 @@ most of the original ai generated layout was modified to fit the wanted design
   text-align: center;
 }
 
-.calculator-content-summary.MuiPaper-root { margin-top: 24px; }
-.calculator-content-summary-content { padding: 14px 16px 10px; }
-.calculator-content-summary-title.MuiTypography-root { margin-bottom: 5px; }
-.calculator-content-summary-row { 
-  display: flex; 
-  align-items: center; 
-  justify-content: space-between; 
-  min-height: 25px; 
-  padding: 4px 2px; 
-  border-bottom: 1px solid #d8d8d8; 
-}
-.calculator-content-summary-row:last-child { border-bottom: 0; }
-.calculator-content-summary-row .MuiTypography-root { 
-  color: #222; 
-  font-size: 12px; 
-  line-height: 1.4; 
-}
-.calculator-content-summary .MuiDivider-root { 
-  border-color: #c6c6c6; }
-.calculator-content-estimated-total { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: flex-start; 
-  gap: 12px; 
-  padding: 14px 16px; 
-}
-.calculator-content-note.MuiTypography-root { 
-  margin-top: 3px; 
-  color: #666; 
-  font-size: 10px; 
-}
-
 .calculator-links-conversion-rates { 
   display: flex; 
   align-items: center; 
@@ -244,15 +209,7 @@ most of the original ai generated layout was modified to fit the wanted design
   width: 100%; 
   margin-bottom: 14px; 
 }
-.calculator-links { 
-  display: flex; 
-  align-items: center; 
-  gap: 16px; 
-  flex-wrap: wrap; 
-}
-.calculator-links h2 { 
-  margin: 0; font-size: 14px; 
-}
+
 
 @media (max-width: 1024px) {
   .calculator-content-panel { 
@@ -330,11 +287,77 @@ most of the original ai generated layout was modified to fit the wanted design
   }
 }
 
+/*link section*/
+
 @media (max-width: 600px) {
   .calculator-links-conversion-rates { 
     align-items: flex-start; 
   }
   .calculator-links { 
-    column-gap: 12px; row-gap: 8px; 
+    column-gap: 12px; 
+    row-gap: 8px; 
   }
+}
+
+.calculator-links {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.calculator-links h2 {
+  margin: 0;
+  padding-left: 5px;
+  padding-top: 7px;
+  color: #111;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.calculator-links a {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 7px 10px;
+  color: #555;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-decoration: none;
+  border-bottom: 1px solid #c6c6c6;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.calculator-links a:hover {
+  color: #8b0000;
+  border-bottom-color: #8b0000;
+}
+
+.calculator-links a:focus-visible {
+  color: #8b0000;
+  outline: 2px solid #8b0000;
+  outline-offset: 2px;
+}
+
+.calculator-links a:active {
+  color: #5f0000;
+}
+
+.currency-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.currency-selector h2 {
+  margin: 0;
+  color: #111;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
 }

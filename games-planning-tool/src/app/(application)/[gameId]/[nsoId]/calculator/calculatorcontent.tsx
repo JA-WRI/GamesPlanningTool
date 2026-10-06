@@ -9,7 +9,6 @@
 import { useState } from "react";
 import {
   Box,
-  Divider,
   Paper,
   Table,
   TableBody,
@@ -21,8 +20,10 @@ import {
   Typography,
 } from "@mui/material";
 import ConversionRates from "./conversionrates";
+import CostSummary from "./costsummary";
 import EstimatedCosts, { EstimatedCostsData } from "./estimatedcosts";
 import "./calculatorcontent.css";
+import HotelDetails from "./hoteldetails";
 
 const TRAVEL_CATEGORIES = [
   {
@@ -66,7 +67,7 @@ type CalculatorContentProps = {
   readonly calculatorId: number;
 };
 
-const INITIAL_ESTIMATED_COSTS: EstimatedCostsData = {
+const INITIAL_ESTIMATED_COSTS = (): EstimatedCostsData => ({
   clothingPackage: 3200,
   travelEconomyFare: 2400,
   athleteInsurance: 50,
@@ -74,9 +75,9 @@ const INITIAL_ESTIMATED_COSTS: EstimatedCostsData = {
   cellphone: 108,
   mealsPerDay: 118,
   villageMealVoucher: 57,
-  knifeAndFork: 2279,
+  knifeAndFork: 2279, 
   accommodation: 0,
-};
+});
 
 function createInitialRows(): CalculatorRow[] {
   return TRAVEL_CATEGORIES.map((category) => ({
@@ -97,7 +98,7 @@ function createInitialRows(): CalculatorRow[] {
 function createInitialCalculatorData(): CalculatorData {
   return {
     rows: createInitialRows(),
-    estimatedCosts: { ...INITIAL_ESTIMATED_COSTS },
+    estimatedCosts: INITIAL_ESTIMATED_COSTS(),
   };
 }
 
@@ -140,6 +141,7 @@ export default function CalculatorContent({
     });
   };
 
+  
   const updateRow = (
     rowId: number,
     field: keyof CalculatorRow,
@@ -152,6 +154,19 @@ export default function CalculatorContent({
       ),
     }));
   };
+  const updateEstimatedCost = (
+    field: keyof EstimatedCostsData,
+    value: number
+  ) => {
+    updateCurrentCalculator((data) => ({
+      ...data,
+      estimatedCosts: {
+        ...data.estimatedCosts,
+        [field]: value,
+      }
+    }));
+  };
+
 
   const accommodationTotal = 0;
   const travelTotal = 0;
@@ -197,7 +212,7 @@ export default function CalculatorContent({
       <Box className="calculator-links-conversion-rates">
         
         <Box className="calculator-links">
-          <h2>Links</h2>
+          <h2>Links:</h2>
           <a
             href="https://drive.google.com/drive/folders/1YLt82-95BMaAmetoMYpdpUMf-V0jBl9j?usp=drive_link"
             target="_blank"
@@ -215,8 +230,10 @@ export default function CalculatorContent({
             Access and Privileges
           </a> 
         </Box>
-
-        <ConversionRates />
+        <Box className="currency-selector">
+          <h2>Currency:</h2>
+          <ConversionRates />
+        </Box>
       </Box>
 
       <Paper className="calculator-content-panel" variant="outlined">
@@ -330,42 +347,11 @@ export default function CalculatorContent({
 
       <EstimatedCosts
         costs={currentData.estimatedCosts}
+        onChange={updateEstimatedCost}
       />
+      <HotelDetails />
 
-      <Paper
-        className="calculator-content-panel calculator-content-summary"
-        variant="outlined"
-      >
-        <Box className="calculator-content-summary-content">
-          <Typography className="calculator-content-summary-title">
-            Cost Summary
-          </Typography>
-
-          {summary.map((item) => (
-            <Box key={item.label} className="calculator-content-summary-row">
-              <Typography>{item.label}</Typography>
-              <Typography>{formatCurrency(item.value)}</Typography>
-            </Box>
-          ))}
-        </Box>
-
-        <Divider />
-
-        <Box className="calculator-content-estimated-total">
-          <Box>
-            <Typography className="calculator-content-estimated-label">
-              Estimated Total:
-            </Typography>
-            <Typography className="calculator-content-note">
-              Excludes clothing packages (individual need)
-            </Typography>
-          </Box>
-
-          <Typography className="calculator-content-estimated-amount">
-            {formatCurrency(estimatedTotal)}
-          </Typography>
-        </Box>
-      </Paper>
+      <CostSummary summary={summary} estimatedTotal={estimatedTotal} />
     </Box>
   );
 }

@@ -36,7 +36,7 @@ the support fr different display dimensions wasa ai generated
   max-width: none;
   min-width: 0;
   margin: 0;
-  padding: 12px 20px 0;
+  padding: 12px 3px 0;
 }
 
 .calculator-page-navigation {
@@ -104,18 +104,29 @@ the support fr different display dimensions wasa ai generated
   transform: translateY(-50%);
 }
 
-.calculator-page-add-button.MuiButton-root:hover { background: #222; box-shadow: none; }
-.calculator-page-add-button .MuiButton-startIcon { margin-right: 3px; }
-.calculator-page-add-button .MuiSvgIcon-root { font-size: 13px; }
+.calculator-page-add-button.MuiButton-root:hover { 
+  background: #222; box-shadow: none; 
+}
+.calculator-page-add-button .MuiButton-startIcon { 
+  margin-right: 3px; 
+}
+.calculator-page-add-button .MuiSvgIcon-root { 
+  font-size: 13px; 
+}
 
-.calculator-page-save-row { display: flex; justify-content: flex-end; margin-top: 8px; }
+.calculator-page-save-row { 
+  display: flex; 
+  justify-content: flex-end; 
+  margin-top: 20px; 
+}
 .calculator-page-save-button.MuiButton-root {
-  min-width: 38px;
+  min-width: 60px;
+  min-height: 38px;
   padding: 4px 8px;
   border-radius: 4px;
   background: #009b58;
   color: #fff;
-  font-size: 11px;
+  font-size: 16px;
   text-transform: none;
   box-shadow: none;
 }
