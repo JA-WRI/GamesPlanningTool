@@ -69,7 +69,7 @@ export default function Home() {
   );
 
   return (
-    <main className="p-8">
+    <main className="pt-2">
       <h1 className="text-2xl font-bold">NSOs Progress Overview</h1>
       <div className="flex justify-center gap-20 px-10 mt-10">
         {mockDashboard.map((d) => (
