@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import ContactInfoHeaderPage from '@/components/layout/ContactInfoHeader';
+import ContactInfoHeaderPage from './components/ContactInfoHeader';
 
 export interface NSOGeneralInfo {
   name: string;
