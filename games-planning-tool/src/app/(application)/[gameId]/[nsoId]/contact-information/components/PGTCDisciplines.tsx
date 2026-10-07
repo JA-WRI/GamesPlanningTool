@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import ContactInfoHeaderPage from './ContactInfoHeader';
-import TextBox from '@/components/layout/TextBox';
+import TextBox from '@/components/commons/TextBox';
 
 export interface DisciplineData {
   id: string;
