@@ -2,7 +2,7 @@
 import { test, expect, Page, Locator } from '@playwright/test';
 
 async function setupWinterCards(page: Page, requiredCount = 2) {
-  await page.goto('/game-1/nso-1/resources');
+  await page.goto('/game_id_1/nso_1/resources');
   await page.getByRole('button', { name: 'Edit' }).first().click();
   const winterSection = page.locator(
     'section:has(h2:has-text("Winter Games"))',
@@ -92,7 +92,7 @@ test.describe('Resources Page E2E', () => {
   test('renders topbar, navbar, category sections, and cards', async ({
     page,
   }) => {
-    await page.goto('/game-1/nso-1/resources');
+    await page.goto('/game_id_1/nso_1/resources');
 
     await expect(
       page.getByRole('heading', { name: 'Winter Games' }),
@@ -104,7 +104,7 @@ test.describe('Resources Page E2E', () => {
   });
 
   test('toggles edit mode and enables selection', async ({ page }) => {
-    await page.goto('/game-1/nso-1/resources');
+    await page.goto('/game_id_1/nso_1/resources');
 
     const editBtn = page.getByRole('button', { name: 'Edit' }).first();
     await editBtn.click();
@@ -124,7 +124,7 @@ test.describe('Resources Page E2E', () => {
   test('automatically assigns General category when adding resource with no category', async ({
     page,
   }) => {
-    await page.goto('/game-1/nso-1/resources');
+    await page.goto('/game_id_1/nso_1/resources');
 
     await page.getByRole('button', { name: 'Add Resource' }).first().click();
     await expect(page.getByText('Add New Resource')).toBeVisible();
@@ -207,7 +207,7 @@ test.describe('Resources Page E2E', () => {
   test.skip('supports dragging resource to another category and dragging out to remove', async ({
     page,
   }) => {
-    await page.goto('/game-1/nso-1/resources');
+    await page.goto('/game_id_1/nso_1/resources');
 
     await page.getByRole('button', { name: 'Edit' }).first().click();
     await expect(
@@ -384,7 +384,7 @@ test.describe('Resources Page E2E', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto('/game-1/nso-1/resources');
+    await page.goto('/game_id_1/nso_1/resources');
 
     const initialScrollY = await page.evaluate(() => window.scrollY);
     expect(initialScrollY).toBe(0);
@@ -418,7 +418,7 @@ test.describe('Resources Page E2E', () => {
   test.skip('displays trash symbol on the dragged resource replacing its contents when dragged over removal area', async ({
     page,
   }) => {
-    await page.goto('/game-1/nso-1/resources');
+    await page.goto('/game_id_1/nso_1/resources');
     await page.getByRole('button', { name: 'Edit' }).first().click();
 
     await expect(
@@ -545,7 +545,7 @@ test.describe('Resources Page E2E', () => {
   test.skip('cards are not draggable when not in edit mode', async ({
     page,
   }) => {
-    await page.goto('/game-1/nso-1/resources');
+    await page.goto('/game_id_1/nso_1/resources');
 
     const card = page.locator('[data-resource-id]').first();
     await expect(card).toHaveAttribute('draggable', 'false');
@@ -557,7 +557,7 @@ test.describe('Resources Page E2E', () => {
   test('clicking category-level Delete button only deletes resources selected in that specific category', async ({
     page,
   }) => {
-    await page.goto('/game-1/nso-1/resources');
+    await page.goto('/game_id_1/nso_1/resources');
     await page.getByRole('button', { name: 'Edit' }).first().click();
 
     const winterSection = page.locator(
