@@ -2,9 +2,15 @@
 // 65% AI generated to manage the step and form state
 
 import { useState } from 'react';
-import StepTabs, { STEPS } from './StepTabs';
+import StepTabs from './StepTabs';
 import TeamSizeStep from './TeamSizeStep';
 import AccreditationStep from './AccreditationStep';
+import ArrivalStep, { ArrivalRow, createEmptyArrivalRow } from './ArrivalStep';
+import DepartureStep, {
+  DepartureRow,
+  createEmptyDepartureRow,
+} from './DepartureStep';
+import ReviewStep from './ReviewStep';
 import { TeamSize } from '../_lib/teamSizeLogic';
 import {
   AccreditationRow,
@@ -24,8 +30,20 @@ export default function TeamJourneyClient() {
   // date fields the user already left
   const [accreditationFinishedDateBoxes, setAccreditationFinishedDateBoxes] =
     useState<FinishedDateBoxes>({});
-
-  const currentStep = STEPS.find((step) => step.number === activeStep);
+  // 4 empty rows to start
+  const [arrivals, setArrivals] = useState<ArrivalRow[]>(() =>
+    [1, 2, 3, 4].map(createEmptyArrivalRow),
+  );
+  // date fields the user already left
+  const [arrivalFinishedDateBoxes, setArrivalFinishedDateBoxes] =
+    useState<FinishedDateBoxes>({});
+  // 4 empty rows to start
+  const [departures, setDepartures] = useState<DepartureRow[]>(() =>
+    [1, 2, 3, 4].map(createEmptyDepartureRow),
+  );
+  // date fields the user already left
+  const [departureFinishedDateBoxes, setDepartureFinishedDateBoxes] =
+    useState<FinishedDateBoxes>({});
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -53,11 +71,31 @@ export default function TeamJourneyClient() {
           />
         )}
 
-        {/* placeholder, temporary until the other steps are built */}
-        {activeStep > 2 && (
-          <p className="mt-8 text-gray-700">
-            Content for: {currentStep?.label}
-          </p>
+        {activeStep === 3 && (
+          <ArrivalStep
+            rows={arrivals}
+            onChange={setArrivals}
+            finishedDateBoxes={arrivalFinishedDateBoxes}
+            onFinishedDateBoxesChange={setArrivalFinishedDateBoxes}
+          />
+        )}
+
+        {activeStep === 4 && (
+          <DepartureStep
+            rows={departures}
+            onChange={setDepartures}
+            finishedDateBoxes={departureFinishedDateBoxes}
+            onFinishedDateBoxesChange={setDepartureFinishedDateBoxes}
+          />
+        )}
+
+        {activeStep === 5 && (
+          <ReviewStep
+            teamSize={teamSize}
+            accreditations={accreditations}
+            arrivals={arrivals}
+            departures={departures}
+          />
         )}
       </div>
     </div>

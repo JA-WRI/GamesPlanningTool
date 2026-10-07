@@ -4,6 +4,7 @@ import { ALLOWED_YEAR_RANGE } from '@/app/(application)/[gameId]/[nsoId]/team-jo
 import {
   allInvalidParts,
   emptyDate,
+  formatDate,
   getDateProblem,
   getInvalidParts,
   isEndBeforeStart,
@@ -197,5 +198,22 @@ describe('invalid parts constants', () => {
   it('has all false / all true helpers', () => {
     expect(noInvalidParts).toEqual({ day: false, month: false, year: false });
     expect(allInvalidParts).toEqual({ day: true, month: true, year: true });
+  });
+});
+
+describe('formatDate', () => {
+  it('pads day and month to 2 digits', () => {
+    expect(formatDate(date('1', '6', minYear))).toBe(`01/06/${minYear}`);
+  });
+
+  it('leaves an already 2-digit day and month as is', () => {
+    expect(formatDate(date('15', '06', minYear))).toBe(`15/06/${minYear}`);
+  });
+
+  it('shows "—" when any box is empty', () => {
+    expect(formatDate(emptyDate)).toBe('—');
+    expect(formatDate(date('', '06', minYear))).toBe('—');
+    expect(formatDate(date('15', '', minYear))).toBe('—');
+    expect(formatDate(date('15', '06', ''))).toBe('—');
   });
 });
