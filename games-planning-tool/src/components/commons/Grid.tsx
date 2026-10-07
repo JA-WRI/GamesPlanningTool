@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PlusIcon from '@mui/icons-material/Add';
-import TextBox from '@/components/layout/TextBox';
+import TextBox from '@/components/commons/TextBox';
 
 export interface ColumnDefinition<T> {
   field: keyof T;

@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import Grid, { ColumnDefinition } from '@/components/layout/Grid';
+import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import ContactInfoHeaderPage from './ContactInfoHeader';
 import { useGrid } from '@/hooks/useGrid';
 
