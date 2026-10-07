@@ -5,11 +5,22 @@
   --foreground: #171717;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme {
+  --color-ocean: #238db2;
+  --color-teal: #0bab84;
+  --color-terracotta: #ab4c27;
+  --color-burgundy: #8a181a;
+  --color-gold: #cea60f;
+
+  --color-background: #f8f5f0;
+  --color-surface: #ffffff;
+  --color-foreground: #2b2428;
+  --color-muted: #6f666b;
+
+  --color-success: #2e9e6b;
+  --color-warning: #e0a030;
+  --color-error: #d64545;
+  --color-info: #3b82c4;
 }
 
 body {
@@ -21,5 +32,27 @@ body {
 @layer components {
   .page-container {
     @apply mx-auto w-full px-2;
+  }
+}
+
+/* fade in when switching team journey steps */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step-fade {
+  animation: fadeIn 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-fade {
+    animation: none;
   }
 }

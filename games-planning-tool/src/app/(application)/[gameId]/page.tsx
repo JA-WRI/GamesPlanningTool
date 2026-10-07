@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/data';
-import { landingPage } from '@/lib/routing/landing-page';
+import { gameSwitchHref } from '@/lib/routing/Navigation';
 
 export default async function GamePage({
   params,
@@ -10,5 +10,7 @@ export default async function GamePage({
   const { gameId } = await params;
   const session = await getSession();
 
-  redirect(landingPage(session.user, gameId));
+  redirect(
+    gameSwitchHref(session.user.gameId, session.user.role, session.user.nsoId),
+  );
 }

@@ -3,7 +3,7 @@ import React from 'react';
 import { Games } from '@/lib/data';
 import { Role } from '@/lib/types';
 import { useRouter, useParams } from 'next/navigation';
-import { gameSwitchHref } from '@/lib/routing/navigation';
+import { gameSwitchHref } from '@/lib/routing/Navigation';
 
 export default function GamesSelector({ role }: { role: Role }) {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function GamesSelector({ role }: { role: Role }) {
       value={params.gameId ?? ''}
       onChange={(e) => handleChange(e.target.value)}
       aria-label="Select game"
-      className="rounded-full bg-white px-6 p-2 pr-5 text-xs font-semibold outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#870606]"
+      className="rounded-full bg-white px-6 p-2 pr-5 text-xs font-semibold outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-burgundy"
     >
       {!params.gameId && (
         <option value="" disabled>

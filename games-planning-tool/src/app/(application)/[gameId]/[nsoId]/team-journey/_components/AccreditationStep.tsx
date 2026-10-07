@@ -1,64 +1,17 @@
-import { ALLOWED_YEAR_RANGE } from '../_lib/constants';
+// 70% AI generated
+import Image from 'next/image';
 import { ACCREDITATION_TYPES, PARTICIPANT_CATEGORIES } from '../_lib/mockData';
 import { inputClass, onlyDigits } from '../_lib/utils';
-import DateInput, {
-  DateValue,
-  emptyDate,
-  allInvalidParts,
-  getDateProblem,
-  getInvalidParts,
-  noInvalidParts,
-  toDate,
-} from './DateInput';
-
-export type AccreditationRow = {
-  id: number; // lets React tell rows apart, each row is stored as one object with its own id
-  participantCategory: string;
-  accreditationType: string;
-  quantity: string;
-  startDate: DateValue;
-  endDate: DateValue;
-  notes: string;
-};
-
-export function createEmptyAccreditationRow(id: number): AccreditationRow {
-  return {
-    id,
-    participantCategory: '',
-    accreditationType: '',
-    quantity: '',
-    startDate: emptyDate,
-    endDate: emptyDate,
-    notes: '',
-  };
-}
-
-// end before start (same day is fine)
-function isEndBeforeStart(row: AccreditationRow) {
-  const start = toDate(row.startDate);
-  const end = toDate(row.endDate);
-  if (!start || !end) return false;
-  return end < start;
-}
-
-// error text for one date, or null.
-// "incomplete" only shows after the user leaves the field
-function getDateMessage(
-  fieldName: string,
-  value: DateValue,
-  isFinished: boolean,
-) {
-  const problem = getDateProblem(value);
-  if (problem === 'impossible') return `${fieldName} does not exist.`;
-  if (problem === 'yearOutOfRange')
-    return `${fieldName} year must be between ${ALLOWED_YEAR_RANGE.min} and ${ALLOWED_YEAR_RANGE.max}.`;
-  if (problem === 'incomplete' && isFinished)
-    return `${fieldName} is incomplete, use DD / MM / YYYY.`;
-  return null;
-}
-
-// Date boxes the user already finished(we only show errors for these)
-export type FinishedDateBoxes = Record<string, boolean>;
+import {
+  AccreditationRow,
+  FinishedDateBoxes,
+  addAccreditationRow,
+  clearFinishedDateBoxes,
+  deleteAccreditationRow,
+  getRowErrors,
+  updateAccreditationRow,
+} from '../_lib/accreditationLogic';
+import DateInput from './DateInput';
 
 type AccreditationStepProps = {
   rows: AccreditationRow[];
@@ -84,23 +37,17 @@ export default function AccreditationStep({
 
   // change one row,keep the rest
   function updateRow(id: number, changes: Partial<AccreditationRow>) {
-    onChange(rows.map((row) => (row.id === id ? { ...row, ...changes } : row)));
+    onChange(updateAccreditationRow(rows, id, changes));
   }
 
   function addRow() {
-    const nextId = Math.max(0, ...rows.map((row) => row.id)) + 1;
-    onChange([...rows, createEmptyAccreditationRow(nextId)]);
+    onChange(addAccreditationRow(rows));
   }
 
   // remove one row
   function deleteRow(id: number) {
-    onChange(rows.filter((row) => row.id !== id));
-    // reset its finished state in case the id gets reused
-    onFinishedDateBoxesChange({
-      ...finishedDateBoxes,
-      [`${id}-start`]: false,
-      [`${id}-end`]: false,
-    });
+    onChange(deleteAccreditationRow(rows, id));
+    onFinishedDateBoxesChange(clearFinishedDateBoxes(finishedDateBoxes, id));
   }
 
   return (
@@ -122,33 +69,8 @@ export default function AccreditationStep({
 
           <div className="flex flex-col gap-3">
             {rows.map((row, index) => {
-              const startMessage = getDateMessage(
-                'Required Start Date',
-                row.startDate,
-                finishedDateBoxes[`${row.id}-start`] ?? false,
-              );
-              const endMessage = getDateMessage(
-                'Required End Date',
-                row.endDate,
-                finishedDateBoxes[`${row.id}-end`] ?? false,
-              );
-              const orderMessage = isEndBeforeStart(row)
-                ? 'Required End Date cannot be before the Required Start Date.'
-                : null;
-              // this row's errors (skipping nulls)
-              const messages = [startMessage, endMessage, orderMessage].filter(
-                (message) => message !== null,
-              );
-              // only the wrong box is red
-              // end before start---> whole end date is red
-              const startInvalidParts = startMessage
-                ? getInvalidParts(row.startDate)
-                : noInvalidParts;
-              const endInvalidParts = endMessage
-                ? getInvalidParts(row.endDate)
-                : orderMessage
-                  ? allInvalidParts
-                  : noInvalidParts;
+              const { messages, startInvalidParts, endInvalidParts } =
+                getRowErrors(row, finishedDateBoxes);
               return (
                 <div key={row.id}>
                   <div className={gridColumns}>
@@ -230,22 +152,14 @@ export default function AccreditationStep({
                       onClick={() => deleteRow(row.id)}
                       aria-label={`Delete row ${index + 1}`}
                       title="Delete row"
-                      className="flex items-center justify-center rounded-md text-gray-400 hover:bg-red-50 hover:text-[#7B1A15]"
+                      className="flex items-center justify-center rounded-md hover:bg-red-50"
                     >
-                      {/* trash can icon */}
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        className="h-5 w-5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M9 7V4h6v3"
-                        />
-                      </svg>
+                      <Image
+                        src="/icons/trash.svg"
+                        alt=""
+                        width={20}
+                        height={20}
+                      />
                     </button>
                   </div>
 
