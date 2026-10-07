@@ -1,5 +1,6 @@
-import React from 'react';
+import TeamJourneyClient from './_components/TeamJourneyClient';
 
-export default function page() {
-  return <div>page</div>;
+// server component, the tabs and form state live in TeamJourneyClient
+export default function TeamJourneyPage() {
+  return <TeamJourneyClient />;
 }
