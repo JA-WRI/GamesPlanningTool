@@ -1,4 +1,4 @@
-//to be deleted ones authentication is setup
+//to be deleted onces authentication is setup
 import { Role } from './types';
 export const Games = [
   { id: 'game_id_1', name: 'LA 2028' },
@@ -21,6 +21,6 @@ export type Session = {
 
 export async function getSession(): Promise<Session> {
   return { user: { role: 'admin', gameId: Games[0].id, nsoId: undefined } };
-  // return { user: { role: 'coc', gameId: mockGames[0].id, nsoId: undefined }};
-  // return { user: { role: 'nso', gameId: mockGames[0].id, nsoId: mockNsos[0].id }};
+  //return { user: { role: 'coc', gameId: Games[0].id, nsoId: undefined }};
+  // return { user: { role: 'nso', gameId: Games[0].id, nsoId: Nsos[0].id }};
 }

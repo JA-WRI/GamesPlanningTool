@@ -1,4 +1,6 @@
-// fake options for now, will come from the database later
+// 55% AI generated to create the mock data
+import type { TeamSize } from './teamSizeLogic';
+
 export const PARTICIPANT_CATEGORIES = [
   'Athlete',
   'Team Leader',
@@ -17,3 +19,22 @@ export const PARTICIPANT_CATEGORIES = [
 
 // placeholder types until we get the real list
 export const ACCREDITATION_TYPES = ['A', 'B', 'C', 'D'];
+
+export const INITIAL_TEAM_SIZE: TeamSize = {
+  athletes: {
+    male: {
+      low: '',
+      bestGuess: '',
+      high: '',
+    },
+    female: {
+      low: '',
+      bestGuess: '',
+      high: '',
+    },
+  },
+  staff: '',
+  notes: '',
+  projectedMedalsLow: '',
+  projectedMedalsHigh: '',
+};

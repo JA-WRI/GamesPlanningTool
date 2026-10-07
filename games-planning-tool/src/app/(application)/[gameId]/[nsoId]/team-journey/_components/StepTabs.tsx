@@ -1,3 +1,4 @@
+// 50% AI generated to create the step tabs
 type Step = {
   number: number;
   label: string;

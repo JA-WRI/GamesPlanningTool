@@ -37,7 +37,7 @@ export function gameSwitchHref(newGame: string, role: Role, nsoId?: string) {
     : `/${newGame}/dashboard`;
 }
 
-// NSO selector (COC/Admin) -> where to go after picking an NSO
+// NSO selector for COC/Admin
 export function nsoSwitchHref({
   pathname,
   gameId,
@@ -50,10 +50,10 @@ export function nsoSwitchHref({
   newNso: string;
 }) {
   if (nsoId) {
-    const section = pathname.split('/')[3]; // /game1/usa/calculator -> "calculator"
+    const section = pathname.split('/')[3];
     return section === 'dashboard'
-      ? `/${gameId}/dashboard?nso=${newNso}` // COC/Admin never see the NSO dashboard
-      : `/${gameId}/${newNso}/${section}`;
+      ? `/${gameId}/dashboard?nso=${newNso}` //if on the dashboard, stay on the dashboard for chosen game
+      : `/${gameId}/${newNso}/${section}`; //if on an NSO page, stay on the same section, but for the chosen NSO
   }
-  return `${pathname}?nso=${newNso}`; // /game1/dashboard: same page, new ?nso=
+  return `${pathname}?nso=${newNso}`;
 }

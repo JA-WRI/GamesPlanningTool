@@ -1,6 +1,6 @@
 import { getSession } from '@/lib/data';
 import Header from '@/components/layout/Header';
-import Navbar from '@/components/layout/navbar';
+import Navbar from '@/components/layout/Navbar';
 import { Suspense } from 'react';
 
 export default async function ApplicationLayout({

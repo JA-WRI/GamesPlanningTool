@@ -1,8 +1,13 @@
-import { AccreditationRow } from './AccreditationStep';
+import { AccreditationRow } from '../_lib/accreditationLogic';
 import { ArrivalRow } from './ArrivalStep';
 import { DepartureRow } from './DepartureStep';
-import { formatDate } from './DateInput';
-import { TeamSize } from './TeamSizeStep';
+import { formatDate } from '../_lib/dateLogic';
+import {
+  TeamSize,
+  getAthleteTotals,
+  getTotalTeamSize,
+  toNumber,
+} from '../_lib/teamSizeLogic';
 
 type ReviewStepProps = {
   teamSize: TeamSize;
@@ -124,8 +129,10 @@ export default function ReviewStep({
   arrivals,
   departures,
 }: ReviewStepProps) {
-  const athletes = Number(teamSize.athletes || 0);
-  const staff = Number(teamSize.staff || 0);
+  // best guess is the headline number shown elsewhere in the journey
+  const athletes = getAthleteTotals(teamSize.athletes).bestGuess;
+  const staff = toNumber(teamSize.staff);
+  const totalTeamSize = getTotalTeamSize(teamSize);
 
   return (
     <div className="mt-8">
@@ -146,7 +153,7 @@ export default function ReviewStep({
         <SummaryCard
           icon={<PeopleIcon />}
           label="Total Estimated Team Size"
-          value={athletes + staff}
+          value={totalTeamSize}
         />
       </div>
 

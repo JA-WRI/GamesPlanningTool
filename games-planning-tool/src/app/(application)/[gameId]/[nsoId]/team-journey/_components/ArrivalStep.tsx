@@ -1,12 +1,13 @@
 import { PARTICIPANT_CATEGORIES } from '../_lib/mockData';
 import { inputClass, onlyDigits } from '../_lib/utils';
-import DateInput, {
+import {
   DateValue,
   emptyDate,
   getDateProblem,
   getInvalidParts,
   noInvalidParts,
-} from './DateInput';
+} from '../_lib/dateLogic';
+import DateInput from './DateInput';
 
 export type ArrivalRow = {
   id: number; // lets React tell rows apart, each row is stored as one object with its own id

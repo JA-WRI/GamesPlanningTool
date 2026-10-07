@@ -4,7 +4,7 @@ import {
   isActive,
   gameSwitchHref,
   nsoSwitchHref,
-} from '@/lib/routing/navigation';
+} from '@/lib/routing/Navigation';
 import { describe, it, expect } from 'vitest';
 
 const base = { game: 'game1', nso: 'usa' };
