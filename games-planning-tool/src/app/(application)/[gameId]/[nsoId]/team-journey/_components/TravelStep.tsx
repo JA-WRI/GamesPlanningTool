@@ -174,7 +174,9 @@ export default function TravelStep<TRow extends TravelRowBase>({
                       aria-label={`${timeColumnLabel}, row ${index + 1}`}
                       placeholder="Value"
                       value={getTime(row)}
-                      onChange={(e) => updateRow(row.id, withTime(e.target.value))}
+                      onChange={(e) =>
+                        updateRow(row.id, withTime(e.target.value))
+                      }
                       className={inputClass}
                     />
 
