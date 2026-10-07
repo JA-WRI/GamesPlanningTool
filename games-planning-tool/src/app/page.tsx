@@ -1,6 +1,10 @@
-// Made with AI agents (Antigravity)
 import { redirect } from 'next/navigation';
+import { getSession, Games } from '@/lib/data';
+import { gameSwitchHref } from '@/lib/routing/Navigation';
 
-export default function Home() {
-  redirect('/game-1/nso-1/resources');
+export default async function RootPage() {
+  const session = await getSession();
+  redirect(
+    gameSwitchHref(session.user.gameId, session.user.role, session.user.nsoId),
+  );
 }
