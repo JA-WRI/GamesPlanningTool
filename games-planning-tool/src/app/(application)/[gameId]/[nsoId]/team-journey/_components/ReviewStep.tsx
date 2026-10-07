@@ -4,9 +4,8 @@ import { DepartureRow } from './DepartureStep';
 import { formatDate } from '../_lib/dateLogic';
 import {
   TeamSize,
-  getAthleteTotals,
+  formatMedalRange,
   getTotalTeamSize,
-  toNumber,
 } from '../_lib/teamSizeLogic';
 
 type ReviewStepProps = {
@@ -48,7 +47,7 @@ function PeopleIcon() {
   );
 }
 
-// one of the "Estimated Number of..." cards
+// one of the Team Size summary cards
 function SummaryCard({
   icon,
   label,
@@ -56,7 +55,7 @@ function SummaryCard({
 }: {
   icon: React.ReactNode;
   label: string;
-  value: number;
+  value: number | string;
 }) {
   return (
     <div className="flex items-center gap-3 rounded-md border border-gray-200 bg-white px-4 py-3">
@@ -70,14 +69,17 @@ function SummaryCard({
 }
 
 // the "#, Category, Estimated Number, ..." tables shared by the three journey steps
+// showIndex: Accreditation's table in the mockup has no "#" column, unlike Arrival/Departure
 function SummaryTable({
   title,
   headers,
   rows,
+  showIndex = true,
 }: {
   title: string;
   headers: string[];
   rows: string[][];
+  showIndex?: boolean;
 }) {
   return (
     <div className="mt-6">
@@ -86,7 +88,7 @@ function SummaryTable({
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-gray-200 text-gray-500">
-              <th className="px-4 py-2 font-medium">#</th>
+              {showIndex && <th className="px-4 py-2 font-medium">#</th>}
               {headers.map((header) => (
                 <th key={header} className="px-4 py-2 font-medium">
                   {header}
@@ -98,7 +100,7 @@ function SummaryTable({
             {rows.length === 0 ? (
               <tr>
                 <td
-                  colSpan={headers.length + 1}
+                  colSpan={headers.length + (showIndex ? 1 : 0)}
                   className="px-4 py-3 text-gray-400"
                 >
                   No entries yet.
@@ -107,7 +109,9 @@ function SummaryTable({
             ) : (
               rows.map((row, index) => (
                 <tr key={index} className="border-b border-gray-100 last:border-0">
-                  <td className="px-4 py-2 text-gray-500">{index + 1}</td>
+                  {showIndex && (
+                    <td className="px-4 py-2 text-gray-500">{index + 1}</td>
+                  )}
                   {row.map((cell, cellIndex) => (
                     <td key={cellIndex} className="px-4 py-2 text-gray-900">
                       {cell || '—'}
@@ -130,47 +134,45 @@ export default function ReviewStep({
   departures,
 }: ReviewStepProps) {
   // best guess is the headline number shown elsewhere in the journey
-  const athletes = getAthleteTotals(teamSize.athletes).bestGuess;
-  const staff = toNumber(teamSize.staff);
   const totalTeamSize = getTotalTeamSize(teamSize);
+  const projectedMedals = formatMedalRange(
+    teamSize.projectedMedalsLow,
+    teamSize.projectedMedalsHigh,
+  );
 
   return (
     <div className="mt-8">
       <h2 className="mb-4 text-xl font-bold text-gray-900">Summary</h2>
 
       <h3 className="mb-2 text-sm font-semibold text-gray-900">Team Size</h3>
-      <div className="grid grid-cols-3 gap-4">
-        <SummaryCard
-          icon={<PersonIcon />}
-          label="Estimated Number of Athletes"
-          value={athletes}
-        />
-        <SummaryCard
-          icon={<PersonIcon />}
-          label="Estimated Number of Staff"
-          value={staff}
-        />
+      <div className="grid grid-cols-2 gap-4">
         <SummaryCard
           icon={<PeopleIcon />}
-          label="Total Estimated Team Size"
+          label="Total Team Size"
           value={totalTeamSize}
+        />
+        <SummaryCard
+          icon={<PersonIcon />}
+          label="Number of Projected Medals"
+          value={projectedMedals}
         />
       </div>
 
       <SummaryTable
         title="Accreditation"
         headers={[
-          'Category',
+          'Participant Category',
+          'Estimated Quantity',
           'Accreditation Type',
-          'Estimated Number',
           'Start Date',
           'End Date',
           'Notes',
         ]}
+        showIndex={false}
         rows={accreditations.map((row) => [
           row.participantCategory,
-          row.accreditationType,
           row.quantity,
+          row.accreditationType,
           formatDate(row.startDate),
           formatDate(row.endDate),
           row.notes,
