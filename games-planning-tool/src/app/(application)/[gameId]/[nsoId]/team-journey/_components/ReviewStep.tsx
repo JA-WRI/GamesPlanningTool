@@ -69,7 +69,6 @@ function SummaryCard({
 }
 
 // the "#, Category, Estimated Number, ..." tables shared by the three journey steps
-// showIndex: Accreditation's table in the mockup has no "#" column, unlike Arrival/Departure
 function SummaryTable({
   title,
   headers,
