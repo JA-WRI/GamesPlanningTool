@@ -105,7 +105,7 @@ export default function TravelStep<TRow extends TravelRowBase>({
     <div className="mt-8">
       {/* scroll sideways on small screens */}
       <div className="overflow-x-auto">
-        <div className="min-w-[1000px]">
+        <div className="min-w-25">
           <div
             className={`${gridColumns} mb-2 text-sm font-semibold text-gray-900`}
           >
