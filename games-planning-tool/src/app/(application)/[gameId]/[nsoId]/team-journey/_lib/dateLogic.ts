@@ -67,6 +67,12 @@ export function toDate(value: DateValue): Date | null {
   return date;
 }
 
+// DD/MM/YYYY for display, or "—" if nothing was entered
+export function formatDate(value: DateValue): string {
+  if (value.day === '' || value.month === '' || value.year === '') return '—';
+  return `${value.day.padStart(2, '0')}/${value.month.padStart(2, '0')}/${value.year}`;
+}
+
 export type DateProblem = 'incomplete' | 'yearOutOfRange' | 'impossible';
 
 // what's wrong with the date, or null if it's fine or empty
