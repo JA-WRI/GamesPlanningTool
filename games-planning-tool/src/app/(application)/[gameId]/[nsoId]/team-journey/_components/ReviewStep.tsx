@@ -108,7 +108,10 @@ function SummaryTable({
               </tr>
             ) : (
               rows.map((row, index) => (
-                <tr key={index} className="border-b border-gray-100 last:border-0">
+                <tr
+                  key={index}
+                  className="border-b border-gray-100 last:border-0"
+                >
                   {showIndex && (
                     <td className="px-4 py-2 text-gray-500">{index + 1}</td>
                   )}

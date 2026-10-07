@@ -5,10 +5,7 @@ import { useState } from 'react';
 import StepTabs from './StepTabs';
 import TeamSizeStep from './TeamSizeStep';
 import AccreditationStep from './AccreditationStep';
-import ArrivalStep, {
-  ArrivalRow,
-  createEmptyArrivalRow,
-} from './ArrivalStep';
+import ArrivalStep, { ArrivalRow, createEmptyArrivalRow } from './ArrivalStep';
 import DepartureStep, {
   DepartureRow,
   createEmptyDepartureRow,
