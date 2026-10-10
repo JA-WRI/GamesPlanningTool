@@ -1,12 +1,10 @@
+// AI contribution: Below 50% AI-generated
 // AI Generated content for refactoring of code duplication in page.tsx files.
 'use client';
 
 import React from 'react';
-import { useState } from 'react';
-import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import GridHeaderPage from '@/components/commons/GridHeader';
-import { useGrid } from '@/hooks/useGrid';
-import SearchBar from '@/components/commons/SearchBar';
+import { ColumnDefinition } from '@/components/commons/Grid';
+import BaseGridPage from '@/components/commons/BaseGridPage';
 
 export interface ContactRow extends Record<string, unknown> {
   id: string;
@@ -54,77 +52,23 @@ export default function ContactsGridPage({
   description,
   initialData = [],
 }: ContactsGridPageProps) {
-  const [isPreview, setIsPreview] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const {
-    rows,
-    setRows,
-    isEditing,
-    setIsEditing,
-    handleSave,
-    handleCancel,
-    handleAddRow,
-  } = useGrid<ContactRow>(
-    initialData,
-    () => ({
-      id: crypto.randomUUID(),
-      firstName: '',
-      lastName: '',
-      email: '',
-      role: '',
-      countryCode: '',
-      phone: '',
-    }),
-    (savedRows) => {
-      console.log(`Saved ${title} to API:`, savedRows);
-    },
-  );
-  // filtering rows based on a match of any contact field
-  const filteredRows = rows.filter((row) =>
-    Object.values(row).some((val) =>
-      String(val ?? '')
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()),
-    ),
-  );
-
   return (
-    <div className="space-y-6">
-      <GridHeaderPage
-        title={title}
-        description={description}
-        isEditing={isEditing}
-        isPreview={isPreview}
-        onEditToggle={() => {
-          setIsEditing(!isEditing);
-          setIsPreview(false);
-        }}
-        onPreviewToggle={(previewState) => setIsPreview(previewState)}
-        onSave={() => {
-          handleSave();
-          setIsPreview(false);
-        }}
-        onCancel={() => {
-          handleCancel();
-          setIsPreview(false);
-        }}
-      />
-      <div className="max-w-md">
-        <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search contacts by name, email, role..."
-        />
-      </div>
-      <Grid
-        columns={contactColumns}
-        rows={filteredRows} //fix for row filtering correctly
-        isEditing={isEditing}
-        isPreview={isPreview}
-        onRowsChange={setRows}
-        onAddRow={handleAddRow}
-        addButtonLabel="Add Another Contact"
-      />
-    </div>
+    <BaseGridPage<ContactRow>
+      title={title}
+      description={description}
+      initialData={initialData}
+      columns={contactColumns}
+      createEmptyRow={() => ({
+        id: crypto.randomUUID(),
+        firstName: '',
+        lastName: '',
+        email: '',
+        role: '',
+        countryCode: '',
+        phone: '',
+      })}
+      addButtonLabel="Add Another Contact"
+      searchPlaceholder="Search contacts by name, email, role..."
+    />
   );
 }

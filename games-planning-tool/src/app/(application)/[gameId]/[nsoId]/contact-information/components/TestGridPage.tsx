@@ -2,11 +2,8 @@
 'use client';
 
 import React from 'react';
-import { useState } from 'react';
-import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import GridHeaderPage from '@/components/commons/GridHeader';
-import { useGrid } from '@/hooks/useGrid';
-import SearchBar from '@/components/commons/SearchBar';
+import { ColumnDefinition } from '@/components/commons/Grid';
+import BaseGridPage from '@/components/commons/BaseGridPage';
 
 export interface TravelerRow extends Record<string, unknown> {
   id: string;
@@ -88,13 +85,12 @@ const travelerColumns: ColumnDefinition<TravelerRow>[] = [
     label: 'TOTAL / MEMBER',
     type: 'calculated',
     align: 'right',
-    // example of field caclulated using formulas
     formula: {
       operator: '*',
       fieldA: 'daysOnSite',
       fieldB: 'travelRate',
     },
-    formatValue: (val) => `$${val.toLocaleString('en-US')}`, // very important to specify the locale so there's no discrepancy between server and client
+    formatValue: (val) => `$${val.toLocaleString('en-US')}`,
   },
 ];
 
@@ -109,76 +105,22 @@ export default function TestGridPage({
   description,
   initialData = [],
 }: TestGridPageProps) {
-  const [isPreview, setIsPreview] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const {
-    rows,
-    setRows,
-    isEditing,
-    setIsEditing,
-    handleSave,
-    handleCancel,
-    handleAddRow,
-  } = useGrid<TravelerRow>(
-    initialData,
-    () => ({
-      id: crypto.randomUUID(),
-      accessPrivileges: '',
-      teamMembers: 1,
-      daysOnSite: 7,
-      travelRate: 2400,
-      accomodationProperty: '',
-    }),
-    (savedRows) => {
-      console.log(`Saved ${title} to API:`, savedRows);
-    },
-  );
-  // filtering rows based on a match of any traveller field
-  const filteredRows = rows.filter((row) =>
-    Object.values(row).some((val) =>
-      String(val ?? '')
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()),
-    ),
-  );
-
   return (
-    <div className="space-y-6 p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-      <GridHeaderPage
-        title={title}
-        description={description}
-        isEditing={isEditing}
-        isPreview={isPreview}
-        onEditToggle={() => {
-          setIsEditing(!isEditing);
-          setIsPreview(false);
-        }}
-        onPreviewToggle={(previewState) => setIsPreview(previewState)}
-        onSave={() => {
-          handleSave();
-          setIsPreview(false); // this is false to always start in edit mode
-        }}
-        onCancel={() => {
-          handleCancel();
-          setIsPreview(false); // same here, false to start in edit mode
-        }}
-      />
-      <div className="max-w-md">
-        <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search contacts by name, email, role..."
-        />
-      </div>
-      <Grid
-        columns={travelerColumns}
-        rows={filteredRows} //fix for row filtering correctly
-        isEditing={isEditing}
-        isPreview={isPreview}
-        onRowsChange={setRows}
-        onAddRow={handleAddRow}
-        addButtonLabel="Add Property Row"
-      />
-    </div>
+    <BaseGridPage<TravelerRow>
+      title={title}
+      description={description}
+      initialData={initialData}
+      columns={travelerColumns}
+      createEmptyRow={() => ({
+        id: crypto.randomUUID(),
+        accessPrivileges: '',
+        teamMembers: 1,
+        daysOnSite: 7,
+        travelRate: 2400,
+        accomodationProperty: '',
+      })}
+      addButtonLabel="Add Property Row"
+      searchPlaceholder="Search travelers..."
+    />
   );
 }
