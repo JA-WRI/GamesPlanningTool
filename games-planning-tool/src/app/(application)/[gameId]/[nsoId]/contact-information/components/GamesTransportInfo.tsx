@@ -7,6 +7,7 @@ import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import GridHeaderPage from '@/components/commons/GridHeader';
 import TextBox from '@/components/commons/GridTextBox';
 import { useGrid } from '@/hooks/useGrid';
+import SearchBar from '@/components/commons/SearchBar';
 
 export interface ContactRow extends Record<string, unknown> {
   id: string;
@@ -58,6 +59,7 @@ export default function GamesTransportationSection({
 }: GamesTransportationSectionProps) {
   const [transportInfo, setTransportInfo] = useState('');
   const [isPreview, setIsPreview] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const {
     rows,
     setRows,
@@ -81,6 +83,14 @@ export default function GamesTransportationSection({
     (savedRows) => {
       console.log('Saved to API:', savedRows);
     },
+  );
+  // filtering rows based on a match of any traveller field
+  const filteredRows = rows.filter((row) =>
+    Object.values(row).some((val) =>
+      String(val ?? '')
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()),
+    ),
   );
 
   return (
@@ -130,10 +140,16 @@ export default function GamesTransportationSection({
           </div>
         )}
       </div>
-
+      <div className="max-w-md">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search contacts by name, email, role..."
+        />
+      </div>
       <Grid<ContactRow>
         columns={contactColumns}
-        rows={rows}
+        rows={filteredRows}
         isEditing={isEditing}
         isPreview={isPreview}
         onRowsChange={setRows}
