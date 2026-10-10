@@ -7,8 +7,10 @@ export function useGrid<T extends { id: string }>(
 ) {
   const [isEditing, setIsEditing] = useState(false);
   const [rows, setRows] = useState<T[]>(initialRows);
+  const [savedRows, setSavedRows] = useState<T[]>(initialRows);
 
   const handleSave = () => {
+    setSavedRows(rows);
     setIsEditing(false);
     if (onSaveCallback) {
       onSaveCallback(rows);
@@ -17,7 +19,7 @@ export function useGrid<T extends { id: string }>(
 
   const handleCancel = () => {
     setIsEditing(false);
-    setRows(initialRows);
+    setRows(savedRows);
   };
 
   const handleAddRow = () => {
