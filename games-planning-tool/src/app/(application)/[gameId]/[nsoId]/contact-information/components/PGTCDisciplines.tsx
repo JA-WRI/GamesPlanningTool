@@ -2,8 +2,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import ContactInfoHeaderPage from './ContactInfoHeader';
-import TextBox from '@/components/commons/TextBox';
+import ContactInfoHeaderPage from '@/components/commons/GridHeader';
+import TextBox from '@/components/commons/GridTextBox';
 
 export interface DisciplineData {
   id: string;

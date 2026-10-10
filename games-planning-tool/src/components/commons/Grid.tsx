@@ -1,7 +1,8 @@
-// This file contains AI generated code used to define the table body of the grid template from MUI Library.
+// AI contribution: Above 50% Al-generated
+// This file contains AI generated code used to define the table body of the grid template from MUI Library, and to support column types, formulas, header, subtexts, and a delete confirmation popup
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -10,20 +11,48 @@ import {
   TableHead,
   TableRow,
   TextField,
+  MenuItem,
   Paper,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PlusIcon from '@mui/icons-material/Add';
-import TextBox from '@/components/commons/TextBox';
+import GridTextBox from '@/components/commons/GridTextBox';
+
+export type ColumnType = 'text' | 'email' | 'tel' | 'number' | 'select';
+export type CalculationOperator = '+' | '-' | '*';
+
+export interface SelectOption {
+  label: string;
+  value: string | number;
+}
+
+export interface ColumnFormula<T> {
+  operator: CalculationOperator;
+  fieldA: keyof T;
+  fieldB: keyof T;
+}
 
 export interface ColumnDefinition<T> {
   field: keyof T;
   label: string;
-  type?: 'text' | 'email' | 'tel';
+  subtitle?: string;
+  type?: ColumnType | 'calculated';
   placeholder?: string;
   width?: string | number;
   align?: 'left' | 'center' | 'right';
+  options?: SelectOption[];
+  min?: number;
+  max?: number;
+  step?: number;
+  formula?: ColumnFormula<T>;
+  formatValue?: (val: number) => string;
 }
 
 interface GridProps<T extends Record<string, unknown>> {
@@ -31,7 +60,7 @@ interface GridProps<T extends Record<string, unknown>> {
   rows: T[];
   isEditing: boolean;
   onRowsChange: (newRows: T[]) => void;
-  onAddRow: () => void;
+  onAddRow?: () => void;
   addButtonLabel?: string;
 }
 
@@ -43,10 +72,14 @@ export default function Grid<T extends Record<string, unknown>>({
   onAddRow,
   addButtonLabel = 'Add Row',
 }: GridProps<T>) {
+  const [deleteTargetIndex, setDeleteTargetIndex] = useState<number | null>(
+    null,
+  );
+
   const handleCellChange = (
     rowIndex: number,
     field: keyof T,
-    value: string,
+    value: unknown,
   ) => {
     const updatedRows = [...rows];
     updatedRows[rowIndex] = {
@@ -56,9 +89,29 @@ export default function Grid<T extends Record<string, unknown>>({
     onRowsChange(updatedRows);
   };
 
-  const handleDeleteRow = (rowIndex: number) => {
-    const updatedRows = rows.filter((_, idx) => idx !== rowIndex);
-    onRowsChange(updatedRows);
+  const confirmDeleteRow = () => {
+    if (deleteTargetIndex !== null) {
+      const updatedRows = rows.filter((_, idx) => idx !== deleteTargetIndex);
+      onRowsChange(updatedRows);
+      setDeleteTargetIndex(null);
+    }
+  };
+
+  const calculateValue = (row: T, formula?: ColumnFormula<T>): number => {
+    if (!formula) return 0;
+    const valA = Number(row[formula.fieldA]) || 0;
+    const valB = Number(row[formula.fieldB]) || 0;
+
+    switch (formula.operator) {
+      case '+':
+        return valA + valB;
+      case '-':
+        return valA - valB;
+      case '*':
+        return valA * valB;
+      default:
+        return 0;
+    }
   };
 
   return (
@@ -69,11 +122,11 @@ export default function Grid<T extends Record<string, unknown>>({
         sx={{
           border: '1px solid #E5E7EB',
           borderRadius: '8px',
-          overflowX: 'auto',
+          overflowX: 'auto', // horizontal scroll
           backgroundColor: 'var(--color-surface, #ffffff)',
         }}
       >
-        <Table sx={{ minWidth: 650 }} aria-label="editable grid table">
+        <Table sx={{ minWidth: 1000 }} aria-label="editable grid table">
           <TableHead
             sx={{ backgroundColor: 'var(--color-background, #f8f5f0)' }}
           >
@@ -84,22 +137,36 @@ export default function Grid<T extends Record<string, unknown>>({
                   align={col.align || 'left'}
                   style={{ width: col.width }}
                   sx={{
-                    fontWeight: 600,
-                    color: 'var(--color-foreground, #2b2428)',
-                    fontSize: '0.875rem',
                     borderBottom: '1px solid #E5E7EB',
                     py: 1.5,
+                    verticalAlign: 'top',
                   }}
                 >
-                  {col.label}
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-semibold text-gray-900 text-xs tracking-wide">
+                      {col.label}
+                    </span>
+                    {col.subtitle && (
+                      <span className="text-[11px] font-normal text-gray-500 normal-case">
+                        {col.subtitle}
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
               ))}
               {isEditing && (
                 <TableCell
                   align="center"
-                  sx={{ width: 60, borderBottom: '1px solid #E5E7EB', py: 1.5 }}
+                  sx={{
+                    width: 70,
+                    borderBottom: '1px solid #E5E7EB',
+                    py: 1.5,
+                    verticalAlign: 'top',
+                  }}
                 >
-                  Actions
+                  <span className="font-semibold text-gray-900 text-xs tracking-wide">
+                    ACTIONS
+                  </span>
                 </TableCell>
               )}
             </TableRow>
@@ -118,47 +185,111 @@ export default function Grid<T extends Record<string, unknown>>({
                 }}
               >
                 {columns.map((col) => {
-                  const val = (row[col.field] as string) ?? '';
+                  const rawComputed = col.formula
+                    ? calculateValue(row, col.formula)
+                    : (row[col.field] ?? '');
+
+                  const displayVal =
+                    col.formula &&
+                    typeof rawComputed === 'number' &&
+                    col.formatValue
+                      ? col.formatValue(rawComputed)
+                      : String(rawComputed);
+
                   return (
                     <TableCell
                       key={String(col.field)}
                       align={col.align || 'left'}
-                      sx={{ py: 1, px: 1.5 }}
+                      sx={{ py: 1.5, px: 1.5 }}
                     >
-                      {isEditing ? (
-                        <TextBox
-                          type={col.type || 'text'}
-                          value={val}
-                          placeholder={col.placeholder || col.label}
-                          onChange={(e) =>
-                            handleCellChange(
-                              rowIndex,
-                              col.field,
-                              e.target.value,
-                            )
-                          }
-                          slotProps={{
-                            htmlInput: {
-                              style: { textAlign: col.align || 'left' },
-                            },
-                          }}
-                        />
+                      {isEditing && !col.formula ? (
+                        col.type === 'select' ? (
+                          <TextField
+                            select
+                            size="small"
+                            fullWidth
+                            value={rawComputed as string | number}
+                            onChange={(e) =>
+                              handleCellChange(
+                                rowIndex,
+                                col.field,
+                                e.target.value,
+                              )
+                            }
+                            sx={{
+                              minWidth: '140px',
+                              '& .MuiOutlinedInput-root': {
+                                backgroundColor: '#FFFFFF',
+                                borderRadius: '6px',
+                                fontSize: '0.875rem',
+                                '&.Mui-focused fieldset': {
+                                  borderColor: 'var(--color-burgundy, #8a181a)',
+                                },
+                              },
+                            }}
+                          >
+                            <MenuItem value="" disabled>
+                              <em>{col.placeholder || 'Select option'}</em>
+                            </MenuItem>
+                            {col.options?.map((opt) => (
+                              <MenuItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        ) : (
+                          <GridTextBox
+                            type={col.type || 'text'}
+                            value={rawComputed as string | number}
+                            placeholder={col.placeholder || col.label}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              const parsedValue =
+                                col.type === 'number' && val !== ''
+                                  ? Number(val)
+                                  : val;
+                              handleCellChange(
+                                rowIndex,
+                                col.field,
+                                parsedValue,
+                              );
+                            }}
+                            sx={{
+                              minWidth:
+                                col.type === 'number' ? '90px' : '120px',
+                            }}
+                            slotProps={{
+                              htmlInput: {
+                                min: col.min,
+                                max: col.max,
+                                step: col.step,
+                                style: { textAlign: col.align || 'left' },
+                              },
+                            }}
+                          />
+                        )
                       ) : (
-                        <span className="text-sm text-foreground font-normal">
-                          {val || '-'}
+                        <span
+                          className={`text-sm block whitespace-nowrap ${
+                            col.formula
+                              ? 'text-foreground font-bold'
+                              : 'text-foreground font-normal'
+                          }`}
+                        >
+                          {displayVal || '-'}
                         </span>
                       )}
                     </TableCell>
                   );
                 })}
                 {isEditing && (
-                  <TableCell align="center" sx={{ py: 1 }}>
+                  <TableCell align="center" sx={{ py: 1.5 }}>
                     <IconButton
                       aria-label="delete row"
                       size="small"
-                      onClick={() => handleDeleteRow(rowIndex)}
+                      onClick={() => setDeleteTargetIndex(rowIndex)}
                       sx={{
-                        color: 'var(--color-error, #d64545)',
+                        color: 'var(--color-error, #8a181a)',
                         '&:hover': {
                           backgroundColor: 'rgba(214, 69, 69, 0.08)',
                         },
@@ -174,16 +305,64 @@ export default function Grid<T extends Record<string, unknown>>({
         </Table>
       </TableContainer>
 
-      {isEditing && (
+      {isEditing && onAddRow && (
         <button
           onClick={onAddRow}
           type="button"
-          className="inline-flex items-center gap-2 bg-burgundy hover:bg-burgundy/90 text-white text-sm font-medium py-2.5 px-4 rounded-md transition-colors shadow-sm cursor-pointer"
+          className="px-5 py-2 text-sm font-medium text-white bg-burgundy hover:bg-burgundy/90 rounded-md transition-colors shadow-sm cursor-pointer inline-flex items-center gap-2"
         >
           <PlusIcon fontSize="small" />
           {addButtonLabel}
         </button>
       )}
+      {/* Confirmation popup when user deletes a row */}
+      <Dialog
+        open={deleteTargetIndex !== null}
+        onClose={() => setDeleteTargetIndex(null)}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title" sx={{ fontWeight: 600 }}>
+          Are you sure you want to delete this row?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-dialog-description">
+            This action cannot be undone. Once saved, this row will be
+            permanently removed from the table.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setDeleteTargetIndex(null)}
+            variant="outlined"
+            sx={{
+              textTransform: 'none',
+              color: 'var(--color-foreground, #2b2428)',
+              borderColor: 'var(--color-muted, #6f666b)',
+              '&:hover': {
+                borderColor: 'var(--color-foreground, #2b2428)',
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={confirmDeleteRow}
+            variant="contained"
+            sx={{
+              textTransform: 'none',
+              backgroundColor: 'var(--color-error, #8a181a)',
+              '&:hover': {
+                backgroundColor: 'var(--color-terracotta, #8c2d2e)',
+              },
+            }}
+            autoFocus
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

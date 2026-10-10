@@ -9,6 +9,7 @@ import {
   PlaneLanding,
   LucideIcon,
   Star,
+  FlaskConical,
 } from 'lucide-react';
 
 interface MenuItem {
@@ -23,6 +24,7 @@ const navItems: MenuItem[] = [
   { label: 'NSO Contacts', slug: 'nso', icon: Users },
   { label: 'Games Transport Information', slug: 'transport', icon: CarFront },
   { label: 'PGTC Information and Arrivals', slug: 'pgtc', icon: PlaneLanding },
+  { label: 'Test', slug: 'test', icon: FlaskConical }, // to be deleted after feature is checked
 ];
 
 export default function ContactsSideMenu() {

@@ -3,7 +3,7 @@
 
 import React from 'react';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import ContactInfoHeaderPage from './ContactInfoHeader';
+import ContactInfoHeaderPage from '@/components/commons/GridHeader';
 import { useGrid } from '@/hooks/useGrid';
 
 export interface ContactRow extends Record<string, unknown> {
