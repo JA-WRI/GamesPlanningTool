@@ -139,7 +139,10 @@ export default function TestGridPage({
         description={description}
         isEditing={isEditing}
         isPreview={isPreview}
-        onEditToggle={() => setIsEditing(!isEditing)}
+        onEditToggle={() => {
+          setIsEditing(!isEditing);
+          setIsPreview(false);
+        }}
         onPreviewToggle={(previewState) => setIsPreview(previewState)}
         onSave={() => {
           handleSave();

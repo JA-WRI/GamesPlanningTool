@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import ContactInfoHeaderPage from '@/components/commons/GridHeader';
+import GridHeaderPage from '@/components/commons/GridHeader';
 import TextBox from '@/components/commons/GridTextBox';
 import { useGrid } from '@/hooks/useGrid';
 
@@ -56,6 +56,7 @@ export default function GamesTransportationSection({
   initialData = [],
 }: GamesTransportationSectionProps) {
   const [transportInfo, setTransportInfo] = useState('');
+  const [isPreview, setIsPreview] = useState(false);
   const {
     rows,
     setRows,
@@ -83,13 +84,24 @@ export default function GamesTransportationSection({
 
   return (
     <div className="space-y-6">
-      <ContactInfoHeaderPage
+      <GridHeaderPage
         title="Games Transportation Information"
         description="Schedules, shuttle routes, and transportation guidelines for the Games."
         isEditing={isEditing}
-        onEditToggle={() => setIsEditing(!isEditing)}
-        onSave={handleSave}
-        onCancel={handleCancel}
+        isPreview={isPreview}
+        onEditToggle={() => {
+          setIsEditing(!isEditing);
+          setIsPreview(false);
+        }}
+        onPreviewToggle={(previewState) => setIsPreview(previewState)}
+        onSave={() => {
+          handleSave();
+          setIsPreview(false);
+        }}
+        onCancel={() => {
+          handleCancel();
+          setIsPreview(false);
+        }}
       />
 
       {/* Transport Information Field */}
@@ -122,6 +134,7 @@ export default function GamesTransportationSection({
         columns={contactColumns}
         rows={rows}
         isEditing={isEditing}
+        isPreview={isPreview}
         onRowsChange={setRows}
         onAddRow={handleAddRow}
         addButtonLabel="Add Another Contact"

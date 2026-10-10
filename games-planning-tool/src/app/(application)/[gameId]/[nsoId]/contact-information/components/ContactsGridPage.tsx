@@ -2,8 +2,9 @@
 'use client';
 
 import React from 'react';
+import { useState } from 'react';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import ContactInfoHeaderPage from '@/components/commons/GridHeader';
+import GridHeaderPage from '@/components/commons/GridHeader';
 import { useGrid } from '@/hooks/useGrid';
 
 export interface ContactRow extends Record<string, unknown> {
@@ -52,6 +53,7 @@ export default function ContactsGridPage({
   description,
   initialData = [],
 }: ContactsGridPageProps) {
+  const [isPreview, setIsPreview] = useState(false);
   const {
     rows,
     setRows,
@@ -78,19 +80,31 @@ export default function ContactsGridPage({
 
   return (
     <div className="space-y-6">
-      <ContactInfoHeaderPage
+      <GridHeaderPage
         title={title}
         description={description}
         isEditing={isEditing}
-        onEditToggle={() => setIsEditing(!isEditing)}
-        onSave={handleSave}
-        onCancel={handleCancel}
+        isPreview={isPreview}
+        onEditToggle={() => {
+          setIsEditing(!isEditing);
+          setIsPreview(false);
+        }}
+        onPreviewToggle={(previewState) => setIsPreview(previewState)}
+        onSave={() => {
+          handleSave();
+          setIsPreview(false);
+        }}
+        onCancel={() => {
+          handleCancel();
+          setIsPreview(false);
+        }}
       />
 
       <Grid
         columns={contactColumns}
         rows={rows}
         isEditing={isEditing}
+        isPreview={isPreview}
         onRowsChange={setRows}
         onAddRow={handleAddRow}
         addButtonLabel="Add Another Contact"
