@@ -93,7 +93,7 @@ const travelerColumns: ColumnDefinition<TravelerRow>[] = [
       fieldA: 'daysOnSite',
       fieldB: 'travelRate',
     },
-    formatValue: (val) => `$${val.toLocaleString()}`,
+    formatValue: (val) => `$${val.toLocaleString('en-US')}`, // very important to specify the locale so there's no discrepancy between server and client
   },
 ];
 
