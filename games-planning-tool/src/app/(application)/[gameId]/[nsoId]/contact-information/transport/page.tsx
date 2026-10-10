@@ -1,3 +1,4 @@
+// AI contribution: 50% or more AI-generated
 // AI use to decouple the client state and ui
 import GamesTransportationSection, {
   ContactRow,

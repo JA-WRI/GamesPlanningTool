@@ -1,11 +1,13 @@
+// Below 50% AI-generated
 // AI use to decouple the client state and ui
 'use client';
 
 import React, { useState } from 'react';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import ContactInfoHeaderPage from './ContactInfoHeader';
-import TextBox from '@/components/commons/TextBox';
+import GridHeaderPage from '@/components/commons/GridHeader';
+import TextBox from '@/components/commons/GridTextBox';
 import { useGrid } from '@/hooks/useGrid';
+import SearchBar from '@/components/commons/SearchBar';
 
 export interface ContactRow extends Record<string, unknown> {
   id: string;
@@ -56,6 +58,8 @@ export default function GamesTransportationSection({
   initialData = [],
 }: GamesTransportationSectionProps) {
   const [transportInfo, setTransportInfo] = useState('');
+  const [isPreview, setIsPreview] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const {
     rows,
     setRows,
@@ -80,16 +84,35 @@ export default function GamesTransportationSection({
       console.log('Saved to API:', savedRows);
     },
   );
+  // filtering rows based on a match of any traveller field
+  const filteredRows = rows.filter((row) =>
+    Object.values(row).some((val) =>
+      String(val ?? '')
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()),
+    ),
+  );
 
   return (
     <div className="space-y-6">
-      <ContactInfoHeaderPage
+      <GridHeaderPage
         title="Games Transportation Information"
         description="Schedules, shuttle routes, and transportation guidelines for the Games."
         isEditing={isEditing}
-        onEditToggle={() => setIsEditing(!isEditing)}
-        onSave={handleSave}
-        onCancel={handleCancel}
+        isPreview={isPreview}
+        onEditToggle={() => {
+          setIsEditing(!isEditing);
+          setIsPreview(false);
+        }}
+        onPreviewToggle={(previewState) => setIsPreview(previewState)}
+        onSave={() => {
+          handleSave();
+          setIsPreview(false);
+        }}
+        onCancel={() => {
+          handleCancel();
+          setIsPreview(false);
+        }}
       />
 
       {/* Transport Information Field */}
@@ -117,11 +140,18 @@ export default function GamesTransportationSection({
           </div>
         )}
       </div>
-
+      <div className="max-w-md">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search contacts by name, email, role..."
+        />
+      </div>
       <Grid<ContactRow>
         columns={contactColumns}
-        rows={rows}
+        rows={filteredRows}
         isEditing={isEditing}
+        isPreview={isPreview}
         onRowsChange={setRows}
         onAddRow={handleAddRow}
         addButtonLabel="Add Another Contact"

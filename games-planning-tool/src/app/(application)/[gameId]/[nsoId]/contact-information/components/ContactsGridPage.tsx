@@ -1,10 +1,10 @@
+// AI contribution: Below 50% AI-generated
 // AI Generated content for refactoring of code duplication in page.tsx files.
 'use client';
 
 import React from 'react';
-import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import ContactInfoHeaderPage from './ContactInfoHeader';
-import { useGrid } from '@/hooks/useGrid';
+import { ColumnDefinition } from '@/components/commons/Grid';
+import BaseGridPage from '@/components/commons/BaseGridPage';
 
 export interface ContactRow extends Record<string, unknown> {
   id: string;
@@ -52,49 +52,23 @@ export default function ContactsGridPage({
   description,
   initialData = [],
 }: ContactsGridPageProps) {
-  const {
-    rows,
-    setRows,
-    isEditing,
-    setIsEditing,
-    handleSave,
-    handleCancel,
-    handleAddRow,
-  } = useGrid<ContactRow>(
-    initialData,
-    () => ({
-      id: crypto.randomUUID(),
-      firstName: '',
-      lastName: '',
-      email: '',
-      role: '',
-      countryCode: '',
-      phone: '',
-    }),
-    (savedRows) => {
-      console.log(`Saved ${title} to API:`, savedRows);
-    },
-  );
-
   return (
-    <div className="space-y-6">
-      <ContactInfoHeaderPage
-        title={title}
-        description={description}
-        isEditing={isEditing}
-        onEditToggle={() => setIsEditing(!isEditing)}
-        onSave={handleSave}
-        onCancel={handleCancel}
-      />
-
-      <Grid
-        columns={contactColumns}
-        rows={rows}
-        isEditing={isEditing}
-        onRowsChange={setRows}
-        onAddRow={handleAddRow}
-        addButtonLabel="Add Another Contact"
-      />
-    </div>
+    <BaseGridPage<ContactRow>
+      title={title}
+      description={description}
+      initialData={initialData}
+      columns={contactColumns}
+      createEmptyRow={() => ({
+        id: crypto.randomUUID(),
+        firstName: '',
+        lastName: '',
+        email: '',
+        role: '',
+        countryCode: '',
+        phone: '',
+      })}
+      addButtonLabel="Add Another Contact"
+      searchPlaceholder="Search contacts by name, email, role..."
+    />
   );
 }
