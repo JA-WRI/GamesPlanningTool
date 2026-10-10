@@ -1,3 +1,4 @@
+// Below 50% AI-generated
 // AI use to decouple the client state and ui
 'use client';
 

@@ -1,3 +1,4 @@
+// AI contribution: Below 50% AI-generated
 // AI use to associate a form label with a control
 'use client';
 

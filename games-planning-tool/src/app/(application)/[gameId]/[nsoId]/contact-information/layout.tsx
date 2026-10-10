@@ -1,3 +1,4 @@
+//  No substantial AI-generated code
 import ContactsSideMenu from './components/ContactsSideMenu';
 
 export default function ContactInfoLayout({

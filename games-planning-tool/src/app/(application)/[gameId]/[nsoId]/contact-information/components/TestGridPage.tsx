@@ -6,6 +6,7 @@ import { useState } from 'react';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import GridHeaderPage from '@/components/commons/GridHeader';
 import { useGrid } from '@/hooks/useGrid';
+import SearchBar from '@/components/commons/SearchBar';
 
 export interface TravelerRow extends Record<string, unknown> {
   id: string;
@@ -109,6 +110,7 @@ export default function TestGridPage({
   initialData = [],
 }: TestGridPageProps) {
   const [isPreview, setIsPreview] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const {
     rows,
     setRows,
@@ -130,6 +132,14 @@ export default function TestGridPage({
     (savedRows) => {
       console.log(`Saved ${title} to API:`, savedRows);
     },
+  );
+  // filtering rows based on a match of any traveller field
+  const filteredRows = rows.filter((row) =>
+    Object.values(row).some((val) =>
+      String(val ?? '')
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()),
+    ),
   );
 
   return (
@@ -153,10 +163,16 @@ export default function TestGridPage({
           setIsPreview(false); // same here, false to start in edit mode
         }}
       />
-
+      <div className="max-w-md">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search contacts by name, email, role..."
+        />
+      </div>
       <Grid
         columns={travelerColumns}
-        rows={rows}
+        rows={filteredRows} //fix for row filtering correctly
         isEditing={isEditing}
         isPreview={isPreview}
         onRowsChange={setRows}

@@ -1,3 +1,4 @@
+// No substantial AI-generated code
 'use client';
 
 import NSOGeneralInfoSection, { NSOInfoPage } from './components/NSOInfoPage';
