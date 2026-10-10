@@ -1,6 +1,6 @@
-import { Status, statusColor } from '../commons/status';
+import { Status, statusColor } from '@/components/commons/status';
 import Link from 'next/link';
-import Tag from '../commons/tag';
+import Tag from '@/components/commons/tag';
 
 type StatusColumnProps = {
   title: string;

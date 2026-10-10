@@ -21,7 +21,7 @@ export default function DonutChart({
             data={data}
             dataKey="value"
             nameKey="label"
-            innerRadius="65%"
+            innerRadius="30%"
             outerRadius="95%"
             startAngle={90}
             endAngle={-270}

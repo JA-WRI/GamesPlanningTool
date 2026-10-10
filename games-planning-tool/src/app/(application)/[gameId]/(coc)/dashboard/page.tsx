@@ -1,16 +1,16 @@
 'use client';
 
-import TeamStatusCard from '@/components/coc-admin-dashboard/TeamStatusCard';
-import { Status } from '@/components/commons/status';
+import TeamStatusCard from './TeamStatusCard';
 import SearchBar from '@/components/commons/SearchBar';
 import { useState } from 'react';
 
 import {
+  Status,
   statusToSegments,
   statusLegendItems,
 } from '@/components/commons/status';
-import DonutChartCard from '@/components/coc-admin-dashboard/chart/donutChartCard';
-import ChartLegend from '@/components/coc-admin-dashboard/chart/chartLegend';
+import DonutChartCard from './chart/donutChartCard';
+import ChartLegend from './chart/chartLegend';
 import { mockDashboard } from '@/lib/mock-data-chart';
 
 type Column = {
