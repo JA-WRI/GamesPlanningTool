@@ -2,8 +2,9 @@
 'use client';
 
 import React from 'react';
+import { useState } from 'react';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import ContactInfoHeaderPage from '@/components/commons/GridHeader';
+import GridHeaderPage from '@/components/commons/GridHeader';
 import { useGrid } from '@/hooks/useGrid';
 
 export interface TravelerRow extends Record<string, unknown> {
@@ -107,6 +108,7 @@ export default function TestGridPage({
   description,
   initialData = [],
 }: TestGridPageProps) {
+  const [isPreview, setIsPreview] = useState(false);
   const {
     rows,
     setRows,
@@ -132,19 +134,28 @@ export default function TestGridPage({
 
   return (
     <div className="space-y-6 p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-      <ContactInfoHeaderPage
+      <GridHeaderPage
         title={title}
         description={description}
         isEditing={isEditing}
+        isPreview={isPreview}
         onEditToggle={() => setIsEditing(!isEditing)}
-        onSave={handleSave}
-        onCancel={handleCancel}
+        onPreviewToggle={(previewState) => setIsPreview(previewState)}
+        onSave={() => {
+          handleSave();
+          setIsPreview(false); // this is false to always start in edit mode
+        }}
+        onCancel={() => {
+          handleCancel();
+          setIsPreview(false); // same here, false to start in edit mode
+        }}
       />
 
       <Grid
         columns={travelerColumns}
         rows={rows}
         isEditing={isEditing}
+        isPreview={isPreview}
         onRowsChange={setRows}
         onAddRow={handleAddRow}
         addButtonLabel="Add Property Row"

@@ -4,16 +4,20 @@ interface GridHeaderProps {
   title: string;
   description?: string;
   isEditing: boolean;
+  isPreview: boolean;
   onEditToggle: () => void;
+  onPreviewToggle: (preview: boolean) => void;
   onSave: () => void;
   onCancel?: () => void;
 }
 
-export default function ContactInfoHeaderPage({
+export default function GridHeaderPage({
   title,
   description,
   isEditing,
+  isPreview,
   onEditToggle,
+  onPreviewToggle,
   onSave,
   onCancel,
 }: GridHeaderProps) {
@@ -37,6 +41,31 @@ export default function ContactInfoHeaderPage({
             >
               Cancel
             </button>
+            {/* pill toggle for edit view and preview */}
+            <div className="flex items-center bg-gray-100 p-1 rounded-full border border-gray-200 shadow-inner">
+              <button
+                type="button"
+                onClick={() => onPreviewToggle(false)}
+                className={`px-3.5 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer ${
+                  !isPreview
+                    ? 'bg-burgundy text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Edit View
+              </button>
+              <button
+                type="button"
+                onClick={() => onPreviewToggle(true)}
+                className={`px-3.5 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer ${
+                  isPreview
+                    ? 'bg-burgundy text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Preview
+              </button>
+            </div>
             <button
               type="button"
               onClick={onSave}

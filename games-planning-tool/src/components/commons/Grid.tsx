@@ -59,6 +59,7 @@ interface GridProps<T extends Record<string, unknown>> {
   columns: ColumnDefinition<T>[];
   rows: T[];
   isEditing: boolean;
+  isPreview?: boolean;
   onRowsChange: (newRows: T[]) => void;
   onAddRow?: () => void;
   addButtonLabel?: string;
@@ -68,6 +69,7 @@ export default function Grid<T extends Record<string, unknown>>({
   columns,
   rows,
   isEditing,
+  isPreview = false,
   onRowsChange,
   onAddRow,
   addButtonLabel = 'Add Row',
@@ -113,6 +115,9 @@ export default function Grid<T extends Record<string, unknown>>({
         return 0;
     }
   };
+
+  // editing vs preview
+  const showInputs = isEditing && !isPreview;
 
   return (
     <div className="w-full space-y-4">
@@ -202,7 +207,7 @@ export default function Grid<T extends Record<string, unknown>>({
                       align={col.align || 'left'}
                       sx={{ py: 1.5, px: 1.5 }}
                     >
-                      {isEditing && !col.formula ? (
+                      {showInputs && !col.formula ? (
                         col.type === 'select' ? (
                           <TextField
                             select
@@ -284,19 +289,23 @@ export default function Grid<T extends Record<string, unknown>>({
                 })}
                 {isEditing && (
                   <TableCell align="center" sx={{ py: 1.5 }}>
-                    <IconButton
-                      aria-label="delete row"
-                      size="small"
-                      onClick={() => setDeleteTargetIndex(rowIndex)}
-                      sx={{
-                        color: 'var(--color-error, #8a181a)',
-                        '&:hover': {
-                          backgroundColor: 'rgba(214, 69, 69, 0.08)',
-                        },
-                      }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
+                    {!isPreview ? (
+                      <IconButton
+                        aria-label="delete row"
+                        size="small"
+                        onClick={() => setDeleteTargetIndex(rowIndex)}
+                        sx={{
+                          color: 'var(--color-error, #8a181a)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(214, 69, 69, 0.08)',
+                          },
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    ) : (
+                      <span className="text-xs text-muted">-</span>
+                    )}
                   </TableCell>
                 )}
               </TableRow>
@@ -305,7 +314,7 @@ export default function Grid<T extends Record<string, unknown>>({
         </Table>
       </TableContainer>
 
-      {isEditing && onAddRow && (
+      {showInputs && onAddRow && (
         <button
           onClick={onAddRow}
           type="button"
