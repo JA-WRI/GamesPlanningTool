@@ -13,8 +13,8 @@ export default function DonutChartCard({
 }: DonutChartCardProps) {
   return (
     <div className="flex w-44 flex-col items-center">
-      <h4 className="mb-1 text-center text-sm font-bold">{title}</h4>
       <DonutChart segments={segments} />
+      <h4 className="mb-1 text-center text-sm font-bold">{title}</h4>
     </div>
   );
 }

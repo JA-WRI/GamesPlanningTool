@@ -33,7 +33,7 @@ export default function DonutChart({
 
   return (
     <div
-      className={`relative overflow-visible ${className}`}
+      className={`relative overflow-visible drop-shadow-[0px_0px_8px_rgba(0,0,0,0.3)] mb-6 ${className}`}
       onMouseLeave={() => setTooltip(null)}
     >
       <ResponsiveContainer width="100%" height="100%">
