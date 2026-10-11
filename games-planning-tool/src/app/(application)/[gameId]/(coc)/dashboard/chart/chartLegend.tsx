@@ -1,4 +1,4 @@
-//100% AI
+// 100% AI
 import type { ChartSegment } from './types';
 
 type ChartLegendProps = {

@@ -1,3 +1,4 @@
+// Below 50% AI generated
 'use client';
 
 import TeamStatusCard from './TeamStatusCard';
@@ -32,8 +33,8 @@ const teams: Team[] = [
     columns: [
       { title: 'Team Size', status: 'Submitted', href: '#' },
       { title: 'Accreditation', status: 'Completed', href: '#' },
-      { title: 'Arrival/Travel In', status: 'Requires Update', href: '#' },
-      { title: 'Departure/Travel Out', status: 'In Progress', href: '#' },
+      { title: 'Arrival', status: 'Requires Update', href: '#' },
+      { title: 'Departure', status: 'In Progress', href: '#' },
       { title: 'Review and Completion', status: 'Not Started', href: '#' },
     ],
   },
@@ -43,8 +44,8 @@ const teams: Team[] = [
     columns: [
       { title: 'Team Size', status: 'Submitted', href: '#' },
       { title: 'Accreditation', status: 'Not Started', href: '#' },
-      { title: 'Arrival/Travel In', status: 'Not Started', href: '#' },
-      { title: 'Departure/Travel Out', status: 'Not Started', href: '#' },
+      { title: 'Arrival', status: 'Not Started', href: '#' },
+      { title: 'Departure', status: 'Not Started', href: '#' },
       { title: 'Review and Completion', status: 'Not Started', href: '#' },
     ],
   },
@@ -54,8 +55,8 @@ const teams: Team[] = [
     columns: [
       { title: 'Team Size', status: 'Not Started', href: '#' },
       { title: 'Accreditation', status: 'Not Started', href: '#' },
-      { title: 'Arrival/Travel In', status: 'Not Started', href: '#' },
-      { title: 'Departure/Travel Out', status: 'Not Started', href: '#' },
+      { title: 'Arrival', status: 'Not Started', href: '#' },
+      { title: 'Departure', status: 'Not Started', href: '#' },
       { title: 'Review and Completion', status: 'Not Started', href: '#' },
     ],
   },
@@ -71,7 +72,7 @@ export default function Home() {
   return (
     <main className="pt-2">
       <h1 className="text-2xl font-bold">NSOs Progress Overview</h1>
-      <div className="flex justify-center gap-20 px-10 mt-10">
+      <div className="flex justify-center gap-20 px-10 mt-10 drop-shadow-xl rounded-3xl bg-[#FAFBFB] py-4 px-4 shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
         {mockDashboard.map((d) => (
           <DonutChartCard
             key={d.title}

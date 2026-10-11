@@ -1,3 +1,4 @@
+// Below 50% AI generated
 import DonutChart from './donutChart';
 import type { ChartSegment } from './types';
 
