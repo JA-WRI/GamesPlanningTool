@@ -7,7 +7,6 @@ export default async function GamePage({
 }: {
   params: Promise<{ gameId: string }>;
 }) {
-  const { gameId } = await params;
   const session = await getSession();
 
   redirect(

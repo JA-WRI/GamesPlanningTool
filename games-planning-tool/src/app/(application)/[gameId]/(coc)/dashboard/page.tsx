@@ -12,6 +12,8 @@ import {
 import DonutChartCard from '@/components/coc-admin-dashboard/chart/donutChartCard';
 import ChartLegend from '@/components/coc-admin-dashboard/chart/chartLegend';
 import { mockDashboard } from '@/lib/mock-data-chart';
+import { useParams } from 'next/navigation';
+import { DashboardResourceRow } from '@/components/resources/DashboardResourceRow';
 
 type Column = {
   title: string;
@@ -63,6 +65,9 @@ const teams: Team[] = [
 
 export default function Home() {
   const [search, setSearch] = useState('');
+  const params = useParams();
+  const gameId =
+    typeof params?.gameId === 'string' ? params.gameId : 'game_id_1';
 
   const filteredTeams = teams.filter((team) =>
     team.name.toLowerCase().includes(search.toLowerCase()),
@@ -80,6 +85,11 @@ export default function Home() {
           />
         ))}
       </div>
+
+      <div className="mt-12 mb-8">
+        <DashboardResourceRow gameId={gameId} />
+      </div>
+
       {/* Page name */}
       <div className="mt-8 flex items-center justify-between mr-10">
         <h1 className="text-xl font-bold ml-6">NSOs</h1>

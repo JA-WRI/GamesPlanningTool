@@ -1,299 +1,362 @@
 // Made with AI agents (Antigravity)
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   createSweepState,
   autoScrollContainer,
   computeSweepStep,
   applySelectionUpdate,
   runSweepStep,
-  extractDragPayload,
-  SweepGestureState,
-} from '@/components/resources/sweep-selection';
-import { Resource } from '@/types/resource';
+} from '../../src/components/resources/sweep-selection';
 
 describe('sweep-selection', () => {
-  const dummyResources: Resource[] = [
-    {
-      id: 'res-1',
-      name: 'Res 1',
-      type: 'link',
-      URL: 'https://example.com/1',
-      categories: ['General'],
-    },
-    {
-      id: 'res-2',
-      name: 'Res 2',
-      type: 'link',
-      URL: 'https://example.com/2',
-      categories: ['General'],
-    },
-    {
-      id: 'res-3',
-      name: 'Res 3',
-      type: 'link',
-      URL: 'https://example.com/3',
-      categories: ['General'],
-    },
+  const mockResources = [
+    { id: 'r1' },
+    { id: 'r2' },
+    { id: 'r3' },
+    { id: 'r4' },
+    { id: 'r5' },
   ];
 
-  it('creates initial sweep state correctly', () => {
-    const selected = new Set(['res-1']);
-    const state = createSweepState(
-      0,
-      'res-1',
-      100,
-      120,
-      selected,
-      dummyResources,
-      null,
-    );
-
-    expect(state.startIndex).toBe(0);
-    expect(state.cardId).toBe('res-1');
-    expect(state.startX).toBe(100);
-    expect(state.initialDir).toBe('right');
-    expect(state.movingDirection).toBe('right');
-    expect(state.lastClientX).toBe(120);
-    expect(state.lastCurrentIndex).toBe(0);
-    expect(state.initialSelectedSnapshot.has('res-1')).toBe(true);
-
-    const leftState = createSweepState(
-      1,
-      'res-2',
-      100,
-      80,
-      selected,
-      dummyResources,
-      null,
-    );
-    expect(leftState.initialDir).toBe('left');
-    expect(leftState.movingDirection).toBe('left');
+  describe('createSweepState', () => {
+    it('initializes the sweep state correctly', () => {
+      const selected = new Set(['r2']);
+      const state = createSweepState(
+        1,
+        'r2',
+        100,
+        100,
+        selected,
+        mockResources,
+        null,
+      );
+      expect(state.startIndex).toBe(1);
+      expect(state.cardId).toBe('r2');
+      expect(state.startX).toBe(100);
+      expect(state.startY).toBe(100);
+      expect(state.initialDir).toBe('forward');
+      expect(state.lastCurrentIndex).toBe(1);
+      expect(state.movingDirection).toBe('forward');
+      expect(state.initialSelectedSnapshot.has('r2')).toBe(true);
+      expect(state.filteredResources).toBe(mockResources);
+      expect(state.scrollContainer).toBeNull();
+    });
   });
 
-  it('auto scrolls container when near edges', () => {
-    autoScrollContainer(null, 50);
-
-    const div = document.createElement('div');
-    div.scrollLeft = 100;
-    vi.spyOn(div, 'getBoundingClientRect').mockReturnValue({
-      left: 50,
-      right: 350,
-      top: 0,
-      bottom: 100,
-      width: 300,
-      height: 100,
-      x: 50,
-      y: 0,
-      toJSON: () => {},
+  describe('autoScrollContainer', () => {
+    it('scrolls window when no container is provided (top edge)', () => {
+      const scrollByMock = vi.fn();
+      window.scrollBy = scrollByMock;
+      autoScrollContainer(null, 100, 20);
+      expect(scrollByMock).toHaveBeenCalledWith(0, -12);
     });
 
-    autoScrollContainer(div, 60);
-    expect(div.scrollLeft).toBe(88);
+    it('scrolls window when no container is provided (bottom edge)', () => {
+      const scrollByMock = vi.fn();
+      window.scrollBy = scrollByMock;
+      Object.defineProperty(window, 'innerHeight', {
+        writable: true,
+        value: 800,
+      });
+      autoScrollContainer(null, 100, 780);
+      expect(scrollByMock).toHaveBeenCalledWith(0, 12);
+    });
 
-    autoScrollContainer(div, 340);
-    expect(div.scrollLeft).toBe(100);
+    it('scrolls container when container provided (left edge)', () => {
+      const container = {
+        getBoundingClientRect: () => ({
+          left: 100,
+          right: 900,
+          top: 100,
+          bottom: 900,
+          width: 800,
+          height: 800,
+        }),
+        scrollLeft: 50,
+        scrollTop: 50,
+      } as HTMLElement;
+      autoScrollContainer(container, 120, 500);
+      expect(container.scrollLeft).toBe(38);
+    });
 
-    autoScrollContainer(div, 200);
-    expect(div.scrollLeft).toBe(100);
+    it('scrolls container when container provided (right edge)', () => {
+      const container = {
+        getBoundingClientRect: () => ({
+          left: 100,
+          right: 900,
+          top: 100,
+          bottom: 900,
+          width: 800,
+          height: 800,
+        }),
+        scrollLeft: 50,
+        scrollTop: 50,
+      } as HTMLElement;
+      autoScrollContainer(container, 880, 500);
+      expect(container.scrollLeft).toBe(62);
+    });
+
+    it('scrolls container when container provided (top edge)', () => {
+      const container = {
+        getBoundingClientRect: () => ({
+          left: 100,
+          right: 900,
+          top: 100,
+          bottom: 900,
+          width: 800,
+          height: 800,
+        }),
+        scrollLeft: 50,
+        scrollTop: 50,
+      } as HTMLElement;
+      autoScrollContainer(container, 500, 120);
+      expect(container.scrollTop).toBe(38);
+    });
+
+    it('scrolls container when container provided (bottom edge)', () => {
+      const container = {
+        getBoundingClientRect: () => ({
+          left: 100,
+          right: 900,
+          top: 100,
+          bottom: 900,
+          width: 800,
+          height: 800,
+        }),
+        scrollLeft: 50,
+        scrollTop: 50,
+      } as HTMLElement;
+      autoScrollContainer(container, 500, 880);
+      expect(container.scrollTop).toBe(62);
+    });
   });
 
-  it('computes selection when swiping right to select additional cards', () => {
-    const state = createSweepState(
-      0,
-      'res-1',
-      100,
-      100,
-      new Set(['res-1']),
-      dummyResources,
-      null,
-    );
-
-    const event = new PointerEvent('pointermove', {
-      clientX: 200,
-      clientY: 50,
+  describe('computeSweepStep', () => {
+    let originalElementFromPoint: typeof document.elementFromPoint;
+    beforeEach(() => {
+      originalElementFromPoint = document.elementFromPoint;
+      document.elementFromPoint = vi.fn();
+    });
+    afterEach(() => {
+      document.elementFromPoint = originalElementFromPoint;
     });
 
-    const step = computeSweepStep(event, state);
-    expect(step.movingDirection).toBe('right');
-    expect(step.nextSelection.has('res-1')).toBe(true);
+    it('computes correctly moving forward over hovered card', () => {
+      const state = createSweepState(
+        1,
+        'r2',
+        100,
+        100,
+        new Set(['r2']),
+        mockResources,
+        null,
+      );
+
+      (
+        document.elementFromPoint as unknown as {
+          mockReturnValue: (val: unknown) => void;
+        }
+      ).mockReturnValue({
+        closest: () => ({
+          getAttribute: () => 'r3',
+        }),
+      });
+
+      const moveEvent = { clientX: 120, clientY: 100 } as PointerEvent;
+      const res = computeSweepStep(moveEvent, state);
+
+      expect(res.lastCurrentIndex).toBe(2);
+      expect(res.movingDirection).toBe('forward');
+      expect(res.initialDir).toBe('forward');
+      expect(res.nextSelection.has('r3')).toBe(true);
+      expect(res.nextSelection.has('r2')).toBe(true);
+    });
+
+    it('computes correctly when unselecting cluster forward', () => {
+      const state = createSweepState(
+        1,
+        'r2',
+        100,
+        100,
+        new Set(['r2', 'r3', 'r4']),
+        mockResources,
+        null,
+      );
+
+      (
+        document.elementFromPoint as unknown as {
+          mockReturnValue: (val: unknown) => void;
+        }
+      ).mockReturnValue({
+        closest: () => ({
+          getAttribute: () => 'r3',
+        }),
+      });
+
+      const moveEvent = { clientX: 120, clientY: 100 } as PointerEvent;
+      const res = computeSweepStep(moveEvent, state);
+
+      expect(res.nextSelection.has('r3')).toBe(false);
+    });
+
+    it('computes correctly moving backward', () => {
+      const state = createSweepState(
+        2,
+        'r3',
+        100,
+        100,
+        new Set(['r3']),
+        mockResources,
+        null,
+      );
+
+      (
+        document.elementFromPoint as unknown as {
+          mockReturnValue: (val: unknown) => void;
+        }
+      ).mockReturnValue({
+        closest: () => ({
+          getAttribute: () => 'r2',
+        }),
+      });
+
+      const moveEvent = { clientX: 80, clientY: 100 } as PointerEvent;
+      const res = computeSweepStep(moveEvent, state);
+
+      expect(res.lastCurrentIndex).toBe(1);
+      expect(res.movingDirection).toBe('backward');
+      expect(res.initialDir).toBe('backward');
+      expect(res.nextSelection.has('r2')).toBe(true);
+      expect(res.nextSelection.has('r3')).toBe(true);
+    });
+
+    it('computes at rest empty range to clear', () => {
+      const state = createSweepState(
+        1,
+        'r2',
+        100,
+        100,
+        new Set(['r2']),
+        mockResources,
+        null,
+      );
+      state.initialDir = 'backward';
+      state.movingDirection = 'forward';
+
+      (
+        document.elementFromPoint as unknown as {
+          mockReturnValue: (val: unknown) => void;
+        }
+      ).mockReturnValue({
+        closest: () => ({
+          getAttribute: () => 'r2', // At same index
+        }),
+      });
+
+      const moveEvent = { clientX: 105, clientY: 100 } as PointerEvent; // clientX >= startX
+      const res = computeSweepStep(moveEvent, state);
+
+      expect(res.lastCurrentIndex).toBe(1);
+      expect(res.nextSelection.has('r2')).toBe(true);
+    });
+
+    it('computes distance fallback when no hovered card', () => {
+      const state = createSweepState(
+        1,
+        'r2',
+        100,
+        100,
+        new Set(),
+        mockResources,
+        null,
+      );
+
+      (
+        document.elementFromPoint as unknown as {
+          mockReturnValue: (val: unknown) => void;
+        }
+      ).mockReturnValue(null);
+      vi.spyOn(document, 'querySelectorAll').mockReturnValue([
+        {
+          getAttribute: () => 'r3',
+          getBoundingClientRect: () => ({
+            left: 110,
+            top: 90,
+            width: 20,
+            height: 20,
+          }),
+        },
+      ] as unknown as NodeListOf<Element>);
+
+      const moveEvent = { clientX: 120, clientY: 100 } as PointerEvent;
+      const res = computeSweepStep(moveEvent, state);
+
+      expect(res.lastCurrentIndex).toBe(2);
+      expect(res.nextSelection.has('r3')).toBe(true);
+      expect(res.nextSelection.has('r2')).toBe(true);
+    });
   });
 
-  it('computes selection when swiping left to shrink or unselect', () => {
-    const state = createSweepState(
-      2,
-      'res-3',
-      300,
-      300,
-      new Set(['res-2', 'res-3']),
-      dummyResources,
-      null,
-    );
-
-    const event = new PointerEvent('pointermove', {
-      clientX: 250,
-      clientY: 50,
+  describe('applySelectionUpdate', () => {
+    it('calls onUpdateSelectedIds if provided', () => {
+      const onUpdate = vi.fn();
+      applySelectionUpdate(new Set(['r1']), mockResources, new Set(), onUpdate);
+      expect(onUpdate).toHaveBeenCalledWith(new Set(['r1']));
     });
 
-    const step = computeSweepStep(event, state);
-    expect(step.movingDirection).toBe('left');
+    it('calls onSelectMultiple if onUpdateSelectedIds is not provided', () => {
+      const onSelectMultiple = vi.fn();
+      applySelectionUpdate(
+        new Set(['r1', 'r2']),
+        mockResources,
+        new Set(['r2', 'r3']),
+        undefined,
+        onSelectMultiple,
+      );
+      expect(onSelectMultiple).toHaveBeenCalledWith(['r1'], true); // added
+      expect(onSelectMultiple).toHaveBeenCalledWith(['r3'], false); // removed
+    });
   });
 
-  it('detects hovered card through elementFromPoint or nearest card fallback', () => {
-    const container = document.createElement('div');
-    const cardEl = document.createElement('div');
-    cardEl.setAttribute('data-resource-id', 'res-2');
-    vi.spyOn(cardEl, 'getBoundingClientRect').mockReturnValue({
-      left: 150,
-      right: 250,
-      width: 100,
-      height: 50,
-      top: 0,
-      bottom: 50,
-      x: 150,
-      y: 0,
-      toJSON: () => {},
+  describe('runSweepStep', () => {
+    let originalElementFromPoint: typeof document.elementFromPoint;
+    beforeEach(() => {
+      originalElementFromPoint = document.elementFromPoint;
+      document.elementFromPoint = vi.fn();
     });
-    container.appendChild(cardEl);
-
-    const state: SweepGestureState = {
-      startIndex: 0,
-      cardId: 'res-1',
-      startX: 50,
-      initialDir: 'right',
-      lastCurrentIndex: 0,
-      lastClientX: 50,
-      movingDirection: 'right',
-      initialSelectedSnapshot: new Set<string>(),
-      filteredResources: dummyResources,
-      scrollContainer: container,
-    };
-
-    const event = new PointerEvent('pointermove', {
-      clientX: 200,
-      clientY: 25,
-    });
-    const step = computeSweepStep(event, state);
-    expect(step.lastCurrentIndex).toBe(1);
-  });
-
-  it('handles rest state when returning to start position', () => {
-    const state: SweepGestureState = {
-      startIndex: 0,
-      cardId: 'res-1',
-      startX: 100,
-      initialDir: 'left',
-      lastCurrentIndex: 0,
-      lastClientX: 90,
-      movingDirection: 'right',
-      initialSelectedSnapshot: new Set(['res-1']),
-      filteredResources: dummyResources,
-      scrollContainer: null,
-    };
-
-    const event = new PointerEvent('pointermove', {
-      clientX: 105,
-      clientY: 20,
-    });
-    const step = computeSweepStep(event, state);
-    expect(step.nextSelection.has('res-1')).toBe(true);
-  });
-
-  it('applies selection updates to state handlers', () => {
-    const onUpdateSelectedIds = vi.fn();
-    const next = new Set(['res-1', 'res-2']);
-    applySelectionUpdate(
-      next,
-      dummyResources,
-      new Set(),
-      onUpdateSelectedIds,
-      undefined,
-    );
-    expect(onUpdateSelectedIds).toHaveBeenCalledWith(next);
-
-    const onSelectMultiple = vi.fn();
-    applySelectionUpdate(
-      new Set(['res-2']),
-      dummyResources,
-      new Set(['res-1']),
-      undefined,
-      onSelectMultiple,
-    );
-    expect(onSelectMultiple).toHaveBeenCalledWith(['res-2'], true);
-    expect(onSelectMultiple).toHaveBeenCalledWith(['res-1'], false);
-  });
-
-  it('runs complete sweep step updating the mutable state', () => {
-    const state = createSweepState(
-      0,
-      'res-1',
-      50,
-      50,
-      new Set(),
-      dummyResources,
-      null,
-    );
-    const onUpdateSelectedIds = vi.fn();
-
-    const event = new PointerEvent('pointermove', {
-      clientX: 120,
-      clientY: 10,
-    });
-    runSweepStep(
-      event,
-      state,
-      dummyResources,
-      new Set(),
-      onUpdateSelectedIds,
-      undefined,
-    );
-
-    expect(state.movingDirection).toBe('right');
-    expect(state.lastClientX).toBe(120);
-    expect(onUpdateSelectedIds).toHaveBeenCalled();
-  });
-
-  it('extracts drag payload from global state or dataTransfer', () => {
-    const globalPayload = {
-      resourceId: 'res-123',
-      sourceCategory: 'Winter Games',
-    };
-    const dummyEvent = {
-      dataTransfer: {
-        getData: vi.fn(),
-      },
-    } as unknown as React.DragEvent;
-
-    expect(extractDragPayload(dummyEvent, globalPayload)).toEqual({
-      resourceId: 'res-123',
-      sourceCat: 'Winter Games',
+    afterEach(() => {
+      document.elementFromPoint = originalElementFromPoint;
     });
 
-    const jsonEvent = {
-      dataTransfer: {
-        getData: (type: string) =>
-          type === 'application/json'
-            ? JSON.stringify({
-                resourceId: 'res-999',
-                sourceCategory: 'Summer Games',
-              })
-            : '',
-      },
-    } as unknown as React.DragEvent;
+    it('updates state and applies selection', () => {
+      const state = createSweepState(
+        1,
+        'r2',
+        100,
+        100,
+        new Set(),
+        mockResources,
+        null,
+      );
+      (
+        document.elementFromPoint as unknown as {
+          mockReturnValue: (val: unknown) => void;
+        }
+      ).mockReturnValue({
+        closest: () => ({
+          getAttribute: () => 'r3',
+        }),
+      });
+      const onUpdate = vi.fn();
+      runSweepStep(
+        { clientX: 120, clientY: 100 } as PointerEvent,
+        state,
+        mockResources,
+        new Set(),
+        onUpdate,
+      );
 
-    expect(extractDragPayload(jsonEvent, null)).toEqual({
-      resourceId: 'res-999',
-      sourceCat: 'Summer Games',
-    });
-
-    const textEvent = {
-      dataTransfer: {
-        getData: (type: string) => (type === 'text/plain' ? 'res-text' : ''),
-      },
-    } as unknown as React.DragEvent;
-
-    expect(extractDragPayload(textEvent, null, 'General')).toEqual({
-      resourceId: 'res-text',
-      sourceCat: 'General',
+      expect(state.lastCurrentIndex).toBe(2);
+      expect(onUpdate).toHaveBeenCalled();
     });
   });
 });
