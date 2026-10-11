@@ -16,6 +16,7 @@ interface BaseGridPageProps<T extends Record<string, unknown>> {
   createEmptyRow: () => T;
   addButtonLabel: string;
   searchPlaceholder?: string;
+  showSearch?: boolean;
 }
 
 export default function BaseGridPage<T extends Record<string, unknown>>({
@@ -26,6 +27,7 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
   createEmptyRow,
   addButtonLabel,
   searchPlaceholder = 'Search records...',
+  showSearch = true,
 }: BaseGridPageProps<T>) {
   const [isPreview, setIsPreview] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,13 +79,15 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
         }}
       />
 
-      <div className="max-w-md">
-        <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder={searchPlaceholder}
-        />
-      </div>
+      {showSearch && (
+        <div className="max-w-md">
+          <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder={searchPlaceholder}
+          />
+        </div>
+      )}
 
       <Grid
         columns={columns}

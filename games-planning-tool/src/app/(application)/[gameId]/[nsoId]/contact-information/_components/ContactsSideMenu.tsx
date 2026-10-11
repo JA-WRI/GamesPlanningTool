@@ -21,10 +21,18 @@ interface MenuItem {
 
 const navItems: MenuItem[] = [
   { label: 'Home', slug: '', icon: Home },
-  { label: 'COC Contacts', slug: 'coc', icon: Star },
-  { label: 'NSO Contacts', slug: 'nso', icon: Users },
-  { label: 'Games Transport Information', slug: 'transport', icon: CarFront },
-  { label: 'PGTC Information and Arrivals', slug: 'pgtc', icon: PlaneLanding },
+  { label: 'COC Contacts', slug: 'coc-contacts', icon: Star },
+  { label: 'NSO Contacts', slug: 'nso-contacts', icon: Users },
+  {
+    label: 'Games Transport Information',
+    slug: 'transport-info',
+    icon: CarFront,
+  },
+  {
+    label: 'PGTC Information and Arrivals',
+    slug: 'pgtc-info',
+    icon: PlaneLanding,
+  },
   { label: 'Test', slug: 'test', icon: FlaskConical }, // to be deleted after feature is checked
 ];
 

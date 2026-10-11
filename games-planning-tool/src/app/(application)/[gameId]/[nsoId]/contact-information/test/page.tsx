@@ -1,6 +1,6 @@
 // AI contribution: Above 50% Al-generated
 // Used for creating test values to ensure the grid component is rendered correctly
-import TestGridPage, { TravelerRow } from '../components/TestGridPage';
+import TestGridPage, { TravelerRow } from '../_components/TestGridPage';
 
 const initialTravelerData: TravelerRow[] = [
   {
