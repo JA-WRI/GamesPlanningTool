@@ -4,6 +4,7 @@
 import React, {
   useState,
   useRef,
+  useMemo,
   useEffect,
   useSyncExternalStore,
 } from 'react';
@@ -14,16 +15,14 @@ import {
   getCachedResources,
   saveResourcesToStorage,
   createFolder,
-  cascadeRemoveCategoryFromFolder,
-  removeFolderKeepContentsInTopLevel,
   getDescendantResourceIds,
 } from '@/lib/resources-data';
-import { CategorySection, activeDragStore } from './CategorySection';
 import { AddResourceModal } from './AddResourceModal';
 import { ResourceDetailModal } from './ResourceDetailModal';
 import { FolderDirectoryModal } from './FolderDirectoryModal';
-import { FolderRemovalConfirmModal } from './FolderRemovalConfirmModal';
 import { SearchPill } from './SearchPill';
+import { useSweepSelection } from './useSweepSelection';
+import { ResourceCard } from './ResourceCard';
 
 export function ResourcesPageContent() {
   const resources = useSyncExternalStore(
@@ -33,1209 +32,484 @@ export function ResourcesPageContent() {
   );
 
   const [globalSearch, setGlobalSearch] = useState('');
-
-  const [isGlobalEditing, setIsGlobalEditing] = useState(false);
-  const [categoryEditModes, setCategoryEditModes] = useState<
-    Record<string, boolean>
-  >({});
-
+  const [isEditing, setIsEditing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  // Modal states...
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [preselectedCategory, setPreselectedCategory] = useState<
-    string | undefined
-  >(undefined);
-  const [preselectedFolderId, setPreselectedFolderId] = useState<
-    string | undefined
-  >(undefined);
   const [detailResource, setDetailResource] = useState<Resource | null>(null);
-
   const [activeDirectoryFolder, setActiveDirectoryFolder] =
     useState<FolderResource | null>(null);
-  const [activeDirectoryCategory, setActiveDirectoryCategory] =
-    useState<string>('General');
   const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false);
-  const [createFolderCategory, setCreateFolderCategory] =
-    useState<string>('General');
   const [newFolderNameInput, setNewFolderNameInput] = useState('');
-
-  const [pendingFolderRemoval, setPendingFolderRemoval] = useState<{
-    folder: FolderResource;
-    categoryTitle: string;
-  } | null>(null);
-
-  const updateResources = (newResources: Resource[]) => {
-    saveResourcesToStorage(newResources);
-  };
-
-  const handleToggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
-  const handleSelectMultiple = (ids: string[], select: boolean) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      ids.forEach((id) => {
-        if (select) {
-          next.add(id);
-        } else {
-          next.delete(id);
-        }
-      });
-      return next;
-    });
-  };
-
-  const handleDeleteAllSelected = () => {
-    if (selectedIds.size === 0) return;
-    const count = selectedIds.size;
-    const confirmMsg = `Are you sure you want to delete ${count} selected resource${
-      count > 1 ? 's' : ''
-    }?`;
-    if (typeof window !== 'undefined' && !window.confirm(confirmMsg)) {
-      return;
-    }
-
-    const updated = resources.filter((r) => !selectedIds.has(r.id));
-    updateResources(updated);
-    setSelectedIds(new Set());
-    showToast(`Deleted ${count} selected resource${count > 1 ? 's' : ''}`);
-  };
-
-  const handleDeleteSelectedInCategory = (categoryTitle: string) => {
-    const categorySelected = resources.filter(
-      (r) => r.categories.includes(categoryTitle) && selectedIds.has(r.id),
-    );
-    if (categorySelected.length === 0) return;
-
-    const count = categorySelected.length;
-    const confirmMsg = `Are you sure you want to delete ${count} selected resource${
-      count > 1 ? 's' : ''
-    } from ${categoryTitle}?`;
-    if (typeof window !== 'undefined' && !window.confirm(confirmMsg)) {
-      return;
-    }
-
-    const idsToDelete = new Set(categorySelected.map((r) => r.id));
-    const updated = resources.filter((r) => !idsToDelete.has(r.id));
-    updateResources(updated);
-
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      idsToDelete.forEach((id) => next.delete(id));
-      return next;
-    });
-
-    showToast(
-      `Deleted ${count} resource${count > 1 ? 's' : ''} from ${categoryTitle}`,
-    );
-  };
-
-  const handleReorderResources = (
-    category: string,
-    newOrderedList: Resource[],
-  ) => {
-    const otherResources = resources.filter(
-      (r) => !r.categories.includes(category),
-    );
-    const merged = [...otherResources, ...newOrderedList];
-    updateResources(merged);
-  };
-
-  const handleReorderInFolder = (orderedChildren: Resource[]) => {
-    const childIds = new Set(orderedChildren.map((r) => r.id));
-    const others = resources.filter((r) => !childIds.has(r.id));
-    updateResources([...others, ...orderedChildren]);
-  };
-
-  const handleAddResource = (newResource: Resource) => {
-    const updated = [newResource, ...resources];
-    updateResources(updated);
-  };
-
-  const [activeDragCategory, setActiveDragCategory] = useState<string | null>(
-    null,
-  );
-  const [activeDragResourceId, setActiveDragResourceId] = useState<
-    string | null
-  >(null);
-  const [isOverRemovalArea, setIsOverRemovalArea] = useState(false);
-  const dragHandledRef = useRef(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  interface ActiveMultiDrag {
-    resourceIds: string[];
-    sourceCategory: string;
-    currentX: number;
-    currentY: number;
-    isOverRemoval: boolean;
-    hoveredCategoryTitle: string | null;
-    hoveredFolderId: string | null;
-  }
-  const [activeMultiDrag, setActiveMultiDrag] =
-    useState<ActiveMultiDrag | null>(null);
-  const activeMultiDragRef = useRef<ActiveMultiDrag | null>(null);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage((current) => (current === msg ? null : current));
-    }, 3500);
-  };
-
-  const handleAddCategoryToResources = (
-    resourceIds: string[],
-    targetCategory: string,
-  ) => {
-    dragHandledRef.current = true;
-    if (resourceIds.length === 0) return;
-
-    const targets = resources.filter((r) => resourceIds.includes(r.id));
-    if (targets.length === 0) return;
-
-    const resourcesToUpdate = targets.filter(
-      (r) => !r.categories.includes(targetCategory),
-    );
-
-    if (resourcesToUpdate.length === 0) {
-      if (targets.length === 1) {
-        showToast(`"${targets[0].name}" is already in ${targetCategory}`);
-      } else {
-        showToast(`Selected resources are already in ${targetCategory}`);
-      }
-      return;
-    }
-
-    const updatedMap = new Map<string, Resource>();
-    resourcesToUpdate.forEach((targetResource) => {
-      const withoutGeneral = targetResource.categories.filter(
-        (c) => c !== 'General',
-      );
-      const newCategories = [...withoutGeneral, targetCategory];
-      updatedMap.set(targetResource.id, {
-        ...targetResource,
-        categories: newCategories.length > 0 ? newCategories : ['General'],
-      });
-
-      // If targetResource is a folder, cascade the new category to all descendants as well
-      if (targetResource.type === 'folder') {
-        const descendantIds = getDescendantResourceIds(
-          resources,
-          targetResource.id,
-        );
-        descendantIds.forEach((descId) => {
-          const descResource = resources.find((r) => r.id === descId);
-          if (
-            descResource &&
-            !descResource.categories.includes(targetCategory)
-          ) {
-            const descWithoutGen = descResource.categories.filter(
-              (c) => c !== 'General',
-            );
-            const descNewCats = [...descWithoutGen, targetCategory];
-            updatedMap.set(descResource.id, {
-              ...descResource,
-              categories: descNewCats.length > 0 ? descNewCats : ['General'],
-            });
-          }
-        });
-      }
-    });
-
-    const otherResources = resources.filter((r) => !updatedMap.has(r.id));
-    const newUpdatedItems = Array.from(updatedMap.values());
-
-    const firstTargetIndex = otherResources.findIndex((r) =>
-      r.categories.includes(targetCategory),
-    );
-
-    let updated: Resource[];
-    if (firstTargetIndex !== -1) {
-      updated = [
-        ...otherResources.slice(0, firstTargetIndex),
-        ...newUpdatedItems,
-        ...otherResources.slice(firstTargetIndex),
-      ];
-    } else {
-      updated = [...newUpdatedItems, ...otherResources];
-    }
-
-    updateResources(updated);
-    if (newUpdatedItems.length === 1) {
-      showToast(
-        `Added "${newUpdatedItems[0].name}" to the front of ${targetCategory}`,
-      );
-    } else {
-      showToast(
-        `Added ${newUpdatedItems.length} resources to the front of ${targetCategory}`,
-      );
-    }
-  };
-
-  const handleRemoveCategoryFromResources = (
-    resourceIds: string[],
-    sourceCategory: string,
-  ) => {
-    if (resourceIds.length === 0) return;
-
-    if (sourceCategory === 'General') {
-      if (resourceIds.length === 1) {
-        const r = resources.find((res) => res.id === resourceIds[0]);
-        showToast(
-          `"${r?.name || 'Resource'}" remains in General (must have at least one category)`,
-        );
-      } else {
-        showToast(
-          `Selected resources remain in General (must have at least one category)`,
-        );
-      }
-      return;
-    }
-
-    if (resourceIds.length === 1) {
-      const singleRes = resources.find((r) => r.id === resourceIds[0]);
-      if (singleRes && singleRes.type === 'folder') {
-        const children = resources.filter((r) => r.parentId === singleRes.id);
-        if (children.length > 0) {
-          setPendingFolderRemoval({
-            folder: singleRes as FolderResource,
-            categoryTitle: sourceCategory,
-          });
-          return;
-        }
-      }
-    }
-
-    const targetIdsSet = new Set(resourceIds);
-    const updatedMap = new Map<string, Resource>();
-    const sentToGeneral: Resource[] = [];
-
-    resources.forEach((r) => {
-      if (targetIdsSet.has(r.id)) {
-        const remaining = r.categories.filter((c) => c !== sourceCategory);
-        const finalCategories = remaining.length > 0 ? remaining : ['General'];
-        const updatedResource: Resource = {
-          ...r,
-          categories: finalCategories,
-        };
-        updatedMap.set(r.id, updatedResource);
-        if (remaining.length === 0) {
-          sentToGeneral.push(updatedResource);
-        }
-      }
-    });
-
-    const otherResources = resources.filter((r) => !updatedMap.has(r.id));
-    const nonGeneralUpdated = Array.from(updatedMap.values()).filter(
-      (r) => !sentToGeneral.some((sg) => sg.id === r.id),
-    );
-
-    let updated: Resource[];
-    if (sentToGeneral.length > 0) {
-      const firstGeneralIndex = otherResources.findIndex((r) =>
-        r.categories.includes('General'),
-      );
-      if (firstGeneralIndex !== -1) {
-        updated = [
-          ...otherResources.slice(0, firstGeneralIndex),
-          ...sentToGeneral,
-          ...otherResources.slice(firstGeneralIndex),
-          ...nonGeneralUpdated,
-        ];
-      } else {
-        updated = [...sentToGeneral, ...otherResources, ...nonGeneralUpdated];
-      }
-    } else {
-      updated = resources.map((r) => updatedMap.get(r.id) || r);
-    }
-
-    updateResources(updated);
-    if (resourceIds.length === 1) {
-      const r = resources.find((res) => res.id === resourceIds[0]);
-      if (sentToGeneral.length > 0) {
-        showToast(`Removed from ${sourceCategory} (moved to front of General)`);
-      } else {
-        showToast(`Removed "${r?.name || 'Resource'}" from ${sourceCategory}`);
-      }
-    } else {
-      if (sentToGeneral.length > 0) {
-        showToast(
-          `Removed ${resourceIds.length} resources from ${sourceCategory} (${sentToGeneral.length} moved to General)`,
-        );
-      } else {
-        showToast(
-          `Removed ${resourceIds.length} resources from ${sourceCategory}`,
-        );
-      }
-    }
-  };
-
-  const handleRemoveCategoryFromResource = (
-    resourceId: string,
-    sourceCategory: string,
-  ) => {
-    handleRemoveCategoryFromResources([resourceId], sourceCategory);
-  };
-
-  const handleConfirmCascadeFolderRemoval = () => {
-    if (!pendingFolderRemoval) return;
-    const { folder, categoryTitle } = pendingFolderRemoval;
-    const updated = cascadeRemoveCategoryFromFolder(
-      resources,
-      folder.id,
-      categoryTitle,
-    );
-    updateResources(updated);
-    setPendingFolderRemoval(null);
-    showToast(
-      `Removed "${folder.name}" and all contents from ${categoryTitle}`,
-    );
-  };
-
-  const handleConfirmKeepFolderContentsInTopLevel = () => {
-    if (!pendingFolderRemoval) return;
-    const { folder, categoryTitle } = pendingFolderRemoval;
-    const updated = removeFolderKeepContentsInTopLevel(
-      resources,
-      folder.id,
-      categoryTitle,
-    );
-    updateResources(updated);
-    setPendingFolderRemoval(null);
-    showToast(`Removed "${folder.name}" from ${categoryTitle} (contents kept)`);
-  };
-
-  const activeDragCategoryRef = useRef<string | null>(null);
-  const activeDragResourceIdRef = useRef<string | null>(null);
-  const isOverRemovalAreaRef = useRef(false);
-
-  useEffect(() => {
-    activeDragCategoryRef.current = activeDragCategory;
-    activeDragResourceIdRef.current = activeDragResourceId;
-  }, [activeDragCategory, activeDragResourceId]);
-
-  const handleStartDragCard = (resourceId: string, sourceCategory: string) => {
-    dragHandledRef.current = false;
-    activeDragCategoryRef.current = sourceCategory;
-    activeDragResourceIdRef.current = resourceId;
-    isOverRemovalAreaRef.current = false;
-    setActiveDragCategory(sourceCategory);
-    setActiveDragResourceId(resourceId);
-    setIsOverRemovalArea(false);
-  };
-
-  const handleStartMultiDrag = (
-    resourceIds: string[],
-    sourceCategory: string,
-    pos: { x: number; y: number },
-  ) => {
-    dragHandledRef.current = false;
-    activeDragCategoryRef.current = sourceCategory;
-    activeDragResourceIdRef.current = resourceIds[0] || null;
-    setActiveDragCategory(sourceCategory);
-    setActiveDragResourceId(resourceIds[0] || null);
-
-    const initialDrag: ActiveMultiDrag = {
-      resourceIds,
-      sourceCategory,
-      currentX: pos.x,
-      currentY: pos.y,
-      isOverRemoval: false,
-      hoveredCategoryTitle: null,
-      hoveredFolderId: null,
-    };
-    activeMultiDragRef.current = initialDrag;
-    setActiveMultiDrag(initialDrag);
-  };
-
-  const handleMoveMultiDrag = (pos: { x: number; y: number }) => {
-    const cur = activeMultiDragRef.current;
-    if (!cur) return;
-
-    const elem =
-      typeof document.elementFromPoint === 'function'
-        ? document.elementFromPoint(pos.x, pos.y)
-        : null;
-    const section = elem?.closest('section[data-category-title]');
-    const hoveredTitle = section?.getAttribute('data-category-title') || null;
-
-    // Detect folder hover
-    const folderEl = elem?.closest('[data-resource-type="folder"]');
-    const hoveredFolderId = folderEl?.getAttribute('data-resource-id') || null;
-    // Don't allow dropping into a folder that is itself being dragged
-    const validFolderId =
-      hoveredFolderId && !cur.resourceIds.includes(hoveredFolderId)
-        ? hoveredFolderId
-        : null;
-
-    let isOverRemoval = false;
-    let hoveredCat: string | null = null;
-
-    if (hoveredTitle) {
-      if (hoveredTitle !== cur.sourceCategory) {
-        hoveredCat = hoveredTitle;
-      }
-    } else {
-      if (cur.sourceCategory !== 'General') {
-        isOverRemoval = true;
-      }
-    }
-
-    const updated: ActiveMultiDrag = {
-      ...cur,
-      currentX: pos.x,
-      currentY: pos.y,
-      isOverRemoval,
-      hoveredCategoryTitle: hoveredCat,
-      hoveredFolderId: validFolderId,
-    };
-    activeMultiDragRef.current = updated;
-    setActiveMultiDrag(updated);
-    setIsOverRemovalArea(isOverRemoval);
-  };
-
-  const handleEndMultiDrag = () => {
-    const cur = activeMultiDragRef.current;
-    if (cur) {
-      if (cur.hoveredFolderId) {
-        // Batch-move all dragged resources into the target folder
-        const targetFolder = resources.find(
-          (r) => r.id === cur.hoveredFolderId,
-        );
-        if (targetFolder) {
-          const idsToMove = new Set(
-            cur.resourceIds.filter((id) => id !== cur.hoveredFolderId),
-          );
-          const updated = resources.map((r) =>
-            idsToMove.has(r.id) ? { ...r, parentId: cur.hoveredFolderId } : r,
-          );
-          updateResources(updated);
-          showToast(
-            idsToMove.size === 1
-              ? `Moved 1 item into "${targetFolder.name}"`
-              : `Moved ${idsToMove.size} items into "${targetFolder.name}"`,
-          );
-        }
-      } else if (
-        cur.hoveredCategoryTitle &&
-        cur.hoveredCategoryTitle !== cur.sourceCategory
-      ) {
-        handleAddCategoryToResources(cur.resourceIds, cur.hoveredCategoryTitle);
-      } else if (cur.isOverRemoval) {
-        handleRemoveCategoryFromResources(cur.resourceIds, cur.sourceCategory);
-      }
-    }
-
-    activeMultiDragRef.current = null;
-    setActiveMultiDrag(null);
-    activeDragCategoryRef.current = null;
-    activeDragResourceIdRef.current = null;
-    setIsOverRemovalArea(false);
-    setActiveDragCategory(null);
-    setActiveDragResourceId(null);
-  };
-
-  const handleEndDragCard = () => {
-    activeDragCategoryRef.current = null;
-    activeDragResourceIdRef.current = null;
-    isOverRemovalAreaRef.current = false;
-    setActiveDragCategory(null);
-    setActiveDragResourceId(null);
-    setIsOverRemovalArea(false);
-  };
-
-  const handleDropOnCategory = (
-    resourceIdOrIds: string[] | string,
-    targetCategory: string,
-  ) => {
-    dragHandledRef.current = true;
-    const ids = Array.isArray(resourceIdOrIds)
-      ? resourceIdOrIds
-      : [resourceIdOrIds];
-    handleAddCategoryToResources(ids, targetCategory);
-    handleEndDragCard();
-  };
-
-  const handleRemoveFromCategory = (
-    resourceIdOrIds: string[] | string,
-    sourceCategory: string,
-  ) => {
-    if (!dragHandledRef.current) {
-      const ids = Array.isArray(resourceIdOrIds)
-        ? resourceIdOrIds
-        : [resourceIdOrIds];
-      handleRemoveCategoryFromResources(ids, sourceCategory);
-    }
-    handleEndDragCard();
-  };
-
-  const handleHoverSection = () => {
-    isOverRemovalAreaRef.current = false;
-    setIsOverRemovalArea(false);
-  };
-
-  const handleMainDragOver = (e: React.DragEvent) => {
-    const curCat =
-      activeDragCategoryRef.current ||
-      activeDragCategory ||
-      activeDragStore.current?.sourceCategory;
-    if (curCat) {
-      e.preventDefault();
-      const targetElem = e.target as HTMLElement;
-      const insideSection = Boolean(targetElem.closest('section'));
-      const shouldBeRemoval = !insideSection && curCat !== 'General';
-      isOverRemovalAreaRef.current = shouldBeRemoval;
-      setIsOverRemovalArea((prev) =>
-        prev !== shouldBeRemoval ? shouldBeRemoval : prev,
-      );
-    }
-  };
-
-  const handlePageDrop = (e: React.DragEvent) => {
-    const targetElem = e.target as HTMLElement;
-    const insideSection = Boolean(targetElem.closest('section'));
-    if (!insideSection) {
-      e.preventDefault();
-      const resId =
-        activeDragResourceIdRef.current ||
-        activeDragResourceId ||
-        activeDragStore.current?.resourceId;
-      const cat =
-        activeDragCategoryRef.current ||
-        activeDragCategory ||
-        activeDragStore.current?.sourceCategory;
-      if (resId && cat) {
-        handleRemoveCategoryFromResource(resId, cat);
-      }
-    }
-    handleEndDragCard();
-  };
-
-  useEffect(() => {
-    let scrollSpeed = 0;
-    let animationFrameId: number | null = null;
-    const EDGE_THRESHOLD = 120;
-    const MAX_SPEED = 24;
-
-    const scrollLoop = () => {
-      if (scrollSpeed !== 0) {
-        window.scrollBy(0, scrollSpeed);
-        animationFrameId = requestAnimationFrame(scrollLoop);
-      } else {
-        animationFrameId = null;
-      }
-    };
-
-    const handlePointerOrDrag = (clientY: number) => {
-      const vh = window.innerHeight;
-      if (clientY < EDGE_THRESHOLD) {
-        const ratio = Math.max(
-          0,
-          Math.min(1, (EDGE_THRESHOLD - clientY) / EDGE_THRESHOLD),
-        );
-        scrollSpeed = -Math.max(4, Math.round(ratio * MAX_SPEED));
-        if (!animationFrameId) {
-          animationFrameId = requestAnimationFrame(scrollLoop);
-        }
-      } else if (clientY > vh - EDGE_THRESHOLD) {
-        const ratio = Math.max(
-          0,
-          Math.min(1, (clientY - (vh - EDGE_THRESHOLD)) / EDGE_THRESHOLD),
-        );
-        scrollSpeed = Math.max(4, Math.round(ratio * MAX_SPEED));
-        if (!animationFrameId) {
-          animationFrameId = requestAnimationFrame(scrollLoop);
-        }
-      } else {
-        scrollSpeed = 0;
-      }
-    };
-
-    const onDragOver = (e: DragEvent) => {
-      handlePointerOrDrag(e.clientY);
-    };
-
-    const onPointerMove = (e: PointerEvent) => {
-      if (e.buttons > 0) {
-        handlePointerOrDrag(e.clientY);
-      } else {
-        scrollSpeed = 0;
-      }
-    };
-
-    const onDragEndOrDrop = () => {
-      scrollSpeed = 0;
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
-      }
-      setIsOverRemovalArea(false);
-    };
-
-    window.addEventListener('dragover', onDragOver);
-    window.addEventListener('dragend', onDragEndOrDrop);
-    window.addEventListener('drop', onDragEndOrDrop);
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onDragEndOrDrop);
-    window.addEventListener('pointercancel', onDragEndOrDrop);
-
-    return () => {
-      scrollSpeed = 0;
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-      window.removeEventListener('dragover', onDragOver);
-      window.removeEventListener('dragend', onDragEndOrDrop);
-      window.removeEventListener('drop', onDragEndOrDrop);
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerup', onDragEndOrDrop);
-      window.removeEventListener('pointercancel', onDragEndOrDrop);
-    };
-  }, []);
-
-  const handleOpenAddModal = (cat?: string) => {
-    setPreselectedCategory(cat);
-    setPreselectedFolderId(undefined);
-    setIsAddModalOpen(true);
-  };
-
-  const allExistingCategories = Array.from(
-    new Set(resources.flatMap((r) => r.categories)),
-  );
-
-  const standardSections = ['Winter Games', 'Summer Games', 'General'];
-  const nsoCategoriesWithResources = allExistingCategories.filter(
-    (c) => !standardSections.includes(c),
-  );
-  const allCategorySections = [
-    ...standardSections,
-    ...nsoCategoriesWithResources,
-  ];
-
-  const isCategoryEditing = (cat: string) => {
-    return isGlobalEditing || !!categoryEditModes[cat];
-  };
-
-  const toggleCategoryEdit = (cat: string) => {
-    const isCurrentlyEditing = isCategoryEditing(cat);
-    setSelectedIds(new Set());
-
-    if (isCurrentlyEditing) {
-      if (isGlobalEditing) {
-        const newModes: Record<string, boolean> = {};
-        allCategorySections.forEach((c) => {
-          if (c !== cat) newModes[c] = true;
-        });
-        setCategoryEditModes(newModes);
-        setIsGlobalEditing(false);
-      } else {
-        setCategoryEditModes((prev) => ({
-          ...prev,
-          [cat]: false,
-        }));
-      }
-    } else {
-      setCategoryEditModes((prev) => ({
-        ...prev,
-        [cat]: true,
-      }));
-    }
-  };
-
-  const toggleGlobalEdit = () => {
-    const nextState = !isGlobalEditing;
-    setIsGlobalEditing(nextState);
-    setSelectedIds(new Set());
-    setCategoryEditModes({});
-  };
-
-  /* Made with AI agents (Antigravity) */
-  const getFilteredCategoryResources = (category: string) => {
+  // Top Level Resource Filtering
+  const filteredResources = useMemo(() => {
     return resources.filter((res) => {
-      const belongsToCategory = res.categories.includes(category);
-      if (!belongsToCategory) return false;
-      // When not searching, only show top-level items in the category bar
-      // (items inside folders belong inside their folder, UNLESS their parent folder isn't in this category)
-      if (!globalSearch.trim() && res.parentId) {
-        const parent = resources.find((r) => r.id === res.parentId);
-        // If the parent folder exists AND it belongs to this category, hide the resource from the root
-        if (parent && parent.categories.includes(category)) {
-          return false;
-        }
-      }
-      if (!globalSearch.trim()) return true;
+      if (res.parentId) return false;
 
+      if (!globalSearch.trim()) return true;
       const q = globalSearch.toLowerCase();
       return (
         res.name.toLowerCase().includes(q) ||
         res.categories.some((c) => c.toLowerCase().includes(q))
       );
     });
-  };
+  }, [resources, globalSearch]);
 
-  const handleSelectResourceOrFolder = (
-    resource: Resource,
-    categoryTitle: string,
-  ) => {
-    if (resource.type === 'folder') {
-      setActiveDirectoryFolder(resource as FolderResource);
-      setActiveDirectoryCategory(categoryTitle);
-    } else {
-      setDetailResource(resource);
+  // Drag and Reorder state
+  const [localOrderedResources, setLocalOrderedResources] =
+    useState<Resource[]>(filteredResources);
+  const localOrderedRef = useRef<Resource[]>(filteredResources);
+  const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
+  const draggedCardIdRef = useRef<string | null>(null);
+  const [externalPointerDraggedIds, setExternalPointerDraggedIds] = useState<
+    string[]
+  >([]);
+  const externalPointerDraggedIdsRef = useRef<string[]>([]);
+  const [hoverFolderDropTargetId, setHoverFolderDropTargetId] = useState<
+    string | null
+  >(null);
+  const hoverFolderDropTargetIdRef = useRef<string | null>(null);
+  const dragDroppedSuccessfullyRef = useRef(false);
+  const droppedInFolderRef = useRef(false);
+  const springLoadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!draggedCardIdRef.current) {
+      setLocalOrderedResources(filteredResources);
+      localOrderedRef.current = filteredResources;
     }
+  }, [filteredResources]);
+
+  const updateResources = (newResources: Resource[]) =>
+    saveResourcesToStorage(newResources);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleDropIntoFolder = (
-    draggedResourceId: string,
-    targetFolderId: string,
-  ) => {
-    if (draggedResourceId === targetFolderId) return;
-    const targetFolder = resources.find((r) => r.id === targetFolderId);
-    const draggedItem = resources.find((r) => r.id === draggedResourceId);
-    if (!targetFolder || !draggedItem) return;
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    if (selectedIds.size > 0) {
+      e.preventDefault();
+      return;
+    }
+    draggedCardIdRef.current = id;
+    setDraggedCardId(id);
+    setIsEditing(true);
+    dragDroppedSuccessfullyRef.current = false;
+    droppedInFolderRef.current = false;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', id);
+  };
 
-    // Prevent cycle: folder cannot be moved into itself or into any of its descendants
-    if (draggedItem.type === 'folder') {
-      const descendants = getDescendantResourceIds(resources, draggedItem.id);
-      if (descendants.includes(targetFolderId)) {
-        showToast('Cannot move a folder into its own subfolder');
+  const handleDragOver = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const sourceId = draggedCardIdRef.current;
+    if (!sourceId || sourceId === targetId) return;
+
+    const targetResource = localOrderedResources.find((r) => r.id === targetId);
+    if (targetResource?.type === 'folder') {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const relativeX = (e.clientX - rect.left) / rect.width;
+
+      const isCurrentlyHoveredFolder =
+        hoverFolderDropTargetIdRef.current === targetId;
+      const minX = isCurrentlyHoveredFolder ? 0.05 : 0.15;
+      const maxX = isCurrentlyHoveredFolder ? 0.95 : 0.85;
+
+      if (relativeX >= minX && relativeX <= maxX) {
+        if (hoverFolderDropTargetIdRef.current !== targetId) {
+          setHoverFolderDropTargetId(targetId);
+          hoverFolderDropTargetIdRef.current = targetId;
+          if (springLoadTimeoutRef.current)
+            clearTimeout(springLoadTimeoutRef.current);
+          springLoadTimeoutRef.current = setTimeout(() => {
+            if (targetResource)
+              setActiveDirectoryFolder({ ...targetResource } as FolderResource);
+            setHoverFolderDropTargetId(null);
+            hoverFolderDropTargetIdRef.current = null;
+          }, 600);
+        }
         return;
       }
     }
+    if (springLoadTimeoutRef.current) {
+      clearTimeout(springLoadTimeoutRef.current);
+      springLoadTimeoutRef.current = null;
+    }
+    setHoverFolderDropTargetId(null);
+    hoverFolderDropTargetIdRef.current = null;
 
-    const updated = resources.map((r) => {
-      if (r.id === draggedResourceId) {
-        return {
-          ...r,
-          parentId: targetFolderId,
-        };
+    if (selectedIds.size === 0) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+      const clientX = e.clientX;
+      setLocalOrderedResources((currentList) => {
+        const sourceIdx = currentList.findIndex((r) => r.id === sourceId);
+        const targetIdx = currentList.findIndex((r) => r.id === targetId);
+        if (sourceIdx === -1 || targetIdx === -1 || sourceIdx === targetIdx)
+          return currentList;
+        if (sourceIdx < targetIdx && clientX < midX) return currentList;
+        if (sourceIdx > targetIdx && clientX > midX) return currentList;
+        const updated = [...currentList];
+        const [movedItem] = updated.splice(sourceIdx, 1);
+        updated.splice(targetIdx, 0, movedItem);
+        localOrderedRef.current = updated;
+        return updated;
+      });
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, targetId?: string) => {
+    e.preventDefault();
+    dragDroppedSuccessfullyRef.current = true;
+    const itemToMove = draggedCardIdRef.current;
+    const folderDropTarget =
+      hoverFolderDropTargetId ||
+      (targetId &&
+      localOrderedResources.find((r) => r.id === targetId)?.type === 'folder'
+        ? targetId
+        : null);
+
+    if (folderDropTarget && itemToMove && itemToMove !== folderDropTarget) {
+      const updated = resources.map((r) =>
+        r.id === itemToMove ? { ...r, parentId: folderDropTarget } : r,
+      );
+      updateResources(updated);
+      showToast('Moved item into folder');
+    } else if (itemToMove && selectedIds.size === 0) {
+      const reorderedIds = new Set(localOrderedRef.current.map((r) => r.id));
+      const otherResources = resources.filter((r) => !reorderedIds.has(r.id));
+      updateResources([...otherResources, ...localOrderedRef.current]);
+    }
+    setDraggedCardId(null);
+    draggedCardIdRef.current = null;
+    setHoverFolderDropTargetId(null);
+    setActiveDirectoryFolder(null);
+    setIsEditing(false);
+  };
+
+  const handleDragEnd = () => {
+    if (!dragDroppedSuccessfullyRef.current) {
+      setLocalOrderedResources(filteredResources);
+      localOrderedRef.current = filteredResources;
+    }
+    setDraggedCardId(null);
+    draggedCardIdRef.current = null;
+    setHoverFolderDropTargetId(null);
+    if (!droppedInFolderRef.current) {
+      setActiveDirectoryFolder(null);
+    }
+    droppedInFolderRef.current = false;
+    setIsEditing(false);
+  };
+
+  const handlePointerHoverMainPage = (
+    clientX: number,
+    clientY: number,
+    draggedIds: string[],
+    dropped?: boolean,
+  ) => {
+    if (
+      externalPointerDraggedIdsRef.current.join(',') !== draggedIds.join(',')
+    ) {
+      externalPointerDraggedIdsRef.current = draggedIds;
+      setExternalPointerDraggedIds(draggedIds);
+    }
+
+    if (draggedIds.length === 0) {
+      if (!dropped) {
+        setLocalOrderedResources((currentList) => {
+          let hasChanges = currentList.length !== filteredResources.length;
+          if (!hasChanges) {
+            for (let i = 0; i < currentList.length; i++) {
+              if (currentList[i].id !== filteredResources[i].id) {
+                hasChanges = true;
+                break;
+              }
+            }
+          }
+          if (!hasChanges) return currentList;
+          localOrderedRef.current = filteredResources;
+          return filteredResources;
+        });
       }
-      return r;
-    });
+      return;
+    }
 
+    const elem = document.elementFromPoint(clientX, clientY);
+    const targetCard = elem?.closest('[data-resource-id]');
+    const targetId = targetCard?.getAttribute('data-resource-id');
+    const targetType = targetCard?.getAttribute('data-resource-type');
+
+    if (!targetCard || !targetId || draggedIds.includes(targetId)) {
+      if (hoverFolderDropTargetIdRef.current !== null) {
+        setHoverFolderDropTargetId(null);
+        hoverFolderDropTargetIdRef.current = null;
+        if (springLoadTimeoutRef.current)
+          clearTimeout(springLoadTimeoutRef.current);
+      }
+      return;
+    }
+
+    const rect = targetCard.getBoundingClientRect();
+    const relativeX = (clientX - rect.left) / rect.width;
+
+    const isCurrentlyHoveredFolder =
+      hoverFolderDropTargetIdRef.current === targetId;
+    const minX = isCurrentlyHoveredFolder ? 0.05 : 0.15;
+    const maxX = isCurrentlyHoveredFolder ? 0.95 : 0.85;
+
+    if (targetType === 'folder' && relativeX >= minX && relativeX <= maxX) {
+      if (hoverFolderDropTargetIdRef.current !== targetId) {
+        setHoverFolderDropTargetId(targetId);
+        hoverFolderDropTargetIdRef.current = targetId;
+        if (springLoadTimeoutRef.current)
+          clearTimeout(springLoadTimeoutRef.current);
+        springLoadTimeoutRef.current = setTimeout(() => {
+          const targetResource = localOrderedRef.current.find(
+            (r) => r.id === targetId,
+          );
+          if (targetResource)
+            setActiveDirectoryFolder({ ...targetResource } as FolderResource);
+          setHoverFolderDropTargetId(null);
+          hoverFolderDropTargetIdRef.current = null;
+        }, 600);
+      }
+      return;
+    }
+
+    if (hoverFolderDropTargetIdRef.current !== null) {
+      setHoverFolderDropTargetId(null);
+      hoverFolderDropTargetIdRef.current = null;
+      if (springLoadTimeoutRef.current)
+        clearTimeout(springLoadTimeoutRef.current);
+    }
+
+    const midX = rect.left + rect.width / 2;
+    const insertAfter = clientX > midX;
+
+    setLocalOrderedResources((currentList) => {
+      const newList = currentList.filter((r) => !draggedIds.includes(r.id));
+
+      const targetIdx = newList.findIndex((r) => r.id === targetId);
+      if (targetIdx === -1) return currentList;
+
+      const itemsToInject = draggedIds
+        .map((id) => resources.find((r) => r.id === id))
+        .filter(Boolean) as Resource[];
+      if (itemsToInject.length === 0) return currentList;
+
+      newList.splice(targetIdx + (insertAfter ? 1 : 0), 0, ...itemsToInject);
+
+      let hasChanges = newList.length !== currentList.length;
+      if (!hasChanges) {
+        for (let i = 0; i < newList.length; i++) {
+          if (newList[i].id !== currentList[i].id) {
+            hasChanges = true;
+            break;
+          }
+        }
+      }
+      if (!hasChanges) return currentList;
+
+      localOrderedRef.current = newList;
+      return newList;
+    });
+  };
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const {
+    handleSweepPointerDown,
+    handleCardPointerDown,
+    justFinishedSweepRef,
+  } = useSweepSelection(
+    localOrderedResources,
+    selectedIds,
+    setSelectedIds,
+    undefined,
+    isEditing,
+    scrollContainerRef,
+  );
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.size === 0) return;
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm(
+        `Delete ${selectedIds.size} resource${selectedIds.size === 1 ? '' : 's'}?`,
+      )
+    )
+      return;
+    const updated = resources.filter((r) => !selectedIds.has(r.id));
     updateResources(updated);
-    showToast(`Moved "${draggedItem.name}" into "${targetFolder.name}"`);
+    setSelectedIds(new Set());
+    setIsEditing(false);
+    showToast(
+      `Deleted ${selectedIds.size} resource${selectedIds.size === 1 ? '' : 's'}`,
+    );
+  };
+
+  const handleAddResource = (newRes: Resource) => {
+    updateResources([...resources, newRes]);
+    setIsAddModalOpen(false);
+    showToast('Resource added successfully');
   };
 
   const handleRenameResource = (id: string, newName: string) => {
-    const updated = resources.map((r) =>
-      r.id === id ? { ...r, name: newName } : r,
+    updateResources(
+      resources.map((r) => (r.id === id ? { ...r, name: newName } : r)),
     );
-    updateResources(updated);
+    showToast('Renamed successfully');
   };
 
-  const handleOpenCreateFolderModal = (category: string) => {
-    setCreateFolderCategory(category);
-    setNewFolderNameInput('');
-    setIsCreateFolderModalOpen(true);
+  const handleCategoriesChange = (id: string, newCategories: string[]) => {
+    updateResources(
+      resources.map((r) =>
+        r.id === id ? { ...r, categories: newCategories } : r,
+      ),
+    );
+    showToast('Categories updated');
   };
 
-  const handleCreateTopLevelFolder = (e: React.FormEvent) => {
+  const handleCreateFolderSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newFolderNameInput.trim()) return;
-
-    const newFolder = createFolder(newFolderNameInput.trim(), [
-      createFolderCategory,
-    ]);
-
-    updateResources([newFolder, ...resources]);
-    setIsCreateFolderModalOpen(false);
-    setNewFolderNameInput('');
-    showToast(`Created folder "${newFolder.name}" in ${createFolderCategory}`);
-  };
-
-  const handleCreateSubfolder = (name: string, parentFolderId: string) => {
-    const parentFolder = resources.find((r) => r.id === parentFolderId);
-    const newFolder = createFolder(
-      name,
-      parentFolder?.categories || [activeDirectoryCategory],
-      parentFolderId,
-    );
-    updateResources([newFolder, ...resources]);
-    showToast(`Created subfolder "${name}"`);
-  };
-
-  /* Made with AI agents (Antigravity) */
-  const handleAddResourceToFolderModal = (parentFolderId: string) => {
-    const parent = resources.find((r) => r.id === parentFolderId);
-    setPreselectedCategory(parent?.categories[0] || activeDirectoryCategory);
-    setPreselectedFolderId(parentFolderId);
-    setIsAddModalOpen(true);
-  };
-
-  const handleMoveResourceWithinDirectory = (
-    resourceIds: string[],
-    targetFolderId: string | null,
-  ) => {
-    if (!targetFolderId) {
-      // Move to root
-      const updated = resources.map((r) => {
-        if (resourceIds.includes(r.id)) {
-          return { ...r, parentId: undefined };
-        }
-        return r;
-      });
-      updateResources(updated);
-      showToast(`Moved ${resourceIds.length} item(s) to main view`);
-      return;
+    const trimmed = newFolderNameInput.trim();
+    if (trimmed) {
+      const folder = createFolder(trimmed, []);
+      updateResources([...resources, folder]);
+      showToast('Folder created');
     }
-    // For dropping into a folder, handleDropIntoFolder supports one ID.
-    // Let's modify it or just implement the bulk move here!
-    const targetFolder = resources.find((r) => r.id === targetFolderId);
-    if (!targetFolder) return;
-
-    const updated = resources.map((r) => {
-      if (resourceIds.includes(r.id)) {
-        // Prevent cycle: folder cannot be moved into itself or into any of its descendants
-        if (r.type === 'folder') {
-          const descendants = getDescendantResourceIds(resources, r.id);
-          if (descendants.includes(targetFolderId) || r.id === targetFolderId) {
-            return r; // skip this one
-          }
-        }
-        return { ...r, parentId: targetFolderId };
-      }
-      return r;
-    });
-    updateResources(updated);
-    showToast(
-      `Moved ${resourceIds.length} item(s) into "${targetFolder.name}"`,
-    );
+    setNewFolderNameInput('');
+    setIsCreateFolderModalOpen(false);
   };
 
   return (
-    <div
-      onDragOver={handleMainDragOver}
-      onDrop={handlePageDrop}
-      className="w-full min-h-screen bg-white pb-24"
-    >
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 pt-5 pb-3">
-        <div className="flex items-center justify-end space-x-2.5">
-          {isGlobalEditing && (
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500 pb-32 h-full flex flex-col">
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-neutral-900 text-white px-6 py-3 rounded-full shadow-2xl font-medium text-sm z-50 animate-in slide-in-from-bottom-5">
+          {toastMessage}
+        </div>
+      )}
+
+      {/* Header Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <h1 className="text-3xl font-extrabold text-neutral-900 tracking-tight">
+          Resources Dashboard
+        </h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <SearchPill value={globalSearch} onChange={setGlobalSearch} />
+          {isEditing && selectedIds.size > 0 && (
             <button
-              type="button"
-              disabled={selectedIds.size === 0}
-              onClick={handleDeleteAllSelected}
-              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors flex items-center space-x-1.5 ${
-                selectedIds.size > 0
-                  ? 'bg-red-700 hover:bg-red-800 text-white cursor-pointer shadow-xs'
-                  : 'bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed opacity-60'
-              }`}
+              onClick={handleDeleteSelected}
+              className="px-3.5 py-1.5 text-sm font-semibold rounded-md bg-red-700 text-white hover:bg-red-800 transition-colors"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-              <span>
-                Delete {selectedIds.size > 0 ? `(${selectedIds.size})` : ''}
-              </span>
+              Delete ({selectedIds.size})
             </button>
           )}
-
           <button
-            type="button"
-            onClick={toggleGlobalEdit}
-            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors cursor-pointer ${
-              isGlobalEditing
-                ? 'bg-neutral-900 text-white ring-2 ring-neutral-400'
-                : 'bg-[#374151] hover:bg-[#1f2937] text-white'
-            }`}
+            onClick={() => {
+              setIsEditing(!isEditing);
+              setSelectedIds(new Set());
+            }}
+            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${isEditing ? 'bg-neutral-900 text-white' : 'bg-neutral-200 text-neutral-800 hover:bg-neutral-300'}`}
           >
-            {isGlobalEditing ? 'Done' : 'Edit'}
+            {isEditing ? 'Done' : 'Edit'}
           </button>
-
           <button
-            type="button"
-            onClick={() => handleOpenAddModal()}
-            className="px-3.5 py-1.5 rounded-md text-sm font-semibold bg-[#374151] hover:bg-[#1f2937] text-white transition-colors cursor-pointer"
+            onClick={() => setIsAddModalOpen(true)}
+            className="px-3.5 py-1.5 rounded-md text-sm font-semibold bg-[#374151] hover:bg-[#1f2937] text-white"
           >
             Add Resource
           </button>
-
           <button
-            type="button"
-            onClick={() => handleOpenCreateFolderModal('General')}
-            className="px-3.5 py-1.5 rounded-md text-sm font-semibold bg-[#374151] hover:bg-[#1f2937] text-white transition-colors cursor-pointer"
+            onClick={() => setIsCreateFolderModalOpen(true)}
+            className="px-3.5 py-1.5 rounded-md text-sm font-semibold bg-[#374151] hover:bg-[#1f2937] text-white"
           >
             Create Folder
           </button>
-
-          <SearchPill value={globalSearch} onChange={setGlobalSearch} />
         </div>
       </div>
 
-      <main
-        onDragOver={handleMainDragOver}
-        onDragLeave={(e) => {
-          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-            setIsOverRemovalArea(false);
-          }
-        }}
-        onDrop={handlePageDrop}
-        className="max-w-[1600px] mx-auto px-4 sm:px-6 relative"
+      {/* Single Wrapping Grid layout */}
+      <div
+        className="bg-[#E8ECEF] rounded-md p-4 sm:p-5 relative flex-1"
+        ref={scrollContainerRef}
       >
-        {allCategorySections.map((categoryTitle) => (
-          <CategorySection
-            key={categoryTitle}
-            categoryTitle={categoryTitle}
-            resources={getFilteredCategoryResources(categoryTitle)}
-            allResources={resources}
-            isEditing={isCategoryEditing(categoryTitle)}
-            selectedIds={selectedIds}
-            activeDragSourceCategory={activeDragCategory}
-            activeDragResourceId={activeDragResourceId}
-            activeMultiDragResourceIds={
-              activeMultiDrag?.sourceCategory === categoryTitle
-                ? activeMultiDrag.resourceIds
-                : []
-            }
-            activeMultiDragHoveredCategory={
-              activeMultiDrag?.hoveredCategoryTitle
-            }
-            activeMultiDragCount={activeMultiDrag?.resourceIds.length || 0}
-            isOverRemovalArea={isOverRemovalArea}
-            onToggleEdit={() => toggleCategoryEdit(categoryTitle)}
-            onOpenAddModal={() => handleOpenAddModal(categoryTitle)}
-            onOpenCreateFolderModal={() =>
-              handleOpenCreateFolderModal(categoryTitle)
-            }
-            onToggleSelect={handleToggleSelect}
-            onSelectMultiple={handleSelectMultiple}
-            onUpdateSelectedIds={setSelectedIds}
-            onDeleteSelected={() =>
-              handleDeleteSelectedInCategory(categoryTitle)
-            }
-            onSelectResourceDetail={(res) =>
-              handleSelectResourceOrFolder(res, categoryTitle)
-            }
-            onReorderResources={handleReorderResources}
-            onDropIntoFolder={handleDropIntoFolder}
-            onStartDragCard={handleStartDragCard}
-            onEndDragCard={handleEndDragCard}
-            onStartMultiDrag={handleStartMultiDrag}
-            onMoveMultiDrag={handleMoveMultiDrag}
-            onEndMultiDrag={handleEndMultiDrag}
-            onDropOnCategory={handleDropOnCategory}
-            onRemoveFromCategory={handleRemoveFromCategory}
-            onDragOverSection={handleHoverSection}
-            onRenameResource={handleRenameResource}
-            multiDragHoveredFolderId={activeMultiDrag?.hoveredFolderId ?? null}
-          />
-        ))}
-      </main>
-
-      {activeMultiDrag && (
-        <div
-          data-testid="multi-drag-avatar"
-          style={{
-            position: 'fixed',
-            left: `${activeMultiDrag.currentX}px`,
-            top: `${activeMultiDrag.currentY}px`,
-            transform: 'translate(-50%, -50%)',
-            pointerEvents: 'none',
-            zIndex: 9999,
-          }}
-          className="select-none"
-        >
-          {activeMultiDrag.isOverRemoval ? (
-            <div
-              data-testid="drag-removal-symbol"
-              className="w-36 h-36 sm:w-40 sm:h-40 rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center justify-center bg-gradient-to-br from-red-600 via-red-700 to-red-900 text-white p-3 ring-4 ring-red-400 animate-pulse"
-            >
-              <svg
-                className="w-14 h-14 text-white drop-shadow-lg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-              <span className="mt-1 text-center text-xs font-bold uppercase tracking-wider text-red-100 drop-shadow-xs px-2 leading-tight">
-                {activeMultiDrag.resourceIds.length > 1
-                  ? `Remove ${activeMultiDrag.resourceIds.length} from Category`
-                  : 'Remove from Category'}
-              </span>
-            </div>
-          ) : (
-            <div className="relative pointer-events-none">
-              {activeMultiDrag.resourceIds.slice(1).map((rId, idx) => {
-                const res = resources.find((r) => r.id === rId);
-                const offset = Math.min((idx + 1) * 8, 48);
-                const rot = Math.min((idx + 1) * 3, 18);
-                return (
-                  <div
-                    key={rId}
-                    style={{
-                      position: 'absolute',
-                      top: `${offset}px`,
-                      left: `${offset}px`,
-                      transform: `rotate(${rot}deg)`,
-                    }}
-                    className="w-36 h-36 sm:w-40 sm:h-40 rounded-3xl overflow-hidden shadow-xl bg-gradient-to-br from-[#80131d] to-[#4a0a10] ring-2 ring-white/70 flex flex-col items-center justify-center p-3 text-center"
-                  >
-                    {res?.previewUrl && (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={res.previewUrl}
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-cover opacity-25 pointer-events-none"
-                      />
-                    )}
-                    <span className="text-white/90 font-bold text-xs sm:text-sm tracking-tight leading-snug line-clamp-2 px-2 z-10">
-                      {res?.name || 'Selected item'}
-                    </span>
-                  </div>
-                );
-              })}
-
-              <div className="relative w-36 h-36 sm:w-40 sm:h-40 rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-[#80131d] to-[#4a0a10] ring-4 ring-white/90 flex flex-col items-center justify-center p-3 text-center">
-                {resources.find((r) => r.id === activeMultiDrag.resourceIds[0])
-                  ?.previewUrl && (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={
-                      resources.find(
-                        (r) => r.id === activeMultiDrag.resourceIds[0],
-                      )?.previewUrl
-                    }
-                    alt=""
-                    className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none"
-                  />
-                )}
-                <span className="text-white font-bold text-base sm:text-lg tracking-tight leading-snug drop-shadow-md line-clamp-2 px-2 z-10">
-                  {resources.find(
-                    (r) => r.id === activeMultiDrag.resourceIds[0],
-                  )?.name || 'Selected items'}
-                </span>
-                {activeMultiDrag.hoveredCategoryTitle &&
-                activeMultiDrag.hoveredCategoryTitle !==
-                  activeMultiDrag.sourceCategory ? (
-                  <span className="mt-2 text-xs bg-white text-[#80131d] font-bold px-2.5 py-0.5 rounded-full shadow-md z-10 animate-bounce">
-                    + Add to {activeMultiDrag.hoveredCategoryTitle}
-                  </span>
-                ) : (
-                  <span className="mt-2 text-xs bg-black/70 text-white font-semibold px-2 py-0.5 rounded-full z-10 shadow-xs">
-                    {activeMultiDrag.resourceIds.length}{' '}
-                    {activeMultiDrag.resourceIds.length === 1
-                      ? 'item'
-                      : 'items'}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-neutral-900/95 backdrop-blur-xs text-white px-4 py-2.5 rounded-lg shadow-xl text-sm font-medium flex items-center space-x-2 border border-neutral-700 transition-all duration-300 animate-slide-up">
-          <svg
-            className="w-4 h-4 text-emerald-400 shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        {localOrderedResources.length === 0 ? (
+          <div className="py-10 text-center text-neutral-500 font-medium">
+            No resources match your criteria.
+          </div>
+        ) : (
+          <div
+            className="grid gap-4 items-end"
+            style={{
+              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+            }}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => handleDrop(e, undefined)}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
-      {/* FolderDirectoryModal renders FIRST so overlay modals appear on top */}
-      <FolderDirectoryModal
-        key={activeDirectoryFolder?.id || 'empty'}
-        folder={activeDirectoryFolder}
-        allResources={resources}
-        currentCategory={activeDirectoryCategory}
-        onClose={() => setActiveDirectoryFolder(null)}
-        onSelectResourceDetail={setDetailResource}
-        onCreateSubfolder={handleCreateSubfolder}
-        onAddResourceToFolder={handleAddResourceToFolderModal}
-        onMoveResourceToFolder={handleMoveResourceWithinDirectory}
-        onReorderInFolder={handleReorderInFolder}
-        onRenameResource={handleRenameResource}
-        /* Made with AI agents (Antigravity) */
-        onDropOnCategory={(ids, cat) => {
-          const catToRemove = cat ? null : activeDirectoryCategory;
-
-          const updated = resources.map((r) => {
-            if (ids.includes(r.id)) {
-              let newCats = [...r.categories];
-              let shouldClearParentId = false;
-
-              if (cat) {
-                if (newCats.includes(cat)) {
-                  // Dropped onto a category it already has -> pull it out to the main view
-                  shouldClearParentId = true;
-                } else {
-                  // Dropped onto a new category -> add category, keep it in original folder
-                  newCats.push(cat);
-                  shouldClearParentId = false;
+            {localOrderedResources.map((resource) => (
+              <ResourceCard
+                key={resource.id}
+                resource={resource}
+                isEditing={isEditing}
+                isSelected={selectedIds.has(resource.id)}
+                canReorder={isEditing && selectedIds.size === 0}
+                canDrag={selectedIds.size === 0}
+                isDraggingThisCard={
+                  draggedCardId === resource.id ||
+                  externalPointerDraggedIds.includes(resource.id)
                 }
-              } else {
-                // Dropped into void -> remove from current category and pull it out
-                if (catToRemove) {
-                  newCats = newCats.filter((c) => c !== catToRemove);
+                showRemovalSymbol={false}
+                isFolderDropTarget={hoverFolderDropTargetId === resource.id}
+                itemCount={
+                  resource.type === 'folder'
+                    ? getDescendantResourceIds(resources, resource.id).length
+                    : undefined
                 }
-                shouldClearParentId = true;
-              }
-
-              return {
-                ...r,
-                categories: newCats,
-                parentId: shouldClearParentId ? undefined : r.parentId,
-              };
-            }
-            return r;
-          });
-
-          updateResources(updated);
-
-          if (cat) {
-            showToast(`Moved ${ids.length} item(s) to ${cat}`);
-          } else {
-            showToast(`Removed ${ids.length} item(s) from current category`);
-          }
-        }}
-        onDeleteResources={(ids) => {
-          const idsToDelete = new Set(ids);
-          const updated = resources.filter((r) => !idsToDelete.has(r.id));
-          updateResources(updated);
-          showToast(`Deleted ${ids.length} item(s)`);
-        }}
-      />
+                onToggleSelect={() => {
+                  if (!justFinishedSweepRef.current)
+                    handleToggleSelect(resource.id);
+                }}
+                onRoundButtonPointerDown={(e) =>
+                  handleSweepPointerDown(e.clientX, e.clientY, resource.id)
+                }
+                onRoundButtonClick={() => {
+                  if (!justFinishedSweepRef.current)
+                    handleToggleSelect(resource.id);
+                }}
+                onCardPointerDown={(e) => handleCardPointerDown(e, resource.id)}
+                onClick={(res) => {
+                  if (res.type === 'folder')
+                    setActiveDirectoryFolder(res as FolderResource);
+                  else setDetailResource(res);
+                }}
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
+                onDragEnd={handleDragEnd}
+                onDrop={handleDrop}
+                onRename={handleRenameResource}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       <AddResourceModal
         isOpen={isAddModalOpen}
-        preselectedCategory={preselectedCategory}
-        preselectedFolderId={preselectedFolderId}
         onClose={() => setIsAddModalOpen(false)}
         onAddResource={handleAddResource}
       />
@@ -1249,16 +523,120 @@ export function ResourcesPageContent() {
         }
         onClose={() => setDetailResource(null)}
         onRename={handleRenameResource}
+        onCategoriesChange={handleCategoriesChange}
       />
 
-      <FolderRemovalConfirmModal
-        isOpen={Boolean(pendingFolderRemoval)}
-        folderName={pendingFolderRemoval?.folder.name || ''}
-        categoryTitle={pendingFolderRemoval?.categoryTitle || ''}
-        onConfirmCascade={handleConfirmCascadeFolderRemoval}
-        onConfirmKeepInTopLevel={handleConfirmKeepFolderContentsInTopLevel}
-        onCancel={() => setPendingFolderRemoval(null)}
-      />
+      {activeDirectoryFolder && (
+        <FolderDirectoryModal
+          folder={activeDirectoryFolder}
+          allResources={resources}
+          currentCategory="Global"
+          onClose={() => setActiveDirectoryFolder(null)}
+          onSelectResourceDetail={setDetailResource}
+          onCreateSubfolder={(name, _parentId) => {
+            const folder = createFolder(name, []);
+            updateResources([...resources, { ...folder, parentId: _parentId }]);
+          }}
+          onAddResourceToFolder={() => {
+            setIsAddModalOpen(true);
+          }}
+          onMoveResourceToFolder={(ids, targetFolderId) => {
+            droppedInFolderRef.current = true;
+            dragDroppedSuccessfullyRef.current = true;
+            setDraggedCardId(null);
+            draggedCardIdRef.current = null;
+            setIsEditing(false);
+            const updated = resources.map((r) =>
+              ids.includes(r.id)
+                ? { ...r, parentId: targetFolderId || undefined }
+                : r,
+            );
+            updateResources(updated);
+            showToast(`Moved ${ids.length} item(s)`);
+          }}
+          onReorderInFolder={(orderedChildren) => {
+            droppedInFolderRef.current = true;
+            const orderedIds = new Set(orderedChildren.map((r) => r.id));
+            const otherResources = resources.filter(
+              (r) => !orderedIds.has(r.id),
+            );
+            updateResources([...otherResources, ...orderedChildren]);
+          }}
+          onRenameResource={handleRenameResource}
+          onDeleteResources={(ids) => {
+            const idsToDelete = new Set(ids);
+            const updated = resources.filter((r) => !idsToDelete.has(r.id));
+            updateResources(updated);
+            showToast(
+              `Deleted ${ids.length} item${ids.length === 1 ? '' : 's'}`,
+            );
+          }}
+          onDropOnMainPage={(ids, targetId) => {
+            let updated = resources.map((r) =>
+              ids.includes(r.id) ? { ...r, parentId: null } : r,
+            );
+
+            const hasInjected = ids.some((id) =>
+              localOrderedRef.current.some((lr) => lr.id === id),
+            );
+            if (hasInjected) {
+              const reorderedIds = new Set(
+                localOrderedRef.current.map((r) => r.id),
+              );
+              const otherResources = updated.filter(
+                (r) => !reorderedIds.has(r.id),
+              );
+              const finalOrdered = localOrderedRef.current
+                .map((lr) => updated.find((u) => u.id === lr.id) || lr)
+                .filter(Boolean) as Resource[];
+              updated = [...otherResources, ...finalOrdered];
+            } else if (targetId) {
+              const targetResource = resources.find((r) => r.id === targetId);
+              if (targetResource?.type === 'folder') {
+                updated = [
+                  ...resources.filter((r) => !ids.includes(r.id)),
+                  ...(ids
+                    .map((id) => {
+                      const r = resources.find((x) => x.id === id);
+                      return r ? { ...r, parentId: targetId } : null;
+                    })
+                    .filter(Boolean) as Resource[]),
+                ];
+                updateResources(updated);
+                showToast(`Moved ${ids.length} item(s) to folder`);
+                return;
+              }
+
+              const reorderedIds = new Set(
+                localOrderedRef.current.map((r) => r.id),
+              );
+              const otherResources = updated.filter(
+                (r) => !reorderedIds.has(r.id),
+              );
+              let newLocalOrdered = [...localOrderedRef.current];
+              newLocalOrdered = newLocalOrdered.filter(
+                (r) => !ids.includes(r.id),
+              );
+              const targetIndex = newLocalOrdered.findIndex(
+                (r) => r.id === targetId,
+              );
+              if (targetIndex !== -1) {
+                const itemsToInsert = updated.filter((r) => ids.includes(r.id));
+                newLocalOrdered.splice(targetIndex, 0, ...itemsToInsert);
+              } else {
+                const itemsToInsert = updated.filter((r) => ids.includes(r.id));
+                newLocalOrdered.push(...itemsToInsert);
+              }
+              updated = [...otherResources, ...newLocalOrdered];
+            }
+            updateResources(updated);
+            showToast(`Moved ${ids.length} item(s) to main dashboard`);
+          }}
+          onCategoriesChange={handleCategoriesChange}
+          externalDraggedId={draggedCardId}
+          onPointerHoverMainPage={handlePointerHoverMainPage}
+        />
+      )}
 
       {isCreateFolderModalOpen && (
         <div
@@ -1289,11 +667,10 @@ export function ResourcesPageContent() {
                 id="create-folder-title"
                 className="text-lg font-bold text-neutral-900"
               >
-                New Folder in {createFolderCategory}
+                New Folder
               </h3>
             </div>
-
-            <form onSubmit={handleCreateTopLevelFolder} className="space-y-4">
+            <form onSubmit={handleCreateFolderSubmit} className="space-y-4">
               <div>
                 <label
                   htmlFor="new-folder-name"
@@ -1312,7 +689,6 @@ export function ResourcesPageContent() {
                   className="w-full text-sm bg-neutral-50 border border-neutral-300 rounded-lg px-3 py-2 text-neutral-900 focus:outline-hidden focus:ring-2 focus:ring-[#80131d]"
                 />
               </div>
-
               <div className="flex justify-end space-x-2">
                 <button
                   type="button"

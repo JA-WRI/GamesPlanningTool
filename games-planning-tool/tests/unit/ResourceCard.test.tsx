@@ -6,224 +6,184 @@ import { ResourceCard } from '@/components/resources/ResourceCard';
 import { Resource } from '@/types/resource';
 
 describe('ResourceCard', () => {
-  const dummyResource: Resource = {
-    id: 'res-1',
-    name: 'Sample Guide',
-    type: 'link',
-    URL: 'https://example.com',
-    categories: ['Winter Games'],
+  const mockFile: Resource = {
+    id: 'file-1',
+    name: 'My File',
+    type: 'file',
+    fileUrl: 'test',
+    categories: ['General'],
+  };
+
+  const folderResource: Resource = {
+    id: 'folder-1',
+    name: 'My Folder',
+    type: 'folder',
+    categories: [],
   };
 
   const defaultProps = {
-    resource: dummyResource,
+    resource: mockFile,
     isEditing: false,
     isSelected: false,
     canReorder: false,
     isDraggingThisCard: false,
-    onToggleSelect: vi.fn(),
-    onRoundButtonPointerDown: vi.fn(),
-    onRoundButtonClick: vi.fn(),
-    onCardPointerDown: vi.fn(),
     onClick: vi.fn(),
+    onToggleSelect: vi.fn(),
+    onRoundButtonClick: vi.fn(),
+    onRoundButtonPointerDown: vi.fn(),
+    onCardPointerDown: vi.fn(),
+    onRename: vi.fn(),
+    onDragStart: vi.fn(),
+    onDragOver: vi.fn(),
+    onDragEnd: vi.fn(),
+    onDrop: vi.fn(),
   };
 
-  it('renders resource name and calls onClick when not in edit mode', () => {
-    const handleClick = vi.fn();
-    render(<ResourceCard {...defaultProps} onClick={handleClick} />);
-
-    expect(screen.getByText('Sample Guide')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Sample Guide'));
-    expect(handleClick).toHaveBeenCalledWith(dummyResource);
+  it('renders a file resource correctly', () => {
+    render(<ResourceCard {...defaultProps} />);
+    expect(screen.getByText('My File')).toBeInTheDocument();
   });
 
-  it('toggles selection on card click when in edit mode', () => {
-    const handleToggle = vi.fn();
-    render(
-      <ResourceCard
-        {...defaultProps}
-        isEditing={true}
-        onToggleSelect={handleToggle}
-      />,
-    );
-
-    fireEvent.click(screen.getByText('Sample Guide'));
-    expect(handleToggle).toHaveBeenCalledWith('res-1');
-  });
-
-  it('handles round selection button click and pointerdown in edit mode', () => {
-    const handleRoundClick = vi.fn();
-    const handleRoundPointer = vi.fn();
-
-    render(
-      <ResourceCard
-        {...defaultProps}
-        isEditing={true}
-        isSelected={false}
-        onRoundButtonClick={handleRoundClick}
-        onRoundButtonPointerDown={handleRoundPointer}
-      />,
-    );
-
-    const selectBtn = screen.getByRole('button', { name: 'Select resource' });
-    fireEvent.pointerDown(selectBtn);
-    expect(handleRoundPointer).toHaveBeenCalledWith(expect.anything(), 'res-1');
-
-    // trigger pointer up on window to hit the event listener
-    fireEvent.pointerUp(window);
-
-    fireEvent.click(selectBtn);
-    expect(handleRoundClick).toHaveBeenCalledWith('res-1');
-  });
-
-  it('renders checkmark when card is selected', () => {
-    render(
-      <ResourceCard {...defaultProps} isEditing={true} isSelected={true} />,
-    );
-
-    expect(
-      screen.getByRole('button', { name: 'Deselect resource' }),
-    ).toBeInTheDocument();
-  });
-
-  it('renders removal symbol when dragged over removal area', () => {
-    render(
-      <ResourceCard
-        {...defaultProps}
-        isEditing={true}
-        isDraggingThisCard={true}
-        showRemovalSymbol={true}
-      />,
-    );
-
-    expect(screen.getByTestId('drag-removal-symbol')).toBeInTheDocument();
-    expect(screen.getByText('Remove from Category')).toBeInTheDocument();
-  });
-
-  it('dispatches drag and pointer events when draggable', () => {
-    const handleDragStart = vi.fn();
-    const handleDragEnd = vi.fn();
-    const handleDragOver = vi.fn();
-    const handleDrop = vi.fn();
-    const handleCardPointerDown = vi.fn();
-
-    render(
-      <ResourceCard
-        {...defaultProps}
-        isEditing={true}
-        canReorder={true}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        onCardPointerDown={handleCardPointerDown}
-      />,
-    );
-
-    const card = screen
-      .getByText('Sample Guide')
-      .closest('[data-resource-id]')!;
-    fireEvent.pointerDown(card);
-    expect(handleCardPointerDown).toHaveBeenCalledWith(
-      expect.anything(),
-      'res-1',
-    );
-
-    fireEvent.dragStart(card);
-    expect(handleDragStart).toHaveBeenCalledWith(expect.anything(), 'res-1');
-
-    fireEvent.dragOver(card);
-    expect(handleDragOver).toHaveBeenCalledWith(expect.anything(), 'res-1');
-
-    fireEvent.drop(card);
-    expect(handleDrop).toHaveBeenCalledWith(expect.anything(), 'res-1');
-
-    fireEvent.dragEnd(card);
-    expect(handleDragEnd).toHaveBeenCalled();
-  });
-
-  it('renders a folder and allows double-click rename', () => {
-    const folderResource: Resource = {
-      id: 'folder-1',
-      name: 'Old Folder',
-      type: 'folder',
-      categories: ['Winter Games'],
-    };
-
-    const handleRename = vi.fn();
-
+  it('renders a folder resource', () => {
     render(
       <ResourceCard
         {...defaultProps}
         resource={folderResource}
-        onRename={handleRename}
+        itemCount={5}
       />,
     );
+    expect(screen.getByText('My Folder')).toBeInTheDocument();
+  });
+
+  it('handles click events and double click to rename', () => {
+    render(<ResourceCard {...defaultProps} />);
+
+    // Normal click
+    fireEvent.click(screen.getByText('My File'));
+    expect(defaultProps.onClick).toHaveBeenCalledWith(mockFile);
 
     // Double click to rename
-    const title = screen.getByText('Old Folder');
-    fireEvent.doubleClick(title);
+    fireEvent.doubleClick(screen.getByText('My File'));
+    const input = screen.getByDisplayValue('My File');
+    expect(input).toBeInTheDocument();
 
-    const input = screen.getByDisplayValue('Old Folder');
-    fireEvent.change(input, { target: { value: 'New Folder' } });
-    fireEvent.blur(input);
-
-    expect(handleRename).toHaveBeenCalledWith('folder-1', 'New Folder');
-
-    // Test escape to cancel
-    fireEvent.doubleClick(screen.getByText('Old Folder'));
-    const input2 = screen.getByDisplayValue('Old Folder');
-    fireEvent.keyDown(input2, { key: 'Escape' });
-
-    // Input should be gone
-    expect(screen.queryByDisplayValue('Old Folder')).not.toBeInTheDocument();
+    // Change and save
+    fireEvent.change(input, { target: { value: 'New File Name' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(defaultProps.onRename).toHaveBeenCalledWith(
+      mockFile.id,
+      'New File Name',
+    );
   });
 
-  it('renders a folder round button when in edit mode', () => {
-    const folderResource: Resource = {
-      id: 'folder-1',
-      name: 'Old Folder',
-      type: 'folder',
-      categories: ['Winter Games'],
-    };
+  it('handles rename cancellation', () => {
+    render(<ResourceCard {...defaultProps} />);
+    fireEvent.doubleClick(screen.getByText('My File'));
+    const input = screen.getByDisplayValue('My File');
+    fireEvent.change(input, { target: { value: 'New File Name' } });
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(screen.queryByDisplayValue('New File Name')).not.toBeInTheDocument();
+  });
 
-    const handleRoundPointer = vi.fn();
+  it('shows selection indicator when isEditing is true', () => {
+    render(<ResourceCard {...defaultProps} isEditing={true} />);
+    const indicator = screen.getByRole('button', { name: 'Select resource' });
+    fireEvent.click(indicator);
+    expect(defaultProps.onRoundButtonClick).toHaveBeenCalledWith(mockFile.id);
+  });
+
+  it('shows removal symbol when showRemovalSymbol is true', () => {
+    render(
+      <ResourceCard
+        {...defaultProps}
+        showRemovalSymbol={true}
+        isDraggingThisCard={true}
+      />,
+    );
+    expect(screen.getByTestId('drag-removal-symbol')).toBeInTheDocument();
+  });
+
+  it('handles drag events', () => {
+    render(<ResourceCard {...defaultProps} canDrag={true} />);
+    const card = screen.getByRole('button', { name: 'My File' });
+
+    fireEvent.dragStart(card);
+    expect(defaultProps.onDragStart).toHaveBeenCalled();
+
+    fireEvent.dragOver(card);
+    expect(defaultProps.onDragOver).toHaveBeenCalled();
+
+    fireEvent.drop(card);
+    expect(defaultProps.onDrop).toHaveBeenCalled();
+
+    fireEvent.dragEnd(card);
+    expect(defaultProps.onDragEnd).toHaveBeenCalled();
+  });
+
+  it('does not allow drag when isCardDraggable is false', () => {
+    render(
+      <ResourceCard {...defaultProps} canDrag={false} canReorder={false} />,
+    );
+    const card = screen.getByRole('button', { name: 'My File' });
+    fireEvent.dragStart(card);
+    // onDragStart shouldn't be called because isCardDraggable is false
+    expect(defaultProps.onDragStart).not.toHaveBeenCalled();
+  });
+
+  it('renders link resource preview logic', () => {
+    const linkResource: Resource = {
+      id: 'link-1',
+      name: 'My Link',
+      type: 'link',
+      URL: 'example.com',
+      categories: [],
+    };
+    render(<ResourceCard {...defaultProps} resource={linkResource} />);
+    expect(screen.getByText('My Link')).toBeInTheDocument();
+  });
+
+  it('handles double click to rename a folder resource', () => {
+    render(<ResourceCard {...defaultProps} resource={folderResource} />);
+    fireEvent.doubleClick(screen.getByText('My Folder'));
+    const input = screen.getByDisplayValue('My Folder');
+    fireEvent.change(input, { target: { value: 'Renamed Folder' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(defaultProps.onRename).toHaveBeenCalledWith(
+      'folder-1',
+      'Renamed Folder',
+    );
+  });
+
+  it('handles selection indicator and round button pointer events in folder mode', () => {
     render(
       <ResourceCard
         {...defaultProps}
         resource={folderResource}
         isEditing={true}
-        onRoundButtonPointerDown={handleRoundPointer}
+        isSelected={true}
+        canReorder={true}
       />,
     );
-
-    const selectBtn = screen.getByRole('button', { name: 'Select resource' });
-    fireEvent.pointerDown(selectBtn);
-    expect(handleRoundPointer).toHaveBeenCalledWith(
-      expect.anything(),
-      'folder-1',
-    );
+    const deselectBtn = screen.getByRole('button', {
+      name: 'Deselect resource',
+    });
+    fireEvent.pointerDown(deselectBtn, { clientX: 10, clientY: 10 });
+    window.dispatchEvent(new PointerEvent('pointerup'));
+    fireEvent.click(deselectBtn);
+    expect(defaultProps.onRoundButtonClick).toHaveBeenCalledWith('folder-1');
   });
 
-  it('allows double-click rename on file resource', () => {
-    const handleRename = vi.fn();
-    render(
-      <ResourceCard
-        resource={defaultProps.resource}
-        isSelected={false}
-        isEditing={false}
-        onToggleSelect={vi.fn()}
-        onClick={vi.fn()}
-        onRename={handleRename}
-      />,
-    );
+  it('handles image error fallback', () => {
+    render(<ResourceCard {...defaultProps} />);
+    const img = document.querySelector('img')!;
+    fireEvent.error(img);
+    expect(img.style.display).toBe('none');
+  });
 
-    const nameSpan = screen.getByText('Sample Guide');
-    fireEvent.doubleClick(nameSpan);
-
-    const input = screen.getByDisplayValue('Sample Guide');
-    fireEvent.change(input, { target: { value: 'Updated Guide' } });
-    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
-
-    expect(handleRename).toHaveBeenCalledWith('res-1', 'Updated Guide');
+  it('triggers click on Enter key press', () => {
+    render(<ResourceCard {...defaultProps} />);
+    const card = screen.getByRole('button', { name: 'My File' });
+    fireEvent.keyDown(card, { key: 'Enter' });
+    expect(defaultProps.onClick).toHaveBeenCalled();
   });
 });

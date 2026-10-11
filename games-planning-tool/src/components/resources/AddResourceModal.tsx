@@ -1,7 +1,6 @@
 // Made with AI agents (Antigravity)
 'use client';
 
-/* eslint-disable @next/next/no-img-element */
 import React, { useState, useRef } from 'react';
 import {
   Resource,
@@ -19,33 +18,6 @@ interface AddResourceModalProps {
   onAddResource: (newResource: Resource) => void;
 }
 
-const SAMPLE_LINK_PREVIEWS = [
-  {
-    label: 'Olympic Winter Venue',
-    url: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    label: 'Olympic Stadium Track',
-    url: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    label: 'Mountain Snowboard/Ski',
-    url: 'https://images.unsplash.com/photo-1522056615691-da7b8106829f?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    label: 'Aquatics Swimming Pool',
-    url: 'https://images.unsplash.com/photo-1519315901367-f34ff9154487?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    label: 'Ice Hockey Arena',
-    url: 'https://images.unsplash.com/photo-1580748141549-71748dbe0bdc?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    label: 'Official Documents / COC',
-    url: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=600&q=80',
-  },
-];
-
 function AddResourceForm({
   preselectedCategory,
   preselectedFolderId,
@@ -62,9 +34,6 @@ function AddResourceForm({
   const [urlInput, setUrlInput] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreviewUrl, setFilePreviewUrl] = useState<string>('');
-  const [customPreviewUrl, setCustomPreviewUrl] = useState(
-    SAMPLE_LINK_PREVIEWS[0].url,
-  );
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     preselectedCategory ? [preselectedCategory] : [],
   );
@@ -82,7 +51,7 @@ function AddResourceForm({
     );
   };
 
-  const handleFileChange = (file: File) => {
+  const handleFileChange = async (file: File) => {
     setSelectedFile(file);
     if (!resourceName.trim()) {
       const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
@@ -92,18 +61,55 @@ function AddResourceForm({
     if (file.type.startsWith('image/')) {
       const objectUrl = URL.createObjectURL(file);
       setFilePreviewUrl(objectUrl);
-    } else if (file.type.includes('pdf')) {
-      setFilePreviewUrl(
-        'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=600&q=80',
-      );
-    } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.csv')) {
-      setFilePreviewUrl(
-        'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=600&q=80',
-      );
+    } else if (
+      file.type.startsWith('text/') ||
+      file.name.endsWith('.csv') ||
+      file.name.endsWith('.md')
+    ) {
+      try {
+        const text = await file.slice(0, 1000).text();
+        const canvas = document.createElement('canvas');
+        canvas.width = 400;
+        canvas.height = 400;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, 400, 400);
+          ctx.fillStyle = '#333333';
+          ctx.font = '14px monospace';
+          const lines = text.split('\n');
+          for (let i = 0; i < Math.min(lines.length, 25); i++) {
+            ctx.fillText(lines[i].substring(0, 60), 10, 20 + i * 16);
+          }
+          setFilePreviewUrl(canvas.toDataURL('image/jpeg', 0.8));
+        }
+      } catch (e) {
+        console.error('Failed to generate text preview', e);
+      }
     } else {
-      setFilePreviewUrl(
-        'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=600&q=80',
-      );
+      // Fallback for PDF, Word, Excel, etc. Create a document thumbnail
+      const canvas = document.createElement('canvas');
+      canvas.width = 400;
+      canvas.height = 400;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, 400, 400);
+
+        ctx.fillStyle = '#80131d';
+        ctx.font = 'bold 48px sans-serif';
+        ctx.textAlign = 'center';
+        const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
+        ctx.fillText(ext, 200, 180);
+
+        ctx.fillStyle = '#495057';
+        ctx.font = '24px sans-serif';
+        const name =
+          file.name.substring(0, 25) + (file.name.length > 25 ? '...' : '');
+        ctx.fillText(name, 200, 240);
+
+        setFilePreviewUrl(canvas.toDataURL('image/jpeg', 0.8));
+      }
     }
   };
 
@@ -139,7 +145,7 @@ function AddResourceForm({
         type: 'link',
         URL: formattedUrl,
         categories: finalCategories,
-        previewUrl: customPreviewUrl || SAMPLE_LINK_PREVIEWS[0].url,
+        previewUrl: `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(formattedUrl)}&sz=128`,
         parentId: preselectedFolderId,
         createdAt: nowIso,
         order: Date.now(),
@@ -164,9 +170,7 @@ function AddResourceForm({
           lastModified: selectedFile.lastModified,
         },
         fileUrl: filePreviewUrl || '#',
-        previewUrl:
-          filePreviewUrl ||
-          'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=600&q=80',
+        previewUrl: filePreviewUrl || '',
         categories: finalCategories,
         parentId: preselectedFolderId,
         createdAt: nowIso,
@@ -329,47 +333,6 @@ function AddResourceForm({
                 className="w-full px-4 py-2.5 text-sm bg-neutral-50 border border-neutral-300 rounded-xl focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#80131d]/30 focus:border-[#80131d] transition-all"
               />
             </div>
-
-            <div>
-              <span className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1.5">
-                Card Background Preview Image
-              </span>
-              <p className="text-[11px] text-neutral-500 mb-2">
-                Select a theme preview or enter an image URL:
-              </p>
-              <div className="grid grid-cols-3 gap-2 mb-2">
-                {SAMPLE_LINK_PREVIEWS.map((p) => (
-                  <button
-                    key={p.url}
-                    type="button"
-                    onClick={() => setCustomPreviewUrl(p.url)}
-                    className={`relative h-14 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
-                      customPreviewUrl === p.url
-                        ? 'border-[#80131d] ring-2 ring-[#80131d]/30'
-                        : 'border-transparent opacity-70 hover:opacity-100'
-                    }`}
-                  >
-                    <img
-                      src={p.url}
-                      alt={p.label}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/40 flex items-end p-1">
-                      <span className="text-[9px] text-white font-medium truncate">
-                        {p.label}
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-              <input
-                type="url"
-                value={customPreviewUrl}
-                onChange={(e) => setCustomPreviewUrl(e.target.value)}
-                placeholder="Or paste custom image URL..."
-                className="w-full px-3 py-1.5 text-xs bg-neutral-50 border border-neutral-300 rounded-lg focus:bg-white"
-              />
-            </div>
           </div>
         ) : (
           <div className="space-y-3">
@@ -388,7 +351,7 @@ function AddResourceForm({
                 e.preventDefault();
                 setIsDraggingFile(false);
                 if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                  handleFileChange(e.dataTransfer.files[0]);
+                  void handleFileChange(e.dataTransfer.files[0]);
                 }
               }}
               className={`block border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
@@ -405,7 +368,7 @@ function AddResourceForm({
                 type="file"
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
-                    handleFileChange(e.target.files[0]);
+                    void handleFileChange(e.target.files[0]);
                   }
                 }}
                 className="hidden"
@@ -568,7 +531,7 @@ export function AddResourceModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in overflow-y-auto"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in overflow-y-auto"
     >
       <AddResourceForm
         preselectedCategory={preselectedCategory}
