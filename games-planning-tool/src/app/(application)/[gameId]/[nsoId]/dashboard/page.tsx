@@ -113,7 +113,6 @@ export default function Page() {
             {progress}%
           </progress>
 
-
           {/* static */}
           <p className="mt-3 text-xs text-slate-500">
             12 tasks completed · 3 pending review
@@ -132,9 +131,7 @@ export default function Page() {
           </span>
 
           <div>
-            <h2 className="text-sm font-semibold">
-              {actions.length} Actions
-            </h2>
+            <h2 className="text-sm font-semibold">{actions.length} Actions</h2>
             <p className="text-[10px] tracking-[0.14em] text-white/80">
               REQUIRED
             </p>
@@ -156,9 +153,7 @@ export default function Page() {
             <h2 className="text-sm font-semibold">
               {deadlines.length} Deadlines
             </h2>
-            <p className="text-[10px] tracking-[0.14em] text-white/60">
-              AHEAD
-            </p>
+            <p className="text-[10px] tracking-[0.14em] text-white/60">AHEAD</p>
           </div>
 
           <span
@@ -272,7 +267,6 @@ export default function Page() {
             ))}
           </ul>
         </section>
-        
       </div>
       {/* Resources */}
       <section
@@ -288,7 +282,8 @@ export default function Page() {
 
         {/* static */}
         <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-500">
-          This is a placeholder for the resources section until the global version is coded.
+          This is a placeholder for the resources section until the global
+          version is coded.
         </p>
       </section>
     </div>
