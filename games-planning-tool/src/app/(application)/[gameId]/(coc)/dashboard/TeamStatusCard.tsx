@@ -32,9 +32,11 @@ export default function TeamStatusCard({
           className="h-20 w-28 shrink-0 object-contain"
         />
 
-        <div className="flex flex-1 justify-between gap-4">
+        <div className="flex flex-1 gap-4">
           {columns.map((col) => (
-            <StatusColumn key={col.title} {...col} />
+            <div key={col.title} className="min-w-0 flex-1">
+              <StatusColumn {...col} />
+            </div>
           ))}
         </div>
       </div>

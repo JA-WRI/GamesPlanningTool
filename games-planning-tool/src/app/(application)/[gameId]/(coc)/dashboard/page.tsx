@@ -74,7 +74,7 @@ export default function Home() {
 
   return (
     <main className="pt-2 ml-6 mr-6">
-      <h1 className="text-3xl">NSOs Progress Overview</h1>
+      <h1 className="font-sans text-3xl">Completion by step</h1>
       <div className="flex items-start gap-4 w-full">
         <div
           className="min-w-0 flex justify-center gap-20 mt-3 drop-shadow-xl rounded-3xl bg-[#F8F8F8] py-4 shadow-[0_8px_30px_rgba(0,0,0,0.06)] ${
@@ -109,9 +109,9 @@ export default function Home() {
       </div>
       {/* NSOs */}
       <div className="mt-8 rounded-3xl bg-[#F8F8F8] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
-        {/* Header row (title, search bar and filter) */}
+        {/* Header row (title, search bar and future filter) */}
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-3xl">NSOs</h1>
+          <h1 className="text-3xl">NSOs Progress Overview</h1>
           {/* Search bar */}
           <div className="my-4 w-70">
             <SearchBar
@@ -126,7 +126,22 @@ export default function Home() {
         <div className="mt-2 flex items-center justify-between mr-10">
           <ChartLegend items={statusLegendItems} />
         </div>
+        {/* Column headers */}
+        <div className="flex items-center gap-x-10 px-6 mt-4">
+          <div className="w-28 shrink-0" />
 
+          {/* Column titles */}
+          <div className="flex flex-1 justify-between gap-4">
+            {teams[0].columns.map((col) => (
+              <div
+                key={col.title}
+                className="flex-1 text-center text-sm font-semibold text-gray-600"
+              >
+                {col.title}
+              </div>
+            ))}
+          </div>
+        </div>
         <div className="flex flex-col gap-4 my-4">
           {/* Team cards */}
           {filteredTeams.map((team) => (

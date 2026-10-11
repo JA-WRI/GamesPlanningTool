@@ -16,7 +16,6 @@ export default function StatusColumn({
 }: StatusColumnProps) {
   return (
     <div className="flex flex-col items-center gap-4">
-      <Tag label={title} color="maroon" />
       <Tag label={status} color={statusColor[status]} />
       <Link href={href} className="text-sm underline text-black">
         View Detail
