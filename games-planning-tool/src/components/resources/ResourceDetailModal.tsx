@@ -3,21 +3,25 @@
 
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Resource } from '@/types/resource';
+import { Resource, FileResource } from '@/types/resource';
+import { CategoryEditor } from './CategoryEditor';
 
 interface ResourceDetailModalProps {
   resource: Resource | null;
   onClose: () => void;
   onRename?: (id: string, newName: string) => void;
+  onCategoriesChange?: (id: string, newCategories: string[]) => void;
 }
 
 export function ResourceDetailModal({
   resource,
   onClose,
   onRename,
+  onCategoriesChange,
 }: ResourceDetailModalProps) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editNameValue, setEditNameValue] = useState('');
+  const [isEditingCategories, setIsEditingCategories] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -44,7 +48,7 @@ export function ResourceDetailModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="detail-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
     >
       <button
         type="button"
@@ -53,15 +57,15 @@ export function ResourceDetailModal({
         className="fixed inset-0 bg-black/60 backdrop-blur-xs animate-in fade-in cursor-default border-none"
         onClick={onClose}
       />
-      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden z-10">
-        <div className="relative h-48 w-full overflow-hidden bg-neutral-900">
+      <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-neutral-200 z-10">
+        <div className="relative h-48 w-full overflow-hidden bg-neutral-900 shrink-0">
           <img
             src={
               resource.previewUrl ||
               'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&fit=crop&w=600&q=80'
             }
             alt={resource.name}
-            className="w-full h-full object-cover"
+            className={`w-full h-full ${resource.type === 'link' ? 'object-contain p-12 bg-white' : 'object-cover'}`}
           />
           <div className="absolute inset-0 bg-[#80131d]/75 flex items-center justify-center p-6 text-center">
             {isEditingName ? (
@@ -114,19 +118,51 @@ export function ResourceDetailModal({
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-neutral-100 text-neutral-800 border border-neutral-300">
-              {isLink ? 'External Link' : 'Document File'}
-            </span>
-            {resource.categories.map((cat) => (
-              <span
-                key={cat}
-                className="px-2.5 py-1 rounded-md text-xs font-medium bg-red-50 text-[#80131d] border border-red-200"
-              >
-                {cat}
+        <div className="p-6 space-y-6">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
+                Categories
               </span>
-            ))}
+              {onCategoriesChange && (
+                <button
+                  type="button"
+                  onClick={() => setIsEditingCategories(!isEditingCategories)}
+                  className="text-xs font-semibold text-[#80131d] hover:underline"
+                >
+                  {isEditingCategories ? 'Done' : 'Edit Categories'}
+                </button>
+              )}
+            </div>
+            {isEditingCategories ? (
+              <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-xl">
+                <CategoryEditor
+                  selectedCategories={resource.categories}
+                  onChange={(newCats) =>
+                    onCategoriesChange?.(resource.id, newCats)
+                  }
+                />
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2 items-center">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-neutral-100 text-neutral-800 border border-neutral-300">
+                  {isLink ? 'External Link' : 'Document File'}
+                </span>
+                {resource.categories.map((cat) => (
+                  <span
+                    key={cat}
+                    className="px-2.5 py-1 rounded-md text-xs font-medium bg-red-50 text-[#80131d] border border-red-200"
+                  >
+                    {cat}
+                  </span>
+                ))}
+                {resource.categories.length === 0 && (
+                  <span className="text-sm text-neutral-400 italic">
+                    No categories
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {isLink ? (
@@ -143,26 +179,30 @@ export function ResourceDetailModal({
               <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
                 File Details
               </span>
-              <div className="text-sm text-neutral-800 font-medium">
+              <div className="text-sm text-neutral-800 font-medium space-y-1">
                 <div>
                   File name:{' '}
                   <span className="font-mono text-neutral-600">
-                    {resource.file?.name || 'document'}
+                    {(resource as FileResource).file?.name || 'document'}
                   </span>
                 </div>
-                {resource.file?.size && (
+                {(resource as FileResource).file?.size && (
                   <div>
                     Size:{' '}
                     <span className="text-neutral-600">
-                      {(resource.file.size / (1024 * 1024)).toFixed(2)} MB
+                      {(
+                        (resource as FileResource).file!.size /
+                        (1024 * 1024)
+                      ).toFixed(2)}{' '}
+                      MB
                     </span>
                   </div>
                 )}
-                {resource.file?.type && (
+                {(resource as FileResource).file?.type && (
                   <div>
                     Format:{' '}
                     <span className="text-neutral-600">
-                      {resource.file.type}
+                      {(resource as FileResource).file!.type}
                     </span>
                   </div>
                 )}
@@ -203,8 +243,8 @@ export function ResourceDetailModal({
               </a>
             ) : (
               <a
-                href={resource.fileUrl || '#'}
-                download={resource.file?.name || 'resource'}
+                href={(resource as FileResource).fileUrl || '#'}
+                download={(resource as FileResource).file?.name || 'resource'}
                 className="px-5 py-2 text-sm font-bold text-white bg-[#80131d] hover:bg-[#6b0f18] rounded-xl shadow-md transition-all flex items-center space-x-2"
               >
                 <span>Download File</span>

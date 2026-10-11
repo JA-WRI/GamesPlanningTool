@@ -1,6 +1,6 @@
 // Made with AI agents (Antigravity)
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
 import { AddResourceModal } from '@/components/resources/AddResourceModal';
 
@@ -85,18 +85,6 @@ describe('AddResourceModal', () => {
     const urlInput = screen.getByPlaceholderText('https://olympic.ca/handbook');
     fireEvent.change(urlInput, { target: { value: 'olympics.com' } });
 
-    const previewBtn = screen.getByRole('button', {
-      name: /Olympic Stadium Track/i,
-    });
-    fireEvent.click(previewBtn);
-
-    const customImgInput = screen.getByPlaceholderText(
-      'Or paste custom image URL...',
-    );
-    fireEvent.change(customImgInput, {
-      target: { value: 'https://images.example.com/custom.jpg' },
-    });
-
     const summerBtn = screen.getByRole('button', { name: 'Summer Games' });
     fireEvent.click(summerBtn);
 
@@ -115,7 +103,8 @@ describe('AddResourceModal', () => {
         name: 'Olympic Portal',
         type: 'link',
         URL: 'https://olympics.com',
-        previewUrl: 'https://images.example.com/custom.jpg',
+        previewUrl:
+          'https://www.google.com/s2/favicons?domain_url=https%3A%2F%2Folympics.com&sz=128',
         categories: expect.arrayContaining([
           'Winter Games',
           'Summer Games',
@@ -191,5 +180,111 @@ describe('AddResourceModal', () => {
     });
 
     expect(screen.getByText('badge.png')).toBeInTheDocument();
+  });
+  it('generates thumbnail preview for pdf document files', async () => {
+    const mockCtx = {
+      fillStyle: '',
+      fillRect: vi.fn(),
+      fillText: vi.fn(),
+      font: '',
+      textAlign: '',
+    };
+    HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue(mockCtx);
+    HTMLCanvasElement.prototype.toDataURL = vi
+      .fn()
+      .mockReturnValue('data:image/jpeg;base64,thumb');
+
+    render(
+      <AddResourceModal
+        isOpen={true}
+        onClose={() => {}}
+        onAddResource={() => {}}
+      />,
+    );
+
+    // Switch to file tab
+    const fileTab = screen.getByRole('button', { name: 'Upload File' });
+    fireEvent.click(fileTab);
+
+    const pdfFile = new File(['%PDF-1.4'], 'guide.pdf', {
+      type: 'application/pdf',
+    });
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
+
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [pdfFile] } });
+    });
+
+    expect(mockCtx.fillRect).toHaveBeenCalled();
+  });
+
+  it('generates text preview for text and markdown files', async () => {
+    const mockCtx = {
+      fillStyle: '',
+      fillRect: vi.fn(),
+      fillText: vi.fn(),
+      font: '',
+    };
+    HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue(mockCtx);
+    HTMLCanvasElement.prototype.toDataURL = vi
+      .fn()
+      .mockReturnValue('data:image/jpeg;base64,textthumb');
+
+    render(
+      <AddResourceModal
+        isOpen={true}
+        onClose={() => {}}
+        onAddResource={() => {}}
+      />,
+    );
+
+    const fileTab = screen.getByRole('button', { name: 'Upload File' });
+    fireEvent.click(fileTab);
+
+    const txtFile = new File(['Hello World\nSecond Line'], 'notes.txt', {
+      type: 'text/plain',
+    });
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
+
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [txtFile] } });
+    });
+
+    expect(mockCtx.fillRect).toHaveBeenCalled();
+  });
+
+  it('allows toggling categories on and off and validates empty resource name', () => {
+    render(
+      <AddResourceModal
+        isOpen={true}
+        onClose={() => {}}
+        onAddResource={() => {}}
+      />,
+    );
+
+    // Click category to select, then click again to deselect
+    const summerBtn = screen.getByRole('button', { name: 'Summer Games' });
+    fireEvent.click(summerBtn);
+    fireEvent.click(summerBtn);
+
+    // Enter URL but clear name to trigger empty name validation
+    const urlInput = screen.getByPlaceholderText('https://olympic.ca/handbook');
+    fireEvent.change(urlInput, { target: { value: 'https://example.com' } });
+
+    const nameInput = screen.getByPlaceholderText(
+      'e.g. LA 2028 Team Roster Guide',
+    );
+    fireEvent.change(nameInput, { target: { value: '' } });
+
+    const form = document.querySelector('form')!;
+    fireEvent.submit(form);
+
+    expect(
+      screen.getByText('Please enter a name for the resource.'),
+    ).toBeInTheDocument();
   });
 });

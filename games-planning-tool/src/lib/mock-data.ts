@@ -20,7 +20,7 @@ export type Session = {
 };
 
 export async function getSession(): Promise<Session> {
-  return { user: { role: 'admin', gameId: Games[0].id, nsoId: undefined } };
-  //return { user: { role: 'coc', gameId: Games[0].id, nsoId: undefined }};
-  // return { user: { role: 'nso', gameId: Games[0].id, nsoId: Nsos[0].id }};
+  // return { user: { role: 'admin', gameId: Games[0].id, nsoId: undefined } };
+  // return { user: { role: 'coc', gameId: Games[0].id, nsoId: undefined }};
+  return { user: { role: 'nso', gameId: Games[0].id, nsoId: Nsos[0].id } };
 }

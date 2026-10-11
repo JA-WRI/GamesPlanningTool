@@ -55,14 +55,23 @@ export function ResourceCard({
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(resource.name);
   const renameInputRef = useRef<HTMLInputElement>(null);
-  const isCardDraggable =
-    isEditing && (canDrag ?? canReorder) && !isRoundPointerDown;
+  const isCardDraggable = (canDrag ?? canReorder) && !isRoundPointerDown;
 
-  const previewImage =
-    resource.previewUrl ||
-    (isLink
-      ? 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&fit=crop&w=600&q=80'
-      : 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=600&q=80');
+  let previewImage = resource.previewUrl || '';
+  if (!previewImage) {
+    if (isLink) {
+      const linkRes = resource as import('@/types/resource').LinkResource;
+      let url = linkRes.URL;
+      if (!url.startsWith('http')) {
+        url = 'https://' + url;
+      }
+      previewImage = `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(url)}&sz=128`;
+    } else {
+      // Create a fallback data URI for files without a screenshot
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="#f3f4f6"/><text x="50%" y="50%" font-family="sans-serif" font-size="24" fill="#9ca3af" text-anchor="middle" dominant-baseline="middle">${resource.name}</text></svg>`;
+      previewImage = `data:image/svg+xml;base64,${btoa(svg)}`;
+    }
+  }
 
   useEffect(() => {
     if (isRenaming && renameInputRef.current) {
@@ -97,7 +106,7 @@ export function ResourceCard({
   };
 
   const handleDragStartInternal = (e: React.DragEvent) => {
-    if (!isEditing || !isCardDraggable) {
+    if (!isCardDraggable) {
       e.preventDefault();
       return;
     }
@@ -179,22 +188,20 @@ export function ResourceCard({
       onDrop={(e) => onDrop?.(e, resource.id)}
       onPointerDown={(e) => {
         hasMovedDuringDrag.current = false;
-        if (isEditing) {
-          onCardPointerDown(e, resource.id);
-        }
+        onCardPointerDown(e, resource.id);
       }}
       onClick={handleClick}
       className={`group relative shrink-0 select-none transform ${
         isFolder
-          ? 'w-36 sm:w-40 md:w-44'
-          : 'w-36 h-36 sm:w-40 sm:h-40 md:w-44 md:h-44 rounded-3xl overflow-hidden shadow-md bg-gradient-to-br from-[#80131d] to-[#4a0a10]'
+          ? 'w-full aspect-[100/106]'
+          : 'w-full aspect-square rounded-3xl overflow-hidden shadow-md bg-gradient-to-br from-[#80131d] to-[#4a0a10]'
       } ${isDraggingThisCard ? '' : 'transition-all duration-200'} ${
         isFolderDropTarget
           ? 'ring-4 ring-amber-400 scale-105 shadow-2xl z-20 rounded-3xl'
           : isDraggingThisCard
             ? showRemovalSymbol
               ? 'opacity-95 scale-95 ring-4 ring-red-500 shadow-2xl shadow-red-950/60 rounded-3xl'
-              : 'scale-[0.98] ring-4 ring-white/90 shadow-2xl rounded-3xl'
+              : 'opacity-40 scale-[0.98] ring-2 ring-white/50 border border-dashed border-white/40 shadow-inner rounded-3xl grayscale-[50%]'
             : isSelected
               ? 'ring-4 ring-white ring-offset-2 ring-offset-[#80131d] scale-[0.97] rounded-3xl'
               : 'hover:shadow-xl hover:-translate-y-1'
@@ -217,9 +224,7 @@ export function ResourceCard({
         <div
           data-testid="drag-removal-symbol"
           className={`flex flex-col items-center justify-center bg-gradient-to-br from-red-600 via-red-700 to-red-900 text-white p-3 z-30 select-none animate-pulse ${
-            isFolder
-              ? 'w-36 h-36 sm:w-40 sm:h-40 md:w-44 md:h-44 rounded-3xl'
-              : 'absolute inset-0'
+            isFolder ? 'w-full aspect-square rounded-3xl' : 'absolute inset-0'
           }`}
         >
           <svg
@@ -355,7 +360,6 @@ export function ResourceCard({
             {/* Folder name centered on front flap */}
             <foreignObject x="5" y="20" width="90" height="80">
               <div
-                xmlns="http://www.w3.org/1999/xhtml"
                 style={{
                   width: '100%',
                   height: '100%',
@@ -487,7 +491,7 @@ export function ResourceCard({
             alt=""
             aria-hidden="true"
             draggable={false}
-            className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105 pointer-events-none select-none"
+            className={`absolute inset-0 w-full h-full transition-transform duration-500 group-hover:scale-105 pointer-events-none select-none ${isLink ? 'object-contain p-8 bg-white' : 'object-cover object-center'}`}
             loading="lazy"
             onError={(e) => {
               (e.target as HTMLElement).style.display = 'none';
