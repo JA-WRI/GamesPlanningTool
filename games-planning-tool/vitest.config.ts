@@ -10,5 +10,12 @@ export default defineConfig({
     globals: true,
     include: ['tests/unit/**/*.test.ts', 'tests/unit/**/*.test.tsx'],
     exclude: ['node_modules', '.next', 'tests/e2e/**'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      reportsDirectory: './coverage',
+      include: ['src/**'],
+      exclude: ['src/generated/prisma', 'src/lib/prisma.ts'],
+    },
   },
 });
