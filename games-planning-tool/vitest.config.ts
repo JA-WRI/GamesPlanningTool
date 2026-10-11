@@ -12,7 +12,7 @@ export default defineConfig({
     exclude: ['node_modules', '.next', 'tests/e2e/**'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'lcov'],
+      reporter: ['text', 'lcov', 'html', 'json'],
       reportsDirectory: './coverage',
       include: ['src/**'],
       exclude: ['src/generated/prisma', 'src/lib/prisma.ts'],
