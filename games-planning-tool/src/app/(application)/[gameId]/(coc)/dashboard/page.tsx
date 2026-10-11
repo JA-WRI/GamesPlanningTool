@@ -64,6 +64,9 @@ const teams: Team[] = [
 
 export default function Home() {
   const [search, setSearch] = useState('');
+  const [selectedChart, setSelectedChart] = useState<
+    (typeof mockDashboard)[number] | null
+  >(null);
 
   const filteredTeams = teams.filter((team) =>
     team.name.toLowerCase().includes(search.toLowerCase()),
@@ -72,15 +75,31 @@ export default function Home() {
   return (
     <main className="pt-2 ml-6 mr-6">
       <h1 className="text-2xl font-bold">NSOs Progress Overview</h1>
-      <div className="flex justify-center gap-20 px-10 mt-10 drop-shadow-xl rounded-3xl bg-[#FAFBFB] py-4 px-4 shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
+      <div
+        className="flex justify-center gap-20 px-10 mt-10 drop-shadow-xl rounded-3xl bg-[#FAFBFB] py-4 px-4 shadow-[0_8px_30px_rgba(0,0,0,0.06)] ${
+      selectedChart ? 'grid-cols-3' : 'grid-cols-3'
+    }}"
+      >
         {mockDashboard.map((d) => (
           <DonutChartCard
             key={d.title}
             title={d.title}
             segments={statusToSegments(d.counts)}
+            onClick={() => setSelectedChart(d)}
+            isSelected={selectedChart?.title === d.title}
           />
         ))}
       </div>
+      {/* Side panel for selected chart */}
+      {selectedChart && (
+        <div className="mt-10 p-4 bg-[#FAFBFB] rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
+          <h2 className="text-lg font-bold">{selectedChart.title}</h2>
+          <button type="button" onClick={() => setSelectedChart(null)}>
+            Close
+          </button>
+        </div>
+      )}
+
       {/* Page name */}
       <div className="mt-8 flex items-center justify-between mr-10">
         <h1 className="text-xl font-bold ml-6">NSOs</h1>
