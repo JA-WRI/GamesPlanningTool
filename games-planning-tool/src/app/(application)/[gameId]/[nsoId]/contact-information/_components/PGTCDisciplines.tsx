@@ -1,5 +1,20 @@
 // AI contribution: Below 50% AI-generated
 // AI use to associate a form label with a control
+
+/**
+ * IMPORTANT: JUSTIFICATION FOR FILE LENGTH GREATER THAN 500 LINES:
+ *
+ * While this file exceeds 500 lines, it strictly adheres to the Single Responsibility Principle.
+ * Indeed, its sole reason to change is related to the business domain of managing Pre-Games Training Camp (PGTC)
+ * Information and Arrivals for sports disciplines.
+ *
+ * Two main reasons why the line count is high:
+ * - Comprehensive schema: Each discipline record contains a vast array of discrete, domain-specific
+ *    form fields (arrival/departure schedules, full addresses, and arrival notes).
+ * - Dual-Mode rendering (edit mode and preview): Every single field requires conditional logic
+ *    (showInputs ? <TextBox />) to swap between interactive inputs and static text labels without isssues
+ */
+
 'use client';
 
 import React, { useState } from 'react';
