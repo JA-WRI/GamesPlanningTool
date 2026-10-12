@@ -515,9 +515,8 @@ describe('ResourcesPageContent', () => {
   it('handles dropping directly onto the wrapping grid container', () => {
     render(<ResourcesPageContent />);
     const cards = document.querySelectorAll('[data-resource-id]');
-    const gridContainer = document.querySelector(
-      '.grid.gap-4.items-end',
-    ) as HTMLElement;
+    const gridContainer = (document.querySelector('.grid') ||
+      cards[0]?.parentElement) as HTMLElement;
 
     const dt = {
       setData: vi.fn(),
