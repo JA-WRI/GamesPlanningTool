@@ -428,7 +428,7 @@ export function ResourcesPageContent({
 
       {/* Single Wrapping Grid layout */}
       <div
-        className="bg-[#E8ECEF] rounded-md p-4 sm:p-5 relative flex-1"
+        className="bg-[#F3EEE8]/70 border border-[#E5DDD0]/60 rounded-xl p-4 sm:p-5 relative flex-1"
         ref={scrollContainerRef}
       >
         {localOrderedResources.length === 0 ? (
@@ -437,9 +437,9 @@ export function ResourcesPageContent({
           </div>
         ) : (
           <div
-            className="grid gap-4 items-end"
+            className="grid gap-3 sm:gap-4 items-start"
             style={{
-              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))',
             }}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => handleDrop(e, undefined)}

@@ -108,9 +108,9 @@ export function DashboardResourceRow({
         )}
       </div>
 
-      <div className="flex overflow-x-auto items-end gap-4 pb-4 custom-scrollbar w-full">
+      <div className="flex overflow-x-auto items-start gap-4 pb-4 custom-scrollbar w-full">
         {filteredResources.map((r) => (
-          <div key={r.id} className="shrink-0" style={{ width: '160px' }}>
+          <div key={r.id} className="shrink-0" style={{ width: '92px' }}>
             <ResourceCard
               resource={r}
               isEditing={false}

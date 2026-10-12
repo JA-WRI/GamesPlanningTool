@@ -376,7 +376,7 @@ export function FolderDirectoryModal({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4 pt-2 pb-2 px-1 items-end">
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(88px,1fr))] gap-3 sm:gap-4 pt-2 pb-2 px-1 items-start">
                 {localOrderedChildren.map((item) => {
                   const isSubfolder = item.type === 'folder';
                   const isDropTarget = dropTargetFolderId === item.id;

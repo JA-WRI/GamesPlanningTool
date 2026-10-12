@@ -2,8 +2,103 @@
 'use client';
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { Resource } from '@/types/resource';
+import { Resource, LinkResource, FileResource } from '@/types/resource';
 import { FolderCardView } from './FolderCardView';
+
+export function getFileTypeIcon(resource: Resource): string {
+  if (resource.type === 'link') return '/icons/link.svg';
+  if (resource.type === 'folder') return '/icons/folder.svg';
+
+  const fileRes = resource as FileResource;
+  const fileName = fileRes.file?.name || resource.name || '';
+  const ext = fileName.split('.').pop()?.toLowerCase() || '';
+  const mime = (fileRes.file?.type || '').toLowerCase();
+
+  // Spreadsheets
+  if (
+    ['xlsx', 'xls', 'csv', 'tsv', 'ods', 'numbers'].includes(ext) ||
+    mime.includes('spreadsheet') ||
+    mime.includes('excel') ||
+    mime.includes('csv')
+  ) {
+    return '/icons/file-spreadsheet.svg';
+  }
+
+  // Word documents
+  if (
+    ['doc', 'docx', 'odt', 'pages', 'rtf'].includes(ext) ||
+    mime.includes('word') ||
+    mime.includes('document')
+  ) {
+    return '/icons/file-document.svg';
+  }
+
+  // Presentations / Slides
+  if (
+    ['ppt', 'pptx', 'odp', 'key', 'presentation'].includes(ext) ||
+    mime.includes('presentation') ||
+    mime.includes('powerpoint')
+  ) {
+    return '/icons/file-presentation.svg';
+  }
+
+  // PDF
+  if (ext === 'pdf' || mime.includes('pdf')) {
+    return '/icons/file-pdf.svg';
+  }
+
+  // Plain Text / Markdown
+  if (['txt', 'log', 'md', 'markdown'].includes(ext) || mime === 'text/plain') {
+    return '/icons/file-text.svg';
+  }
+
+  // Code files
+  if (
+    [
+      'js',
+      'ts',
+      'tsx',
+      'jsx',
+      'py',
+      'json',
+      'html',
+      'css',
+      'scss',
+      'yaml',
+      'yml',
+      'xml',
+      'sh',
+      'bash',
+      'sql',
+      'java',
+      'c',
+      'cpp',
+      'cs',
+      'go',
+      'rs',
+      'php',
+      'rb',
+    ].includes(ext) ||
+    mime.includes('json') ||
+    mime.includes('javascript') ||
+    mime.includes('code')
+  ) {
+    return '/icons/file-code.svg';
+  }
+
+  // Images
+  if (
+    ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'tiff'].includes(
+      ext,
+    ) ||
+    mime.startsWith('image/')
+  ) {
+    return '/icons/file-image.svg';
+  }
+
+  // Default fallback
+  return '/icons/file-default.svg';
+}
 
 interface ResourceCardProps {
   resource: Resource;
@@ -57,19 +152,20 @@ export function ResourceCard({
   const renameInputRef = useRef<HTMLInputElement>(null);
   const isCardDraggable = (canDrag ?? canReorder) && !isRoundPointerDown;
 
-  let previewImage = resource.previewUrl || '';
-  if (!previewImage) {
-    if (isLink) {
-      const linkRes = resource as import('@/types/resource').LinkResource;
-      let url = linkRes.URL;
-      if (!url.startsWith('http')) {
-        url = 'https://' + url;
+  // Favicon calculation for links
+  let faviconUrl = '/icons/link.svg';
+  if (isLink) {
+    const linkRes = resource as LinkResource;
+    let url = linkRes.URL || '';
+    if (url && !url.startsWith('http')) {
+      url = 'https://' + url;
+    }
+    if (url) {
+      try {
+        faviconUrl = `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(url)}&sz=128`;
+      } catch {
+        faviconUrl = '/icons/link.svg';
       }
-      previewImage = `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(url)}&sz=128`;
-    } else {
-      // Create a fallback data URI for files without a screenshot
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="#f3f4f6"/><text x="50%" y="50%" font-family="sans-serif" font-size="24" fill="#9ca3af" text-anchor="middle" dominant-baseline="middle">${resource.name}</text></svg>`;
-      previewImage = `data:image/svg+xml;base64,${btoa(svg)}`;
     }
   }
 
@@ -139,35 +235,6 @@ export function ResourceCard({
     }
   };
 
-  /* ---------- Inline rename input ---------- */
-  const renameInput = (variant: 'folder' | 'resource') => (
-    <input
-      ref={renameInputRef}
-      type="text"
-      value={renameValue}
-      onChange={(e) => setRenameValue(e.target.value)}
-      onBlur={commitRename}
-      onKeyDown={handleRenameKeyDown}
-      className={`w-[85%] text-center outline-none ${
-        variant === 'folder'
-          ? 'text-sm sm:text-base font-extrabold bg-transparent text-amber-950 border-b-2 border-amber-900/40'
-          : 'text-lg sm:text-xl font-bold bg-transparent text-white tracking-tight leading-snug drop-shadow-md border-b-2 border-white/50'
-      }`}
-      style={{
-        border: 'none',
-        borderBottom:
-          variant === 'folder'
-            ? '2px solid rgba(69,26,3,0.4)'
-            : '2px solid rgba(255,255,255,0.5)',
-        borderRadius: 0,
-        padding: 0,
-        background: 'transparent',
-      }}
-      onClick={(e) => e.stopPropagation()}
-      onPointerDown={(e) => e.stopPropagation()}
-    />
-  );
-
   return (
     <div
       data-resource-id={resource.id}
@@ -191,20 +258,8 @@ export function ResourceCard({
         onCardPointerDown(e, resource.id);
       }}
       onClick={handleClick}
-      className={`group relative shrink-0 select-none transform ${
-        isFolder
-          ? 'w-full aspect-[100/106]'
-          : 'w-full aspect-square rounded-3xl overflow-hidden shadow-md bg-gradient-to-br from-[#80131d] to-[#4a0a10]'
-      } ${isDraggingThisCard ? '' : 'transition-all duration-200'} ${
-        isFolderDropTarget
-          ? 'ring-4 ring-amber-400 scale-105 shadow-2xl z-20 rounded-3xl'
-          : isDraggingThisCard
-            ? showRemovalSymbol
-              ? 'opacity-95 scale-95 ring-4 ring-red-500 shadow-2xl shadow-red-950/60 rounded-3xl'
-              : 'opacity-40 scale-[0.98] ring-2 ring-white/50 border border-dashed border-white/40 shadow-inner rounded-3xl grayscale-[50%]'
-            : isSelected
-              ? 'ring-4 ring-white ring-offset-2 ring-offset-[#80131d] scale-[0.97] rounded-3xl'
-              : 'hover:shadow-xl hover:-translate-y-1'
+      className={`group relative flex flex-col items-center select-none w-full transition-all duration-150 ${
+        isDraggingThisCard ? 'opacity-40 scale-95' : 'hover:-translate-y-0.5'
       } ${
         isEditing
           ? canReorder
@@ -220,132 +275,135 @@ export function ResourceCard({
             : resource.name
       }
     >
-      {showRemovalSymbol ? (
-        <div
-          data-testid="drag-removal-symbol"
-          className={`flex flex-col items-center justify-center bg-gradient-to-br from-red-600 via-red-700 to-red-900 text-white p-3 z-30 select-none animate-pulse ${
-            isFolder ? 'w-full aspect-square rounded-3xl' : 'absolute inset-0'
-          }`}
-        >
+      {/* Square Icon Container */}
+      <div
+        className={`relative w-full aspect-square flex items-center justify-center p-2 rounded-2xl transition-all duration-150 ${
+          isFolderDropTarget
+            ? 'ring-4 ring-amber-400 bg-amber-100/70 scale-105 shadow-md z-20'
+            : isSelected
+              ? 'bg-[#80131d]/10 ring-2 ring-[#80131d]'
+              : 'bg-transparent hover:bg-black/[0.04]'
+        }`}
+      >
+        {showRemovalSymbol ? (
+          <div
+            data-testid="drag-removal-symbol"
+            className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-600 to-red-800 text-white rounded-2xl p-2 z-30 select-none animate-pulse"
+          >
+            <img
+              src="/icons/trash.svg"
+              alt=""
+              className="w-8 h-8 invert brightness-0 drop-shadow-sm"
+            />
+            <span className="mt-1 text-center text-[10px] font-bold uppercase tracking-wider text-red-100">
+              Remove
+            </span>
+          </div>
+        ) : isFolder ? (
+          <FolderCardView resource={resource} itemCount={itemCount} />
+        ) : isLink ? (
           <img
-            src="/icons/trash.svg"
+            src={faviconUrl}
             alt=""
-            className="w-14 h-14 sm:w-16 sm:h-16 invert brightness-0 drop-shadow-lg"
-          />
-          <span className="mt-1 text-center text-[11px] sm:text-xs font-bold uppercase tracking-wider text-red-100 drop-shadow-xs px-2 leading-tight">
-            Remove from Category
-          </span>
-        </div>
-      ) : isFolder ? (
-        <FolderCardView
-          resource={resource}
-          isSelected={isSelected}
-          isEditing={isEditing}
-          canReorder={canReorder}
-          itemCount={itemCount}
-          isRenaming={isRenaming}
-          renameValue={renameValue}
-          setRenameValue={setRenameValue}
-          commitRename={commitRename}
-          handleRenameKeyDown={handleRenameKeyDown}
-          handleNameDoubleClick={handleNameDoubleClick}
-          renameInputRef={renameInputRef}
-          onRoundButtonPointerDown={onRoundButtonPointerDown}
-          onRoundButtonClick={onRoundButtonClick}
-          setIsRoundPointerDown={setIsRoundPointerDown}
-        />
-      ) : (
-        /* ========== RESOURCE / FILE CARD (unchanged) ========== */
-        <>
-          <img
-            src={previewImage}
-            alt=""
-            aria-hidden="true"
             draggable={false}
-            className={`absolute inset-0 w-full h-full transition-transform duration-500 group-hover:scale-105 pointer-events-none select-none ${isLink ? 'object-contain p-8 bg-white' : 'object-cover object-center'}`}
-            loading="lazy"
+            className="w-11 h-11 sm:w-12 sm:h-12 object-contain pointer-events-none select-none drop-shadow-2xs"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/icons/link.svg';
+            }}
+          />
+        ) : (
+          <img
+            src={getFileTypeIcon(resource)}
+            alt=""
+            draggable={false}
+            className="w-11 h-13 sm:w-12 sm:h-14 object-contain pointer-events-none select-none drop-shadow-2xs"
             onError={(e) => {
               (e.target as HTMLElement).style.display = 'none';
             }}
           />
+        )}
 
-          <div
-            className={`absolute inset-0 transition-opacity duration-200 pointer-events-none ${
-              isSelected
-                ? 'bg-[#80131d]/90'
-                : 'bg-[#80131d]/85 group-hover:bg-[#80131d]/75'
-            }`}
-          />
-
-          <div className="absolute inset-0 bg-radial from-transparent to-black/30 pointer-events-none" />
-
-          {/* Resource name overlaid on card */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center z-10 pointer-events-auto select-none">
-            {isRenaming ? (
-              renameInput('resource')
-            ) : (
-              <span
-                onDoubleClick={handleNameDoubleClick}
-                title={resource.name}
-                className="text-white font-bold text-lg sm:text-xl tracking-tight leading-snug drop-shadow-md line-clamp-3 cursor-default break-words"
-              >
-                {resource.name}
-              </span>
-            )}
-          </div>
-
-          {isEditing && (
-            <button
-              type="button"
-              onPointerDown={(e) => {
-                e.stopPropagation();
-                setIsRoundPointerDown(true);
-                const onUp = () => {
-                  setIsRoundPointerDown(false);
-                  window.removeEventListener('pointerup', onUp);
-                  window.removeEventListener('pointercancel', onUp);
-                };
-                window.addEventListener('pointerup', onUp);
-                window.addEventListener('pointercancel', onUp);
-                onRoundButtonPointerDown(e, resource.id);
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onRoundButtonClick(resource.id);
-              }}
-              className="absolute top-2.5 right-2.5 z-30 p-1 cursor-pointer focus:outline-hidden"
-              aria-label={isSelected ? 'Deselect resource' : 'Select resource'}
+        {/* Selection checkmark button (Edit mode) */}
+        {isEditing && (
+          <button
+            type="button"
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              setIsRoundPointerDown(true);
+              const onUp = () => {
+                setIsRoundPointerDown(false);
+                window.removeEventListener('pointerup', onUp);
+                window.removeEventListener('pointercancel', onUp);
+              };
+              window.addEventListener('pointerup', onUp);
+              window.addEventListener('pointercancel', onUp);
+              onRoundButtonPointerDown(e, resource.id);
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRoundButtonClick(resource.id);
+            }}
+            className="absolute top-1.5 right-1.5 z-30 p-0.5 cursor-pointer focus:outline-hidden"
+            aria-label={isSelected ? 'Deselect resource' : 'Select resource'}
+          >
+            <div
+              className={`w-5 h-5 rounded-full flex items-center justify-center transition-all duration-150 ${
+                isSelected
+                  ? 'bg-white text-[#80131d] shadow-sm ring-1 ring-neutral-300 scale-105'
+                  : 'border-2 border-neutral-400 bg-white/90 hover:bg-white hover:border-neutral-600'
+              }`}
             >
-              <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-150 ${
-                  isSelected
-                    ? 'bg-white text-[#80131d] shadow-md scale-110'
-                    : 'border-2 border-white/90 bg-black/40 hover:bg-black/60'
-                }`}
-              >
-                {isSelected && (
-                  <img
-                    src="/icons/check.svg?v=3"
-                    alt=""
-                    className="w-4 h-4 pointer-events-none"
-                  />
-                )}
-              </div>
-            </button>
-          )}
-
-          {isEditing && canReorder && (
-            <div className="absolute bottom-2 right-2 z-20 opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none">
-              <img
-                src="/icons/grip.svg"
-                alt=""
-                className="w-4 h-4 text-white/80 pointer-events-none"
-              />
+              {isSelected && (
+                <img
+                  src="/icons/check.svg?v=3"
+                  alt=""
+                  className="w-3.5 h-3.5 pointer-events-none"
+                />
+              )}
             </div>
-          )}
-        </>
-      )}
+          </button>
+        )}
+
+        {/* Drag grip (Edit mode + Reordering) */}
+        {isEditing && canReorder && (
+          <div className="absolute bottom-1 right-1 z-20 opacity-40 group-hover:opacity-90 transition-opacity pointer-events-none">
+            <img
+              src="/icons/grip.svg"
+              alt=""
+              className="w-3.5 h-3.5 opacity-60 pointer-events-none"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Resource Name Label in small text below icon */}
+      <div className="mt-1 w-full text-center px-0.5 pointer-events-auto">
+        {isRenaming ? (
+          <input
+            ref={renameInputRef}
+            type="text"
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onBlur={commitRename}
+            onKeyDown={handleRenameKeyDown}
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="w-full text-center text-[11px] font-semibold text-neutral-900 bg-white border border-[#80131d] rounded px-1 py-0.5 outline-none shadow-xs"
+          />
+        ) : (
+          <span
+            onDoubleClick={handleNameDoubleClick}
+            title={resource.name}
+            className={`text-[11px] sm:text-xs font-semibold text-neutral-800 leading-tight line-clamp-2 break-words cursor-default group-hover:text-neutral-950 transition-colors ${
+              isSelected ? 'text-[#80131d]' : ''
+            }`}
+          >
+            {resource.name}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
+
 export default ResourceCard;
