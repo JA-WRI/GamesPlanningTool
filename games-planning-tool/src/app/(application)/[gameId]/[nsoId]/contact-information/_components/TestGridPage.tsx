@@ -1,7 +1,6 @@
 // No substantial AI generated code
 'use client';
 
-import React from 'react';
 import { ColumnDefinition } from '@/components/commons/Grid';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 

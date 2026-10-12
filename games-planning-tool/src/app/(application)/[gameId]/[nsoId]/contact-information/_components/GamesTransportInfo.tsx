@@ -2,7 +2,7 @@
 // AI use to decouple the client state and ui
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import GridHeaderPage from '@/components/commons/GridHeader';
 import TextBox from '@/components/commons/GridTextBox';

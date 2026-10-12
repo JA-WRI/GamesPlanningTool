@@ -2,7 +2,7 @@
 // AI Generated content for refactoring of code duplication in ContactsGridPage.tsx and TestGridPage.tsx files.
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import GridHeaderPage from '@/components/commons/GridHeader';
 import SearchBar from '@/components/commons/SearchBar';

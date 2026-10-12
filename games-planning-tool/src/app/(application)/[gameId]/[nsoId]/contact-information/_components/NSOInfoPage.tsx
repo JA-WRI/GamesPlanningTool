@@ -1,7 +1,7 @@
 //  No substantial AI-generated code
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import GridHeaderPage from '@/components/commons/GridHeader';
 
 export interface NSOInfoPage {

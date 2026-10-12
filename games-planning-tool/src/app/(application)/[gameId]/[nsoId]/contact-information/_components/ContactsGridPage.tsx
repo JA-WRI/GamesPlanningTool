@@ -2,7 +2,6 @@
 // AI Generated content for refactoring of code duplication in page.tsx files.
 'use client';
 
-import React from 'react';
 import { ColumnDefinition } from '@/components/commons/Grid';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 

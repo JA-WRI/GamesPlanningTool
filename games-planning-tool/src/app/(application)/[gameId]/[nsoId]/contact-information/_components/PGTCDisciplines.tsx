@@ -17,7 +17,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import GridHeaderPage from '@/components/commons/GridHeader';
 import TextBox from '@/components/commons/GridTextBox';
 

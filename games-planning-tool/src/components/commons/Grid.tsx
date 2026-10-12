@@ -2,7 +2,7 @@
 // This file contains AI generated code used to define the table body of the grid template from MUI Library, and to support column types, formulas, header, subtexts, and a delete confirmation popup
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Table,
   TableBody,
