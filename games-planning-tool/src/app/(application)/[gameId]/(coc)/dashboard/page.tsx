@@ -1,3 +1,4 @@
+// Made with AI agents (Antigravity)
 'use client';
 
 import TeamStatusCard from '@/components/coc-admin-dashboard/TeamStatusCard';
@@ -12,8 +13,6 @@ import {
 import DonutChartCard from '@/components/coc-admin-dashboard/chart/donutChartCard';
 import ChartLegend from '@/components/coc-admin-dashboard/chart/chartLegend';
 import { mockDashboard } from '@/lib/mock-data-chart';
-import { useParams } from 'next/navigation';
-import { DashboardResourceRow } from '@/components/resources/DashboardResourceRow';
 
 type Column = {
   title: string;
@@ -65,9 +64,6 @@ const teams: Team[] = [
 
 export default function Home() {
   const [search, setSearch] = useState('');
-  const params = useParams();
-  const gameId =
-    typeof params?.gameId === 'string' ? params.gameId : 'game_id_1';
 
   const filteredTeams = teams.filter((team) =>
     team.name.toLowerCase().includes(search.toLowerCase()),
@@ -84,10 +80,6 @@ export default function Home() {
             segments={statusToSegments(d.counts)}
           />
         ))}
-      </div>
-
-      <div className="mt-12 mb-8">
-        <DashboardResourceRow gameId={gameId} />
       </div>
 
       {/* Page name */}

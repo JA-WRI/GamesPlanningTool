@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
-import { SearchPill } from '@/components/resources/SearchPill';
+import { SearchPill } from '@/app/(application)/admin/resource-management/_components/SearchPill';
 
 describe('SearchPill', () => {
   it('renders input with default placeholder and empty value', () => {

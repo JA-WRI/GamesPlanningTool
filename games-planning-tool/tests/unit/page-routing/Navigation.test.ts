@@ -35,13 +35,19 @@ describe('tabRoute', () => {
       tabRoute('/admin/user-management', { ...base, role: 'admin' }).href,
     ).toBe('/admin/user-management');
   });
+  it('resources tab routes to editable management for COC/Admin and view-only for NSO', () => {
+    expect(tabRoute('resources', { ...base, role: 'nso' }).href).toBe(
+      '/game1/usa/resources',
+    );
+    expect(tabRoute('resources', { ...base, role: 'coc' }).href).toBe(
+      '/admin/resource-management',
+    );
+    expect(tabRoute('resources', { ...base, role: 'admin' }).href).toBe(
+      '/admin/resource-management',
+    );
+  });
   it('other tabs live under the NSO', () => {
-    for (const p of [
-      'calculator',
-      'team-journey',
-      'resources',
-      'contact-information',
-    ]) {
+    for (const p of ['calculator', 'team-journey', 'contact-information']) {
       expect(tabRoute(p, { ...base, role: 'coc' }).href).toBe(
         `/game1/usa/${p}`,
       );

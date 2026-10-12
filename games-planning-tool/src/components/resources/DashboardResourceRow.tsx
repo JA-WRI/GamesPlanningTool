@@ -10,10 +10,10 @@ import {
   getFolderChildren,
 } from '@/lib/resources-data';
 import { Games, Nsos } from '@/lib/data';
-import { ResourceCard } from './ResourceCard';
-import { FolderDirectoryModal } from './FolderDirectoryModal';
+import { ResourceCard } from '@/app/(application)/admin/resource-management/_components/ResourceCard';
+import { FolderDirectoryModal } from '@/app/(application)/admin/resource-management/_components/FolderDirectoryModal';
 import Link from 'next/link';
-import { ResourceDetailModal } from './ResourceDetailModal';
+import { ResourceDetailModal } from '@/app/(application)/admin/resource-management/_components/ResourceDetailModal';
 
 export function DashboardResourceRow({
   gameId,
@@ -98,16 +98,14 @@ export function DashboardResourceRow({
     <div className="flex flex-col relative w-full">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Resources</h2>
-        <Link
-          href={
-            nsoId
-              ? `/${gameId}/${nsoId}/resources`
-              : `/admin/resource-management`
-          }
-          className="px-4 py-1.5 text-sm font-semibold rounded-md shadow-xs transition-colors bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 cursor-pointer"
-        >
-          Manage Resources
-        </Link>
+        {!nsoId && viewerRole !== 'nso' && (
+          <Link
+            href="/admin/resource-management"
+            className="px-4 py-1.5 text-sm font-semibold rounded-md shadow-xs transition-colors bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 cursor-pointer"
+          >
+            Manage Resources
+          </Link>
+        )}
       </div>
 
       <div className="flex overflow-x-auto items-end gap-4 pb-4 custom-scrollbar w-full">

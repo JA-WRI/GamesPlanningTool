@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
-import { ResourceCard } from '@/components/resources/ResourceCard';
+import { ResourceCard } from '@/app/(application)/admin/resource-management/_components/ResourceCard';
 import { Resource } from '@/types/resource';
 
 describe('ResourceCard', () => {

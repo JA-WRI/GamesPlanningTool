@@ -77,7 +77,9 @@ describe('DashboardResourceRow', () => {
     expect(screen.getByText('Summer File')).toBeInTheDocument();
     expect(screen.queryByText('Winter File')).not.toBeInTheDocument();
     expect(screen.getByText('Admin Only File')).toBeInTheDocument();
-    expect(screen.getByText('Other NSO')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'Manage Resources' }),
+    ).not.toBeInTheDocument();
 
     rerender(
       <DashboardResourceRow
@@ -90,11 +92,14 @@ describe('DashboardResourceRow', () => {
     expect(screen.getByText('Winter File')).toBeInTheDocument();
   });
 
-  it('handles empty state', () => {
+  it('handles empty state and renders Manage Resources for overview', () => {
     vi.mocked(resourcesData.getCachedResources).mockReturnValue([]);
     render(<DashboardResourceRow gameId="game_id_1" />);
     expect(
       screen.getByText('No resources available for this dashboard.'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Manage Resources' }),
     ).toBeInTheDocument();
   });
 

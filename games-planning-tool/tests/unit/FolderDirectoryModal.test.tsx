@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
-import { FolderDirectoryModal } from '@/components/resources/FolderDirectoryModal';
+import { FolderDirectoryModal } from '@/app/(application)/admin/resource-management/_components/FolderDirectoryModal';
 import * as resourcesData from '@/lib/resources-data';
 import { FolderResource, Resource } from '@/types/resource';
 
@@ -800,5 +800,51 @@ describe('FolderDirectoryModal pointer and drag events', () => {
     // Subsequent blur should return early
     fireEvent.blur(input);
     expect(defaultProps.onRenameResource).toHaveBeenCalledTimes(1);
+  });
+
+  it('successfully opens and stays in nested subfolders when clicked', () => {
+    const nestedSubfolder: FolderResource = {
+      id: 'subfolder-1',
+      name: 'Sub Folder',
+      type: 'folder',
+      categories: ['General'],
+      parentId: 'folder-1',
+    };
+    const nestedFile: Resource = {
+      id: 'nested-file-1',
+      name: 'Nested File',
+      type: 'file',
+      categories: ['General'],
+      parentId: 'subfolder-1',
+    };
+    vi.mocked(resourcesData.getFolderChildren).mockImplementation(
+      (_all, parentId) => {
+        if (parentId === 'subfolder-1') return [nestedFile];
+        return [nestedSubfolder];
+      },
+    );
+
+    render(
+      <FolderDirectoryModal
+        {...defaultProps}
+        allResources={[defaultProps.folder, nestedSubfolder, nestedFile]}
+      />,
+    );
+
+    // Initial folder title
+    expect(
+      screen.getByRole('heading', { name: 'My Folder' }),
+    ).toBeInTheDocument();
+
+    // Click subfolder card
+    const subfolderCard = screen.getByRole('button', { name: 'Sub Folder' });
+    fireEvent.click(subfolderCard);
+
+    // Navigated to subfolder and header updates to Sub Folder
+    expect(
+      screen.getByRole('heading', { name: 'Sub Folder' }),
+    ).toBeInTheDocument();
+    // Verify breadcrumb to parent exists
+    expect(screen.getByText('My Folder')).toBeInTheDocument();
   });
 });

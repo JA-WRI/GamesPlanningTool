@@ -20,11 +20,18 @@ import {
 import { AddResourceModal } from './AddResourceModal';
 import { ResourceDetailModal } from './ResourceDetailModal';
 import { FolderDirectoryModal } from './FolderDirectoryModal';
-import { SearchPill } from './SearchPill';
 import { useSweepSelection } from './useSweepSelection';
 import { ResourceCard } from './ResourceCard';
+import { ResourcesToolbar } from './ResourcesToolbar';
+import { CreateFolderModal } from './CreateFolderModal';
 
-export function ResourcesPageContent() {
+export interface ResourcesPageContentProps {
+  isReadOnly?: boolean;
+}
+
+export function ResourcesPageContent({
+  isReadOnly = false,
+}: ResourcesPageContentProps = {}) {
   const resources = useSyncExternalStore(
     subscribeToResources,
     getCachedResources,
@@ -91,7 +98,7 @@ export function ResourcesPageContent() {
   };
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
-    if (selectedIds.size > 0) {
+    if (isReadOnly || selectedIds.size > 0) {
       e.preventDefault();
       return;
     }
@@ -105,6 +112,7 @@ export function ResourcesPageContent() {
   };
 
   const handleDragOver = (e: React.DragEvent, targetId: string) => {
+    if (isReadOnly) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     const sourceId = draggedCardIdRef.current;
@@ -164,6 +172,7 @@ export function ResourcesPageContent() {
   };
 
   const handleDrop = (e: React.DragEvent, targetId?: string) => {
+    if (isReadOnly) return;
     e.preventDefault();
     dragDroppedSuccessfullyRef.current = true;
     const itemToMove = draggedCardIdRef.current;
@@ -404,44 +413,18 @@ export function ResourcesPageContent() {
         </div>
       )}
 
-      {/* Header Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <h1 className="text-3xl font-extrabold text-neutral-900 tracking-tight">
-          Resources Dashboard
-        </h1>
-        <div className="flex flex-wrap items-center gap-3">
-          <SearchPill value={globalSearch} onChange={setGlobalSearch} />
-          {isEditing && selectedIds.size > 0 && (
-            <button
-              onClick={handleDeleteSelected}
-              className="px-3.5 py-1.5 text-sm font-semibold rounded-md bg-red-700 text-white hover:bg-red-800 transition-colors"
-            >
-              Delete ({selectedIds.size})
-            </button>
-          )}
-          <button
-            onClick={() => {
-              setIsEditing(!isEditing);
-              setSelectedIds(new Set());
-            }}
-            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${isEditing ? 'bg-neutral-900 text-white' : 'bg-neutral-200 text-neutral-800 hover:bg-neutral-300'}`}
-          >
-            {isEditing ? 'Done' : 'Edit'}
-          </button>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="px-3.5 py-1.5 rounded-md text-sm font-semibold bg-[#374151] hover:bg-[#1f2937] text-white"
-          >
-            Add Resource
-          </button>
-          <button
-            onClick={() => setIsCreateFolderModalOpen(true)}
-            className="px-3.5 py-1.5 rounded-md text-sm font-semibold bg-[#374151] hover:bg-[#1f2937] text-white"
-          >
-            Create Folder
-          </button>
-        </div>
-      </div>
+      <ResourcesToolbar
+        globalSearch={globalSearch}
+        setGlobalSearch={setGlobalSearch}
+        isEditing={isEditing}
+        setIsEditing={setIsEditing}
+        selectedIds={selectedIds}
+        setSelectedIds={setSelectedIds}
+        handleDeleteSelected={handleDeleteSelected}
+        setIsAddModalOpen={setIsAddModalOpen}
+        setIsCreateFolderModalOpen={setIsCreateFolderModalOpen}
+        isReadOnly={isReadOnly}
+      />
 
       {/* Single Wrapping Grid layout */}
       <div
@@ -467,8 +450,8 @@ export function ResourcesPageContent() {
                 resource={resource}
                 isEditing={isEditing}
                 isSelected={selectedIds.has(resource.id)}
-                canReorder={isEditing && selectedIds.size === 0}
-                canDrag={selectedIds.size === 0}
+                canReorder={!isReadOnly && isEditing && selectedIds.size === 0}
+                canDrag={!isReadOnly && selectedIds.size === 0}
                 isDraggingThisCard={
                   draggedCardId === resource.id ||
                   externalPointerDraggedIds.includes(resource.id)
@@ -481,17 +464,20 @@ export function ResourcesPageContent() {
                     : undefined
                 }
                 onToggleSelect={() => {
-                  if (!justFinishedSweepRef.current)
+                  if (!isReadOnly && !justFinishedSweepRef.current)
                     handleToggleSelect(resource.id);
                 }}
-                onRoundButtonPointerDown={(e) =>
-                  handleSweepPointerDown(e.clientX, e.clientY, resource.id)
-                }
+                onRoundButtonPointerDown={(e) => {
+                  if (!isReadOnly)
+                    handleSweepPointerDown(e.clientX, e.clientY, resource.id);
+                }}
                 onRoundButtonClick={() => {
-                  if (!justFinishedSweepRef.current)
+                  if (!isReadOnly && !justFinishedSweepRef.current)
                     handleToggleSelect(resource.id);
                 }}
-                onCardPointerDown={(e) => handleCardPointerDown(e, resource.id)}
+                onCardPointerDown={(e) => {
+                  if (!isReadOnly) handleCardPointerDown(e, resource.id);
+                }}
                 onClick={(res) => {
                   if (res.type === 'folder')
                     setActiveDirectoryFolder(res as FolderResource);
@@ -501,7 +487,7 @@ export function ResourcesPageContent() {
                 onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
                 onDrop={handleDrop}
-                onRename={handleRenameResource}
+                onRename={isReadOnly ? undefined : handleRenameResource}
               />
             ))}
           </div>
@@ -522,8 +508,8 @@ export function ResourcesPageContent() {
             : null
         }
         onClose={() => setDetailResource(null)}
-        onRename={handleRenameResource}
-        onCategoriesChange={handleCategoriesChange}
+        onRename={isReadOnly ? undefined : handleRenameResource}
+        onCategoriesChange={isReadOnly ? undefined : handleCategoriesChange}
       />
 
       {activeDirectoryFolder && (
@@ -531,6 +517,7 @@ export function ResourcesPageContent() {
           folder={activeDirectoryFolder}
           allResources={resources}
           currentCategory="Global"
+          isReadOnly={isReadOnly}
           onClose={() => setActiveDirectoryFolder(null)}
           onSelectResourceDetail={setDetailResource}
           onCreateSubfolder={(name, _parentId) => {
@@ -638,76 +625,13 @@ export function ResourcesPageContent() {
         />
       )}
 
-      {isCreateFolderModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="create-folder-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        >
-          <button
-            type="button"
-            tabIndex={-1}
-            aria-label="Close dialog"
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs animate-in fade-in cursor-default border-none"
-            onClick={() => setIsCreateFolderModalOpen(false)}
-          />
-          <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden z-10 p-6 space-y-4">
-            <div className="flex items-center space-x-2.5">
-              <div className="p-2 bg-amber-100 rounded-lg text-amber-700">
-                <svg
-                  className="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-                </svg>
-              </div>
-              <h3
-                id="create-folder-title"
-                className="text-lg font-bold text-neutral-900"
-              >
-                New Folder
-              </h3>
-            </div>
-            <form onSubmit={handleCreateFolderSubmit} className="space-y-4">
-              <div>
-                <label
-                  htmlFor="new-folder-name"
-                  className="block text-xs font-semibold text-neutral-700 mb-1"
-                >
-                  Folder Name
-                </label>
-                <input
-                  id="new-folder-name"
-                  type="text"
-                  autoFocus
-                  required
-                  placeholder="e.g. Venue Maps"
-                  value={newFolderNameInput}
-                  onChange={(e) => setNewFolderNameInput(e.target.value)}
-                  className="w-full text-sm bg-neutral-50 border border-neutral-300 rounded-lg px-3 py-2 text-neutral-900 focus:outline-hidden focus:ring-2 focus:ring-[#80131d]"
-                />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setIsCreateFolderModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold rounded-lg text-neutral-700 hover:bg-neutral-100 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#80131d] hover:bg-[#600f16] text-white transition-colors cursor-pointer shadow-xs"
-                >
-                  Create Folder
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <CreateFolderModal
+        isOpen={isCreateFolderModalOpen}
+        folderName={newFolderNameInput}
+        setFolderName={setNewFolderNameInput}
+        onClose={() => setIsCreateFolderModalOpen(false)}
+        onSubmit={handleCreateFolderSubmit}
+      />
     </div>
   );
 }

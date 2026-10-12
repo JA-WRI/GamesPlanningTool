@@ -6,7 +6,7 @@ import {
   computeSweepStep,
   applySelectionUpdate,
   runSweepStep,
-} from '../../src/components/resources/sweep-selection';
+} from '../../src/app/(application)/admin/resource-management/_components/sweep-selection';
 
 describe('sweep-selection', () => {
   const mockResources = [
