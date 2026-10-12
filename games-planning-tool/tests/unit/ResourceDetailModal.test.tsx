@@ -3,7 +3,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
-import { ResourceDetailModal } from '@/components/resources/ResourceDetailModal';
+import { ResourceDetailModal } from '@/app/(application)/admin/resource-management/_components/ResourceDetailModal';
 import { FileResource } from '@/types/resource';
 
 describe('ResourceDetailModal', () => {

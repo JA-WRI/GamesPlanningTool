@@ -106,15 +106,14 @@ export function ResourceDetailModal({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close dialog"
             className="absolute top-3 right-3 text-white/80 hover:text-white bg-black/40 hover:bg-black/60 rounded-full p-1.5 transition-colors"
           >
-            <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-              <path
-                fillRule="evenodd"
-                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <img
+              src="/icons/close.svg"
+              alt=""
+              className="w-5 h-5 invert pointer-events-none"
+            />
           </button>
         </div>
 
@@ -227,19 +226,7 @@ export function ResourceDetailModal({
                 className="px-5 py-2 text-sm font-bold text-white bg-[#80131d] hover:bg-[#6b0f18] rounded-xl shadow-md transition-all flex items-center space-x-2"
               >
                 <span>Open Link</span>
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                  />
-                </svg>
+                <img src="/icons/link.svg" alt="" className="w-4 h-4 invert" />
               </a>
             ) : (
               <a
@@ -248,19 +235,11 @@ export function ResourceDetailModal({
                 className="px-5 py-2 text-sm font-bold text-white bg-[#80131d] hover:bg-[#6b0f18] rounded-xl shadow-md transition-all flex items-center space-x-2"
               >
                 <span>Download File</span>
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  />
-                </svg>
+                <img
+                  src="/icons/upload.svg"
+                  alt=""
+                  className="w-4 h-4 invert"
+                />
               </a>
             )}
           </div>

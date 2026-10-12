@@ -1,6 +1,6 @@
 // Made with AI agents (Antigravity)
 import React from 'react';
-import { ResourcesPageContent } from '@/components/resources/ResourcesPageContent';
+import { ResourcesPageContent } from './_components/ResourcesPageContent';
 
 export const metadata = {
   title: 'Resource Management | Games Planning Tool',

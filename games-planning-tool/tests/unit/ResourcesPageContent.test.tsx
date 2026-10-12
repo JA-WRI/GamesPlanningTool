@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
-import { ResourcesPageContent } from '@/components/resources/ResourcesPageContent';
+import { ResourcesPageContent } from '@/app/(application)/admin/resource-management/_components/ResourcesPageContent';
 import * as resourcesData from '@/lib/resources-data';
 import { Resource } from '@/types/resource';
 
@@ -682,5 +682,27 @@ describe('ResourcesPageContent', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     fireEvent.click(screen.getByRole('button', { name: /Delete Selected/ }));
     expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+  });
+
+  it('renders read-only mode without editing actions and passes isReadOnly to folder modal', () => {
+    const parentFolder: Resource = {
+      id: '1',
+      name: 'General Folder',
+      type: 'folder',
+      categories: ['General'],
+    };
+    vi.mocked(resourcesData.getCachedResources).mockReturnValue([parentFolder]);
+
+    render(<ResourcesPageContent isReadOnly={true} />);
+
+    // In read-only mode, action buttons should not be rendered
+    expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Add Resource' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Create Folder' })).toBeNull();
+
+    // Opening folder modal should render with read-only view
+    fireEvent.click(screen.getByText('General Folder'));
+    expect(screen.getByRole('dialog')).toBeDefined();
+    expect(screen.queryByRole('button', { name: '+ Add Resource' })).toBeNull();
   });
 });

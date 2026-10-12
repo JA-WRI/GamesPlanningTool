@@ -1,9 +1,9 @@
 // Made with AI agents (Antigravity)
 'use client';
 
-/* eslint-disable @next/next/no-img-element */
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Resource } from '@/types/resource';
+import { FolderCardView } from './FolderCardView';
 
 interface ResourceCardProps {
   resource: Resource;
@@ -227,262 +227,33 @@ export function ResourceCard({
             isFolder ? 'w-full aspect-square rounded-3xl' : 'absolute inset-0'
           }`}
         >
-          <svg
-            className="w-14 h-14 sm:w-16 sm:h-16 text-white drop-shadow-lg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-            />
-          </svg>
+          <img
+            src="/icons/trash.svg"
+            alt=""
+            className="w-14 h-14 sm:w-16 sm:h-16 invert brightness-0 drop-shadow-lg"
+          />
           <span className="mt-1 text-center text-[11px] sm:text-xs font-bold uppercase tracking-wider text-red-100 drop-shadow-xs px-2 leading-tight">
             Remove from Category
           </span>
         </div>
       ) : isFolder ? (
-        /* ========== FOLDER CARD ========== */
-        <div
-          className="relative select-none pointer-events-none filter drop-shadow-md group-hover:drop-shadow-xl transition-all duration-200"
-          style={{ aspectRatio: '100 / 106' }}
-        >
-          {/* Single continuous SVG: tab flows into body */}
-          <svg
-            viewBox="0 0 100 106"
-            className="w-full block"
-            preserveAspectRatio="xMidYMax meet"
-          >
-            <defs>
-              <linearGradient
-                id="folderBackGrad"
-                x1="0%"
-                y1="0%"
-                x2="0%"
-                y2="100%"
-              >
-                <stop offset="0%" stopColor="#d97706" />
-                <stop offset="100%" stopColor="#b45309" />
-              </linearGradient>
-              <linearGradient
-                id="folderFrontGrad"
-                x1="0%"
-                y1="0%"
-                x2="0%"
-                y2="100%"
-              >
-                <stop offset="0%" stopColor="#fbc02d" />
-                <stop offset="60%" stopColor="#f59e0b" />
-                <stop offset="100%" stopColor="#d97706" />
-              </linearGradient>
-            </defs>
-
-            {/* Back panel: tab seamlessly connects to body */}
-            <path
-              d="M 0 6 L 0 4 C 0 1.8, 1.8 0, 4 0 L 26 0 C 29 0, 31 1.8, 33 3.5 L 34.5 4.8 C 36 6, 38 6, 40 6 L 86.4 6 C 93.9 6, 100 12.1, 100 19.6 L 100 92.4 C 100 99.9, 93.9 106, 86.4 106 L 13.6 106 C 6.1 106, 0 99.9, 0 92.4 Z"
-              fill="url(#folderBackGrad)"
-            />
-
-            {/* Inner documents peeking out (ONLY when itemCount > 0) */}
-            {Boolean(itemCount && itemCount > 0) && (
-              <g className="transition-opacity duration-300">
-                <rect
-                  x="18"
-                  y="8"
-                  width="64"
-                  height="20"
-                  rx="2.5"
-                  transform="rotate(-2 50 18)"
-                  fill="#fef08a"
-                  stroke="#ca8a04"
-                  strokeWidth="0.9"
-                />
-                <rect
-                  x="21"
-                  y="9"
-                  width="61"
-                  height="20"
-                  rx="2.5"
-                  fill="#ffffff"
-                  stroke="#94a3b8"
-                  strokeWidth="0.9"
-                />
-                <line
-                  x1="26"
-                  y1="14"
-                  x2="48"
-                  y2="14"
-                  stroke="#475569"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                />
-                <line
-                  x1="26"
-                  y1="19"
-                  x2="65"
-                  y2="19"
-                  stroke="#64748b"
-                  strokeWidth="1.3"
-                  strokeLinecap="round"
-                />
-                <line
-                  x1="26"
-                  y1="24"
-                  x2="58"
-                  y2="24"
-                  stroke="#94a3b8"
-                  strokeWidth="1.2"
-                  strokeLinecap="round"
-                />
-              </g>
-            )}
-
-            {/* Front flap */}
-            <rect
-              x="0"
-              y="12"
-              width="100"
-              height="94"
-              rx="13.6"
-              fill="url(#folderFrontGrad)"
-            />
-            {/* Highlight rim */}
-            <path
-              d="M 13.6 13 L 86.4 13"
-              stroke="#fff"
-              strokeWidth="0.9"
-              strokeOpacity="0.6"
-            />
-
-            {/* Folder name centered on front flap */}
-            <foreignObject x="5" y="20" width="90" height="80">
-              <div
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  padding: '4px',
-                }}
-              >
-                {isRenaming ? (
-                  <input
-                    ref={renameInputRef}
-                    type="text"
-                    value={renameValue}
-                    onChange={(e) => setRenameValue(e.target.value)}
-                    onBlur={commitRename}
-                    onKeyDown={handleRenameKeyDown}
-                    onClick={(e) => e.stopPropagation()}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    style={{
-                      width: '90%',
-                      textAlign: 'center',
-                      fontSize: '14px',
-                      fontWeight: 800,
-                      background: 'transparent',
-                      border: 'none',
-                      borderBottom: '2px solid rgba(69,26,3,0.4)',
-                      borderRadius: 0,
-                      padding: '0 2px',
-                      outline: 'none',
-                      color: '#451a03',
-                      letterSpacing: '-0.025em',
-                      lineHeight: '1.3',
-                      textShadow: '0 0 2px rgba(255,255,255,0.3)',
-                      pointerEvents: 'auto',
-                    }}
-                  />
-                ) : (
-                  <span
-                    onDoubleClick={handleNameDoubleClick}
-                    style={{
-                      color: '#451a03',
-                      fontWeight: 800,
-                      fontSize: '14px',
-                      lineHeight: '1.3',
-                      letterSpacing: '-0.025em',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      cursor: 'default',
-                      textShadow: '0 0 2px rgba(255,255,255,0.3)',
-                      pointerEvents: 'auto',
-                    }}
-                  >
-                    {resource.name}
-                  </span>
-                )}
-              </div>
-            </foreignObject>
-          </svg>
-
-          {/* Selection button — HTML positioned outside SVG (identical to resource cards) */}
-          {isEditing && (
-            <button
-              type="button"
-              onPointerDown={(e) => {
-                e.stopPropagation();
-                setIsRoundPointerDown(true);
-                const onUp = () => {
-                  setIsRoundPointerDown(false);
-                  window.removeEventListener('pointerup', onUp);
-                  window.removeEventListener('pointercancel', onUp);
-                };
-                window.addEventListener('pointerup', onUp);
-                window.addEventListener('pointercancel', onUp);
-                onRoundButtonPointerDown(e, resource.id);
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onRoundButtonClick(resource.id);
-              }}
-              className="absolute top-2.5 right-2.5 z-30 p-1 cursor-pointer focus:outline-hidden pointer-events-auto"
-              aria-label={isSelected ? 'Deselect resource' : 'Select resource'}
-            >
-              <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-150 ${
-                  isSelected
-                    ? 'bg-white text-[#80131d] shadow-md scale-110'
-                    : 'border-2 border-white/90 bg-black/40 hover:bg-black/60'
-                }`}
-              >
-                {isSelected && (
-                  <svg
-                    className="w-4 h-4"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 011.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                )}
-              </div>
-            </button>
-          )}
-
-          {/* Drag grip — HTML positioned outside SVG (identical to resource cards) */}
-          {isEditing && canReorder && (
-            <div className="absolute bottom-2 right-2 z-20 opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none">
-              <svg
-                className="w-4 h-4 text-white/80"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M7 4a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0zM7 16a2 2 0 11-4 0 2 2 0 014 0zM17 4a2 2 0 11-4 0 2 2 0 014 0zM17 10a2 2 0 11-4 0 2 2 0 014 0zM17 16a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
-          )}
-        </div>
+        <FolderCardView
+          resource={resource}
+          isSelected={isSelected}
+          isEditing={isEditing}
+          canReorder={canReorder}
+          itemCount={itemCount}
+          isRenaming={isRenaming}
+          renameValue={renameValue}
+          setRenameValue={setRenameValue}
+          commitRename={commitRename}
+          handleRenameKeyDown={handleRenameKeyDown}
+          handleNameDoubleClick={handleNameDoubleClick}
+          renameInputRef={renameInputRef}
+          onRoundButtonPointerDown={onRoundButtonPointerDown}
+          onRoundButtonClick={onRoundButtonClick}
+          setIsRoundPointerDown={setIsRoundPointerDown}
+        />
       ) : (
         /* ========== RESOURCE / FILE CARD (unchanged) ========== */
         <>
@@ -515,7 +286,8 @@ export function ResourceCard({
             ) : (
               <span
                 onDoubleClick={handleNameDoubleClick}
-                className="text-white font-bold text-lg sm:text-xl tracking-tight leading-snug drop-shadow-md line-clamp-3 cursor-default"
+                title={resource.name}
+                className="text-white font-bold text-lg sm:text-xl tracking-tight leading-snug drop-shadow-md line-clamp-3 cursor-default break-words"
               >
                 {resource.name}
               </span>
@@ -552,17 +324,11 @@ export function ResourceCard({
                 }`}
               >
                 {isSelected && (
-                  <svg
-                    className="w-4 h-4"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 011.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  <img
+                    src="/icons/check.svg?v=3"
+                    alt=""
+                    className="w-4 h-4 pointer-events-none"
+                  />
                 )}
               </div>
             </button>
@@ -570,13 +336,11 @@ export function ResourceCard({
 
           {isEditing && canReorder && (
             <div className="absolute bottom-2 right-2 z-20 opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none">
-              <svg
-                className="w-4 h-4 text-white/80"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M7 4a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0zM7 16a2 2 0 11-4 0 2 2 0 014 0zM17 4a2 2 0 11-4 0 2 2 0 014 0zM17 10a2 2 0 11-4 0 2 2 0 014 0zM17 16a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
+              <img
+                src="/icons/grip.svg"
+                alt=""
+                className="w-4 h-4 text-white/80 pointer-events-none"
+              />
             </div>
           )}
         </>
