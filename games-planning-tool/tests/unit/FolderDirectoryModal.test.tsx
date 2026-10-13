@@ -200,11 +200,19 @@ describe('FolderDirectoryModal pointer and drag events', () => {
     fireEvent.click(backBtn);
   });
 
-  it('handles resource click to open detail', () => {
+  it('handles resource click to open file in new tab', () => {
+    const windowOpenSpy = vi
+      .spyOn(window, 'open')
+      .mockImplementation(() => null);
     render(<FolderDirectoryModal {...defaultProps} />);
-    const fileCard = screen.getByText('File 1');
+    const fileCard = screen.getByRole('button', { name: 'File 1' });
     fireEvent.click(fileCard);
-    expect(defaultProps.onSelectResourceDetail).toHaveBeenCalled();
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      'test1',
+      '_blank',
+      'noopener,noreferrer',
+    );
+    windowOpenSpy.mockRestore();
   });
 
   it('renders read-only mode correctly', () => {

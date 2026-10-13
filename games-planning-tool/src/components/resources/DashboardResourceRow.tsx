@@ -2,7 +2,12 @@
 'use client';
 
 import React, { useState, useSyncExternalStore } from 'react';
-import { Resource, FolderResource, CANADIAN_NSOS } from '@/types/resource';
+import {
+  Resource,
+  FolderResource,
+  FileResource,
+  CANADIAN_NSOS,
+} from '@/types/resource';
 import {
   subscribeToResources,
   getCachedResources,
@@ -130,8 +135,13 @@ export function DashboardResourceRow({
               onClick={(res) => {
                 if (res.type === 'folder') {
                   setActiveDirectoryFolder(res as FolderResource);
-                } else {
-                  setDetailResource(res);
+                } else if (res.type === 'link') {
+                  if (res.URL) {
+                    window.open(res.URL, '_blank', 'noopener,noreferrer');
+                  }
+                } else if (res.type === 'file') {
+                  const url = (res as FileResource).fileUrl || '#';
+                  window.open(url, '_blank', 'noopener,noreferrer');
                 }
               }}
             />

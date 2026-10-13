@@ -129,9 +129,16 @@ describe('DashboardResourceRow', () => {
     fireEvent.click(folder);
     expect(screen.getByText('This folder is empty.')).toBeInTheDocument();
 
-    const file = screen.getByText('Summer File');
+    const windowOpenSpy = vi
+      .spyOn(window, 'open')
+      .mockImplementation(() => null);
+    const file = screen.getByRole('button', { name: 'Summer File' });
     fireEvent.click(file);
-    // Detail modal should appear, which includes a download button for files
-    expect(screen.getByText('Download File')).toBeInTheDocument();
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      'test',
+      '_blank',
+      'noopener,noreferrer',
+    );
+    windowOpenSpy.mockRestore();
   });
 });

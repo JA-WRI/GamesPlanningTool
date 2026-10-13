@@ -381,25 +381,41 @@ describe('ResourcesPageContent', () => {
     }
   });
 
-  it('opens resource detail modal when clicking a file and handles rename and categories change', () => {
+  it('opens file in new tab, edits categories via Categories button, and allows inline rename', () => {
+    const windowOpenSpy = vi
+      .spyOn(window, 'open')
+      .mockImplementation(() => null);
     render(<ResourcesPageContent />);
-    const fileCard = screen.getByText('File 1');
+
+    // Clicking the file card opens in a new tab
+    const fileCard = screen.getByRole('button', { name: 'File 1' });
     fireEvent.click(fileCard);
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      'test',
+      '_blank',
+      'noopener,noreferrer',
+    );
+    windowOpenSpy.mockRestore();
 
-    // Detail modal opens
-    expect(screen.getByText('Download File')).toBeInTheDocument();
-
-    // Trigger categories edit
-    const editCatsBtn = screen.getByRole('button', { name: 'Edit Categories' });
-    fireEvent.click(editCatsBtn);
+    // Trigger categories edit via Categories button
+    const catBtn = screen.getByTestId('categories-btn-2');
+    fireEvent.click(catBtn);
+    expect(screen.getByText('Edit Categories')).toBeInTheDocument();
 
     const catBadge = screen.getByText('Winter Games');
     fireEvent.click(catBadge);
+
+    const saveBtn = screen.getByRole('button', { name: 'Save Categories' });
+    fireEvent.click(saveBtn);
     expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
 
-    // Close detail modal
-    const closeBtn = screen.getByRole('button', { name: 'Close' });
-    fireEvent.click(closeBtn);
+    // Inline rename by clicking name directly
+    const file2Text = screen.getByText('File 2');
+    fireEvent.click(file2Text);
+    const input = screen.getByDisplayValue('File 2');
+    fireEvent.change(input, { target: { value: 'Renamed File 2' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
   });
 
   it('ignores empty folder name submission', () => {

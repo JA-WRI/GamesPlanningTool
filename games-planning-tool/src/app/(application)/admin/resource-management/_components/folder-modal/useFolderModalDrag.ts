@@ -3,6 +3,10 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Resource, FolderResource } from '@/types/resource';
+import {
+  reorderListWithInjection,
+  isPointInsidePanel,
+} from './folderModalDragHelpers';
 
 export interface UseFolderModalDragProps {
   isReadOnly?: boolean;
@@ -107,42 +111,17 @@ export function useFolderModalDrag({
       draggedIds: string[],
       rect: DOMRect,
     ) => {
-      const sourceId = draggedIds[0];
-      const midX = rect.left + rect.width / 2;
-
       setLocalOrderedChildren((currentList) => {
-        const targetIdx = currentList.findIndex((r) => r.id === targetId);
-        if (targetIdx === -1) return currentList;
-
-        const sourceIdx = currentList.findIndex((r) => r.id === sourceId);
-        if (sourceIdx !== -1) {
-          if (sourceIdx === targetIdx) return currentList;
-          if (sourceIdx < targetIdx && clientX < midX) return currentList;
-          if (sourceIdx > targetIdx && clientX > midX) return currentList;
-        }
-
-        const itemsToMove = draggedIds
-          .map(
-            (id) =>
-              currentList.find((r) => r.id === id) ||
-              allResources.find((r) => r.id === id),
-          )
-          .filter(Boolean) as Resource[];
-        if (itemsToMove.length === 0) return currentList;
-
-        const filtered = currentList.filter((r) => !draggedIds.includes(r.id));
-        let newTargetIdx = filtered.findIndex((r) => r.id === targetId);
-        if (newTargetIdx === -1) newTargetIdx = filtered.length;
-
-        let insertAfter = false;
-        if (sourceIdx !== -1) insertAfter = sourceIdx < targetIdx;
-        else insertAfter = clientX > midX;
-
-        if (insertAfter) newTargetIdx++;
-
-        filtered.splice(newTargetIdx, 0, ...itemsToMove);
-        localOrderedRef.current = filtered;
-        return filtered;
+        const updated = reorderListWithInjection(
+          currentList,
+          allResources,
+          draggedIds,
+          targetId,
+          clientX,
+          rect,
+        );
+        localOrderedRef.current = updated;
+        return updated;
       });
     },
     [allResources, setLocalOrderedChildren, localOrderedRef],
@@ -165,17 +144,9 @@ export function useFolderModalDrag({
         ghostRef.current.style.transform = `translate(${e.clientX + 12}px, ${e.clientY - 12}px)`;
       }
 
-      let isInsidePanel = true;
-      if (modalPanelRef.current && !hasExitedWindowRef.current) {
-        const rect = modalPanelRef.current.getBoundingClientRect();
-        isInsidePanel =
-          e.clientX >= rect.left - 10 &&
-          e.clientX <= rect.right + 10 &&
-          e.clientY >= rect.top - 10 &&
-          e.clientY <= rect.bottom + 10;
-      } else if (hasExitedWindowRef.current) {
-        isInsidePanel = false;
-      }
+      const isInsidePanel = hasExitedWindowRef.current
+        ? false
+        : isPointInsidePanel(modalPanelRef.current, e.clientX, e.clientY);
 
       if (drag.started) {
         if (isInsidePanel && !hasEnteredWindowRef.current) {
@@ -360,15 +331,11 @@ export function useFolderModalDrag({
         return;
       }
 
-      let isInsidePanel = true;
-      if (modalPanelRef.current) {
-        const rect = modalPanelRef.current.getBoundingClientRect();
-        isInsidePanel =
-          e.clientX >= rect.left - 10 &&
-          e.clientX <= rect.right + 10 &&
-          e.clientY >= rect.top - 10 &&
-          e.clientY <= rect.bottom + 10;
-      }
+      const isInsidePanel = isPointInsidePanel(
+        modalPanelRef.current,
+        e.clientX,
+        e.clientY,
+      );
 
       clearSpringTimer();
 

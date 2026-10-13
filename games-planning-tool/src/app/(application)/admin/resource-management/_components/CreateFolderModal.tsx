@@ -66,7 +66,7 @@ export function CreateFolderModal({
               placeholder="e.g. Venue Maps"
               value={folderName}
               onChange={(e) => setFolderName(e.target.value)}
-              className="w-full text-sm bg-neutral-50 border border-neutral-300 rounded-lg px-3 py-2 text-neutral-900 focus:outline-hidden focus:ring-2 focus:ring-[#80131d]"
+              className="w-full text-sm bg-neutral-50 border border-neutral-300 rounded-lg px-3 py-2 text-neutral-900 focus:outline-hidden focus:ring-2 focus:ring-burgundy/20 focus:border-burgundy"
             />
           </div>
           <div className="flex justify-end space-x-2">
@@ -79,7 +79,7 @@ export function CreateFolderModal({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#80131d] hover:bg-[#600f16] text-white transition-colors cursor-pointer shadow-xs"
+              className="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition-colors cursor-pointer shadow-xs"
             >
               Create Folder
             </button>

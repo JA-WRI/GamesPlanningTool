@@ -105,8 +105,8 @@ export function FolderModalToolbar({
             }}
             className={`px-4 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer shadow-xs ${
               isEditingFolder
-                ? 'bg-[#80131d] hover:bg-[#600f16] text-white'
-                : 'bg-[#374151] hover:bg-[#1f2937] text-white'
+                ? 'bg-slate-800 hover:bg-slate-700 text-white'
+                : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300'
             }`}
           >
             {isEditingFolder ? 'Done' : 'Edit'}
@@ -115,7 +115,7 @@ export function FolderModalToolbar({
       </div>
 
       {isEditingCategories && (
-        <div className="p-4 bg-indigo-50/50 border-b border-indigo-100 shrink-0">
+        <div className="p-4 bg-gray-50 border-b border-gray-200 shrink-0">
           <CategoryEditor
             selectedCategories={currentFolder.categories}
             onChange={(newCats) =>
@@ -128,7 +128,7 @@ export function FolderModalToolbar({
       {isCreatingFolder && (
         <form
           onSubmit={handleCreateFolderSubmit}
-          className="p-3 bg-amber-50 border-b border-amber-200 flex items-center space-x-2 shrink-0"
+          className="p-3 bg-amber-50/70 border-b border-amber-200 flex items-center space-x-2 shrink-0"
         >
           <input
             type="text"
@@ -136,11 +136,11 @@ export function FolderModalToolbar({
             placeholder="Subfolder name..."
             value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}
-            className="text-xs bg-white border border-amber-300 rounded px-3 py-1.5 text-neutral-800 flex-1 focus:outline-hidden focus:ring-2 focus:ring-[#80131d]"
+            className="text-xs bg-white border border-amber-300 rounded px-3 py-1.5 text-neutral-800 flex-1 focus:outline-hidden focus:ring-2 focus:ring-burgundy/20 focus:border-burgundy"
           />
           <button
             type="submit"
-            className="px-3 py-1.5 text-xs font-semibold bg-[#80131d] hover:bg-[#600f16] text-white rounded cursor-pointer"
+            className="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white rounded cursor-pointer shadow-xs"
           >
             Create
           </button>

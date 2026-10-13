@@ -59,21 +59,44 @@ test.describe('Resources Page E2E', () => {
     await expect(page.getByText('Resource added successfully')).toBeVisible();
   });
 
-  test('clicking a file on NSO page opens detail modal in read-only view', async ({
+  test('clicking a folder on NSO page opens folder modal in read-only view', async ({
     page,
   }) => {
     await page.goto('/game_id_1/nso_1/resources');
+    await page
+      .locator('[data-resource-id][data-resource-type="folder"]')
+      .first()
+      .click();
+    const modal = page.locator('[role="dialog"]');
+    await expect(modal).toBeVisible();
+  });
+
+  test('clicking a file or link opens resource directly in a new tab without detail modal', async ({
+    page,
+  }) => {
+    await page.goto('/game_id_1/nso_1/resources');
+    let openedUrl = '';
+    await page.exposeFunction('onWindowOpen', (url: string) => {
+      openedUrl = url;
+    });
+    await page.addInitScript(() => {
+      window.open = (url) => {
+        (
+          window as unknown as { onWindowOpen: (u: string) => void }
+        ).onWindowOpen(String(url));
+        return null;
+      };
+    });
+    await page.reload();
     await page
       .locator(
         '[data-resource-id][data-resource-type="file"], [data-resource-id][data-resource-type="link"]',
       )
       .first()
       .click();
-    const modal = page.locator('[role="dialog"]');
-    await expect(modal).toBeVisible();
-    // On read-only view, Edit Categories button should not be present
-    await expect(
-      modal.getByRole('button', { name: 'Edit Categories' }),
-    ).toHaveCount(0);
+
+    expect(openedUrl).toBeTruthy();
+    // Verify no detail dialog opened
+    await expect(page.locator('[role="dialog"]')).toHaveCount(0);
   });
 });

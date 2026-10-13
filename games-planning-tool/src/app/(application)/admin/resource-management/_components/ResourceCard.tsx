@@ -116,6 +116,7 @@ interface ResourceCardProps {
   onCardPointerDown: (e: React.PointerEvent, id: string) => void;
   onClick: (resource: Resource) => void;
   onRename?: (id: string, newName: string) => void;
+  onEditCategories?: (resource: Resource) => void;
   onDragStart?: (e: React.DragEvent, id: string) => void;
   onDragOver?: (e: React.DragEvent, id: string) => void;
   onDragEnd?: (e: React.DragEvent) => void;
@@ -138,6 +139,7 @@ export function ResourceCard({
   onCardPointerDown,
   onClick,
   onRename,
+  onEditCategories,
   onDragStart,
   onDragOver,
   onDragEnd,
@@ -217,10 +219,19 @@ export function ResourceCard({
     }, 150);
   };
 
+  const handleNameClick = (e: React.MouseEvent) => {
+    if (resource.type !== 'folder' && onRename && !isEditing) {
+      e.stopPropagation();
+      e.preventDefault();
+      setRenameValue(resource.name);
+      setIsRenaming(true);
+    }
+  };
+
   const handleNameDoubleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (!isEditing) {
+    if (onRename && !isEditing) {
+      e.stopPropagation();
+      e.preventDefault();
       setRenameValue(resource.name);
       setIsRenaming(true);
     }
@@ -275,13 +286,32 @@ export function ResourceCard({
             : resource.name
       }
     >
+      {/* Floating Categories button on hover (files and links) */}
+      {onEditCategories &&
+        !isEditing &&
+        (resource.type === 'file' || resource.type === 'link') && (
+          <button
+            type="button"
+            data-testid={`categories-btn-${resource.id}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onEditCategories(resource);
+            }}
+            className="absolute -top-3 left-1/2 -translate-x-1/2 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-150 px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-800 text-white shadow-md hover:bg-slate-700 whitespace-nowrap cursor-pointer pointer-events-auto"
+            title="Edit categories"
+          >
+            Categories
+          </button>
+        )}
+
       {/* Square Icon Container */}
       <div
         className={`relative w-full aspect-square flex items-center justify-center p-2 rounded-2xl transition-all duration-150 ${
           isFolderDropTarget
             ? 'ring-4 ring-amber-400 bg-amber-100/70 scale-105 shadow-md z-20'
             : isSelected
-              ? 'bg-[#80131d]/10 ring-2 ring-[#80131d]'
+              ? 'bg-burgundy/10 ring-2 ring-burgundy'
               : 'bg-transparent hover:bg-black/[0.04]'
         }`}
       >
@@ -349,7 +379,7 @@ export function ResourceCard({
             <div
               className={`w-5 h-5 rounded-full flex items-center justify-center transition-all duration-150 ${
                 isSelected
-                  ? 'bg-white text-[#80131d] shadow-sm ring-1 ring-neutral-300 scale-105'
+                  ? 'bg-white text-burgundy shadow-sm ring-1 ring-neutral-300 scale-105'
                   : 'border-2 border-neutral-400 bg-white/90 hover:bg-white hover:border-neutral-600'
               }`}
             >
@@ -388,15 +418,24 @@ export function ResourceCard({
             onKeyDown={handleRenameKeyDown}
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
-            className="w-full text-center text-[11px] font-semibold text-neutral-900 bg-white border border-[#80131d] rounded px-1 py-0.5 outline-none shadow-xs"
+            className="w-full text-center text-[11px] font-semibold text-neutral-900 bg-white border border-burgundy rounded px-1 py-0.5 outline-none shadow-xs focus:ring-1 focus:ring-burgundy"
           />
         ) : (
           <span
+            onClick={handleNameClick}
             onDoubleClick={handleNameDoubleClick}
-            title={resource.name}
-            className={`text-[11px] sm:text-xs font-semibold text-neutral-800 leading-tight line-clamp-2 break-words cursor-default group-hover:text-neutral-950 transition-colors ${
-              isSelected ? 'text-[#80131d]' : ''
-            }`}
+            title={
+              resource.type !== 'folder' && onRename && !isEditing
+                ? `Click to rename "${resource.name}"`
+                : onRename && !isEditing
+                  ? `Double-click to rename "${resource.name}"`
+                  : resource.name
+            }
+            className={`text-[11px] sm:text-xs font-semibold text-neutral-800 leading-tight line-clamp-2 break-words transition-colors ${
+              resource.type !== 'folder' && onRename && !isEditing
+                ? 'cursor-pointer hover:text-burgundy hover:underline decoration-neutral-300 underline-offset-2'
+                : 'cursor-default group-hover:text-neutral-950'
+            } ${isSelected ? 'text-burgundy' : ''}`}
           >
             {resource.name}
           </span>
