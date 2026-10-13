@@ -5,7 +5,7 @@ import { useGridValidation } from '@/hooks/useGridValidation';
 import { ColumnDefinition } from '@/components/commons/Grid';
 
 describe('useGridValidation Hook', () => {
-  const mockColumns: ColumnDefinition<any>[] = [
+  const mockColumns: ColumnDefinition<Record<string, unknown>>[] = [
     {
       field: 'score',
       label: 'Score',
