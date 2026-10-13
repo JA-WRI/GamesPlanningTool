@@ -74,6 +74,7 @@ export function FolderModalHeader({
                 setEditingNameId(null);
               }}
               onKeyDown={(e) => {
+                e.stopPropagation();
                 if (e.key === 'Enter') {
                   committedRef.current = true;
                   const trimmed = editNameValue.trim();

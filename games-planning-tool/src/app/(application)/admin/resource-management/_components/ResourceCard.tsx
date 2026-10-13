@@ -239,9 +239,12 @@ export function ResourceCard({
   };
 
   const handleRenameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    e.stopPropagation();
     if (e.key === 'Enter') {
+      e.preventDefault();
       commitRename();
     } else if (e.key === 'Escape') {
+      e.preventDefault();
       setRenameValue(resource.name);
       setIsRenaming(false);
     }
@@ -255,6 +258,7 @@ export function ResourceCard({
       tabIndex={0}
       aria-label={resource.name}
       onKeyDown={(e) => {
+        if (isRenaming || e.target !== e.currentTarget) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           handleClick(e as unknown as React.MouseEvent);

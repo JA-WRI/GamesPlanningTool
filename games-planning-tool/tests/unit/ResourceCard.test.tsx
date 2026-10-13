@@ -67,6 +67,11 @@ describe('ResourceCard', () => {
     const input = screen.getByDisplayValue('My File');
     expect(input).toBeInTheDocument();
 
+    // Press space in the input - should NOT trigger card onClick
+    const onClickCallCount = defaultProps.onClick.mock.calls.length;
+    fireEvent.keyDown(input, { key: ' ' });
+    expect(defaultProps.onClick).toHaveBeenCalledTimes(onClickCallCount);
+
     // Change and save
     fireEvent.change(input, { target: { value: 'New File Name' } });
     fireEvent.keyDown(input, { key: 'Enter' });
