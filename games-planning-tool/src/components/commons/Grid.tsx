@@ -20,10 +20,12 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  Autocomplete,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PlusIcon from '@mui/icons-material/Add';
 import GridTextBox from '@/components/commons/GridTextBox';
+import { useGridValidation } from '@/hooks/useGridValidation';
 
 export type ColumnType = 'text' | 'email' | 'tel' | 'number' | 'select';
 export type CalculationOperator = '+' | '-' | '*';
@@ -53,6 +55,7 @@ export interface ColumnDefinition<T> {
   step?: number;
   formula?: ColumnFormula<T>;
   formatValue?: (val: number) => string;
+  allowedTextValues?: string[];
 }
 
 interface GridProps<T extends Record<string, unknown>> {
@@ -63,6 +66,7 @@ interface GridProps<T extends Record<string, unknown>> {
   onRowsChange: (newRows: T[]) => void;
   onAddRow?: () => void;
   addButtonLabel?: string;
+  onValidationChange?: (hasError: boolean) => void;
 }
 
 export default function Grid<T extends Record<string, unknown>>({
@@ -73,10 +77,12 @@ export default function Grid<T extends Record<string, unknown>>({
   onRowsChange,
   onAddRow,
   addButtonLabel = 'Add Row',
+  onValidationChange,
 }: GridProps<T>) {
   const [deleteTargetIndex, setDeleteTargetIndex] = useState<number | null>(
     null,
   );
+  const { getCellError } = useGridValidation(rows, columns, onValidationChange);
 
   const handleCellChange = (
     rowIndex: number,
@@ -193,7 +199,10 @@ export default function Grid<T extends Record<string, unknown>>({
                   const rawComputed = col.formula
                     ? calculateValue(row, col.formula)
                     : (row[col.field] ?? '');
-
+                  const errorMsg =
+                    col.type === 'number'
+                      ? getCellError(col, rawComputed)
+                      : null;
                   const displayVal =
                     col.formula &&
                     typeof rawComputed === 'number' &&
@@ -209,18 +218,53 @@ export default function Grid<T extends Record<string, unknown>>({
                     >
                       {showInputs && !col.formula ? (
                         col.type === 'select' ? (
-                          <TextField
-                            select
+                          <Autocomplete
                             size="small"
                             fullWidth
-                            value={rawComputed as string | number}
-                            onChange={(e) =>
-                              handleCellChange(
-                                rowIndex,
-                                col.field,
-                                e.target.value,
-                              )
+                            options={col.options || []}
+                            getOptionLabel={(option) => {
+                              if (
+                                typeof option === 'object' &&
+                                option !== null &&
+                                'label' in option
+                              ) {
+                                return String(option.label);
+                              }
+                              const found = col.options?.find(
+                                (opt) => opt.value === option,
+                              );
+                              return found
+                                ? String(found.label)
+                                : String(option);
+                            }}
+                            isOptionEqualToValue={(option, value) =>
+                              option.value ===
+                              (typeof value === 'object' &&
+                              value !== null &&
+                              'value' in value
+                                ? value.value
+                                : value)
                             }
+                            value={
+                              col.options?.find(
+                                (opt) => opt.value === rawComputed,
+                              ) || null
+                            }
+                            onChange={(_, newValue) => {
+                              const val =
+                                newValue &&
+                                typeof newValue === 'object' &&
+                                'value' in newValue
+                                  ? newValue.value
+                                  : '';
+                              handleCellChange(rowIndex, col.field, val);
+                            }}
+                            renderInput={(params) => (
+                              <GridTextBox
+                                {...params}
+                                placeholder={col.placeholder || 'Select option'}
+                              />
+                            )}
                             sx={{
                               minWidth: '140px',
                               '& .MuiOutlinedInput-root': {
@@ -232,27 +276,36 @@ export default function Grid<T extends Record<string, unknown>>({
                                 },
                               },
                             }}
-                          >
-                            <MenuItem value="" disabled>
-                              <em>{col.placeholder || 'Select option'}</em>
-                            </MenuItem>
-                            {col.options?.map((opt) => (
-                              <MenuItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </MenuItem>
-                            ))}
-                          </TextField>
+                          />
                         ) : (
                           <GridTextBox
-                            type={col.type || 'text'}
-                            value={rawComputed as string | number}
+                            type={
+                              col.allowedTextValues &&
+                              col.allowedTextValues.length > 0
+                                ? 'text'
+                                : col.type || 'text'
+                            }
+                            // need to protect against nan fallback
+                            value={
+                              typeof rawComputed === 'number' &&
+                              Number.isNaN(rawComputed)
+                                ? ''
+                                : (rawComputed as string | number)
+                            }
                             placeholder={col.placeholder || col.label}
+                            error={Boolean(errorMsg)}
                             onChange={(e) => {
                               const val = e.target.value;
+                              const isAllowedText = col.allowedTextValues?.some(
+                                (item) =>
+                                  item.toUpperCase() === val.toUpperCase(),
+                              );
                               const parsedValue =
-                                col.type === 'number' && val !== ''
-                                  ? Number(val)
-                                  : val;
+                                isAllowedText ||
+                                isNaN(Number(val)) ||
+                                val === ''
+                                  ? val
+                                  : Number(val);
                               handleCellChange(
                                 rowIndex,
                                 col.field,

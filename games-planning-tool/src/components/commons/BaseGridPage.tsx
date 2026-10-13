@@ -31,7 +31,7 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
 }: BaseGridPageProps<T>) {
   const [isPreview, setIsPreview] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
+  const [hasValidationError, setHasValidationError] = useState(false);
   const {
     rows,
     setRows,
@@ -68,8 +68,20 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
           setIsEditing(!isEditing);
           setIsPreview(false);
         }}
-        onPreviewToggle={(previewState) => setIsPreview(previewState)}
+        onPreviewToggle={(previewState) => {
+          if (previewState && hasValidationError) {
+            alert(
+              'Please fix the invalid range inputs before switching to preview.',
+            );
+            return;
+          }
+          setIsPreview(previewState);
+        }}
         onSave={() => {
+          if (hasValidationError) {
+            alert('Please fix the invalid range inputs before saving.');
+            return;
+          }
           handleSave();
           setIsPreview(false);
         }}
@@ -97,6 +109,7 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
         onRowsChange={setRows as (newRows: T[]) => void}
         onAddRow={handleAddRow}
         addButtonLabel={addButtonLabel}
+        onValidationChange={(errorState) => setHasValidationError(errorState)}
       />
     </div>
   );

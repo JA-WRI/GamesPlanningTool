@@ -44,7 +44,8 @@ const travelerColumns: ColumnDefinition<TravelerRow>[] = [
     field: 'teamMembers',
     label: 'NUMBER OF TEAM MEMBERS',
     type: 'number',
-    min: 1,
+    min: 1, // min and max are used to enforce the bounds of the input numbers
+    max: 100,
     align: 'center',
   },
   {
@@ -60,7 +61,9 @@ const travelerColumns: ColumnDefinition<TravelerRow>[] = [
     subtitle: 'COC or $',
     type: 'number',
     min: 0,
+    max: 5000,
     align: 'center',
+    allowedTextValues: ['COC'],
   },
   {
     field: 'accomodationProperty',
