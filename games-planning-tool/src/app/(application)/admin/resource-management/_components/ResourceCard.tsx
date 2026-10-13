@@ -402,20 +402,25 @@ export function ResourceCard({
             onPointerDown={(e) => e.stopPropagation()}
             className="w-full text-center text-[11px] font-semibold text-neutral-900 bg-white border border-burgundy rounded px-1 py-0.5 outline-none shadow-xs focus:ring-1 focus:ring-burgundy"
           />
-        ) : (
-          <span
+        ) : onRename && !isEditing ? (
+          <button
+            type="button"
             onClick={handleNameClick}
             onDoubleClick={handleNameDoubleClick}
-            title={
-              onRename && !isEditing
-                ? `Click to rename "${resource.name}"`
-                : resource.name
-            }
-            className={`text-[11px] sm:text-xs font-semibold text-neutral-800 leading-tight line-clamp-2 break-words transition-colors ${
-              onRename && !isEditing
-                ? 'cursor-pointer hover:text-burgundy hover:underline decoration-neutral-300 underline-offset-2'
-                : 'cursor-default group-hover:text-neutral-950'
-            } ${isSelected ? 'text-burgundy' : ''}`}
+            aria-label={`Rename ${resource.name}`}
+            title={`Click to rename "${resource.name}"`}
+            className={`w-full text-center bg-transparent border-0 p-0 text-[11px] sm:text-xs font-semibold text-neutral-800 leading-tight line-clamp-2 break-words transition-colors cursor-pointer hover:text-burgundy hover:underline decoration-neutral-300 underline-offset-2 ${
+              isSelected ? 'text-burgundy' : ''
+            }`}
+          >
+            {resource.name}
+          </button>
+        ) : (
+          <span
+            title={resource.name}
+            className={`text-[11px] sm:text-xs font-semibold text-neutral-800 leading-tight line-clamp-2 break-words transition-colors cursor-default group-hover:text-neutral-950 ${
+              isSelected ? 'text-burgundy' : ''
+            }`}
           >
             {resource.name}
           </span>

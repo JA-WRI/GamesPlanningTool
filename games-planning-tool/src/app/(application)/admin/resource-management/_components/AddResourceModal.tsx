@@ -256,11 +256,12 @@ function AddResourceForm({
               className="hidden"
               onChange={(e) => {
                 if (e.target.files && e.target.files[0]) {
-                  handleFileChange(e.target.files[0]);
+                  void handleFileChange(e.target.files[0]);
                 }
               }}
             />
-            <div
+            <button
+              type="button"
               onDragOver={(e) => {
                 e.preventDefault();
                 setIsDraggingFile(true);
@@ -270,11 +271,11 @@ function AddResourceForm({
                 e.preventDefault();
                 setIsDraggingFile(false);
                 if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                  handleFileChange(e.dataTransfer.files[0]);
+                  void handleFileChange(e.dataTransfer.files[0]);
                 }
               }}
               onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+              className={`w-full border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all block ${
                 isDraggingFile
                   ? 'border-burgundy bg-burgundy/5'
                   : 'border-neutral-300 hover:border-neutral-400 bg-neutral-50/50'
@@ -307,7 +308,7 @@ function AddResourceForm({
                   </p>
                 </div>
               )}
-            </div>
+            </button>
           </div>
         )}
 

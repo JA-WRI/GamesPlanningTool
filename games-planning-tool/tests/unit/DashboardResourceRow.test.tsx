@@ -141,4 +141,68 @@ describe('DashboardResourceRow', () => {
     );
     windowOpenSpy.mockRestore();
   });
+
+  it('handles link resource clicks and opening detail modal from folder child', () => {
+    const childFile: Resource = {
+      id: 'child-file',
+      name: 'Child File',
+      type: 'file',
+      fileUrl: 'child-url',
+      parentId: 'folder-1',
+      categories: ['General'],
+    };
+    const mockResources: Resource[] = [
+      {
+        id: 'folder-1',
+        name: 'General Folder',
+        type: 'folder',
+        categories: ['General'],
+      },
+      {
+        id: 'link-1',
+        name: 'Useful Link',
+        type: 'link',
+        URL: 'https://example.com',
+        categories: ['General'],
+      },
+      childFile,
+    ];
+
+    vi.mocked(resourcesData.getCachedResources).mockReturnValue(mockResources);
+    vi.mocked(resourcesData.getFolderChildren).mockReturnValue([childFile]);
+
+    render(<DashboardResourceRow gameId="game_id_1" />);
+
+    const windowOpenSpy = vi
+      .spyOn(window, 'open')
+      .mockImplementation(() => null);
+
+    const link = screen.getByRole('button', { name: 'Useful Link' });
+    fireEvent.click(link);
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      'https://example.com',
+      '_blank',
+      'noopener,noreferrer',
+    );
+
+    // Click folder to open directory modal
+    fireEvent.click(screen.getByText('General Folder'));
+    expect(screen.getByText('Child File')).toBeInTheDocument();
+
+    // Click child file inside folder to open file URL
+    fireEvent.click(screen.getByRole('button', { name: 'Child File' }));
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      'child-url',
+      '_blank',
+      'noopener,noreferrer',
+    );
+
+    // Close folder modal
+    const closeFolderBtn = screen.getByRole('button', {
+      name: 'Close folder dialog',
+    });
+    fireEvent.click(closeFolderBtn);
+
+    windowOpenSpy.mockRestore();
+  });
 });
