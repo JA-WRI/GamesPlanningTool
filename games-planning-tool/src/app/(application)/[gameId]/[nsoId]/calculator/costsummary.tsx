@@ -1,7 +1,9 @@
+// 10% of the code was AI generated:
+// - css converted to tailwind
+
 'use client';
 
 import { Box, Divider, Paper, Typography } from '@mui/material';
-import './costsummary.css';
 
 export type CostSummaryItem = {
   label: string;
@@ -25,14 +27,20 @@ export default function CostSummary({
   estimatedTotal,
 }: Readonly<CostSummaryProps>) {
   return (
-    <Paper className="cost-summary" variant="outlined">
-      <Box className="cost-summary-heading">
+    <Paper
+      className="mt-10 overflow-hidden rounded-[4px] border-2 border-[#ab4c277a] bg-white shadow-none! [&_.MuiDivider-root]:border-t [&_.MuiDivider-root]:border-[#ab4c277a]"
+      variant="outlined"
+    >
+      <Box className="border-b-2 border-[#ab4c277a] px-4 py-[14px] [&_.MuiTypography-root]:text-[18px] [&_.MuiTypography-root]:leading-[1.35] [&_.MuiTypography-root]:font-bold [&_.MuiTypography-root]:text-[#111]">
         <Typography>Cost Summary</Typography>
       </Box>
 
-      <Box className="cost-summary-content">
+      <Box className="px-4 max-[768px]:px-3">
         {summary.map((item) => (
-          <Box key={item.label} className="cost-summary-row">
+          <Box
+            key={item.label}
+            className="flex min-h-[62px] items-center justify-between border-b border-[#ab4c277a] px-[2px] py-2 last:border-b-0 [&_.MuiTypography-root]:text-[16px] [&_.MuiTypography-root]:leading-[1.4] [&_.MuiTypography-root]:text-[#222]"
+          >
             <Typography>{item.label}</Typography>
             <Typography>{formatCurrency(item.value)}</Typography>
           </Box>
@@ -41,18 +49,18 @@ export default function CostSummary({
 
       <Divider />
 
-      <Box className="cost-summary-total">
+      <Box className="flex items-center justify-between gap-5 p-4 max-[600px]:gap-3">
         <Box>
-          <Typography className="cost-summary-label">
+          <Typography className="text-[18px] leading-[1.35] font-semibold text-[#111]">
             Estimated Total:
           </Typography>
 
-          <Typography className="cost-summary-note">
+          <Typography className="mt-[3px] text-[10px] text-[#666]">
             Excludes clothing packages (individual need)
           </Typography>
         </Box>
 
-        <Typography className="cost-summary-amount">
+        <Typography className="text-[18px] leading-[1.35] font-semibold text-[#111]">
           {formatCurrency(estimatedTotal)}
         </Typography>
       </Box>

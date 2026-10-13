@@ -1,3 +1,6 @@
+// 10% of teh code was AI generated:
+// - css converted to tailwind
+
 'use client';
 
 import { useState } from 'react';
@@ -15,7 +18,6 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import './hoteldetails.css';
 
 type OccupancyType = 'Single' | 'Double';
 
@@ -99,13 +101,16 @@ export default function HotelDetails() {
   };
 
   return (
-    <Paper className="hotel-details" variant="outlined">
-      <Box className="hotel-details-heading">
+    <Paper
+      className="mt-10 overflow-hidden rounded-[4px] border-2 border-[#ab4c277a] bg-white shadow-none!"
+      variant="outlined"
+    >
+      <Box className="border-b-2 border-[#ab4c277a] px-4 py-[14px] [&_.MuiTypography-root]:text-[18px] [&_.MuiTypography-root]:leading-[1.35] [&_.MuiTypography-root]:font-bold [&_.MuiTypography-root]:text-[#111]">
         <Typography>Hotel Details</Typography>
       </Box>
 
       <TableContainer>
-        <Table className="hotel-details-table">
+        <Table className="w-full table-fixed max-[768px]:min-w-[700px] [&_.MuiTableCell-head]:border-b [&_.MuiTableCell-head]:border-[#ab4c277a] [&_.MuiTableCell-head]:bg-[#fff9f3] [&_.MuiTableCell-head]:px-[18px] [&_.MuiTableCell-head]:py-[14px] [&_.MuiTableCell-head]:text-[16px] [&_.MuiTableCell-head]:font-semibold [&_.MuiTableCell-head]:text-[#111] [&_.MuiTableCell-body]:h-[62px] [&_.MuiTableCell-body]:border-b-0 [&_.MuiTableCell-body]:px-[18px] [&_.MuiTableCell-body]:py-[10px] [&_.MuiTableCell-body]:text-[16px] [&_.MuiTableCell-body]:text-[#222] [&_.MuiTableCell-root:nth-child(1)]:w-[45%] [&_.MuiTableCell-root:nth-child(2)]:w-[30%] [&_.MuiTableCell-root:nth-child(3)]:w-[25%]">
           <TableHead>
             <TableRow>
               <TableCell>Property Cluster and Name</TableCell>
@@ -118,7 +123,7 @@ export default function HotelDetails() {
             <TableRow>
               <TableCell>
                 <FormControl
-                  className="hotel-details-select"
+                  className="[&_.MuiInputBase-root]:text-[16px] [&_.MuiInputBase-root]:text-[#222] [&_.MuiSelect-select]:py-2 [&_.MuiSelect-select]:text-[16px] [&_.MuiInput-underline:before]:border-b [&_.MuiInput-underline:before]:border-[#ab4c277a] [&_.MuiInput-underline:hover:not(.Mui-disabled):before]:border-[#ab4c277a] [&_.MuiInput-underline:after]:border-b-2 [&_.MuiInput-underline:after]:border-[#f84d09] [&_.MuiInputBase-root.Mui-disabled]:text-[#9e9e9e] [&_.MuiInputBase-root.Mui-disabled:before]:border-[#e0e0e0]"
                   variant="standard"
                   fullWidth
                 >
@@ -145,7 +150,7 @@ export default function HotelDetails() {
 
               <TableCell>
                 <FormControl
-                  className="hotel-details-select"
+                  className="[&_.MuiInputBase-root]:text-[16px] [&_.MuiInputBase-root]:text-[#222] [&_.MuiSelect-select]:py-2 [&_.MuiSelect-select]:text-[16px] [&_.MuiInput-underline:before]:border-b [&_.MuiInput-underline:before]:border-[#ab4c277a] [&_.MuiInput-underline:hover:not(.Mui-disabled):before]:border-[#ab4c277a] [&_.MuiInput-underline:after]:border-b-2 [&_.MuiInput-underline:after]:border-[#f84d09] [&_.MuiInputBase-root.Mui-disabled]:text-[#9e9e9e] [&_.MuiInputBase-root.Mui-disabled:before]:border-[#e0e0e0]"
                   variant="standard"
                   fullWidth
                   disabled={!selectedHotel}
@@ -171,7 +176,7 @@ export default function HotelDetails() {
               </TableCell>
 
               <TableCell>
-                <Typography className="hotel-details-price">
+                <Typography className="text-[16px] font-medium text-[#222]">
                   {formatCurrency(price)}
                 </Typography>
               </TableCell>

@@ -2,6 +2,7 @@
 // The following was AI generated:
 // - Original calculator layout, table/input scaffolding, and component organization
 // - Temporary calculator-specific state used before backend persistence is added
+// - css converted to tailwind
 // The table fields and calculator requirements were reviewed and modified manually.
 
 'use client';
@@ -22,7 +23,6 @@ import {
 import ConversionRates from './conversionrates';
 import CostSummary from './costsummary';
 import EstimatedCosts, { EstimatedCostsData } from './estimatedcosts';
-import './calculatorcontent.css';
 import HotelDetails from './hoteldetails';
 
 const TRAVEL_CATEGORIES = [
@@ -183,7 +183,7 @@ export default function CalculatorContent({
 
   const renderTeamMemberInput = (row: CalculatorRow) => (
     <TextField
-      className="calculator-content-input"
+      className="w-full rounded-none [&_.MuiInput-root]:min-h-[38px] [&_.MuiInput-root]:rounded-none [&_.MuiInput-root]:bg-white [&_.MuiInput-root]:text-[16px] [&_.MuiInputBase-input]:px-1 [&_.MuiInputBase-input]:pt-[10px] [&_.MuiInputBase-input]:pb-[6px] [&_.MuiInputBase-input]:text-center [&_.MuiInput-root:before]:border-b [&_.MuiInput-root:before]:border-[#ab4c277a] [&_.MuiInput-root:hover:not(.Mui-disabled):not(.Mui-error):before]:border-[#ffb663] [&_.MuiInput-root:after]:border-b-2 [&_.MuiInput-root:after]:border-[#ffb663] [&_input[type=number]]:[appearance:textfield] [&_input::-webkit-inner-spin-button]:appearance-none [&_input::-webkit-outer-spin-button]:appearance-none max-[1024px]:[&_.MuiInputBase-root]:min-h-[34px] max-[1024px]:[&_.MuiInputBase-root]:text-[11px] max-[1024px]:[&_.MuiInputBase-input]:px-[6px] max-[1024px]:[&_.MuiInputBase-input]:py-[7px] max-[1024px]:[&_.MuiInputBase-input]:text-[11px] max-[768px]:[&_.MuiInputBase-root]:min-h-8 max-[768px]:[&_.MuiInputBase-root]:text-[10px] max-[768px]:[&_.MuiInputBase-input]:px-[5px] max-[768px]:[&_.MuiInputBase-input]:py-[6px]"
       type="number"
       variant="standard"
       size="small"
@@ -212,7 +212,7 @@ export default function CalculatorContent({
     isCurrency = false,
   ) => (
     <Typography
-      className="calculator-content-readonly-value"
+      className="cursor-default text-[#222] select-none"
       aria-label={label}
     >
       {isCurrency ? formatCurrency(value) : value}
@@ -220,9 +220,9 @@ export default function CalculatorContent({
   );
 
   return (
-    <Box className="calculator" data-calculator-id={calculatorId}>
-      <Box className="calculator-links-conversion-rates">
-        <Box className="calculator-links">
+    <Box className="w-full min-w-0" data-calculator-id={calculatorId}>
+      <Box className="mb-[14px] flex w-full items-center justify-between gap-4 max-[600px]:items-start">
+        <Box className="flex items-start gap-10 max-[600px]:gap-x-3 max-[600px]:gap-y-2 [&_h2]:m-0 [&_h2]:pt-[7px] [&_h2]:pl-[5px] [&_h2]:text-[18px] [&_h2]:leading-[1.35] [&_h2]:font-bold [&_h2]:text-[#111] [&_a]:inline-flex [&_a]:w-fit [&_a]:items-center [&_a]:border-b [&_a]:border-[#c6c6c6] [&_a]:px-[10px] [&_a]:py-[7px] [&_a]:text-[16px] [&_a]:leading-[1.4] [&_a]:font-medium [&_a]:text-[#555] [&_a]:no-underline [&_a]:transition-colors [&_a:hover]:border-[#e06410] [&_a:hover]:text-[#e06410] [&_a:focus-visible]:outline-2 [&_a:focus-visible]:outline-offset-2 [&_a:focus-visible]:outline-[#e06410] [&_a:active]:text-[#bc65e4]">
           <h2>Links:</h2>
           <a
             href="https://drive.google.com/drive/folders/1YLt82-95BMaAmetoMYpdpUMf-V0jBl9j?usp=drive_link"
@@ -240,21 +240,27 @@ export default function CalculatorContent({
             Access and Privileges
           </a>
         </Box>
-        <Box className="currency-selector">
+        <Box className="flex items-center gap-3 [&_h2]:m-0 [&_h2]:whitespace-nowrap [&_h2]:text-[18px] [&_h2]:leading-[1.35] [&_h2]:font-bold [&_h2]:text-[#111]">
           <h2>Currency:</h2>
           <ConversionRates />
         </Box>
       </Box>
 
-      <Paper className="calculator-content-panel" variant="outlined">
-        <Box className="calculator-content-section-heading">
+      <Paper
+        className="max-w-full overflow-hidden rounded-[4px] border-2 border-[#ab4c27b4] bg-white shadow-none!"
+        variant="outlined"
+      >
+        <Box className="flex h-[55px] items-center justify-start border-b-2 border-[#ab4c277a] bg-[#ab4c27] px-4 py-3 max-[1024px]:px-3 max-[1024px]:py-[10px] [&_.MuiTypography-root]:text-[18px] [&_.MuiTypography-root]:leading-[1.35] [&_.MuiTypography-root]:font-semibold [&_.MuiTypography-root]:text-[#fffcf8]">
           <Typography>NSO FUNDED TEAM MEMBERS ESTIMATED COSTS</Typography>
         </Box>
 
-        <TableContainer className="calculator-content-table-container">
-          <Table className="calculator-content-table" size="small">
+        <TableContainer className="block w-full max-w-full overflow-x-scroll overflow-y-hidden [scrollbar-gutter:stable] [scrollbar-width:auto] [scrollbar-color:#ee9247_#ebeaea] [&::-webkit-scrollbar]:h-[13px] [&::-webkit-scrollbar-track]:bg-[#eee] [&::-webkit-scrollbar-thumb]:rounded-[8px] [&::-webkit-scrollbar-thumb]:border-[3px] [&::-webkit-scrollbar-thumb]:border-[#eee] [&::-webkit-scrollbar-thumb]:bg-[#898989] [&::-webkit-scrollbar-thumb:hover]:bg-[#666] max-[768px]:touch-pan-x max-[768px]:[&::-webkit-scrollbar]:h-[14px]">
+          <Table
+            className="w-full min-w-[2050px] table-fixed border-collapse max-[1024px]:min-w-[1600px] max-[768px]:min-w-[1450px]"
+            size="small"
+          >
             <TableHead>
-              <TableRow className="calculator-content-table-head-row">
+              <TableRow className="bg-[#f7f3f1]! [&_.MuiTableCell-root]:h-[58px] [&_.MuiTableCell-root]:border-b [&_.MuiTableCell-root]:border-[#ab4c277a] [&_.MuiTableCell-root]:px-3 [&_.MuiTableCell-root]:py-[13px] [&_.MuiTableCell-root]:text-center [&_.MuiTableCell-root]:align-middle [&_.MuiTableCell-root]:text-[16px] [&_.MuiTableCell-root]:leading-[1.4] [&_.MuiTableCell-root]:font-medium [&_.MuiTableCell-root]:text-[#2c1602] [&_.MuiTableCell-root:first-child]:w-[500px] [&_.MuiTableCell-root:first-child]:border-r [&_.MuiTableCell-root:first-child]:border-[#ab4c277a] [&_.MuiTableCell-root:first-child]:pl-[18px] [&_.MuiTableCell-root:first-child]:text-left [&_.MuiTableCell-root:nth-child(2)]:w-[145px] [&_.MuiTableCell-root:nth-child(2)]:pl-5 [&_.MuiTableCell-root:nth-child(3)]:w-[145px] [&_.MuiTableCell-root:nth-child(4)]:w-[155px] [&_.MuiTableCell-root:nth-child(5)]:w-[155px] [&_.MuiTableCell-root:nth-child(6)]:w-[170px] [&_.MuiTableCell-root:nth-child(7)]:w-[170px] [&_.MuiTableCell-root:nth-child(8)]:w-[160px] [&_.MuiTableCell-root:nth-child(n+9)]:w-[150px] max-[1024px]:[&_.MuiTableCell-root]:h-[50px] max-[1024px]:[&_.MuiTableCell-root]:px-2 max-[1024px]:[&_.MuiTableCell-root]:py-[9px] max-[1024px]:[&_.MuiTableCell-root]:text-[11px] max-[1024px]:[&_.MuiTableCell-root]:leading-[1.25] max-[1024px]:[&_.MuiTableCell-root:first-child]:w-[370px] max-[1024px]:[&_.MuiTableCell-root:first-child]:pl-3 max-[768px]:[&_.MuiTableCell-root]:h-[48px] max-[768px]:[&_.MuiTableCell-root]:px-[6px] max-[768px]:[&_.MuiTableCell-root]:py-2 max-[768px]:[&_.MuiTableCell-root]:text-[10px] max-[768px]:[&_.MuiTableCell-root:first-child]:w-[330px]">
                 <TableCell>{/* Empty cell */}</TableCell>
                 <TableCell>Number of Team Members</TableCell>
                 <TableCell>Travel Budget</TableCell>
@@ -281,18 +287,18 @@ export default function CalculatorContent({
                 return (
                   <TableRow
                     key={row.id}
-                    className="calculator-content-data-row"
+                    className="[&_.MuiTableCell-root]:h-[68px] [&_.MuiTableCell-root]:border-b [&_.MuiTableCell-root]:border-[#e2c1b3] [&_.MuiTableCell-root:first-child]:border-r [&_.MuiTableCell-root:first-child]:border-[#ab4c277a]"
                   >
-                    <TableCell className="calculator-content-category-cell">
-                      <Typography className="calculator-content-category-title">
+                    <TableCell className="bg-white px-[18px] py-[14px] align-middle max-[1024px]:px-3! max-[1024px]:py-[10px]!">
+                      <Typography className="text-[16px] leading-[1.5] font-normal text-[#222] max-[1024px]:text-[12px] max-[1024px]:leading-[1.4] max-[768px]:text-[11px]">
                         {category?.title}
                       </Typography>
                     </TableCell>
 
-                    <TableCell className="calculator-content-editable-cell">
+                    <TableCell className="bg-white px-3 py-[10px] text-center align-middle active:bg-white max-[1024px]:px-2! max-[1024px]:py-[7px]! max-[768px]:p-[6px]!">
                       {renderTeamMemberInput(row)}
                     </TableCell>
-                    <TableCell className="calculator-content-readonly-cell">
+                    <TableCell className="px-3 py-[10px] text-center align-middle active:bg-white">
                       {renderReadOnlyValue(
                         row.travelBudget,
                         'Travel budget',
@@ -300,9 +306,9 @@ export default function CalculatorContent({
                       )}
                     </TableCell>
 
-                    <TableCell className="calculator-content-editable-cell">
+                    <TableCell className="bg-white px-3 py-[10px] text-center align-middle active:bg-white max-[1024px]:px-2! max-[1024px]:py-[7px]! max-[768px]:p-[6px]!">
                       <TextField
-                        className="calculator-content-input calculator-content-date-input"
+                        className="w-full rounded-none [&_.MuiInput-root]:min-h-[38px] [&_.MuiInput-root]:rounded-none [&_.MuiInput-root]:bg-white [&_.MuiInput-root]:text-[16px] [&_.MuiInputBase-input]:px-1 [&_.MuiInputBase-input]:pt-[10px] [&_.MuiInputBase-input]:pb-[6px] [&_.MuiInputBase-input]:text-center [&_.MuiInput-root:before]:border-b [&_.MuiInput-root:before]:border-[#ab4c277a] [&_.MuiInput-root:hover:not(.Mui-disabled):not(.Mui-error):before]:border-[#ffb663] [&_.MuiInput-root:after]:border-b-2 [&_.MuiInput-root:after]:border-[#ffb663] [&_input[type=number]]:[appearance:textfield] [&_input::-webkit-inner-spin-button]:appearance-none [&_input::-webkit-outer-spin-button]:appearance-none max-[1024px]:[&_.MuiInputBase-root]:min-h-[34px] max-[1024px]:[&_.MuiInputBase-root]:text-[11px] max-[1024px]:[&_.MuiInputBase-input]:px-[6px] max-[1024px]:[&_.MuiInputBase-input]:py-[7px] max-[1024px]:[&_.MuiInputBase-input]:text-[11px] max-[768px]:[&_.MuiInputBase-root]:min-h-8 max-[768px]:[&_.MuiInputBase-root]:text-[10px] max-[768px]:[&_.MuiInputBase-input]:px-[5px] max-[768px]:[&_.MuiInputBase-input]:py-[6px] [&_input]:text-center"
                         type="date"
                         variant="standard"
                         size="small"
@@ -317,9 +323,9 @@ export default function CalculatorContent({
                       />
                     </TableCell>
 
-                    <TableCell className="calculator-content-editable-cell">
+                    <TableCell className="bg-white px-3 py-[10px] text-center align-middle active:bg-white max-[1024px]:px-2! max-[1024px]:py-[7px]! max-[768px]:p-[6px]!">
                       <TextField
-                        className="calculator-content-input calculator-content-date-input"
+                        className="w-full rounded-none [&_.MuiInput-root]:min-h-[38px] [&_.MuiInput-root]:rounded-none [&_.MuiInput-root]:bg-white [&_.MuiInput-root]:text-[16px] [&_.MuiInputBase-input]:px-1 [&_.MuiInputBase-input]:pt-[10px] [&_.MuiInputBase-input]:pb-[6px] [&_.MuiInputBase-input]:text-center [&_.MuiInput-root:before]:border-b [&_.MuiInput-root:before]:border-[#ab4c277a] [&_.MuiInput-root:hover:not(.Mui-disabled):not(.Mui-error):before]:border-[#ffb663] [&_.MuiInput-root:after]:border-b-2 [&_.MuiInput-root:after]:border-[#ffb663] [&_input[type=number]]:[appearance:textfield] [&_input::-webkit-inner-spin-button]:appearance-none [&_input::-webkit-outer-spin-button]:appearance-none max-[1024px]:[&_.MuiInputBase-root]:min-h-[34px] max-[1024px]:[&_.MuiInputBase-root]:text-[11px] max-[1024px]:[&_.MuiInputBase-input]:px-[6px] max-[1024px]:[&_.MuiInputBase-input]:py-[7px] max-[1024px]:[&_.MuiInputBase-input]:text-[11px] max-[768px]:[&_.MuiInputBase-root]:min-h-8 max-[768px]:[&_.MuiInputBase-root]:text-[10px] max-[768px]:[&_.MuiInputBase-input]:px-[5px] max-[768px]:[&_.MuiInputBase-input]:py-[6px] [&_input]:text-center"
                         type="date"
                         variant="standard"
                         size="small"
@@ -334,51 +340,51 @@ export default function CalculatorContent({
                       />
                     </TableCell>
 
-                    <TableCell className="calculator-content-readonly-cell">
+                    <TableCell className="px-3 py-[10px] text-center align-middle active:bg-white">
                       {renderReadOnlyValue(stayDuration.days, 'Number of days')}
                     </TableCell>
-                    <TableCell className="calculator-content-readonly-cell">
+                    <TableCell className="px-3 py-[10px] text-center align-middle active:bg-white">
                       {renderReadOnlyValue(
                         stayDuration.nights,
                         'Number of nights',
                       )}
                     </TableCell>
-                    <TableCell className="calculator-content-readonly-cell">
+                    <TableCell className="px-3 py-[10px] text-center align-middle active:bg-white">
                       {renderReadOnlyValue(
                         row.accommodationBudget,
                         'Accommodation budget',
                         true,
                       )}
                     </TableCell>
-                    <TableCell className="calculator-content-readonly-cell">
+                    <TableCell className="px-3 py-[10px] text-center align-middle active:bg-white">
                       {renderReadOnlyValue(
                         row.simCardBudget,
                         'SIM card budget',
                         true,
                       )}
                     </TableCell>
-                    <TableCell className="calculator-content-readonly-cell">
+                    <TableCell className="px-3 py-[10px] text-center align-middle active:bg-white">
                       {renderReadOnlyValue(
                         row.mealsBudget,
                         'Meals budget',
                         true,
                       )}
                     </TableCell>
-                    <TableCell className="calculator-content-readonly-cell">
+                    <TableCell className="px-3 py-[10px] text-center align-middle active:bg-white">
                       {renderReadOnlyValue(
                         row.villageMealsBudget,
                         'Village meals budget',
                         true,
                       )}
                     </TableCell>
-                    <TableCell className="calculator-content-readonly-cell">
+                    <TableCell className="px-3 py-[10px] text-center align-middle active:bg-white">
                       {renderReadOnlyValue(
                         row.insuranceBudget,
                         'Insurance budget',
                         true,
                       )}
                     </TableCell>
-                    <TableCell className="calculator-content-readonly-cell">
+                    <TableCell className="px-3 py-[10px] text-center align-middle active:bg-white">
                       {renderReadOnlyValue(
                         row.totalCostPerTeamMember,
                         'Total cost per team member',
