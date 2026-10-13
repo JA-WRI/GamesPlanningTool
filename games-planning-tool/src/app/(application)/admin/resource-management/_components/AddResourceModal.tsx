@@ -9,6 +9,7 @@ import {
   DEFAULT_CATEGORY,
   CANADIAN_NSOS,
 } from '@/types/resource';
+import { generateFileThumbnail } from './fileThumbnailHelper';
 
 interface AddResourceModalProps {
   isOpen: boolean;
@@ -57,60 +58,8 @@ function AddResourceForm({
       const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
       setResourceName(baseName.charAt(0).toUpperCase() + baseName.slice(1));
     }
-
-    if (file.type.startsWith('image/')) {
-      const objectUrl = URL.createObjectURL(file);
-      setFilePreviewUrl(objectUrl);
-    } else if (
-      file.type.startsWith('text/') ||
-      file.name.endsWith('.csv') ||
-      file.name.endsWith('.md')
-    ) {
-      try {
-        const text = await file.slice(0, 1000).text();
-        const canvas = document.createElement('canvas');
-        canvas.width = 400;
-        canvas.height = 400;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, 400, 400);
-          ctx.fillStyle = '#333333';
-          ctx.font = '14px monospace';
-          const lines = text.split('\n');
-          for (let i = 0; i < Math.min(lines.length, 25); i++) {
-            ctx.fillText(lines[i].substring(0, 60), 10, 20 + i * 16);
-          }
-          setFilePreviewUrl(canvas.toDataURL('image/jpeg', 0.8));
-        }
-      } catch (e) {
-        console.error('Failed to generate text preview', e);
-      }
-    } else {
-      // Fallback for PDF, Word, Excel, etc. Create a document thumbnail
-      const canvas = document.createElement('canvas');
-      canvas.width = 400;
-      canvas.height = 400;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.fillStyle = '#f8f9fa';
-        ctx.fillRect(0, 0, 400, 400);
-
-        ctx.fillStyle = '#80131d';
-        ctx.font = 'bold 48px sans-serif';
-        ctx.textAlign = 'center';
-        const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
-        ctx.fillText(ext, 200, 180);
-
-        ctx.fillStyle = '#495057';
-        ctx.font = '24px sans-serif';
-        const name =
-          file.name.substring(0, 25) + (file.name.length > 25 ? '...' : '');
-        ctx.fillText(name, 200, 240);
-
-        setFilePreviewUrl(canvas.toDataURL('image/jpeg', 0.8));
-      }
-    }
+    const thumb = await generateFileThumbnail(file);
+    setFilePreviewUrl(thumb);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -124,7 +73,6 @@ function AddResourceForm({
 
     const finalCategories =
       selectedCategories.length > 0 ? selectedCategories : [DEFAULT_CATEGORY];
-
     const newId = `res-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
     const nowIso = new Date().toISOString();
 
@@ -148,7 +96,6 @@ function AddResourceForm({
         previewUrl: `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(formattedUrl)}&sz=128`,
         parentId: preselectedFolderId,
         createdAt: nowIso,
-        order: Date.now(),
       };
 
       onAddResource(newResource);
@@ -163,18 +110,16 @@ function AddResourceForm({
         id: newId,
         name: resourceName.trim(),
         type: 'file',
+        fileUrl: filePreviewUrl || 'https://via.placeholder.com/150',
         file: {
           name: selectedFile.name,
           size: selectedFile.size,
-          type: selectedFile.type || 'application/octet-stream',
-          lastModified: selectedFile.lastModified,
+          type: selectedFile.type,
         },
-        fileUrl: filePreviewUrl || '#',
-        previewUrl: filePreviewUrl || '',
         categories: finalCategories,
+        previewUrl: filePreviewUrl,
         parentId: preselectedFolderId,
         createdAt: nowIso,
-        order: Date.now(),
       };
 
       onAddResource(newResource);
@@ -188,31 +133,32 @@ function AddResourceForm({
 
   return (
     <div className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden my-8">
-      <div className="bg-[#80131d] px-6 py-4 text-white flex items-center justify-between">
+      {/* Clean Modal Header */}
+      <div className="bg-[#FEFAF6] border-b border-neutral-200 px-6 py-4 text-gray-900 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <img
             src="/icons/plus.svg"
             alt=""
-            className="w-5 h-5 invert pointer-events-none"
+            className="w-5 h-5 pointer-events-none opacity-80"
           />
-          <h2 id="modal-title" className="text-lg font-bold">
+          <h2 id="modal-title" className="text-lg font-bold text-gray-900">
             Add New Resource
           </h2>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="text-white/80 hover:text-white rounded-lg p-1 hover:bg-white/10 transition-colors cursor-pointer"
+          className="text-gray-400 hover:text-gray-700 rounded-lg p-1 hover:bg-gray-100 transition-colors cursor-pointer"
         >
           <img
             src="/icons/close.svg"
             alt="Close"
-            className="w-5 h-5 invert pointer-events-none"
+            className="w-5 h-5 pointer-events-none opacity-60"
           />
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-6 space-y-5">
+      <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-white">
         {errorMessage && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-semibold text-red-700 flex items-center space-x-2">
             <img
@@ -238,7 +184,7 @@ function AddResourceForm({
             value={resourceName}
             onChange={(e) => setResourceName(e.target.value)}
             placeholder="e.g. LA 2028 Team Roster Guide"
-            className="w-full px-4 py-2.5 text-sm bg-neutral-50 border border-neutral-300 rounded-xl focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#80131d]/30 focus:border-[#80131d] transition-all"
+            className="w-full px-4 py-2.5 text-sm bg-neutral-50 border border-neutral-300 rounded-xl focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-burgundy/20 focus:border-burgundy transition-all"
           />
         </div>
 
@@ -252,31 +198,30 @@ function AddResourceForm({
               onClick={() => setResourceType('link')}
               className={`flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${
                 resourceType === 'link'
-                  ? 'bg-[#80131d]/10 border-[#80131d] text-[#80131d] shadow-xs'
+                  ? 'bg-burgundy/10 border-burgundy text-burgundy shadow-xs'
                   : 'bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100'
               }`}
             >
               <img
                 src="/icons/link.svg"
                 alt=""
-                className={`w-4 h-4 pointer-events-none ${resourceType === 'link' ? '' : 'opacity-70'}`}
+                className="w-4 h-4 pointer-events-none"
               />
-              <span>Website Link (URL)</span>
+              <span>Website Link</span>
             </button>
-
             <button
               type="button"
               onClick={() => setResourceType('file')}
               className={`flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${
                 resourceType === 'file'
-                  ? 'bg-[#80131d]/10 border-[#80131d] text-[#80131d] shadow-xs'
+                  ? 'bg-burgundy/10 border-burgundy text-burgundy shadow-xs'
                   : 'bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100'
               }`}
             >
               <img
                 src="/icons/upload.svg"
                 alt=""
-                className={`w-4 h-4 pointer-events-none ${resourceType === 'file' ? '' : 'opacity-70'}`}
+                className="w-4 h-4 pointer-events-none"
               />
               <span>Upload File</span>
             </button>
@@ -284,32 +229,38 @@ function AddResourceForm({
         </div>
 
         {resourceType === 'link' ? (
-          <div className="space-y-3">
-            <div>
-              <label
-                htmlFor="website-url"
-                className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1.5"
-              >
-                Website URL <span className="text-red-600">*</span>
-              </label>
-              <input
-                id="website-url"
-                type="text"
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="https://olympic.ca/handbook"
-                className="w-full px-4 py-2.5 text-sm bg-neutral-50 border border-neutral-300 rounded-xl focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#80131d]/30 focus:border-[#80131d] transition-all"
-              />
-            </div>
+          <div>
+            <label
+              htmlFor="resource-url"
+              className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1.5"
+            >
+              Website URL <span className="text-red-600">*</span>
+            </label>
+            <input
+              id="resource-url"
+              type="text"
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              placeholder="https://olympic.ca/handbook"
+              className="w-full px-4 py-2.5 text-sm bg-neutral-50 border border-neutral-300 rounded-xl focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-burgundy/20 focus:border-burgundy transition-all"
+            />
           </div>
         ) : (
-          <div className="space-y-3">
+          <div>
             <span className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1.5">
               File Input <span className="text-red-600">*</span>
             </span>
-
-            <label
-              htmlFor="file-upload-input"
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleFileChange(e.target.files[0]);
+                }
+              }}
+            />
+            <div
               onDragOver={(e) => {
                 e.preventDefault();
                 setIsDraggingFile(true);
@@ -319,51 +270,35 @@ function AddResourceForm({
                 e.preventDefault();
                 setIsDraggingFile(false);
                 if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                  void handleFileChange(e.dataTransfer.files[0]);
+                  handleFileChange(e.dataTransfer.files[0]);
                 }
               }}
-              className={`block border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
                 isDraggingFile
-                  ? 'border-[#80131d] bg-red-50/50'
-                  : selectedFile
-                    ? 'border-green-500 bg-green-50/30'
-                    : 'border-neutral-300 hover:border-neutral-400 bg-neutral-50'
+                  ? 'border-burgundy bg-burgundy/5'
+                  : 'border-neutral-300 hover:border-neutral-400 bg-neutral-50/50'
               }`}
             >
-              <input
-                id="file-upload-input"
-                ref={fileInputRef}
-                type="file"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    void handleFileChange(e.target.files[0]);
-                  }
-                }}
-                className="hidden"
-              />
-
               {selectedFile ? (
-                <div className="flex items-center justify-center space-x-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-100 text-green-700 flex items-center justify-center font-bold text-xs uppercase">
-                    {selectedFile.name.split('.').pop() || 'FILE'}
-                  </div>
-                  <div className="text-left">
-                    <div className="text-sm font-semibold text-neutral-900 truncate max-w-xs">
-                      {selectedFile.name}
-                    </div>
-                    <div className="text-xs text-neutral-500">
-                      {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB •
-                      Click to change
-                    </div>
-                  </div>
+                <div className="space-y-1">
+                  <span className="text-sm font-semibold text-neutral-800 block truncate">
+                    {selectedFile.name}
+                  </span>
+                  <span className="text-xs text-neutral-500 block">
+                    {(selectedFile.size / 1024).toFixed(1)} KB — Click or drag
+                    to replace
+                  </span>
                 </div>
               ) : (
-                <div>
-                  <img
-                    src="/icons/upload.svg"
-                    alt=""
-                    className="w-8 h-8 opacity-40 mx-auto mb-2 pointer-events-none"
-                  />
+                <div className="space-y-1">
+                  <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-2 text-neutral-500">
+                    <img
+                      src="/icons/upload.svg"
+                      alt=""
+                      className="w-5 h-5 pointer-events-none"
+                    />
+                  </div>
                   <p className="text-sm font-semibold text-neutral-700">
                     Click to upload or drag and drop
                   </p>
@@ -372,13 +307,13 @@ function AddResourceForm({
                   </p>
                 </div>
               )}
-            </label>
+            </div>
           </div>
         )}
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-bold text-neutral-800 uppercase tracking-wider">
+            <span className="block text-xs font-bold text-neutral-800 uppercase tracking-wider">
               Categories
             </span>
             <span className="text-[11px] text-neutral-500 italic">
@@ -387,7 +322,6 @@ function AddResourceForm({
                 : `${selectedCategories.length} selected`}
             </span>
           </div>
-
           <div className="flex flex-wrap gap-2 mb-3">
             {['Winter Games', 'Summer Games'].map((cat) => {
               const isSelected = selectedCategories.includes(cat);
@@ -396,9 +330,9 @@ function AddResourceForm({
                   key={cat}
                   type="button"
                   onClick={() => toggleCategory(cat)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer flex items-center space-x-1.5 ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer flex items-center space-x-1.5 ${
                     isSelected
-                      ? 'bg-[#80131d] border-[#80131d] text-white shadow-xs'
+                      ? 'bg-burgundy border-burgundy text-white shadow-xs'
                       : 'bg-white border-neutral-300 text-neutral-700 hover:border-neutral-400'
                   }`}
                 >
@@ -425,7 +359,7 @@ function AddResourceForm({
                 placeholder="Filter NSOs..."
                 value={nsoSearchFilter}
                 onChange={(e) => setNsoSearchFilter(e.target.value)}
-                className="px-2.5 py-1 text-xs bg-white border border-neutral-300 rounded-md focus:outline-hidden focus:border-[#80131d]"
+                className="px-2.5 py-1 text-xs bg-white border border-neutral-300 rounded-md focus:outline-hidden focus:border-burgundy"
               />
             </div>
 
@@ -439,7 +373,7 @@ function AddResourceForm({
                     onClick={() => toggleCategory(nso)}
                     className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition-colors cursor-pointer ${
                       isSelected
-                        ? 'bg-[#80131d] border-[#80131d] text-white'
+                        ? 'bg-burgundy border-burgundy text-white'
                         : 'bg-white border-neutral-300 text-neutral-700 hover:bg-neutral-100'
                     }`}
                   >
@@ -451,7 +385,7 @@ function AddResourceForm({
           </div>
         </div>
 
-        <div className="pt-3 border-t border-neutral-200 flex items-center justify-end space-x-3">
+        <div className="px-6 py-4 bg-[#FEFAF6] border-t border-neutral-200 flex items-center justify-end space-x-3 -mx-6 -mb-6">
           <button
             type="button"
             onClick={onClose}
@@ -461,7 +395,7 @@ function AddResourceForm({
           </button>
           <button
             type="submit"
-            className="px-5 py-2 text-sm font-bold text-white bg-[#80131d] hover:bg-[#6b0f18] rounded-xl shadow-md transition-all cursor-pointer flex items-center space-x-2"
+            className="px-5 py-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl shadow-xs transition-all cursor-pointer flex items-center space-x-2"
           >
             <span>Add Resource</span>
           </button>
@@ -496,4 +430,5 @@ export function AddResourceModal({
     </div>
   );
 }
+
 export default AddResourceModal;

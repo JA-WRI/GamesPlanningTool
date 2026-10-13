@@ -19,7 +19,7 @@ export function useSweepSelection<T extends { id: string }>(
   const isSweepSelecting = useRef(false);
   const justFinishedSweepRef = useRef(false);
 
-  const handleSweepPointerDown = (
+  const startSweepTracking = (
     startX: number,
     startY: number,
     cardId: string,
@@ -78,60 +78,17 @@ export function useSweepSelection<T extends { id: string }>(
     window.addEventListener('pointercancel', onCleanUp);
   };
 
+  const handleSweepPointerDown = (
+    startX: number,
+    startY: number,
+    cardId: string,
+  ) => {
+    startSweepTracking(startX, startY, cardId);
+  };
+
   const handleCardPointerDown = (e: React.PointerEvent, cardId: string) => {
     if (!isEditing || selectedIds.size === 0) return;
-    const startX = e.clientX;
-    const startY = e.clientY;
-    let sweepStarted = false;
-    let sweepState: SweepGestureState | null = null;
-    const onMoveCheck = (moveEvent: PointerEvent) => {
-      const dist = Math.hypot(
-        moveEvent.clientX - startX,
-        moveEvent.clientY - startY,
-      );
-      if (dist > 6) {
-        const startIndex = resources.findIndex((r) => r.id === cardId);
-        if (startIndex === -1) return;
-        sweepStarted = true;
-        isSweepSelecting.current = true;
-        sweepState = createSweepState(
-          startIndex,
-          cardId,
-          startX,
-          startY,
-          selectedIds,
-          resources,
-          scrollContainerRef.current,
-        );
-      }
-      if (sweepStarted && sweepState) {
-        runSweepStep(
-          moveEvent,
-          sweepState,
-          resources,
-          selectedIds,
-          onUpdateSelectedIds
-            ? (newIds) => onUpdateSelectedIds(newIds)
-            : undefined,
-          onSelectMultiple,
-        );
-      }
-    };
-    const onCleanUp = () => {
-      window.removeEventListener('pointermove', onMoveCheck);
-      window.removeEventListener('pointerup', onCleanUp);
-      window.removeEventListener('pointercancel', onCleanUp);
-      if (sweepStarted) {
-        justFinishedSweepRef.current = true;
-        setTimeout(() => {
-          justFinishedSweepRef.current = false;
-        }, 150);
-        isSweepSelecting.current = false;
-      }
-    };
-    window.addEventListener('pointermove', onMoveCheck);
-    window.addEventListener('pointerup', onCleanUp);
-    window.addEventListener('pointercancel', onCleanUp);
+    startSweepTracking(e.clientX, e.clientY, cardId);
   };
 
   return {

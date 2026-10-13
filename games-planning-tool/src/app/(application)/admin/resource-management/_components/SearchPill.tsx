@@ -15,7 +15,7 @@ export function SearchPill({
   value,
   onChange,
   placeholder = 'Search by name, category...',
-  className = 'w-full pl-4 pr-9 py-1 text-xs sm:text-sm bg-white border border-[#80131d] rounded-full focus:outline-hidden focus:ring-2 focus:ring-[#80131d]/20 placeholder:text-neutral-500 transition-all',
+  className = 'w-full pl-4 pr-9 py-1 text-xs sm:text-sm bg-white border border-neutral-300 rounded-full focus:outline-hidden focus:ring-2 focus:ring-burgundy/20 focus:border-burgundy placeholder:text-neutral-500 transition-all',
 }: SearchPillProps) {
   const clearIcon = (
     <img

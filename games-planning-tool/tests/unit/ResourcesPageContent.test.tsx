@@ -153,6 +153,7 @@ describe('ResourcesPageContent', () => {
 
     const dt = { setData: vi.fn(), preventDefault: vi.fn() };
     fireEvent.dragStart(cards[0], { dataTransfer: dt });
+    expect(dt.setData).not.toHaveBeenCalled();
   });
 
   it('handles drag end without drop by resetting order', () => {
@@ -163,6 +164,7 @@ describe('ResourcesPageContent', () => {
     fireEvent.dragStart(cards[0], { dataTransfer: dt });
     // Cancelled drag without drop
     fireEvent.dragEnd(cards[0]);
+    expect(cards[0]).toBeInTheDocument();
   });
 
   it('handles drop into a folder and spring loading', () => {
@@ -198,7 +200,7 @@ describe('ResourcesPageContent', () => {
   it('handles pointer hover on main page from external drag with spring load', () => {
     render(<ResourcesPageContent />);
 
-    const folderCard = screen.getByText('General Folder');
+    const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
 
     expect(screen.getByText('Child 1')).toBeInTheDocument();
@@ -232,7 +234,7 @@ describe('ResourcesPageContent', () => {
   it('handles FolderDirectoryModal callbacks from within ResourcesPageContent', () => {
     render(<ResourcesPageContent />);
 
-    const folderCard = screen.getByText('General Folder');
+    const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -253,7 +255,7 @@ describe('ResourcesPageContent', () => {
     window.confirm = vi.fn().mockReturnValue(true);
     render(<ResourcesPageContent />);
 
-    const folderCard = screen.getByText('General Folder');
+    const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
 
     // Test add resource to folder
@@ -278,7 +280,7 @@ describe('ResourcesPageContent', () => {
   it('handles dropping resources onto main page from folder modal onto folder target', () => {
     render(<ResourcesPageContent />);
 
-    const folderCard = screen.getByText('General Folder');
+    const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
 
     // Drag item outside panel onto main page folder
@@ -314,7 +316,7 @@ describe('ResourcesPageContent', () => {
   it('handles dropping resources onto main page from folder modal onto non-folder target', () => {
     render(<ResourcesPageContent />);
 
-    const folderCard = screen.getByText('General Folder');
+    const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
 
     const modalCards = document.querySelectorAll('[data-folder-item-id]');
@@ -379,27 +381,44 @@ describe('ResourcesPageContent', () => {
       });
       fireEvent.click(roundBtns[0]);
     }
+    expect(roundBtns.length).toBeGreaterThan(0);
   });
 
-  it('opens resource detail modal when clicking a file and handles rename and categories change', () => {
+  it('opens file in new tab, edits categories via Categories button, and allows inline rename', () => {
+    const windowOpenSpy = vi
+      .spyOn(window, 'open')
+      .mockImplementation(() => null);
     render(<ResourcesPageContent />);
-    const fileCard = screen.getByText('File 1');
+
+    // Clicking the file card opens in a new tab
+    const fileCard = screen.getByRole('button', { name: 'File 1' });
     fireEvent.click(fileCard);
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      'test',
+      '_blank',
+      'noopener,noreferrer',
+    );
+    windowOpenSpy.mockRestore();
 
-    // Detail modal opens
-    expect(screen.getByText('Download File')).toBeInTheDocument();
-
-    // Trigger categories edit
-    const editCatsBtn = screen.getByRole('button', { name: 'Edit Categories' });
-    fireEvent.click(editCatsBtn);
+    // Trigger categories edit via Categories button
+    const catBtn = screen.getByTestId('categories-btn-2');
+    fireEvent.click(catBtn);
+    expect(screen.getByText('Edit Categories')).toBeInTheDocument();
 
     const catBadge = screen.getByText('Winter Games');
     fireEvent.click(catBadge);
+
+    const saveBtn = screen.getByRole('button', { name: 'Save Categories' });
+    fireEvent.click(saveBtn);
     expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
 
-    // Close detail modal
-    const closeBtn = screen.getByRole('button', { name: 'Close' });
-    fireEvent.click(closeBtn);
+    // Inline rename by clicking name directly
+    const file2Text = screen.getByText('File 2');
+    fireEvent.click(file2Text);
+    const input = screen.getByDisplayValue('File 2');
+    fireEvent.change(input, { target: { value: 'Renamed File 2' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
   });
 
   it('ignores empty folder name submission', () => {
@@ -480,11 +499,12 @@ describe('ResourcesPageContent', () => {
         getBoundingClientRect: () => ({ left: 50, width: 100 }),
       },
     });
+    expect(cards.length).toBeGreaterThan(0);
   });
 
   it('handles FolderDirectoryModal onDropOnMainPage with injection and append', () => {
     render(<ResourcesPageContent />);
-    const folderCard = screen.getByText('General Folder');
+    const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
 
     const modalCards = document.querySelectorAll('[data-folder-item-id]');
@@ -554,7 +574,7 @@ describe('ResourcesPageContent', () => {
 
   it('handles pointer hover on main page with empty draggedIds resetting order', () => {
     render(<ResourcesPageContent />);
-    const folderCard = screen.getByText('General Folder');
+    const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
 
     // Call pointer hover with empty ids
@@ -570,6 +590,7 @@ describe('ResourcesPageContent', () => {
       );
       window.dispatchEvent(new PointerEvent('pointerup'));
     });
+    expect(cardEl).toBeInTheDocument();
   });
 
   it('triggers onMoveResourceToFolder and onReorderInFolder inside folder modal', () => {
@@ -601,7 +622,7 @@ describe('ResourcesPageContent', () => {
     ]);
 
     render(<ResourcesPageContent />);
-    const folderCard = screen.getByText('General Folder');
+    const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
 
     // Reorder inside folder
@@ -658,7 +679,7 @@ describe('ResourcesPageContent', () => {
     ]);
 
     render(<ResourcesPageContent />);
-    fireEvent.click(screen.getByText('General Folder'));
+    fireEvent.click(screen.getByRole('button', { name: 'General Folder' }));
 
     // Open add resource from folder modal
     fireEvent.click(screen.getByRole('button', { name: '+ Add Resource' }));

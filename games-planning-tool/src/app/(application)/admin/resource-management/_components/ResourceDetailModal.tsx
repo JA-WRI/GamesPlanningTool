@@ -67,7 +67,7 @@ export function ResourceDetailModal({
             alt={resource.name}
             className={`w-full h-full ${resource.type === 'link' ? 'object-contain p-12 bg-white' : 'object-cover'}`}
           />
-          <div className="absolute inset-0 bg-[#80131d]/75 flex items-center justify-center p-6 text-center">
+          <div className="absolute inset-0 bg-slate-900/75 flex items-center justify-center p-6 text-center">
             {isEditingName ? (
               <input
                 ref={nameInputRef}
@@ -127,7 +127,7 @@ export function ResourceDetailModal({
                 <button
                   type="button"
                   onClick={() => setIsEditingCategories(!isEditingCategories)}
-                  className="text-xs font-semibold text-[#80131d] hover:underline"
+                  className="text-xs font-semibold text-burgundy hover:underline"
                 >
                   {isEditingCategories ? 'Done' : 'Edit Categories'}
                 </button>
@@ -150,7 +150,7 @@ export function ResourceDetailModal({
                 {resource.categories.map((cat) => (
                   <span
                     key={cat}
-                    className="px-2.5 py-1 rounded-md text-xs font-medium bg-red-50 text-[#80131d] border border-red-200"
+                    className="px-2.5 py-1 rounded-md text-xs font-medium bg-burgundy/10 text-burgundy border border-burgundy/20"
                   >
                     {cat}
                   </span>
@@ -209,11 +209,11 @@ export function ResourceDetailModal({
             </div>
           )}
 
-          <div className="pt-2 flex items-center justify-end space-x-3">
+          <div className="px-6 py-4 bg-[#FEFAF6] border-t border-neutral-200 flex items-center justify-end space-x-3 -mx-6 -mb-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-semibold text-neutral-600 hover:bg-neutral-100 rounded-xl transition-colors cursor-pointer"
+              className="px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-200/70 rounded-xl transition-colors cursor-pointer"
             >
               Close
             </button>
@@ -223,7 +223,7 @@ export function ResourceDetailModal({
                 href={resource.URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-5 py-2 text-sm font-bold text-white bg-[#80131d] hover:bg-[#6b0f18] rounded-xl shadow-md transition-all flex items-center space-x-2"
+                className="px-5 py-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl shadow-md transition-all flex items-center space-x-2"
               >
                 <span>Open Link</span>
                 <img src="/icons/link.svg" alt="" className="w-4 h-4 invert" />
@@ -232,7 +232,7 @@ export function ResourceDetailModal({
               <a
                 href={(resource as FileResource).fileUrl || '#'}
                 download={(resource as FileResource).file?.name || 'resource'}
-                className="px-5 py-2 text-sm font-bold text-white bg-[#80131d] hover:bg-[#6b0f18] rounded-xl shadow-md transition-all flex items-center space-x-2"
+                className="px-5 py-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl shadow-md transition-all flex items-center space-x-2"
               >
                 <span>Download File</span>
                 <img

@@ -2,13 +2,16 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Resource, FolderResource } from '@/types/resource';
+import { Resource, FolderResource, FileResource } from '@/types/resource';
 import { getFolderChildren } from '@/lib/resources-data';
 import ResourceCard from './ResourceCard';
 import { useSweepSelection } from './useSweepSelection';
 import { FolderModalHeader } from './folder-modal/FolderModalHeader';
 import { FolderModalToolbar } from './folder-modal/FolderModalToolbar';
 import { useFolderModalDrag } from './folder-modal/useFolderModalDrag';
+import { FolderDragGhost } from './folder-modal/FolderDragGhost';
+import { getFolderBreadcrumbs } from './folder-modal/folderModalDragHelpers';
+import { EditCategoriesModal } from './EditCategoriesModal';
 
 export interface FolderDirectoryModalProps {
   folder: FolderResource | null;
@@ -64,6 +67,8 @@ export function FolderDirectoryModal({
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [isEditingCategories, setIsEditingCategories] = useState(false);
+  const [categoryEditResource, setCategoryEditResource] =
+    useState<Resource | null>(null);
   const [editingNameId, setEditingNameId] = useState<string | null>(null);
   const [editNameValue, setEditNameValue] = useState('');
   const committedRef = useRef(false);
@@ -145,22 +150,6 @@ export function FolderDirectoryModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folder?.id]);
 
-  const getBreadcrumbs = () => {
-    const breadcrumbs: { id: string; name: string }[] = [];
-    let cur = currentFolder;
-    while (cur) {
-      breadcrumbs.unshift({ id: cur.id, name: cur.name });
-      if (cur.parentId) {
-        cur =
-          (allResources.find((r) => r.id === cur?.parentId) as
-            FolderResource | undefined) || null;
-      } else {
-        cur = null;
-      }
-    }
-    return breadcrumbs;
-  };
-
   const {
     handleSweepPointerDown,
     handleCardPointerDown,
@@ -176,7 +165,7 @@ export function FolderDirectoryModal({
 
   if (!folder || !currentFolder) return null;
 
-  const breadcrumbs = getBreadcrumbs();
+  const breadcrumbs = getFolderBreadcrumbs(currentFolder, allResources);
 
   const handleCreateFolderSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -361,7 +350,7 @@ export function FolderDirectoryModal({
 
           <div
             ref={contentRef}
-            className="p-4 sm:p-6 overflow-y-auto flex-1 bg-neutral-50/50"
+            className="p-4 sm:p-6 overflow-y-auto flex-1 bg-white"
           >
             {localOrderedChildren.length === 0 ? (
               <div className="text-center py-12 text-neutral-500 text-sm">
@@ -441,11 +430,30 @@ export function FolderDirectoryModal({
                         }}
                         onClick={(resource) => {
                           if (justDraggedRef.current) return;
-                          if (resource.type === 'folder')
+                          if (resource.type === 'folder') {
                             setCurrentFolderId(resource.id);
-                          else onSelectResourceDetail(resource);
+                          } else if (resource.type === 'link') {
+                            if (resource.URL) {
+                              window.open(
+                                resource.URL,
+                                '_blank',
+                                'noopener,noreferrer',
+                              );
+                            }
+                          } else if (resource.type === 'file') {
+                            const url =
+                              (resource as FileResource).fileUrl || '#';
+                            window.open(url, '_blank', 'noopener,noreferrer');
+                          } else {
+                            onSelectResourceDetail(resource);
+                          }
                         }}
                         onRename={isReadOnly ? undefined : onRenameResource}
+                        onEditCategories={
+                          isReadOnly
+                            ? undefined
+                            : (res) => setCategoryEditResource(res)
+                        }
                       />
                     </div>
                   );
@@ -456,24 +464,23 @@ export function FolderDirectoryModal({
         </div>
       </div>
 
-      {pointerDragIds.length > 0 && (
-        <div
-          ref={ghostRef}
-          className="fixed pointer-events-none flex flex-col items-start"
-          style={{ left: 0, top: 0, zIndex: 9999, willChange: 'transform' }}
-        >
-          <div className="bg-[#80131d] text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
-            {pointerDragIds.length === 1
-              ? allResources.find((r) => r.id === pointerDragIds[0])?.name ||
-                '1 item'
-              : `${pointerDragIds.length} items`}
-          </div>
-          {isDraggingOutside && pointerDropTarget === '__backdrop__' && (
-            <div className="mt-2 text-xs font-bold text-white bg-black/70 px-2.5 py-1 rounded-full drop-shadow-md">
-              Move to Main View
-            </div>
-          )}
-        </div>
+      <FolderDragGhost
+        ghostRef={ghostRef}
+        pointerDragIds={pointerDragIds}
+        allResources={allResources}
+        isDraggingOutside={isDraggingOutside}
+        pointerDropTarget={pointerDropTarget}
+      />
+
+      {categoryEditResource && (
+        <EditCategoriesModal
+          resource={categoryEditResource}
+          onClose={() => setCategoryEditResource(null)}
+          onSave={(id, cats) => {
+            onCategoriesChange?.(id, cats);
+            setCategoryEditResource(null);
+          }}
+        />
       )}
     </>
   );

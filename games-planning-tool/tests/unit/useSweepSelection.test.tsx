@@ -1,7 +1,7 @@
 // Made with AI agents (Antigravity)
 import React, { useRef } from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
-import { describe, it, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { useSweepSelection } from '../../src/app/(application)/admin/resource-management/_components/useSweepSelection';
 
 function TestComponent({
@@ -81,6 +81,7 @@ describe('useSweepSelection', () => {
     act(() => {
       window.dispatchEvent(new PointerEvent('pointerup'));
     });
+    expect(btn).toBeInTheDocument();
   });
 
   it('triggers sweep selection via handleCardPointerDown', () => {
@@ -108,6 +109,7 @@ describe('useSweepSelection', () => {
     act(() => {
       window.dispatchEvent(new PointerEvent('pointercancel'));
     });
+    expect(btn).toBeInTheDocument();
   });
 
   it('ignores card pointer down when not editing or no selection', () => {
@@ -132,5 +134,6 @@ describe('useSweepSelection', () => {
         }),
       );
     });
+    expect(onUpdateSelectedIds).not.toHaveBeenCalled();
   });
 });

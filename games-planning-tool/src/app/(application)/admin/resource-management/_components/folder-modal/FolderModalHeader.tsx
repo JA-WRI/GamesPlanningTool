@@ -32,15 +32,15 @@ export function FolderModalHeader({
   isReadOnly = false,
 }: FolderModalHeaderProps) {
   return (
-    <div className="relative bg-[#80131d] px-4 py-4 sm:px-6 sm:py-5 flex items-center shrink-0">
+    <div className="relative bg-[#FEFAF6] border-b border-neutral-200 px-4 py-4 sm:px-6 sm:py-5 flex items-center shrink-0">
       <div className="flex items-center w-full pr-10">
         <button
           type="button"
           data-folder-nav="back"
-          className={`p-1.5 mr-3 rounded-full text-white/80 transition-all ${
+          className={`p-1.5 mr-3 rounded-full text-gray-500 transition-all ${
             currentFolder.parentId
-              ? 'hover:bg-white/20 hover:text-white cursor-pointer'
-              : 'opacity-50 cursor-not-allowed'
+              ? 'hover:bg-gray-100 hover:text-gray-900 cursor-pointer'
+              : 'opacity-40 cursor-not-allowed'
           }`}
           onClick={() => {
             if (currentFolder.parentId)
@@ -52,14 +52,14 @@ export function FolderModalHeader({
           <img
             src="/icons/arrow-left.svg"
             alt="Back"
-            className="w-6 h-6 invert"
+            className="w-6 h-6 opacity-75"
           />
         </button>
 
         <div className="min-w-0 flex-1">
           {editingNameId === currentFolder.id ? (
             <input
-              autoFocus
+              ref={(el) => el?.focus()}
               type="text"
               value={editNameValue}
               onChange={(e) => setEditNameValue(e.target.value)}
@@ -86,21 +86,14 @@ export function FolderModalHeader({
                   setEditingNameId(null);
                 }
               }}
-              className="text-lg sm:text-xl font-bold bg-transparent text-white outline-none drop-shadow-xs w-full"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                borderBottom: '2px solid rgba(255,255,255,0.5)',
-                borderRadius: 0,
-                padding: 0,
-              }}
+              className="text-lg sm:text-xl font-bold bg-transparent text-gray-900 outline-none w-full border-b-2 border-burgundy"
             />
           ) : (
             <h2
               id="folder-directory-title"
-              className={`text-lg sm:text-xl font-bold text-white truncate drop-shadow-xs ${
+              className={`text-lg sm:text-xl font-bold text-gray-900 truncate ${
                 !isReadOnly
-                  ? 'cursor-pointer hover:underline decoration-white/50 underline-offset-4'
+                  ? 'cursor-pointer hover:underline decoration-gray-400 underline-offset-4'
                   : ''
               }`}
               onClick={(e) => {
@@ -116,15 +109,15 @@ export function FolderModalHeader({
           )}
 
           {breadcrumbs.length > 1 && (
-            <div className="flex items-center space-x-1.5 text-xs text-white/80 overflow-x-auto whitespace-nowrap mt-0.5">
+            <div className="flex items-center space-x-1.5 text-xs text-gray-500 overflow-x-auto whitespace-nowrap mt-0.5">
               {breadcrumbs.slice(0, -1).map((b, idx) => (
                 <React.Fragment key={b.id}>
-                  {idx > 0 && <span>/</span>}
+                  {idx > 0 && <span className="text-gray-400">/</span>}
                   <button
                     type="button"
                     data-breadcrumb-id={b.id}
                     onClick={() => onNavigateFolder(b.id)}
-                    className="hover:underline cursor-pointer transition-all text-white/80 max-w-[120px] truncate"
+                    className="hover:underline cursor-pointer transition-all text-gray-600 hover:text-gray-900 max-w-[120px] truncate"
                     title={b.name}
                   >
                     {b.name}
@@ -139,10 +132,14 @@ export function FolderModalHeader({
       <button
         type="button"
         onClick={onClose}
-        className="absolute top-3 right-3 text-white/80 hover:text-white bg-black/40 hover:bg-black/60 rounded-full p-1.5 transition-colors cursor-pointer"
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full p-1.5 transition-colors cursor-pointer"
         aria-label="Close folder dialog"
       >
-        <img src="/icons/close.svg" alt="Close" className="w-5 h-5 invert" />
+        <img
+          src="/icons/close.svg"
+          alt="Close"
+          className="w-5 h-5 opacity-60"
+        />
       </button>
     </div>
   );

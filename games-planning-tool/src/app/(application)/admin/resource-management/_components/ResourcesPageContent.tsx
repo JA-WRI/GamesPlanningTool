@@ -1,14 +1,8 @@
 // Made with AI agents (Antigravity)
 'use client';
 
-import React, {
-  useState,
-  useRef,
-  useMemo,
-  useEffect,
-  useSyncExternalStore,
-} from 'react';
-import { Resource, FolderResource } from '@/types/resource';
+import React, { useState, useMemo, useSyncExternalStore, useRef } from 'react';
+import { Resource, FolderResource, FileResource } from '@/types/resource';
 import {
   INITIAL_RESOURCES,
   subscribeToResources,
@@ -20,7 +14,9 @@ import {
 import { AddResourceModal } from './AddResourceModal';
 import { ResourceDetailModal } from './ResourceDetailModal';
 import { FolderDirectoryModal } from './FolderDirectoryModal';
+import { EditCategoriesModal } from './EditCategoriesModal';
 import { useSweepSelection } from './useSweepSelection';
+import { useResourcesDragAndDrop } from './useResourcesDragAndDrop';
 import { ResourceCard } from './ResourceCard';
 import { ResourcesToolbar } from './ResourcesToolbar';
 import { CreateFolderModal } from './CreateFolderModal';
@@ -45,6 +41,8 @@ export function ResourcesPageContent({
   // Modal states...
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [detailResource, setDetailResource] = useState<Resource | null>(null);
+  const [categoryEditResource, setCategoryEditResource] =
+    useState<Resource | null>(null);
   const [activeDirectoryFolder, setActiveDirectoryFolder] =
     useState<FolderResource | null>(null);
   const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false);
@@ -65,31 +63,6 @@ export function ResourcesPageContent({
     });
   }, [resources, globalSearch]);
 
-  // Drag and Reorder state
-  const [localOrderedResources, setLocalOrderedResources] =
-    useState<Resource[]>(filteredResources);
-  const localOrderedRef = useRef<Resource[]>(filteredResources);
-  const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
-  const draggedCardIdRef = useRef<string | null>(null);
-  const [externalPointerDraggedIds, setExternalPointerDraggedIds] = useState<
-    string[]
-  >([]);
-  const externalPointerDraggedIdsRef = useRef<string[]>([]);
-  const [hoverFolderDropTargetId, setHoverFolderDropTargetId] = useState<
-    string | null
-  >(null);
-  const hoverFolderDropTargetIdRef = useRef<string | null>(null);
-  const dragDroppedSuccessfullyRef = useRef(false);
-  const droppedInFolderRef = useRef(false);
-  const springLoadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    if (!draggedCardIdRef.current) {
-      setLocalOrderedResources(filteredResources);
-      localOrderedRef.current = filteredResources;
-    }
-  }, [filteredResources]);
-
   const updateResources = (newResources: Resource[]) =>
     saveResourcesToStorage(newResources);
   const showToast = (msg: string) => {
@@ -97,238 +70,31 @@ export function ResourcesPageContent({
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleDragStart = (e: React.DragEvent, id: string) => {
-    if (isReadOnly || selectedIds.size > 0) {
-      e.preventDefault();
-      return;
-    }
-    draggedCardIdRef.current = id;
-    setDraggedCardId(id);
-    setIsEditing(true);
-    dragDroppedSuccessfullyRef.current = false;
-    droppedInFolderRef.current = false;
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', id);
-  };
-
-  const handleDragOver = (e: React.DragEvent, targetId: string) => {
-    if (isReadOnly) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    const sourceId = draggedCardIdRef.current;
-    if (!sourceId || sourceId === targetId) return;
-
-    const targetResource = localOrderedResources.find((r) => r.id === targetId);
-    if (targetResource?.type === 'folder') {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const relativeX = (e.clientX - rect.left) / rect.width;
-
-      const isCurrentlyHoveredFolder =
-        hoverFolderDropTargetIdRef.current === targetId;
-      const minX = isCurrentlyHoveredFolder ? 0.05 : 0.15;
-      const maxX = isCurrentlyHoveredFolder ? 0.95 : 0.85;
-
-      if (relativeX >= minX && relativeX <= maxX) {
-        if (hoverFolderDropTargetIdRef.current !== targetId) {
-          setHoverFolderDropTargetId(targetId);
-          hoverFolderDropTargetIdRef.current = targetId;
-          if (springLoadTimeoutRef.current)
-            clearTimeout(springLoadTimeoutRef.current);
-          springLoadTimeoutRef.current = setTimeout(() => {
-            if (targetResource)
-              setActiveDirectoryFolder({ ...targetResource } as FolderResource);
-            setHoverFolderDropTargetId(null);
-            hoverFolderDropTargetIdRef.current = null;
-          }, 600);
-        }
-        return;
-      }
-    }
-    if (springLoadTimeoutRef.current) {
-      clearTimeout(springLoadTimeoutRef.current);
-      springLoadTimeoutRef.current = null;
-    }
-    setHoverFolderDropTargetId(null);
-    hoverFolderDropTargetIdRef.current = null;
-
-    if (selectedIds.size === 0) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const midX = rect.left + rect.width / 2;
-      const clientX = e.clientX;
-      setLocalOrderedResources((currentList) => {
-        const sourceIdx = currentList.findIndex((r) => r.id === sourceId);
-        const targetIdx = currentList.findIndex((r) => r.id === targetId);
-        if (sourceIdx === -1 || targetIdx === -1 || sourceIdx === targetIdx)
-          return currentList;
-        if (sourceIdx < targetIdx && clientX < midX) return currentList;
-        if (sourceIdx > targetIdx && clientX > midX) return currentList;
-        const updated = [...currentList];
-        const [movedItem] = updated.splice(sourceIdx, 1);
-        updated.splice(targetIdx, 0, movedItem);
-        localOrderedRef.current = updated;
-        return updated;
-      });
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent, targetId?: string) => {
-    if (isReadOnly) return;
-    e.preventDefault();
-    dragDroppedSuccessfullyRef.current = true;
-    const itemToMove = draggedCardIdRef.current;
-    const folderDropTarget =
-      hoverFolderDropTargetId ||
-      (targetId &&
-      localOrderedResources.find((r) => r.id === targetId)?.type === 'folder'
-        ? targetId
-        : null);
-
-    if (folderDropTarget && itemToMove && itemToMove !== folderDropTarget) {
-      const updated = resources.map((r) =>
-        r.id === itemToMove ? { ...r, parentId: folderDropTarget } : r,
-      );
-      updateResources(updated);
-      showToast('Moved item into folder');
-    } else if (itemToMove && selectedIds.size === 0) {
-      const reorderedIds = new Set(localOrderedRef.current.map((r) => r.id));
-      const otherResources = resources.filter((r) => !reorderedIds.has(r.id));
-      updateResources([...otherResources, ...localOrderedRef.current]);
-    }
-    setDraggedCardId(null);
-    draggedCardIdRef.current = null;
-    setHoverFolderDropTargetId(null);
-    setActiveDirectoryFolder(null);
-    setIsEditing(false);
-  };
-
-  const handleDragEnd = () => {
-    if (!dragDroppedSuccessfullyRef.current) {
-      setLocalOrderedResources(filteredResources);
-      localOrderedRef.current = filteredResources;
-    }
-    setDraggedCardId(null);
-    draggedCardIdRef.current = null;
-    setHoverFolderDropTargetId(null);
-    if (!droppedInFolderRef.current) {
-      setActiveDirectoryFolder(null);
-    }
-    droppedInFolderRef.current = false;
-    setIsEditing(false);
-  };
-
-  const handlePointerHoverMainPage = (
-    clientX: number,
-    clientY: number,
-    draggedIds: string[],
-    dropped?: boolean,
-  ) => {
-    if (
-      externalPointerDraggedIdsRef.current.join(',') !== draggedIds.join(',')
-    ) {
-      externalPointerDraggedIdsRef.current = draggedIds;
-      setExternalPointerDraggedIds(draggedIds);
-    }
-
-    if (draggedIds.length === 0) {
-      if (!dropped) {
-        setLocalOrderedResources((currentList) => {
-          let hasChanges = currentList.length !== filteredResources.length;
-          if (!hasChanges) {
-            for (let i = 0; i < currentList.length; i++) {
-              if (currentList[i].id !== filteredResources[i].id) {
-                hasChanges = true;
-                break;
-              }
-            }
-          }
-          if (!hasChanges) return currentList;
-          localOrderedRef.current = filteredResources;
-          return filteredResources;
-        });
-      }
-      return;
-    }
-
-    const elem = document.elementFromPoint(clientX, clientY);
-    const targetCard = elem?.closest('[data-resource-id]');
-    const targetId = targetCard?.getAttribute('data-resource-id');
-    const targetType = targetCard?.getAttribute('data-resource-type');
-
-    if (!targetCard || !targetId || draggedIds.includes(targetId)) {
-      if (hoverFolderDropTargetIdRef.current !== null) {
-        setHoverFolderDropTargetId(null);
-        hoverFolderDropTargetIdRef.current = null;
-        if (springLoadTimeoutRef.current)
-          clearTimeout(springLoadTimeoutRef.current);
-      }
-      return;
-    }
-
-    const rect = targetCard.getBoundingClientRect();
-    const relativeX = (clientX - rect.left) / rect.width;
-
-    const isCurrentlyHoveredFolder =
-      hoverFolderDropTargetIdRef.current === targetId;
-    const minX = isCurrentlyHoveredFolder ? 0.05 : 0.15;
-    const maxX = isCurrentlyHoveredFolder ? 0.95 : 0.85;
-
-    if (targetType === 'folder' && relativeX >= minX && relativeX <= maxX) {
-      if (hoverFolderDropTargetIdRef.current !== targetId) {
-        setHoverFolderDropTargetId(targetId);
-        hoverFolderDropTargetIdRef.current = targetId;
-        if (springLoadTimeoutRef.current)
-          clearTimeout(springLoadTimeoutRef.current);
-        springLoadTimeoutRef.current = setTimeout(() => {
-          const targetResource = localOrderedRef.current.find(
-            (r) => r.id === targetId,
-          );
-          if (targetResource)
-            setActiveDirectoryFolder({ ...targetResource } as FolderResource);
-          setHoverFolderDropTargetId(null);
-          hoverFolderDropTargetIdRef.current = null;
-        }, 600);
-      }
-      return;
-    }
-
-    if (hoverFolderDropTargetIdRef.current !== null) {
-      setHoverFolderDropTargetId(null);
-      hoverFolderDropTargetIdRef.current = null;
-      if (springLoadTimeoutRef.current)
-        clearTimeout(springLoadTimeoutRef.current);
-    }
-
-    const midX = rect.left + rect.width / 2;
-    const insertAfter = clientX > midX;
-
-    setLocalOrderedResources((currentList) => {
-      const newList = currentList.filter((r) => !draggedIds.includes(r.id));
-
-      const targetIdx = newList.findIndex((r) => r.id === targetId);
-      if (targetIdx === -1) return currentList;
-
-      const itemsToInject = draggedIds
-        .map((id) => resources.find((r) => r.id === id))
-        .filter(Boolean) as Resource[];
-      if (itemsToInject.length === 0) return currentList;
-
-      newList.splice(targetIdx + (insertAfter ? 1 : 0), 0, ...itemsToInject);
-
-      let hasChanges = newList.length !== currentList.length;
-      if (!hasChanges) {
-        for (let i = 0; i < newList.length; i++) {
-          if (newList[i].id !== currentList[i].id) {
-            hasChanges = true;
-            break;
-          }
-        }
-      }
-      if (!hasChanges) return currentList;
-
-      localOrderedRef.current = newList;
-      return newList;
-    });
-  };
+  const {
+    localOrderedResources,
+    localOrderedRef,
+    draggedCardId,
+    setDraggedCardId,
+    draggedCardIdRef,
+    externalPointerDraggedIds,
+    hoverFolderDropTargetId,
+    droppedInFolderRef,
+    dragDroppedSuccessfullyRef,
+    handleDragStart,
+    handleDragOver,
+    handleDrop,
+    handleDragEnd,
+    handlePointerHoverMainPage,
+  } = useResourcesDragAndDrop({
+    filteredResources,
+    allResources: resources,
+    isReadOnly,
+    selectedIds,
+    updateResources,
+    showToast,
+    setActiveDirectoryFolder,
+    setIsEditing,
+  });
 
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -339,7 +105,7 @@ export function ResourcesPageContent({
     });
   };
 
-  const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const {
     handleSweepPointerDown,
     handleCardPointerDown,
@@ -405,6 +171,19 @@ export function ResourcesPageContent({
     setIsCreateFolderModalOpen(false);
   };
 
+  const handleResourceClick = (res: Resource) => {
+    if (res.type === 'folder') {
+      setActiveDirectoryFolder(res as FolderResource);
+    } else if (res.type === 'link') {
+      if (res.URL) {
+        window.open(res.URL, '_blank', 'noopener,noreferrer');
+      }
+    } else if (res.type === 'file') {
+      const url = (res as FileResource).fileUrl || '#';
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500 pb-32 h-full flex flex-col">
       {toastMessage && (
@@ -426,9 +205,9 @@ export function ResourcesPageContent({
         isReadOnly={isReadOnly}
       />
 
-      {/* Single Wrapping Grid layout */}
+      {/* Single Wrapping Grid layout with clean white background */}
       <div
-        className="bg-[#F3EEE8]/70 border border-[#E5DDD0]/60 rounded-xl p-4 sm:p-5 relative flex-1"
+        className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 relative flex-1"
         ref={scrollContainerRef}
       >
         {localOrderedResources.length === 0 ? (
@@ -437,7 +216,7 @@ export function ResourcesPageContent({
           </div>
         ) : (
           <div
-            className="grid gap-3 sm:gap-4 items-start"
+            className="grid gap-3 sm:gap-4 items-start pt-2"
             style={{
               gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))',
             }}
@@ -478,16 +257,15 @@ export function ResourcesPageContent({
                 onCardPointerDown={(e) => {
                   if (!isReadOnly) handleCardPointerDown(e, resource.id);
                 }}
-                onClick={(res) => {
-                  if (res.type === 'folder')
-                    setActiveDirectoryFolder(res as FolderResource);
-                  else setDetailResource(res);
-                }}
+                onClick={handleResourceClick}
                 onDragStart={handleDragStart}
                 onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
                 onDrop={handleDrop}
                 onRename={isReadOnly ? undefined : handleRenameResource}
+                onEditCategories={
+                  isReadOnly ? undefined : (res) => setCategoryEditResource(res)
+                }
               />
             ))}
           </div>
@@ -512,9 +290,24 @@ export function ResourcesPageContent({
         onCategoriesChange={isReadOnly ? undefined : handleCategoriesChange}
       />
 
+      <EditCategoriesModal
+        resource={
+          categoryEditResource
+            ? (resources.find((r) => r.id === categoryEditResource.id) ??
+              categoryEditResource)
+            : null
+        }
+        onClose={() => setCategoryEditResource(null)}
+        onSave={handleCategoriesChange}
+      />
+
       {activeDirectoryFolder && (
         <FolderDirectoryModal
-          folder={activeDirectoryFolder}
+          folder={
+            (resources.find(
+              (r) => r.id === activeDirectoryFolder.id,
+            ) as FolderResource) ?? activeDirectoryFolder
+          }
           allResources={resources}
           currentCategory="Global"
           isReadOnly={isReadOnly}
@@ -635,4 +428,5 @@ export function ResourcesPageContent({
     </div>
   );
 }
+
 export default ResourcesPageContent;

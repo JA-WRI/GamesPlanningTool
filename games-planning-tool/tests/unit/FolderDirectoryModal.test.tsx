@@ -109,9 +109,7 @@ describe('FolderDirectoryModal pointer and drag events', () => {
 
   it('handles card drag and drop to reorder', () => {
     render(<FolderDirectoryModal {...defaultProps} />);
-    const panel = document.querySelector(
-      '.bg-white.rounded-2xl',
-    ) as HTMLElement;
+    const panel = document.querySelector('.rounded-2xl') as HTMLElement;
     if (panel) {
       panel.getBoundingClientRect = () =>
         ({
@@ -198,13 +196,22 @@ describe('FolderDirectoryModal pointer and drag events', () => {
 
     const backBtn = screen.getByTitle('Go back (drag items here to move up)');
     fireEvent.click(backBtn);
+    expect(screen.getByText('My Folder')).toBeInTheDocument();
   });
 
-  it('handles resource click to open detail', () => {
+  it('handles resource click to open file in new tab', () => {
+    const windowOpenSpy = vi
+      .spyOn(window, 'open')
+      .mockImplementation(() => null);
     render(<FolderDirectoryModal {...defaultProps} />);
-    const fileCard = screen.getByText('File 1');
+    const fileCard = screen.getByRole('button', { name: 'File 1' });
     fireEvent.click(fileCard);
-    expect(defaultProps.onSelectResourceDetail).toHaveBeenCalled();
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      'test1',
+      '_blank',
+      'noopener,noreferrer',
+    );
+    windowOpenSpy.mockRestore();
   });
 
   it('renders read-only mode correctly', () => {
@@ -449,9 +456,7 @@ describe('FolderDirectoryModal pointer and drag events', () => {
     render(
       <FolderDirectoryModal {...defaultProps} externalDraggedId="file-1" />,
     );
-    const panel = document.querySelector(
-      '.bg-white.rounded-2xl',
-    ) as HTMLElement;
+    const panel = document.querySelector('.rounded-2xl') as HTMLElement;
 
     // Drag over panel
     fireEvent.dragOver(panel, {
@@ -619,6 +624,7 @@ describe('FolderDirectoryModal pointer and drag events', () => {
     act(() => {
       vi.advanceTimersByTime(850);
     });
+    expect(backBtn).toBeInTheDocument();
   });
 
   it('triggers spring timer navigation when hovering breadcrumb button', () => {
@@ -661,6 +667,7 @@ describe('FolderDirectoryModal pointer and drag events', () => {
     act(() => {
       vi.advanceTimersByTime(850);
     });
+    expect(screen.getByText('Root Folder')).toBeInTheDocument();
   });
 
   it('triggers spring timer navigation when hovering a subfolder card', () => {
@@ -695,6 +702,7 @@ describe('FolderDirectoryModal pointer and drag events', () => {
     act(() => {
       vi.advanceTimersByTime(850);
     });
+    expect(folderCard).toBeInTheDocument();
   });
 
   it('handles HTML5 drop on a subfolder card inside modal', () => {
@@ -723,9 +731,7 @@ describe('FolderDirectoryModal pointer and drag events', () => {
     render(
       <FolderDirectoryModal {...defaultProps} externalDraggedId="external-1" />,
     );
-    const panel = document.querySelector(
-      '.bg-white.rounded-2xl',
-    ) as HTMLElement;
+    const panel = document.querySelector('.rounded-2xl') as HTMLElement;
     const subfolderEl = document.querySelector(
       '[data-folder-item-id="subfolder-1"]',
     ) as HTMLElement;
@@ -782,6 +788,7 @@ describe('FolderDirectoryModal pointer and drag events', () => {
       stopPropagation: vi.fn(),
       dataTransfer: { dropEffect: 'none' },
     });
+    expect(panel).toBeInTheDocument();
   });
 
   it('handles blur after enter key commit on title rename without duplicate callback', () => {

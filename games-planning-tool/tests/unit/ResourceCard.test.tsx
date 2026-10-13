@@ -55,15 +55,15 @@ describe('ResourceCard', () => {
     expect(screen.getByText('My Folder')).toBeInTheDocument();
   });
 
-  it('handles click events and double click to rename', () => {
+  it('handles click events and click to rename', () => {
     render(<ResourceCard {...defaultProps} />);
 
-    // Normal click
-    fireEvent.click(screen.getByText('My File'));
+    // Normal click on card container
+    fireEvent.click(screen.getByRole('button', { name: 'My File' }));
     expect(defaultProps.onClick).toHaveBeenCalledWith(mockFile);
 
-    // Double click to rename
-    fireEvent.doubleClick(screen.getByText('My File'));
+    // Single click on name label to rename
+    fireEvent.click(screen.getByText('My File'));
     const input = screen.getByDisplayValue('My File');
     expect(input).toBeInTheDocument();
 
@@ -78,7 +78,7 @@ describe('ResourceCard', () => {
 
   it('handles rename cancellation', () => {
     render(<ResourceCard {...defaultProps} />);
-    fireEvent.doubleClick(screen.getByText('My File'));
+    fireEvent.click(screen.getByText('My File'));
     const input = screen.getByDisplayValue('My File');
     fireEvent.change(input, { target: { value: 'New File Name' } });
     fireEvent.keyDown(input, { key: 'Escape' });
@@ -185,5 +185,43 @@ describe('ResourceCard', () => {
     const card = screen.getByRole('button', { name: 'My File' });
     fireEvent.keyDown(card, { key: 'Enter' });
     expect(defaultProps.onClick).toHaveBeenCalled();
+  });
+
+  it('triggers onEditCategories when Categories button is clicked', () => {
+    const onEditCategories = vi.fn();
+    render(
+      <ResourceCard {...defaultProps} onEditCategories={onEditCategories} />,
+    );
+    const catBtn = screen.getByTestId('categories-btn-file-1');
+    fireEvent.click(catBtn);
+    expect(onEditCategories).toHaveBeenCalledWith(mockFile);
+  });
+
+  it('handles single click to rename a folder resource', () => {
+    render(<ResourceCard {...defaultProps} resource={folderResource} />);
+    fireEvent.click(screen.getByText('My Folder'));
+    const input = screen.getByDisplayValue('My Folder');
+    fireEvent.change(input, {
+      target: { value: 'Renamed Folder Single Click' },
+    });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(defaultProps.onRename).toHaveBeenCalledWith(
+      'folder-1',
+      'Renamed Folder Single Click',
+    );
+  });
+
+  it('triggers onEditCategories when Categories button is clicked on a folder', () => {
+    const onEditCategories = vi.fn();
+    render(
+      <ResourceCard
+        {...defaultProps}
+        resource={folderResource}
+        onEditCategories={onEditCategories}
+      />,
+    );
+    const catBtn = screen.getByTestId('categories-btn-folder-1');
+    fireEvent.click(catBtn);
+    expect(onEditCategories).toHaveBeenCalledWith(folderResource);
   });
 });

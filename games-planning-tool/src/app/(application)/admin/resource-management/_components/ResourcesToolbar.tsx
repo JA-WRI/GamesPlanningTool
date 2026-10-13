@@ -30,49 +30,53 @@ export function ResourcesToolbar({
   isReadOnly = false,
 }: ResourcesToolbarProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-      <h1 className="text-3xl font-extrabold text-neutral-900 tracking-tight">
-        Resources Dashboard
-      </h1>
-      <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-col gap-5 mb-8">
+      <div>
+        <h1 className="text-3xl font-extrabold text-neutral-900 tracking-tight">
+          Resources Dashboard
+        </h1>
+      </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <SearchPill value={globalSearch} onChange={setGlobalSearch} />
-        {!isReadOnly && (
-          <>
-            {isEditing && selectedIds.size > 0 && (
+        <div className="flex flex-wrap items-center gap-3">
+          {!isReadOnly && (
+            <>
+              {isEditing && selectedIds.size > 0 && (
+                <button
+                  onClick={handleDeleteSelected}
+                  className="px-3.5 py-1.5 text-sm font-semibold rounded-md bg-red-700 text-white hover:bg-red-800 transition-colors"
+                >
+                  Delete ({selectedIds.size})
+                </button>
+              )}
               <button
-                onClick={handleDeleteSelected}
-                className="px-3.5 py-1.5 text-sm font-semibold rounded-md bg-red-700 text-white hover:bg-red-800 transition-colors"
+                onClick={() => {
+                  setIsEditing(!isEditing);
+                  setSelectedIds(new Set());
+                }}
+                className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${
+                  isEditing
+                    ? 'bg-neutral-900 text-white'
+                    : 'bg-neutral-200 text-neutral-800 hover:bg-neutral-300'
+                }`}
               >
-                Delete ({selectedIds.size})
+                {isEditing ? 'Done' : 'Edit'}
               </button>
-            )}
-            <button
-              onClick={() => {
-                setIsEditing(!isEditing);
-                setSelectedIds(new Set());
-              }}
-              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${
-                isEditing
-                  ? 'bg-neutral-900 text-white'
-                  : 'bg-neutral-200 text-neutral-800 hover:bg-neutral-300'
-              }`}
-            >
-              {isEditing ? 'Done' : 'Edit'}
-            </button>
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="px-3.5 py-1.5 rounded-md text-sm font-semibold bg-[#374151] hover:bg-[#1f2937] text-white"
-            >
-              Add Resource
-            </button>
-            <button
-              onClick={() => setIsCreateFolderModalOpen(true)}
-              className="px-3.5 py-1.5 rounded-md text-sm font-semibold bg-[#374151] hover:bg-[#1f2937] text-white"
-            >
-              Create Folder
-            </button>
-          </>
-        )}
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="px-3.5 py-1.5 rounded-md text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-white shadow-xs transition-colors"
+              >
+                Add Resource
+              </button>
+              <button
+                onClick={() => setIsCreateFolderModalOpen(true)}
+                className="px-3.5 py-1.5 rounded-md text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-white shadow-xs transition-colors"
+              >
+                Create Folder
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

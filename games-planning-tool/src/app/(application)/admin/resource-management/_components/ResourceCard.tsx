@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { Tag } from 'lucide-react';
 import { Resource, LinkResource, FileResource } from '@/types/resource';
 import { FolderCardView } from './FolderCardView';
 
@@ -116,6 +117,7 @@ interface ResourceCardProps {
   onCardPointerDown: (e: React.PointerEvent, id: string) => void;
   onClick: (resource: Resource) => void;
   onRename?: (id: string, newName: string) => void;
+  onEditCategories?: (resource: Resource) => void;
   onDragStart?: (e: React.DragEvent, id: string) => void;
   onDragOver?: (e: React.DragEvent, id: string) => void;
   onDragEnd?: (e: React.DragEvent) => void;
@@ -138,6 +140,7 @@ export function ResourceCard({
   onCardPointerDown,
   onClick,
   onRename,
+  onEditCategories,
   onDragStart,
   onDragOver,
   onDragEnd,
@@ -217,10 +220,19 @@ export function ResourceCard({
     }, 150);
   };
 
+  const handleNameClick = (e: React.MouseEvent) => {
+    if (onRename && !isEditing) {
+      e.stopPropagation();
+      e.preventDefault();
+      setRenameValue(resource.name);
+      setIsRenaming(true);
+    }
+  };
+
   const handleNameDoubleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (!isEditing) {
+    if (onRename && !isEditing) {
+      e.stopPropagation();
+      e.preventDefault();
       setRenameValue(resource.name);
       setIsRenaming(true);
     }
@@ -281,7 +293,7 @@ export function ResourceCard({
           isFolderDropTarget
             ? 'ring-4 ring-amber-400 bg-amber-100/70 scale-105 shadow-md z-20'
             : isSelected
-              ? 'bg-[#80131d]/10 ring-2 ring-[#80131d]'
+              ? 'bg-burgundy/10 ring-2 ring-burgundy'
               : 'bg-transparent hover:bg-black/[0.04]'
         }`}
       >
@@ -349,7 +361,7 @@ export function ResourceCard({
             <div
               className={`w-5 h-5 rounded-full flex items-center justify-center transition-all duration-150 ${
                 isSelected
-                  ? 'bg-white text-[#80131d] shadow-sm ring-1 ring-neutral-300 scale-105'
+                  ? 'bg-white text-burgundy shadow-sm ring-1 ring-neutral-300 scale-105'
                   : 'border-2 border-neutral-400 bg-white/90 hover:bg-white hover:border-neutral-600'
               }`}
             >
@@ -388,20 +400,48 @@ export function ResourceCard({
             onKeyDown={handleRenameKeyDown}
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
-            className="w-full text-center text-[11px] font-semibold text-neutral-900 bg-white border border-[#80131d] rounded px-1 py-0.5 outline-none shadow-xs"
+            className="w-full text-center text-[11px] font-semibold text-neutral-900 bg-white border border-burgundy rounded px-1 py-0.5 outline-none shadow-xs focus:ring-1 focus:ring-burgundy"
           />
         ) : (
           <span
+            onClick={handleNameClick}
             onDoubleClick={handleNameDoubleClick}
-            title={resource.name}
-            className={`text-[11px] sm:text-xs font-semibold text-neutral-800 leading-tight line-clamp-2 break-words cursor-default group-hover:text-neutral-950 transition-colors ${
-              isSelected ? 'text-[#80131d]' : ''
-            }`}
+            title={
+              onRename && !isEditing
+                ? `Click to rename "${resource.name}"`
+                : resource.name
+            }
+            className={`text-[11px] sm:text-xs font-semibold text-neutral-800 leading-tight line-clamp-2 break-words transition-colors ${
+              onRename && !isEditing
+                ? 'cursor-pointer hover:text-burgundy hover:underline decoration-neutral-300 underline-offset-2'
+                : 'cursor-default group-hover:text-neutral-950'
+            } ${isSelected ? 'text-burgundy' : ''}`}
           >
             {resource.name}
           </span>
         )}
       </div>
+
+      {/* Categories button below resource name */}
+      {onEditCategories && !isEditing && (
+        <div className="mt-1 flex justify-center w-full pointer-events-auto">
+          <button
+            type="button"
+            data-testid={`categories-btn-${resource.id}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onEditCategories(resource);
+            }}
+            className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 transition-all duration-150 inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-slate-900/95 text-white border border-slate-600/70 shadow-xs hover:bg-slate-800 hover:border-slate-500 hover:scale-105 active:scale-95 whitespace-nowrap cursor-pointer pointer-events-auto"
+            title="Edit categories"
+            aria-label="Edit categories"
+          >
+            <Tag className="w-2.5 h-2.5 text-slate-300" aria-hidden="true" />
+            <span>Categories</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
