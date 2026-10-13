@@ -1,4 +1,11 @@
 // Made with AI agents (Antigravity)
+/**
+ * Test Suite Note: This file exceeds 500 lines due to extensive test coverage
+ * required for the core ResourcesPageContent dashboard: responsive wrapping grid
+ * layout, multi-tag category filtering, live text search, 2D sweep multi-selection,
+ * multi-resource drag-and-drop with spring-loaded folder hover timers, modal dialog
+ * triggers (Add, Folder, Details), and role-based permissions (NSO view-only vs Admin edit mode).
+ */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';

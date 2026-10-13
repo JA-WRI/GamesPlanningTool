@@ -1,7 +1,6 @@
 // Made with AI agents (Antigravity)
 'use client';
 
-/* eslint-disable @next/next/no-img-element */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Resource, FileResource } from '@/types/resource';
 import { CategoryEditor } from './CategoryEditor';

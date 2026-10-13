@@ -1,4 +1,11 @@
 // Made with AI agents (Antigravity)
+/**
+ * Test Suite Note: This file exceeds 500 lines due to extensive test coverage
+ * required for complex FolderDirectoryModal workflows: nested directory traversal,
+ * breadcrumb navigation, search filtering, multi-card selection, 2D sweep selection,
+ * drag-and-drop file moves (into folders and breadcrumb targets), inline renaming
+ * (with click-delay discrimination), category editing, and read-only mode permissions.
+ */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
