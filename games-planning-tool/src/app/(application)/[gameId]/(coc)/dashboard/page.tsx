@@ -1,4 +1,3 @@
-// Made with AI agents (Antigravity)
 'use client';
 
 import TeamStatusCard from '@/components/coc-admin-dashboard/TeamStatusCard';
@@ -81,7 +80,6 @@ export default function Home() {
           />
         ))}
       </div>
-
       {/* Page name */}
       <div className="mt-8 flex items-center justify-between mr-10">
         <h1 className="text-xl font-bold ml-6">NSOs</h1>

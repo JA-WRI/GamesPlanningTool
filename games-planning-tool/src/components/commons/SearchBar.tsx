@@ -1,6 +1,11 @@
 import React from 'react';
 import { Search } from 'lucide-react';
 
+/**
+ * Shared SearchBar component.
+ * Extended with optional className, inputClassName, icon, and clearIcon props.
+ * Default fallback values preserve original styling and icon so usage elsewhere is unaffected.
+ */
 export interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
@@ -15,6 +20,7 @@ export default function SearchBar({
   value,
   onChange,
   placeholder = 'Type to search',
+  // Original styles and icon preserved as default fallbacks for compatibility
   className = 'relative w-full',
   inputClassName = 'w-full h-10 rounded-full border border-gray-300 bg-white px-4 pr-12 text-sm text-gray-900 outline-none',
   icon,
