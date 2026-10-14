@@ -38,3 +38,14 @@ export const INITIAL_TEAM_SIZE: TeamSize = {
   projectedMedalsLow: '',
   projectedMedalsHigh: '',
 };
+
+// example values from the mockup(until the backend is ready)
+export const MOCK_TEAM_SIZE: TeamSize = {
+  ...INITIAL_TEAM_SIZE,
+  athletes: {
+    male: { low: '12', bestGuess: '12', high: '16' },
+    female: { low: '10', bestGuess: '13', high: '13' },
+  },
+  notes:
+    'This best guess takes us to 23 (there will be 24 but the results from this year will have a huge impact on who moves up a tier of selection). I can update mid-December with a much more realistic guess. Likely to qualify a Mixed Aerial Team, bringing the total team to 32 (with SX).',
+};
