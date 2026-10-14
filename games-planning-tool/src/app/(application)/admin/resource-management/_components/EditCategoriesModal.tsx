@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
+import CloseIcon from '@mui/icons-material/Close';
 import { Resource } from '@/types/resource';
 import { CategoryEditor } from './CategoryEditor';
 
@@ -61,15 +61,9 @@ function EditCategoriesModalInner({
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors flex items-center justify-center"
           >
-            <Image
-              src="/icons/close.svg"
-              alt=""
-              width={20}
-              height={20}
-              className="w-5 h-5 pointer-events-none"
-            />
+            <CloseIcon sx={{ fontSize: 20 }} className="pointer-events-none" />
           </button>
         </div>
 

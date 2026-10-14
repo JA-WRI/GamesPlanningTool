@@ -2,8 +2,10 @@
 'use client';
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
-import { Tag } from 'lucide-react';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CheckIcon from '@mui/icons-material/Check';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
 import { Resource, LinkResource, FileResource } from '@/types/resource';
 import { FolderCardView } from './FolderCardView';
 
@@ -307,12 +309,9 @@ export function ResourceCard({
             data-testid="drag-removal-symbol"
             className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-600 to-red-800 text-white rounded-2xl p-2 z-30 select-none animate-pulse"
           >
-            <Image
-              src="/icons/trash.svg"
-              alt=""
-              width={32}
-              height={32}
-              className="w-8 h-8 invert brightness-0 drop-shadow-sm"
+            <DeleteIcon
+              sx={{ fontSize: 32 }}
+              className="text-white drop-shadow-sm"
             />
             <span className="mt-1 text-center text-[10px] font-bold uppercase tracking-wider text-red-100">
               Remove
@@ -375,12 +374,9 @@ export function ResourceCard({
               }`}
             >
               {isSelected && (
-                <Image
-                  src="/icons/check.svg?v=3"
-                  alt=""
-                  width={14}
-                  height={14}
-                  className="w-3.5 h-3.5 pointer-events-none"
+                <CheckIcon
+                  sx={{ fontSize: 14 }}
+                  className="text-burgundy pointer-events-none"
                 />
               )}
             </div>
@@ -389,13 +385,10 @@ export function ResourceCard({
 
         {/* Drag grip (Edit mode + Reordering) */}
         {isEditing && canReorder && (
-          <div className="absolute bottom-1 right-1 z-20 opacity-40 group-hover:opacity-90 transition-opacity pointer-events-none">
-            <Image
-              src="/icons/grip.svg"
-              alt=""
-              width={14}
-              height={14}
-              className="w-3.5 h-3.5 opacity-60 pointer-events-none"
+          <div className="absolute bottom-1 right-1 z-20 opacity-40 group-hover:opacity-90 transition-opacity pointer-events-none flex items-center justify-center">
+            <DragIndicatorIcon
+              sx={{ fontSize: 14 }}
+              className="opacity-60 text-neutral-600 pointer-events-none"
             />
           </div>
         )}
@@ -455,7 +448,11 @@ export function ResourceCard({
             title="Edit categories"
             aria-label="Edit categories"
           >
-            <Tag className="w-2.5 h-2.5 text-slate-300" aria-hidden="true" />
+            <LocalOfferOutlinedIcon
+              sx={{ fontSize: 11 }}
+              className="text-slate-300"
+              aria-hidden="true"
+            />
             <span>Categories</span>
           </button>
         </div>

@@ -2,7 +2,9 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import Image from 'next/image';
+import CloseIcon from '@mui/icons-material/Close';
+import LinkIcon from '@mui/icons-material/Link';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { Resource, FileResource } from '@/types/resource';
 import { CategoryEditor } from './CategoryEditor';
 
@@ -108,14 +110,11 @@ export function ResourceDetailModal({
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="absolute top-3 right-3 text-white/80 hover:text-white bg-black/40 hover:bg-black/60 rounded-full p-1.5 transition-colors"
+            className="absolute top-3 right-3 text-white/80 hover:text-white bg-black/40 hover:bg-black/60 rounded-full p-1.5 transition-colors flex items-center justify-center"
           >
-            <Image
-              src="/icons/close.svg"
-              alt=""
-              width={20}
-              height={20}
-              className="w-5 h-5 invert pointer-events-none"
+            <CloseIcon
+              sx={{ fontSize: 20 }}
+              className="text-white pointer-events-none"
             />
           </button>
         </div>
@@ -229,13 +228,7 @@ export function ResourceDetailModal({
                 className="px-5 py-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl shadow-md transition-all flex items-center space-x-2"
               >
                 <span>Open Link</span>
-                <Image
-                  src="/icons/link.svg"
-                  alt=""
-                  width={16}
-                  height={16}
-                  className="w-4 h-4 invert"
-                />
+                <LinkIcon sx={{ fontSize: 16 }} className="text-white" />
               </a>
             ) : (
               <a
@@ -244,12 +237,9 @@ export function ResourceDetailModal({
                 className="px-5 py-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl shadow-md transition-all flex items-center space-x-2"
               >
                 <span>Download File</span>
-                <Image
-                  src="/icons/upload.svg"
-                  alt=""
-                  width={16}
-                  height={16}
-                  className="w-4 h-4 invert"
+                <FileDownloadIcon
+                  sx={{ fontSize: 16 }}
+                  className="text-white"
                 />
               </a>
             )}

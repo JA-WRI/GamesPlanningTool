@@ -2,7 +2,8 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CloseIcon from '@mui/icons-material/Close';
 import { FolderResource } from '@/types/resource';
 
 export interface FolderModalHeaderProps {
@@ -50,13 +51,7 @@ export function FolderModalHeader({
           disabled={!currentFolder.parentId}
           title="Go back (drag items here to move up)"
         >
-          <Image
-            src="/icons/arrow-left.svg"
-            alt="Back"
-            width={24}
-            height={24}
-            className="w-6 h-6 opacity-75"
-          />
+          <ArrowBackIcon sx={{ fontSize: 24 }} className="opacity-75" />
         </button>
 
         <div className="min-w-0 flex-1">
@@ -139,13 +134,7 @@ export function FolderModalHeader({
         className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full p-1.5 transition-colors cursor-pointer"
         aria-label="Close folder dialog"
       >
-        <Image
-          src="/icons/close.svg"
-          alt="Close"
-          width={20}
-          height={20}
-          className="w-5 h-5 opacity-60"
-        />
+        <CloseIcon sx={{ fontSize: 20 }} className="opacity-60" />
       </button>
     </div>
   );

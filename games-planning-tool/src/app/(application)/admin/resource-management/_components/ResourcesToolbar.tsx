@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { SearchPill } from './SearchPill';
+import SearchBar from '@/components/commons/SearchBar';
 
 export interface ResourcesToolbarProps {
   globalSearch: string;
@@ -37,7 +37,14 @@ export function ResourcesToolbar({
         </h1>
       </div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <SearchPill value={globalSearch} onChange={setGlobalSearch} />
+        <div className="w-full sm:max-w-xs">
+          <SearchBar
+            value={globalSearch}
+            onChange={setGlobalSearch}
+            placeholder="Search by name, category..."
+            clearable
+          />
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           {!isReadOnly && (
             <>

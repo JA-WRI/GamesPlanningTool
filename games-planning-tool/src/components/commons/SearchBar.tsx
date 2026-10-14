@@ -1,51 +1,44 @@
 import React from 'react';
 import { Search } from 'lucide-react';
+import CloseIcon from '@mui/icons-material/Close';
 
 /**
  * Shared SearchBar component.
- * Extended with optional className, inputClassName, icon, and clearIcon props.
- * Default fallback values preserve original styling and icon so usage elsewhere is unaffected.
+ * Extended with an optional `clearable` prop to display a reset button when text is present.
+ * Defaults to `false`, preserving the original layout, styling, and search icon fallback with zero impact on other usages.
  */
 export interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  className?: string;
-  inputClassName?: string;
-  icon?: React.ReactNode;
-  clearIcon?: React.ReactNode;
+  clearable?: boolean;
 }
 
 export default function SearchBar({
   value,
   onChange,
   placeholder = 'Type to search',
-  // Original styles and icon preserved as default fallbacks for compatibility
-  className = 'relative w-full',
-  inputClassName = 'w-full h-10 rounded-full border border-gray-300 bg-white px-4 pr-12 text-sm text-gray-900 outline-none',
-  icon,
-  clearIcon,
+  clearable = false,
 }: SearchBarProps) {
   return (
-    <div className={className}>
+    <div className="relative w-full">
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={inputClassName}
+        className="w-full h-10 rounded-full border border-gray-300 bg-white px-4 pr-12 text-sm text-gray-900 outline-none"
       />
 
-      {value && clearIcon ? (
+      {clearable && value ? (
         <button
           type="button"
           onClick={() => onChange('')}
-          className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer focus:outline-none"
+          aria-label="Clear search"
+          className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer focus:outline-none flex items-center justify-center text-gray-500 hover:text-gray-700"
         >
-          {clearIcon}
+          <CloseIcon sx={{ fontSize: 18 }} />
         </button>
-      ) : icon ? (
-        icon
       ) : (
         <Search size={18} className="absolute right-3 top-2.5 text-gray-500" />
       )}
