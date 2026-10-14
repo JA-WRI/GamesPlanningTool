@@ -1,4 +1,4 @@
-//AI contribution:Below 50% AI-generated 
+//AI contribution:Below 50% AI-generated
 import type { SelectOption } from '@/components/commons/Grid';
 import type { AthleteEstimate, TeamSize } from './teamSizeLogic';
 import { getAthleteRangeErrors } from './teamSizeLogic';
@@ -55,8 +55,8 @@ export function sumColumn<T extends Record<string, unknown>>(
   rows: T[],
   field: keyof T,
 ): number {
-   // empty boxes count as 0
-  return rows.reduce((total, row) => total + (Number(row[field]) || 0), 0); 
+  // empty boxes count as 0
+  return rows.reduce((total, row) => total + (Number(row[field]) || 0), 0);
 }
 
 // team size state -> Male and Female grid rows
@@ -80,7 +80,7 @@ export function rowToEstimate(row: TeamSizeRow): AthleteEstimate {
   };
 }
 
-// grid rows -> team size state 
+// grid rows -> team size state
 export function rowsToAthletes(
   rows: TeamSizeRow[],
   current: TeamSize['athletes'],
