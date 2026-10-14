@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { Tag } from 'lucide-react';
 import { Resource, LinkResource, FileResource } from '@/types/resource';
 import { FolderCardView } from './FolderCardView';
@@ -306,9 +307,11 @@ export function ResourceCard({
             data-testid="drag-removal-symbol"
             className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-600 to-red-800 text-white rounded-2xl p-2 z-30 select-none animate-pulse"
           >
-            <img
+            <Image
               src="/icons/trash.svg"
               alt=""
+              width={32}
+              height={32}
               className="w-8 h-8 invert brightness-0 drop-shadow-sm"
             />
             <span className="mt-1 text-center text-[10px] font-bold uppercase tracking-wider text-red-100">
@@ -318,6 +321,7 @@ export function ResourceCard({
         ) : isFolder ? (
           <FolderCardView resource={resource} itemCount={itemCount} />
         ) : isLink ? (
+          /* eslint-disable-next-line @next/next/no-img-element -- Dynamic external favicon with fallback handler */
           <img
             src={faviconUrl}
             alt=""
@@ -328,6 +332,7 @@ export function ResourceCard({
             }}
           />
         ) : (
+          /* eslint-disable-next-line @next/next/no-img-element -- Dynamic file type icon with error fallback */
           <img
             src={getFileTypeIcon(resource)}
             alt=""
@@ -370,9 +375,11 @@ export function ResourceCard({
               }`}
             >
               {isSelected && (
-                <img
+                <Image
                   src="/icons/check.svg?v=3"
                   alt=""
+                  width={14}
+                  height={14}
                   className="w-3.5 h-3.5 pointer-events-none"
                 />
               )}
@@ -383,9 +390,11 @@ export function ResourceCard({
         {/* Drag grip (Edit mode + Reordering) */}
         {isEditing && canReorder && (
           <div className="absolute bottom-1 right-1 z-20 opacity-40 group-hover:opacity-90 transition-opacity pointer-events-none">
-            <img
+            <Image
               src="/icons/grip.svg"
               alt=""
+              width={14}
+              height={14}
               className="w-3.5 h-3.5 opacity-60 pointer-events-none"
             />
           </div>

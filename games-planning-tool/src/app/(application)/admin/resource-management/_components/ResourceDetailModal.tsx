@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { Resource, FileResource } from '@/types/resource';
 import { CategoryEditor } from './CategoryEditor';
 
@@ -58,6 +59,7 @@ export function ResourceDetailModal({
       />
       <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-neutral-200 z-10">
         <div className="relative h-48 w-full overflow-hidden bg-neutral-900 shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element -- Dynamic external preview URL */}
           <img
             src={
               resource.previewUrl ||
@@ -108,9 +110,11 @@ export function ResourceDetailModal({
             aria-label="Close dialog"
             className="absolute top-3 right-3 text-white/80 hover:text-white bg-black/40 hover:bg-black/60 rounded-full p-1.5 transition-colors"
           >
-            <img
+            <Image
               src="/icons/close.svg"
               alt=""
+              width={20}
+              height={20}
               className="w-5 h-5 invert pointer-events-none"
             />
           </button>
@@ -225,7 +229,13 @@ export function ResourceDetailModal({
                 className="px-5 py-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl shadow-md transition-all flex items-center space-x-2"
               >
                 <span>Open Link</span>
-                <img src="/icons/link.svg" alt="" className="w-4 h-4 invert" />
+                <Image
+                  src="/icons/link.svg"
+                  alt=""
+                  width={16}
+                  height={16}
+                  className="w-4 h-4 invert"
+                />
               </a>
             ) : (
               <a
@@ -234,9 +244,11 @@ export function ResourceDetailModal({
                 className="px-5 py-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl shadow-md transition-all flex items-center space-x-2"
               >
                 <span>Download File</span>
-                <img
+                <Image
                   src="/icons/upload.svg"
                   alt=""
+                  width={16}
+                  height={16}
                   className="w-4 h-4 invert"
                 />
               </a>

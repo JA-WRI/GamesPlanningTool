@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import { Resource, FolderResource, FileResource } from '@/types/resource';
 import { getFolderChildren } from '@/lib/resources-data';
 import ResourceCard from './ResourceCard';
@@ -354,9 +355,11 @@ export function FolderDirectoryModal({
           >
             {localOrderedChildren.length === 0 ? (
               <div className="text-center py-12 text-neutral-500 text-sm">
-                <img
+                <Image
                   src="/icons/folder.svg"
                   alt=""
+                  width={48}
+                  height={48}
                   className="w-12 h-12 mx-auto opacity-30 mb-2 pointer-events-none"
                 />
                 <p>This folder is empty.</p>

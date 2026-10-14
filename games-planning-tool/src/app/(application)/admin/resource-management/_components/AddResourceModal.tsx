@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import Image from 'next/image';
 import {
   Resource,
   LinkResource,
@@ -136,9 +137,11 @@ function AddResourceForm({
       {/* Clean Modal Header */}
       <div className="bg-[#FEFAF6] border-b border-neutral-200 px-6 py-4 text-gray-900 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <img
+          <Image
             src="/icons/plus.svg"
             alt=""
+            width={20}
+            height={20}
             className="w-5 h-5 pointer-events-none opacity-80"
           />
           <h2 id="modal-title" className="text-lg font-bold text-gray-900">
@@ -150,9 +153,11 @@ function AddResourceForm({
           onClick={onClose}
           className="text-gray-400 hover:text-gray-700 rounded-lg p-1 hover:bg-gray-100 transition-colors cursor-pointer"
         >
-          <img
+          <Image
             src="/icons/close.svg"
             alt="Close"
+            width={20}
+            height={20}
             className="w-5 h-5 pointer-events-none opacity-60"
           />
         </button>
@@ -161,9 +166,11 @@ function AddResourceForm({
       <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-white">
         {errorMessage && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-semibold text-red-700 flex items-center space-x-2">
-            <img
+            <Image
               src="/icons/alert-circle.svg"
               alt=""
+              width={16}
+              height={16}
               className="w-4 h-4 shrink-0 text-red-600 pointer-events-none"
             />
             <span>{errorMessage}</span>
@@ -202,9 +209,11 @@ function AddResourceForm({
                   : 'bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100'
               }`}
             >
-              <img
+              <Image
                 src="/icons/link.svg"
                 alt=""
+                width={16}
+                height={16}
                 className="w-4 h-4 pointer-events-none"
               />
               <span>Website Link</span>
@@ -218,9 +227,11 @@ function AddResourceForm({
                   : 'bg-neutral-50 border-neutral-200 text-neutral-600 hover:bg-neutral-100'
               }`}
             >
-              <img
+              <Image
                 src="/icons/upload.svg"
                 alt=""
+                width={16}
+                height={16}
                 className="w-4 h-4 pointer-events-none"
               />
               <span>Upload File</span>
@@ -294,9 +305,11 @@ function AddResourceForm({
               ) : (
                 <div className="space-y-1">
                   <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-2 text-neutral-500">
-                    <img
+                    <Image
                       src="/icons/upload.svg"
                       alt=""
+                      width={20}
+                      height={20}
                       className="w-5 h-5 pointer-events-none"
                     />
                   </div>
@@ -338,9 +351,11 @@ function AddResourceForm({
                   }`}
                 >
                   {isSelected && (
-                    <img
+                    <Image
                       src="/icons/check.svg"
                       alt=""
+                      width={14}
+                      height={14}
                       className="w-3.5 h-3.5 brightness-0 invert pointer-events-none"
                     />
                   )}

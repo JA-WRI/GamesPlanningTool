@@ -2,6 +2,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 export interface CreateFolderModalProps {
   isOpen: boolean;
@@ -37,9 +38,11 @@ export function CreateFolderModal({
       <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden z-10">
         <div className="flex items-center space-x-2.5 p-5 bg-[#FEFAF6] border-b border-neutral-200">
           <div className="p-2 bg-amber-100 rounded-lg text-amber-700">
-            <img
+            <Image
               src="/icons/folder.svg"
               alt=""
+              width={20}
+              height={20}
               className="w-5 h-5 pointer-events-none"
             />
           </div>
