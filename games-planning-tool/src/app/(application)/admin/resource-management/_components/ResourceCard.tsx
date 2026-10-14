@@ -6,12 +6,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
+import LinkIcon from '@mui/icons-material/Link';
 import { Resource, LinkResource, FileResource } from '@/types/resource';
 import { FolderCardView } from './FolderCardView';
 
 export function getFileTypeIcon(resource: Resource): string {
-  if (resource.type === 'link') return '/icons/link.svg';
-  if (resource.type === 'folder') return '/icons/folder.svg';
+  if (resource.type === 'link' || resource.type === 'folder') return '';
 
   const fileRes = resource as FileResource;
   const fileName = fileRes.file?.name || resource.name || '';
@@ -159,7 +159,8 @@ export function ResourceCard({
   const isCardDraggable = (canDrag ?? canReorder) && !isRoundPointerDown;
 
   // Favicon calculation for links
-  let faviconUrl = '/icons/link.svg';
+  const [faviconError, setFaviconError] = useState(false);
+  let faviconUrl = '';
   if (isLink) {
     const linkRes = resource as LinkResource;
     let url = linkRes.URL || '';
@@ -170,7 +171,7 @@ export function ResourceCard({
       try {
         faviconUrl = `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(url)}&sz=128`;
       } catch {
-        faviconUrl = '/icons/link.svg';
+        faviconUrl = '';
       }
     }
   }
@@ -320,16 +321,20 @@ export function ResourceCard({
         ) : isFolder ? (
           <FolderCardView resource={resource} itemCount={itemCount} />
         ) : isLink ? (
-          /* eslint-disable-next-line @next/next/no-img-element -- Dynamic external favicon with fallback handler */
-          <img
-            src={faviconUrl}
-            alt=""
-            draggable={false}
-            className="w-11 h-11 sm:w-12 sm:h-12 object-contain pointer-events-none select-none drop-shadow-2xs"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = '/icons/link.svg';
-            }}
-          />
+          faviconUrl && !faviconError ? (
+            /* eslint-disable-next-line @next/next/no-img-element -- Dynamic external favicon with fallback handler */
+            <img
+              src={faviconUrl}
+              alt=""
+              draggable={false}
+              className="w-11 h-11 sm:w-12 sm:h-12 object-contain pointer-events-none select-none drop-shadow-2xs"
+              onError={() => setFaviconError(true)}
+            />
+          ) : (
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 border border-blue-200/60 flex items-center justify-center text-blue-600 shadow-2xs">
+              <LinkIcon sx={{ fontSize: 24 }} />
+            </div>
+          )
         ) : (
           /* eslint-disable-next-line @next/next/no-img-element -- Dynamic file type icon with error fallback */
           <img
