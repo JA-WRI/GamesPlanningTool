@@ -17,6 +17,7 @@ interface BaseGridPageProps<T extends Record<string, unknown>> {
   addButtonLabel: string;
   searchPlaceholder?: string;
   showSearch?: boolean;
+  allowDelete?: boolean;
 }
 
 export default function BaseGridPage<T extends Record<string, unknown>>({
@@ -28,6 +29,7 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
   addButtonLabel,
   searchPlaceholder = 'Search records...',
   showSearch = true,
+  allowDelete = true,
 }: BaseGridPageProps<T>) {
   const [isPreview, setIsPreview] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,6 +58,24 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
         .includes(searchQuery.toLowerCase()),
     ),
   );
+  // handler for updating rows and not getting rid of non filtered items
+  const handleRowsChange = (
+    newFilteredOrUpdatedRows: (T & { id: string })[],
+  ) => {
+    if (searchQuery) {
+      setRows((prevRows) => {
+        const updatedMap = new Map(
+          newFilteredOrUpdatedRows.map((r) => [r.id, r]),
+        );
+
+        return prevRows.map((row) => {
+          return updatedMap.has(row.id) ? updatedMap.get(row.id)! : row;
+        });
+      });
+    } else {
+      setRows(newFilteredOrUpdatedRows);
+    }
+  };
 
   return (
     <div className="space-y-6 p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
@@ -106,10 +126,11 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
         rows={filteredRows} // fix for row filtering correctly
         isEditing={isEditing}
         isPreview={isPreview}
-        onRowsChange={setRows as (newRows: T[]) => void}
+        onRowsChange={handleRowsChange}
         onAddRow={handleAddRow}
         addButtonLabel={addButtonLabel}
         onValidationChange={(errorState) => setHasValidationError(errorState)}
+        allowDelete={allowDelete}
       />
     </div>
   );

@@ -65,6 +65,7 @@ interface GridProps<T extends Record<string, unknown>> {
   onAddRow?: () => void;
   addButtonLabel?: string;
   onValidationChange?: (hasError: boolean) => void;
+  allowDelete?: boolean;
 }
 
 export default function Grid<T extends Record<string, unknown>>({
@@ -76,6 +77,7 @@ export default function Grid<T extends Record<string, unknown>>({
   onAddRow,
   addButtonLabel = 'Add Row',
   onValidationChange,
+  allowDelete = true,
 }: GridProps<T>) {
   const [deleteTargetIndex, setDeleteTargetIndex] = useState<number | null>(
     null,
@@ -163,7 +165,7 @@ export default function Grid<T extends Record<string, unknown>>({
                   </div>
                 </TableCell>
               ))}
-              {isEditing && (
+              {isEditing && allowDelete && (
                 <TableCell
                   align="center"
                   sx={{
@@ -338,7 +340,7 @@ export default function Grid<T extends Record<string, unknown>>({
                     </TableCell>
                   );
                 })}
-                {isEditing && (
+                {isEditing && allowDelete && (
                   <TableCell align="center" sx={{ py: 1.5 }}>
                     {!isPreview ? (
                       <IconButton

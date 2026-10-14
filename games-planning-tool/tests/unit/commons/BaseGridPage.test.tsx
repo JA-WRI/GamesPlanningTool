@@ -69,4 +69,36 @@ describe('BaseGridPage', () => {
     expect(screen.getByText('Laptop')).toBeInTheDocument();
     expect(screen.queryByText('Desk')).not.toBeInTheDocument();
   });
+
+  it('preserves all rows when searching, editing a filtered row, saving, and clearing search', () => {
+    render(
+      <BaseGridPage
+        title="Inventory"
+        initialData={initialData}
+        columns={columns}
+        createEmptyRow={createEmptyRow}
+        addButtonLabel="Add Item"
+      />,
+    );
+
+    const editButton = screen.getByRole('button', { name: /edit/i });
+    fireEvent.click(editButton);
+
+    const searchInput = screen.getByPlaceholderText('Search records...');
+    fireEvent.change(searchInput, { target: { value: 'laptop' } });
+
+    expect(screen.getByDisplayValue('Laptop')).toBeInTheDocument();
+    expect(screen.queryByDisplayValue('Desk')).not.toBeInTheDocument();
+
+    const laptopInput = screen.getByDisplayValue('Laptop');
+    fireEvent.change(laptopInput, { target: { value: 'Gaming Laptop' } });
+
+    const saveButton = screen.getByRole('button', { name: /save/i });
+    fireEvent.click(saveButton);
+
+    fireEvent.change(searchInput, { target: { value: '' } });
+
+    expect(screen.getByText('Gaming Laptop')).toBeInTheDocument();
+    expect(screen.getByText('Desk')).toBeInTheDocument();
+  });
 });
