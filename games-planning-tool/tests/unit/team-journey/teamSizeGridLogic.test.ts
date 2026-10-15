@@ -1,6 +1,10 @@
-// 100% AI generated(unit tests)
+// AI contribution: 50% or more AI-generated
 import { describe, it, expect } from 'vitest';
-import { INITIAL_TEAM_SIZE } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/mockData';
+import {
+  INITIAL_TEAM_SIZE,
+  MOCK_DISCIPLINES,
+  MOCK_MEDAL_ROWS,
+} from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/mockData';
 import {
   TeamSizeRow,
   athletesToRows,
@@ -11,6 +15,9 @@ import {
   sumColumn,
   toGridNumber,
   toText,
+  withBlankNotes,
+  withDisciplineLabels,
+  withFixedLabels,
 } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/teamSizeGridLogic';
 
 function row(
@@ -158,5 +165,53 @@ describe('createEmptyMedalRow', () => {
 
   it('gives every row a different id', () => {
     expect(createEmptyMedalRow().id).not.toBe(createEmptyMedalRow().id);
+  });
+});
+
+describe('withFixedLabels', () => {
+  it('puts the row names back after a user types over them', () => {
+    const rows = athletesToRows(INITIAL_TEAM_SIZE.athletes);
+    rows[0] = { ...rows[0], label: 'oops' };
+    expect(withFixedLabels(rows).map((r) => r.label)).toEqual([
+      'Male',
+      'Female',
+    ]);
+  });
+
+  it('keeps the numbers as they are', () => {
+    const fixed = withFixedLabels([{ ...row(1, 2, 3), label: '' }]);
+    expect(fixed[0]).toEqual(row(1, 2, 3));
+  });
+});
+
+describe('withDisciplineLabels', () => {
+  it('puts the discipline names back after a user types over them', () => {
+    const rows = MOCK_DISCIPLINES.rows.map((r) => ({ ...r, label: 'x' }));
+    expect(withDisciplineLabels(rows).map((r) => r.label)).toEqual([
+      'HP',
+      'SS/BA',
+      'AE',
+      'MO',
+    ]);
+  });
+
+  it('keeps the numbers as they are', () => {
+    const [hp] = withDisciplineLabels(MOCK_DISCIPLINES.rows);
+    expect(hp).toEqual(MOCK_DISCIPLINES.rows[0]);
+  });
+});
+
+describe('withBlankNotes', () => {
+  it('turns an empty note into a space so the grid shows nothing', () => {
+    expect(withBlankNotes(MOCK_MEDAL_ROWS)[0].notes).toBe(' ');
+  });
+
+  it('keeps real notes as they are', () => {
+    expect(withBlankNotes(MOCK_MEDAL_ROWS)[2].notes).toBe('New');
+  });
+
+  it('does not change the original rows', () => {
+    withBlankNotes(MOCK_MEDAL_ROWS);
+    expect(MOCK_MEDAL_ROWS[0].notes).toBe('');
   });
 });
