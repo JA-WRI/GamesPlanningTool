@@ -1,5 +1,5 @@
+// AI contribution: 50% or more AI-generated
 'use client';
-// 65% AI generated to manage the step and form state
 
 import { useState } from 'react';
 import StepTabs from './StepTabs';
@@ -17,12 +17,20 @@ import {
   createEmptyAccreditationRow,
   FinishedDateBoxes,
 } from '../_lib/accreditationLogic';
-import { INITIAL_TEAM_SIZE } from '../_lib/mockData';
+import {
+  MOCK_DISCIPLINES,
+  MOCK_MEDAL_ROWS,
+  MOCK_TEAM_SIZE,
+} from '../_lib/mockData';
+import { DisciplineBreakdown, MedalRow } from '../_lib/teamSizeGridLogic';
 
 export default function TeamJourneyClient() {
   const [activeStep, setActiveStep] = useState(1);
   // kept here so nothing is lost when switching tabs
-  const [teamSize, setTeamSize] = useState<TeamSize>(INITIAL_TEAM_SIZE);
+  const [teamSize, setTeamSize] = useState<TeamSize>(MOCK_TEAM_SIZE);
+  const [disciplines, setDisciplines] =
+    useState<DisciplineBreakdown>(MOCK_DISCIPLINES);
+  const [medalRows, setMedalRows] = useState<MedalRow[]>(MOCK_MEDAL_ROWS);
   // 4 empty rows to start
   const [accreditations, setAccreditations] = useState<AccreditationRow[]>(() =>
     [1, 2, 3, 4].map(createEmptyAccreditationRow),
@@ -60,7 +68,14 @@ export default function TeamJourneyClient() {
         </div>
 
         {activeStep === 1 && (
-          <TeamSizeStep teamSize={teamSize} onChange={setTeamSize} />
+          <TeamSizeStep
+            teamSize={teamSize}
+            onChange={setTeamSize}
+            disciplines={disciplines}
+            onDisciplinesChange={setDisciplines}
+            medalRows={medalRows}
+            onMedalRowsChange={setMedalRows}
+          />
         )}
         {activeStep === 2 && (
           <AccreditationStep
