@@ -40,7 +40,7 @@ export default function NotesBox({
       ) : (
         <p
           id={id}
-          className="whitespace-pre-wrap rounded-lg border border-gray-100 border-l-4 border-l-[#d29b2c] bg-gray-50 px-3 py-2 text-sm text-gray-700"
+          className="whitespace-pre-wrap break-words rounded-lg border border-gray-100 border-l-4 border-l-[#d29b2c] bg-gray-50 px-3 py-2 text-sm text-gray-700"
         >
           {value || <span className="text-gray-400">Add note</span>}
         </p>
