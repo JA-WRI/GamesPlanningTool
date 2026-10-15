@@ -1,6 +1,7 @@
 // AI contribution: 50% or more AI-generated
 'use client';
 
+import { useState } from 'react';
 import { CardBand } from './TeamSizeCard';
 import { onlyDigits } from '../_lib/utils';
 import { TeamSize, getMedalsMessage } from '../_lib/teamSizeLogic';
@@ -44,11 +45,23 @@ export default function PerformanceObjectives({
   teamSize,
   onChange,
 }: PerformanceObjectivesProps) {
+  // what is typed in the boxes, even when it is not valid yet
+  const [low, setLow] = useState(teamSize.projectedMedalsLow);
+  const [high, setHigh] = useState(teamSize.projectedMedalsHigh);
   // only checked once both boxes are filled
-  const message = getMedalsMessage(
-    teamSize.projectedMedalsLow,
-    teamSize.projectedMedalsHigh,
-  );
+  const message = getMedalsMessage(low, high);
+
+  // only saved to teamSize when Low ≤ High (or a box is empty)
+  const update = (nextLow: string, nextHigh: string) => {
+    setLow(nextLow);
+    setHigh(nextHigh);
+    if (getMedalsMessage(nextLow, nextHigh)) return;
+    onChange({
+      ...teamSize,
+      projectedMedalsLow: nextLow,
+      projectedMedalsHigh: nextHigh,
+    });
+  };
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -60,20 +73,16 @@ export default function PerformanceObjectives({
           <MedalInput
             id="medals-low"
             label="Low"
-            value={teamSize.projectedMedalsLow}
+            value={low}
             hasError={Boolean(message)}
-            onChange={(value) =>
-              onChange({ ...teamSize, projectedMedalsLow: value })
-            }
+            onChange={(value) => update(value, high)}
           />
           <MedalInput
             id="medals-high"
             label="High"
-            value={teamSize.projectedMedalsHigh}
+            value={high}
             hasError={Boolean(message)}
-            onChange={(value) =>
-              onChange({ ...teamSize, projectedMedalsHigh: value })
-            }
+            onChange={(value) => update(low, value)}
           />
         </div>
       </CardBand>
