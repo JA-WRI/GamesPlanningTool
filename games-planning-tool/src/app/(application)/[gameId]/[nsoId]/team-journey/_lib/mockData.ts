@@ -55,10 +55,10 @@ export const MOCK_TEAM_SIZE: TeamSize = {
 
 export const MOCK_DISCIPLINES: DisciplineBreakdown = {
   rows: [
-    { id: 'hp', label: 'HP', bestF: 4, bestM: 3, lowF: 4, lowM: 2 },
-    { id: 'ssba', label: 'SS/BA', bestF: 4, bestM: 3, lowF: 4, lowM: 2 },
-    { id: 'ae', label: 'AE', bestF: 1, bestM: 4, lowF: 1, lowM: 3 },
-    { id: 'mo', label: 'MO', bestF: 3, bestM: 3, lowF: 3, lowM: 2 },
+    { id: 'hp', label: 'HP', bestF: 4, bestM: 3, lowF: 3, lowM: 3 },
+    { id: 'ssba', label: 'SS/BA', bestF: 4, bestM: 3, lowF: 3, lowM: 3 },
+    { id: 'ae', label: 'AE', bestF: 2, bestM: 3, lowF: 1, lowM: 3 },
+    { id: 'mo', label: 'MO', bestF: 3, bestM: 3, lowF: 3, lowM: 3 },
   ],
   notes:
     'Likely to qualify a Mixed Aerial Team, bringing the total team to 32 (with SX).',
