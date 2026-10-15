@@ -4,13 +4,19 @@ import {
   INITIAL_TEAM_SIZE,
   MOCK_DISCIPLINES,
   MOCK_MEDAL_ROWS,
+  MOCK_TEAM_SIZE,
 } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/mockData';
 import {
+  MAX_COUNT,
   TeamSizeRow,
+  allWholeCounts,
+  isWholeCount,
   athletesToRows,
   createEmptyMedalRow,
+  disciplineHasLowAboveBest,
   rowHasRangeError,
   rowToEstimate,
+  rowsMissingName,
   rowsToAthletes,
   sumColumn,
   toGridNumber,
@@ -213,5 +219,183 @@ describe('withBlankNotes', () => {
   it('does not change the original rows', () => {
     withBlankNotes(MOCK_MEDAL_ROWS);
     expect(MOCK_MEDAL_ROWS[0].notes).toBe('');
+  });
+});
+
+describe('isWholeCount', () => {
+  it('accepts an empty box', () => {
+    expect(isWholeCount('')).toBe(true);
+  });
+
+  it('accepts whole numbers from 0 to 999', () => {
+    expect(isWholeCount(0)).toBe(true);
+    expect(isWholeCount(12)).toBe(true);
+    expect(isWholeCount(MAX_COUNT)).toBe(true);
+  });
+
+  it('rejects decimals', () => {
+    expect(isWholeCount(2.5)).toBe(false);
+    expect(isWholeCount(0.1)).toBe(false);
+  });
+
+  it('rejects negative numbers', () => {
+    expect(isWholeCount(-1)).toBe(false);
+  });
+
+  it('rejects numbers over 999', () => {
+    expect(isWholeCount(1000)).toBe(false);
+    expect(isWholeCount(1e21)).toBe(false);
+  });
+
+  it('rejects text', () => {
+    expect(isWholeCount('12')).toBe(false);
+    expect(isWholeCount('abc')).toBe(false);
+  });
+});
+
+describe('allWholeCounts', () => {
+  const fields: (keyof TeamSizeRow)[] = ['low', 'bestGuess', 'high'];
+
+  it('is true when every box is fine', () => {
+    expect(allWholeCounts([row(1, 2, 3), row('', '', '')], fields)).toBe(true);
+  });
+
+  it('is false when one box has a decimal', () => {
+    expect(allWholeCounts([row(1, 2, 3), row(1, 2.5, 3)], fields)).toBe(false);
+  });
+
+  it('only checks the given columns', () => {
+    expect(allWholeCounts([row(1, 2.5, 3)], ['low', 'high'])).toBe(true);
+  });
+
+  it('is true when there are no rows', () => {
+    expect(allWholeCounts([], fields)).toBe(true);
+  });
+});
+
+describe('rowsMissingName', () => {
+  const named = MOCK_MEDAL_ROWS[0];
+
+  it('is empty when every athlete has both names', () => {
+    expect(rowsMissingName(MOCK_MEDAL_ROWS)).toEqual([]);
+  });
+
+  it('finds an athlete with no first name', () => {
+    const noFirst = { ...named, id: 'x', firstName: '' };
+    expect(rowsMissingName([named, noFirst])).toEqual([noFirst]);
+  });
+
+  it('finds an athlete with no last name', () => {
+    const noLast = { ...named, id: 'y', lastName: '' };
+    expect(rowsMissingName([noLast])).toEqual([noLast]);
+  });
+
+  it('counts a name with only spaces as missing', () => {
+    const spaces = { ...named, firstName: '   ' };
+    expect(rowsMissingName([spaces])).toEqual([spaces]);
+  });
+
+  it('finds a new blank athlete', () => {
+    expect(rowsMissingName([createEmptyMedalRow()])).toHaveLength(1);
+  });
+
+  it('is empty when there are no athletes', () => {
+    expect(rowsMissingName([])).toEqual([]);
+  });
+});
+
+describe('mock discipline data', () => {
+  const { male, female } = MOCK_TEAM_SIZE.athletes;
+  const rows = MOCK_DISCIPLINES.rows;
+
+  it('adds up to the team size best guess', () => {
+    expect(sumColumn(rows, 'bestF')).toBe(Number(female.bestGuess));
+    expect(sumColumn(rows, 'bestM')).toBe(Number(male.bestGuess));
+  });
+
+  it('adds up to the team size low estimate', () => {
+    expect(sumColumn(rows, 'lowF')).toBe(Number(female.low));
+    expect(sumColumn(rows, 'lowM')).toBe(Number(male.low));
+  });
+
+  it('never has Low above Best for a discipline', () => {
+    rows.forEach((r) => {
+      expect(r.lowF).toBeLessThanOrEqual(r.bestF as number);
+      expect(r.lowM).toBeLessThanOrEqual(r.bestM as number);
+    });
+  });
+});
+
+describe('sumColumn edge cases', () => {
+  it('adds negative numbers as they are', () => {
+    expect(sumColumn([row(-3, 0, 0), row(5, 0, 0)], 'low')).toBe(2);
+  });
+
+  it('handles very large numbers', () => {
+    expect(sumColumn([row(999, 0, 0), row(999, 0, 0)], 'low')).toBe(1998);
+  });
+
+  it('can give a long decimal, which is why decimals are blocked', () => {
+    expect(sumColumn([row(0.1, 0, 0), row(0.2, 0, 0)], 'low')).not.toBe(0.3);
+  });
+});
+
+describe('rowHasRangeError edge cases', () => {
+  it('is false when Low is 0 and the others are bigger', () => {
+    expect(rowHasRangeError(row(0, 3, 5))).toBe(false);
+  });
+
+  it('is true when Best is 0 but Low is bigger', () => {
+    expect(rowHasRangeError(row(2, 0, 5))).toBe(true);
+  });
+
+  it('compares negative numbers correctly', () => {
+    expect(rowHasRangeError(row(-5, -2, 0))).toBe(false);
+    expect(rowHasRangeError(row(-1, -2, 0))).toBe(true);
+  });
+});
+
+describe('disciplineHasLowAboveBest', () => {
+  const hp = MOCK_DISCIPLINES.rows[0];
+
+  it('is false when Low ≤ Best for women and men', () => {
+    expect(disciplineHasLowAboveBest(hp)).toBe(false);
+  });
+
+  it('is false when Low equals Best', () => {
+    expect(
+      disciplineHasLowAboveBest({
+        ...hp,
+        bestF: 3,
+        lowF: 3,
+        bestM: 0,
+        lowM: 0,
+      }),
+    ).toBe(false);
+  });
+
+  it('is true when Low · F is above Best · F', () => {
+    expect(disciplineHasLowAboveBest({ ...hp, bestF: 6, lowF: 7 })).toBe(true);
+  });
+
+  it('is true when Low · M is above Best · M', () => {
+    expect(disciplineHasLowAboveBest({ ...hp, bestM: 1, lowM: 2 })).toBe(true);
+  });
+
+  it('compares as numbers ("10" is above "9")', () => {
+    expect(disciplineHasLowAboveBest({ ...hp, bestF: 9, lowF: 10 })).toBe(true);
+  });
+
+  it('does not check when a box is empty', () => {
+    expect(disciplineHasLowAboveBest({ ...hp, bestF: '', lowF: 7 })).toBe(
+      false,
+    );
+    expect(disciplineHasLowAboveBest({ ...hp, bestM: 3, lowM: '' })).toBe(
+      false,
+    );
+  });
+
+  it('has no errors in the mock data', () => {
+    expect(MOCK_DISCIPLINES.rows.some(disciplineHasLowAboveBest)).toBe(false);
   });
 });
