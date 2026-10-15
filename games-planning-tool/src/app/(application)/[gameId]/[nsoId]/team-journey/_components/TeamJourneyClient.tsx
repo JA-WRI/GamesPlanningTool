@@ -1,61 +1,69 @@
 // AI contribution: 50% or more AI-generated
 'use client';
 
-import { useState } from 'react';
 import StepTabs from './StepTabs';
 import TeamSizeStep from './TeamSizeStep';
 import AccreditationStep from './AccreditationStep';
-import ArrivalStep, { ArrivalRow, createEmptyArrivalRow } from './ArrivalStep';
-import DepartureStep, {
-  DepartureRow,
-  createEmptyDepartureRow,
-} from './DepartureStep';
+import ArrivalStep from './ArrivalStep';
+import DepartureStep from './DepartureStep';
 import ReviewStep from './ReviewStep';
-import { TeamSize } from '../_lib/teamSizeLogic';
-import {
-  AccreditationRow,
-  createEmptyAccreditationRow,
-  FinishedDateBoxes,
-} from '../_lib/accreditationLogic';
-import {
-  MOCK_DISCIPLINES,
-  MOCK_MEDAL_ROWS,
-  MOCK_TEAM_SIZE,
-} from '../_lib/mockData';
-import { DisciplineBreakdown, MedalRow } from '../_lib/teamSizeGridLogic';
+import { TeamJourneyState, useTeamJourneyState } from './useTeamJourneyState';
+
+// one small function per step, with the same props as before
+const STEPS: Record<number, (state: TeamJourneyState) => React.ReactNode> = {
+  1: (state) => (
+    <TeamSizeStep
+      teamSize={state.teamSize}
+      onChange={state.setTeamSize}
+      disciplines={state.disciplines}
+      onDisciplinesChange={state.setDisciplines}
+      medalRows={state.medalRows}
+      onMedalRowsChange={state.setMedalRows}
+    />
+  ),
+  2: (state) => (
+    <AccreditationStep
+      rows={state.accreditations}
+      onChange={state.setAccreditations}
+      finishedDateBoxes={state.accreditationFinishedDateBoxes}
+      onFinishedDateBoxesChange={state.setAccreditationFinishedDateBoxes}
+    />
+  ),
+  3: (state) => (
+    <ArrivalStep
+      rows={state.arrivals}
+      onChange={state.setArrivals}
+      finishedDateBoxes={state.arrivalFinishedDateBoxes}
+      onFinishedDateBoxesChange={state.setArrivalFinishedDateBoxes}
+    />
+  ),
+  4: (state) => (
+    <DepartureStep
+      rows={state.departures}
+      onChange={state.setDepartures}
+      finishedDateBoxes={state.departureFinishedDateBoxes}
+      onFinishedDateBoxesChange={state.setDepartureFinishedDateBoxes}
+    />
+  ),
+  5: (state) => (
+    <ReviewStep
+      teamSize={state.teamSize}
+      accreditations={state.accreditations}
+      arrivals={state.arrivals}
+      departures={state.departures}
+    />
+  ),
+};
 
 export default function TeamJourneyClient() {
-  const [activeStep, setActiveStep] = useState(1);
-  // kept here so nothing is lost when switching tabs
-  const [teamSize, setTeamSize] = useState<TeamSize>(MOCK_TEAM_SIZE);
-  const [disciplines, setDisciplines] =
-    useState<DisciplineBreakdown>(MOCK_DISCIPLINES);
-  const [medalRows, setMedalRows] = useState<MedalRow[]>(MOCK_MEDAL_ROWS);
-  // 4 empty rows to start
-  const [accreditations, setAccreditations] = useState<AccreditationRow[]>(() =>
-    [1, 2, 3, 4].map(createEmptyAccreditationRow),
-  );
-  // date fields the user already left
-  const [accreditationFinishedDateBoxes, setAccreditationFinishedDateBoxes] =
-    useState<FinishedDateBoxes>({});
-  // 4 empty rows to start
-  const [arrivals, setArrivals] = useState<ArrivalRow[]>(() =>
-    [1, 2, 3, 4].map(createEmptyArrivalRow),
-  );
-  // date fields the user already left
-  const [arrivalFinishedDateBoxes, setArrivalFinishedDateBoxes] =
-    useState<FinishedDateBoxes>({});
-  // 4 empty rows to start
-  const [departures, setDepartures] = useState<DepartureRow[]>(() =>
-    [1, 2, 3, 4].map(createEmptyDepartureRow),
-  );
-  // date fields the user already left
-  const [departureFinishedDateBoxes, setDepartureFinishedDateBoxes] =
-    useState<FinishedDateBoxes>({});
+  const state = useTeamJourneyState();
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <StepTabs activeStep={activeStep} onStepChange={setActiveStep} />
+      <StepTabs
+        activeStep={state.activeStep}
+        onStepChange={state.setActiveStep}
+      />
 
       <div className="px-10 py-8">
         <div className="flex justify-end">
@@ -67,51 +75,7 @@ export default function TeamJourneyClient() {
           </button>
         </div>
 
-        {activeStep === 1 && (
-          <TeamSizeStep
-            teamSize={teamSize}
-            onChange={setTeamSize}
-            disciplines={disciplines}
-            onDisciplinesChange={setDisciplines}
-            medalRows={medalRows}
-            onMedalRowsChange={setMedalRows}
-          />
-        )}
-        {activeStep === 2 && (
-          <AccreditationStep
-            rows={accreditations}
-            onChange={setAccreditations}
-            finishedDateBoxes={accreditationFinishedDateBoxes}
-            onFinishedDateBoxesChange={setAccreditationFinishedDateBoxes}
-          />
-        )}
-
-        {activeStep === 3 && (
-          <ArrivalStep
-            rows={arrivals}
-            onChange={setArrivals}
-            finishedDateBoxes={arrivalFinishedDateBoxes}
-            onFinishedDateBoxesChange={setArrivalFinishedDateBoxes}
-          />
-        )}
-
-        {activeStep === 4 && (
-          <DepartureStep
-            rows={departures}
-            onChange={setDepartures}
-            finishedDateBoxes={departureFinishedDateBoxes}
-            onFinishedDateBoxesChange={setDepartureFinishedDateBoxes}
-          />
-        )}
-
-        {activeStep === 5 && (
-          <ReviewStep
-            teamSize={teamSize}
-            accreditations={accreditations}
-            arrivals={arrivals}
-            departures={departures}
-          />
-        )}
+        {STEPS[state.activeStep]?.(state)}
       </div>
     </div>
   );
