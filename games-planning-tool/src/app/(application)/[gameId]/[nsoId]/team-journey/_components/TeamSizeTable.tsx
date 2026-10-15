@@ -4,7 +4,7 @@
 import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import NotesBox from './NotesBox';
-import TeamSizeCard, { GRID_LOOK } from './TeamSizeCard';
+import TeamSizeCard, { GRID_LOOK, TotalRow } from './TeamSizeCard';
 import { useGridCard } from './useGridCard';
 import { TeamSize } from '../_lib/teamSizeLogic';
 import {
@@ -12,7 +12,8 @@ import {
   athletesToRows,
   rowHasRangeError,
   rowsToAthletes,
-  sumColumn,
+  MAX_COUNT,
+  allWholeCounts,
   withFixedLabels,
 } from '../_lib/teamSizeGridLogic';
 
@@ -33,9 +34,12 @@ const numberColumn = (
   label,
   type: 'number',
   min: 0,
+  max: MAX_COUNT,
   align: 'center',
   width: '25%',
 });
+
+const COUNT_FIELDS: (keyof TeamSizeRow)[] = ['low', 'bestGuess', 'high'];
 
 const columns: ColumnDefinition<TeamSizeRow>[] = [
   { field: 'label', label: '', width: '25%' },
@@ -44,20 +48,23 @@ const columns: ColumnDefinition<TeamSizeRow>[] = [
   numberColumn('high', 'HIGH'),
 ];
 
-// same columns and widths as the grid, so totals sit under each header
-function TotalRow({ rows }: { rows: TeamSizeRow[] }) {
+// warnings shown under the table while something can't be saved
+function TeamSizeWarnings({ rows }: { rows: TeamSizeRow[] }) {
+  const brokenRows = rows.filter(rowHasRangeError);
   return (
-    <div className="flex rounded-lg bg-[#7d1a16] py-2.5 text-sm font-bold text-white">
-      {columns.map((col, index) => (
-        <span
-          key={String(col.field)}
-          style={{ width: col.width }}
-          className={index === 0 ? 'px-2' : 'px-2 text-center'}
-        >
-          {index === 0 ? 'Total' : sumColumn(rows, col.field)}
-        </span>
-      ))}
-    </div>
+    <>
+      {brokenRows.length > 0 && (
+        <Alert severity="warning">
+          {brokenRows.map((row) => row.label).join(', ')}: Low must be ≤ Best
+          guess ≤ High. Fix this before saving.
+        </Alert>
+      )}
+      {!allWholeCounts(rows, COUNT_FIELDS) && (
+        <Alert severity="warning">
+          Use whole numbers from 0 to {MAX_COUNT}.
+        </Alert>
+      )}
+    </>
   );
 }
 
@@ -70,7 +77,8 @@ export default function TeamSizeTable({
     initialNotes: teamSize.notes,
     // never called, this table has no add button
     createRow: () => athletesToRows(teamSize.athletes)[0],
-    isValid: (rows) => !rows.some(rowHasRangeError),
+    isValid: (rows) =>
+      !rows.some(rowHasRangeError) && allWholeCounts(rows, COUNT_FIELDS),
     onSave: (rows, notes) =>
       onChange({
         ...teamSize,
@@ -78,7 +86,6 @@ export default function TeamSizeTable({
         notes,
       }),
   });
-  const brokenRows = card.rows.filter(rowHasRangeError);
 
   return (
     <TeamSizeCard
@@ -98,14 +105,9 @@ export default function TeamSizeTable({
           onValidationChange={card.setHasCellError}
           allowDelete={false}
         />
-        <TotalRow rows={card.rows} />
+        <TotalRow rows={card.rows} columns={columns} />
       </div>
-      {brokenRows.length > 0 && (
-        <Alert severity="warning">
-          {brokenRows.map((row) => row.label).join(', ')}: Low must be ≤ Best
-          guess ≤ High. Fix this before saving.
-        </Alert>
-      )}
+      <TeamSizeWarnings rows={card.rows} />
       <NotesBox
         id="team-size-notes"
         value={card.notes}
