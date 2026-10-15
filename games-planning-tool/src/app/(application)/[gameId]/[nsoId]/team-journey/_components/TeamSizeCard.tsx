@@ -1,6 +1,9 @@
 // AI contribution: 50% or more AI-generated
 'use client';
 
+import type { ColumnDefinition } from '@/components/commons/Grid';
+import { sumColumn } from '../_lib/teamSizeGridLogic';
+
 // restyles the shared grid from outside: fits the card (no sideways
 // scroll), no outer border, white header with gray labels, compact rows
 // (~40px) and inputs that can shrink to the column width
@@ -68,6 +71,30 @@ function EditButtons({
       >
         Save
       </button>
+    </div>
+  );
+}
+
+// solid burgundy Total row, same columns and widths as the grid so
+// each total sits under its header
+export function TotalRow<T extends Record<string, unknown>>({
+  rows,
+  columns,
+}: {
+  rows: T[];
+  columns: ColumnDefinition<T>[];
+}) {
+  return (
+    <div className="flex rounded-lg bg-[#7d1a16] py-2.5 text-sm font-bold text-white">
+      {columns.map((col, index) => (
+        <span
+          key={String(col.field)}
+          style={{ width: col.width }}
+          className={index === 0 ? 'px-2' : 'px-2 text-center'}
+        >
+          {index === 0 ? 'Total' : sumColumn(rows, col.field)}
+        </span>
+      ))}
     </div>
   );
 }
