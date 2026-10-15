@@ -144,15 +144,11 @@ export default function Home() {
         Click on any category to open a detailed panel view.
       </p>
       <div className="flex w-full flex-col items-stretch gap-4 lg:flex-row lg:items-start">
-        <div
-          className={`min-w-0 max-w-full mt-3 rounded-3xl bg-[#F8F8F8] py-4 shadow-[0_8px_30px_rgba(0,0,0,0.14)] ${
-            selectedChart ? 'lg:flex-1' : 'w-fit'
-          }`}
-        >
+        <div className="min-w-0 max-w-full mt-3 w-full rounded-3xl bg-[#F8F8F8] py-4 shadow-[0_8px_30px_rgba(0,0,0,0.14)] lg:flex-1">
           <div
             className={`flex flex-wrap ${
               selectedChart
-                ? 'justify-evenly gap-2 px-2'
+                ? 'justify-evenly gap-2 px-4'
                 : 'justify-center gap-20 px-0'
             }`}
           >
