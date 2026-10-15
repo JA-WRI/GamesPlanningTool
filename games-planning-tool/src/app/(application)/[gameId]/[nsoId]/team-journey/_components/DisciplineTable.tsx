@@ -1,13 +1,17 @@
 // AI contribution: 50% or more AI-generated
 'use client';
 
+import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import NotesBox from './NotesBox';
-import TeamSizeCard, { GRID_LOOK } from './TeamSizeCard';
+import TeamSizeCard, { GRID_LOOK, TotalRow } from './TeamSizeCard';
 import { useGridCard } from './useGridCard';
 import {
   DisciplineBreakdown,
   DisciplineRow,
+  MAX_COUNT,
+  allWholeCounts,
+  disciplineHasLowAboveBest,
   withDisciplineLabels,
 } from '../_lib/teamSizeGridLogic';
 
@@ -28,9 +32,17 @@ const numberColumn = (
   label,
   type: 'number',
   min: 0,
+  max: MAX_COUNT,
   align: 'center',
   width: '20%',
 });
+
+const COUNT_FIELDS: (keyof DisciplineRow)[] = [
+  'bestF',
+  'bestM',
+  'lowF',
+  'lowM',
+];
 
 const columns: ColumnDefinition<DisciplineRow>[] = [
   { field: 'label', label: '', width: '20%' },
@@ -39,6 +51,26 @@ const columns: ColumnDefinition<DisciplineRow>[] = [
   numberColumn('lowF', 'LOW · F'),
   numberColumn('lowM', 'LOW · M'),
 ];
+
+// warnings shown under the table while something can't be saved
+function DisciplineWarnings({ rows }: { rows: DisciplineRow[] }) {
+  const brokenRows = rows.filter(disciplineHasLowAboveBest);
+  return (
+    <>
+      {brokenRows.length > 0 && (
+        <Alert severity="warning">
+          {brokenRows.map((row) => row.label).join(', ')}: Low can&apos;t be
+          higher than Best guess.
+        </Alert>
+      )}
+      {!allWholeCounts(rows, COUNT_FIELDS) && (
+        <Alert severity="warning">
+          Use whole numbers from 0 to {MAX_COUNT}.
+        </Alert>
+      )}
+    </>
+  );
+}
 
 export default function DisciplineTable({
   disciplines,
@@ -49,6 +81,9 @@ export default function DisciplineTable({
     initialNotes: disciplines.notes,
     // never called, this table has no add button
     createRow: () => disciplines.rows[0],
+    isValid: (rows) =>
+      allWholeCounts(rows, COUNT_FIELDS) &&
+      !rows.some(disciplineHasLowAboveBest),
     onSave: (rows, notes) => onChange({ rows, notes }),
   });
 
@@ -62,7 +97,7 @@ export default function DisciplineTable({
       onCancel={card.cancel}
       onSave={card.save}
     >
-      <div className={`${GRID_LOOK} ${BEST_COLUMNS_LOOK}`}>
+      <div className={`${GRID_LOOK} ${BEST_COLUMNS_LOOK} space-y-1`}>
         <Grid
           columns={columns}
           rows={card.rows}
@@ -71,7 +106,9 @@ export default function DisciplineTable({
           onValidationChange={card.setHasCellError}
           allowDelete={false}
         />
+        <TotalRow rows={card.rows} columns={columns} />
       </div>
+      <DisciplineWarnings rows={card.rows} />
       <NotesBox
         id="discipline-notes"
         value={card.notes}
