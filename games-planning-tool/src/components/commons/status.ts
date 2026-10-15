@@ -1,5 +1,5 @@
-//AI usage -> 100%
-import type { ChartSegment } from '../coc/dashboard/chart/types';
+//50% or more AI-generated
+import type { ChartSegment } from '@/app/(application)/[gameId]/(coc)/dashboard/chart/types';
 import type { TagColor } from './tag';
 import { tagHex } from './tag';
 

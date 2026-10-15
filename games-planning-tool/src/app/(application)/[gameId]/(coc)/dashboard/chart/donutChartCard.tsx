@@ -7,6 +7,7 @@ type DonutChartCardProps = {
   segments: ChartSegment[];
   onClick: () => void;
   isSelected: boolean;
+  completedPercent?: number;
 };
 
 export default function DonutChartCard({
@@ -14,18 +15,30 @@ export default function DonutChartCard({
   segments,
   onClick,
   isSelected = false,
+  completedPercent,
 }: DonutChartCardProps) {
   return (
     <button
-      className={`flex w-44 flex-col items-center ${
+      className={`flex w-44 min-w-28 shrink flex-col items-center ${
         isSelected
           ? 'bg-[#EF8B64]/10 border-2 border-[#EF8B64]/80 rounded-3xl'
           : 'bg-transparent border-2 border-transparent rounded-3xl hover:bg-[#EF8B64]/2 hover:border-2 hover:border-[#EF8B64]/50'
       }`}
       type="button"
+      aria-pressed={isSelected}
       onClick={onClick}
     >
-      <DonutChart segments={segments} />
+      <div className="relative w-full [&_*:focus]:outline-none">
+        <DonutChart segments={segments} />
+        {isSelected && completedPercent !== undefined && (
+          <span
+            title="Completed"
+            className="absolute right-3 top-3 rounded-full bg-white px-2 py-1 text-[11px] font-bold text-lime-600 shadow-md"
+          >
+            {completedPercent}%
+          </span>
+        )}
+      </div>
       <h4 className="mb-1 text-center text-sm font-bold">{title}</h4>
     </button>
   );
