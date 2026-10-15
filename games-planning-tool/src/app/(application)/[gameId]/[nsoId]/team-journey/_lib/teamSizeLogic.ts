@@ -1,6 +1,4 @@
-// 65% AI generated to write the team size calculations
-import { onlyDigits } from './utils';
-
+// AI contribution: 50% or more AI-generated
 export type AthleteEstimate = {
   low: string;
   bestGuess: string;
@@ -77,23 +75,4 @@ export function getMedalsMessage(low: string, high: string) {
 // "2 – 5" empty boxes show as 0
 export function formatMedalRange(low: string, high: string) {
   return `${low || '0'} – ${high || '0'}`;
-}
-
-// change one athlete box (digits only)
-export function updateAthleteField(
-  teamSize: TeamSize,
-  key: 'male' | 'female',
-  field: keyof AthleteEstimate,
-  value: string,
-): TeamSize {
-  return {
-    ...teamSize,
-    athletes: {
-      ...teamSize.athletes,
-      [key]: {
-        ...teamSize.athletes[key],
-        [field]: onlyDigits(value),
-      },
-    },
-  };
 }
