@@ -26,17 +26,21 @@ export function useGridCard<
   const [notes, setNotes] = useState(initialNotes);
   const [savedNotes, setSavedNotes] = useState(initialNotes);
   const [hasCellError, setHasCellError] = useState(false);
+  // GridHeader's Edit View / Preview toggle
+  const [isPreview, setIsPreview] = useState(false);
   const canSave = !hasCellError && isValid(grid.rows);
 
   const save = () => {
     if (!canSave) return;
     grid.handleSave();
+    setIsPreview(false);
     setSavedNotes(notes);
     onSave(grid.rows, notes);
   };
 
   const cancel = () => {
     grid.handleCancel();
+    setIsPreview(false);
     setNotes(savedNotes);
   };
 
@@ -48,6 +52,11 @@ export function useGridCard<
     canSave,
     save,
     cancel,
-    edit: () => grid.setIsEditing(true),
+    isPreview,
+    setIsPreview,
+    edit: () => {
+      grid.setIsEditing(true);
+      setIsPreview(false);
+    },
   };
 }
