@@ -11,6 +11,11 @@ import {
   TeamSizeRow,
   allWholeCounts,
   isWholeCount,
+  MedalObjectiveRow,
+  medalRowHasError,
+  medalsToRows,
+  rowsToMedals,
+  withMedalsLabel,
   athletesToRows,
   createEmptyMedalRow,
   disciplineHasLowAboveBest,
@@ -397,5 +402,76 @@ describe('disciplineHasLowAboveBest', () => {
 
   it('has no errors in the mock data', () => {
     expect(MOCK_DISCIPLINES.rows.some(disciplineHasLowAboveBest)).toBe(false);
+  });
+});
+
+function medalRow(low: number | '', high: number | ''): MedalObjectiveRow {
+  return { id: 'medals', label: 'Projected medals', low, high };
+}
+
+describe('medalsToRows', () => {
+  it('makes one "Projected medals" row with numbers', () => {
+    expect(medalsToRows(MOCK_TEAM_SIZE)).toEqual([medalRow(2, 5)]);
+  });
+
+  it('keeps empty boxes empty', () => {
+    expect(medalsToRows(INITIAL_TEAM_SIZE)).toEqual([medalRow('', '')]);
+  });
+});
+
+describe('rowsToMedals', () => {
+  it('turns the numbers back into text in the team size', () => {
+    const result = rowsToMedals([medalRow(3, 7)], MOCK_TEAM_SIZE);
+    expect(result.projectedMedalsLow).toBe('3');
+    expect(result.projectedMedalsHigh).toBe('7');
+  });
+
+  it('keeps empty boxes as empty text', () => {
+    const result = rowsToMedals([medalRow('', 4)], MOCK_TEAM_SIZE);
+    expect(result.projectedMedalsLow).toBe('');
+    expect(result.projectedMedalsHigh).toBe('4');
+  });
+
+  it('does not change the rest of the team size', () => {
+    const result = rowsToMedals([medalRow(3, 7)], MOCK_TEAM_SIZE);
+    expect(result.athletes).toEqual(MOCK_TEAM_SIZE.athletes);
+    expect(result.notes).toBe(MOCK_TEAM_SIZE.notes);
+  });
+
+  it('round-trips without losing values', () => {
+    expect(rowsToMedals(medalsToRows(MOCK_TEAM_SIZE), MOCK_TEAM_SIZE)).toEqual(
+      MOCK_TEAM_SIZE,
+    );
+  });
+
+  it('returns the team size unchanged when there is no row', () => {
+    expect(rowsToMedals([], MOCK_TEAM_SIZE)).toBe(MOCK_TEAM_SIZE);
+  });
+});
+
+describe('withMedalsLabel', () => {
+  it('puts the row name back after a user types over it', () => {
+    const typedOver = { ...medalRow(2, 5), label: 'oops' };
+    expect(withMedalsLabel([typedOver])).toEqual([medalRow(2, 5)]);
+  });
+});
+
+describe('medalRowHasError', () => {
+  it('is false when Low ≤ High', () => {
+    expect(medalRowHasError(medalRow(2, 5))).toBe(false);
+    expect(medalRowHasError(medalRow(3, 3))).toBe(false);
+  });
+
+  it('is true when Low > High', () => {
+    expect(medalRowHasError(medalRow(5, 2))).toBe(true);
+  });
+
+  it('compares as numbers ("10" is above "9")', () => {
+    expect(medalRowHasError(medalRow(10, 9))).toBe(true);
+  });
+
+  it('does not check when a box is empty', () => {
+    expect(medalRowHasError(medalRow('', 2))).toBe(false);
+    expect(medalRowHasError(medalRow(5, ''))).toBe(false);
   });
 });
