@@ -108,4 +108,42 @@ describe('useGridCard', () => {
 
     expect(result.current.notes).toBe('saved note');
   });
+
+  it('starts in Edit View, not Preview', () => {
+    const { result } = setup();
+    act(() => result.current.edit());
+
+    expect(result.current.isPreview).toBe(false);
+  });
+
+  it('switches to Preview and back while editing', () => {
+    const { result } = setup();
+    act(() => {
+      result.current.edit();
+      result.current.setIsPreview(true);
+    });
+    expect(result.current.isPreview).toBe(true);
+    expect(result.current.isEditing).toBe(true);
+
+    act(() => result.current.setIsPreview(false));
+
+    expect(result.current.isPreview).toBe(false);
+  });
+
+  it('leaves Preview after save and after cancel', () => {
+    const { result } = setup();
+    act(() => {
+      result.current.edit();
+      result.current.setIsPreview(true);
+    });
+    act(() => result.current.save());
+    expect(result.current.isPreview).toBe(false);
+
+    act(() => {
+      result.current.edit();
+      result.current.setIsPreview(true);
+    });
+    act(() => result.current.cancel());
+    expect(result.current.isPreview).toBe(false);
+  });
 });
