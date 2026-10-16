@@ -1,5 +1,5 @@
 // Made with AI agents (Antigravity)
-import { Resource } from '@/types/resource';
+import { Resource } from '@/features/resources/types/resource';
 
 /**
  * Reorders resources within a local list when a card is dragged over another card.

@@ -1,6 +1,9 @@
 // Made with AI agents (Antigravity)
 import React, { useState } from 'react';
-import { CANADIAN_NSOS, PRIMARY_CATEGORIES } from '@/types/resource';
+import {
+  CANADIAN_NSOS,
+  PRIMARY_CATEGORIES,
+} from '@/features/resources/types/resource';
 
 interface CategoryEditorProps {
   selectedCategories: string[];

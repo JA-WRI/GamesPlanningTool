@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import CloseIcon from '@mui/icons-material/Close';
-import { Resource } from '@/types/resource';
+import { Resource } from '@/features/resources/types/resource';
 import { CategoryEditor } from './CategoryEditor';
 
 export interface EditCategoriesModalProps {

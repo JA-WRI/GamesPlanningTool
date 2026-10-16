@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { CategoryEditor } from '../CategoryEditor';
-import { FolderResource } from '@/types/resource';
+import { FolderResource } from '@/features/resources/types/resource';
 
 export interface FolderModalToolbarProps {
   isReadOnly?: boolean;

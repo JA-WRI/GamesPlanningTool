@@ -15,8 +15,8 @@ import {
   FileResource,
   DEFAULT_CATEGORY,
   CANADIAN_NSOS,
-} from '@/types/resource';
-import { generateFileThumbnail } from '../utilities/fileThumbnailHelper';
+} from '@/features/resources/types/resource';
+import { generateFileThumbnail } from '@/features/resources/utilities/fileThumbnailHelper';
 
 interface AddResourceModalProps {
   isOpen: boolean;

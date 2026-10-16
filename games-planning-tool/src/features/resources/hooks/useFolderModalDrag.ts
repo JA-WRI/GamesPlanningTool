@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Resource, FolderResource } from '@/types/resource';
+import { Resource, FolderResource } from '@/features/resources/types/resource';
 import {
   reorderListWithInjection,
   isPointInsidePanel,

@@ -4,8 +4,8 @@ import {
   reorderListWithInjection,
   isPointInsidePanel,
   getFolderBreadcrumbs,
-} from '@/app/features/resources/utilities/folderModalDragHelpers';
-import { Resource } from '@/types/resource';
+} from '@/features/resources/utilities/folderModalDragHelpers';
+import { Resource } from '@/features/resources/types/resource';
 
 describe('folderModalDragHelpers', () => {
   const itemA: Resource = {

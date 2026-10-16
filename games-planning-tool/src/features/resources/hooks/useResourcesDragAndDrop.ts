@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Resource, FolderResource } from '@/types/resource';
+import { Resource, FolderResource } from '@/features/resources/types/resource';
 
 interface UseResourcesDragAndDropProps {
   filteredResources: Resource[];

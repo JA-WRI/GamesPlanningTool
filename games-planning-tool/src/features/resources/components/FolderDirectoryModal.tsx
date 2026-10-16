@@ -3,15 +3,19 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
-import { Resource, FolderResource, FileResource } from '@/types/resource';
+import {
+  Resource,
+  FolderResource,
+  FileResource,
+} from '@/features/resources/types/resource';
 import { getFolderChildren } from '@/lib/resources-data';
 import ResourceCard from './ResourceCard';
-import { useSweepSelection } from '../hooks/useSweepSelection';
+import { useSweepSelection } from '@/features/resources/hooks/useSweepSelection';
 import { FolderModalHeader } from './folder-modal/FolderModalHeader';
 import { FolderModalToolbar } from './folder-modal/FolderModalToolbar';
-import { useFolderModalDrag } from '../hooks/useFolderModalDrag';
+import { useFolderModalDrag } from '@/features/resources/hooks/useFolderModalDrag';
 import { FolderDragGhost } from './folder-modal/FolderDragGhost';
-import { getFolderBreadcrumbs } from '../utilities/folderModalDragHelpers';
+import { getFolderBreadcrumbs } from '@/features/resources/utilities/folderModalDragHelpers';
 import { EditCategoriesModal } from './EditCategoriesModal';
 
 export interface FolderDirectoryModalProps {

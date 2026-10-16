@@ -7,7 +7,11 @@ import CheckIcon from '@mui/icons-material/Check';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
 import LinkIcon from '@mui/icons-material/Link';
-import { Resource, LinkResource, FileResource } from '@/types/resource';
+import {
+  Resource,
+  LinkResource,
+  FileResource,
+} from '@/features/resources/types/resource';
 import { FolderCardView } from './FolderCardView';
 
 export function getFileTypeIcon(resource: Resource): string {

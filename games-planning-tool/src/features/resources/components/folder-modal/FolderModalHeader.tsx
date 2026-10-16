@@ -4,7 +4,7 @@
 import React from 'react';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
-import { FolderResource } from '@/types/resource';
+import { FolderResource } from '@/features/resources/types/resource';
 
 export interface FolderModalHeaderProps {
   currentFolder: FolderResource;

@@ -2,8 +2,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import React from 'react';
-import { useResourcesDragAndDrop } from '@/app/features/resources/hooks/useResourcesDragAndDrop';
-import { Resource, FolderResource } from '@/types/resource';
+import { useResourcesDragAndDrop } from '@/features/resources/hooks/useResourcesDragAndDrop';
+import { Resource, FolderResource } from '@/features/resources/types/resource';
 
 describe('useResourcesDragAndDrop', () => {
   const item1: Resource = {

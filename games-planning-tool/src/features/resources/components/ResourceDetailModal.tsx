@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import CloseIcon from '@mui/icons-material/Close';
 import LinkIcon from '@mui/icons-material/Link';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import { Resource, FileResource } from '@/types/resource';
+import { Resource, FileResource } from '@/features/resources/types/resource';
 import { CategoryEditor } from './CategoryEditor';
 
 interface ResourceDetailModalProps {

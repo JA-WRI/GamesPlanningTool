@@ -16,7 +16,7 @@ import {
   removeFolderKeepContentsInTopLevel,
   INITIAL_RESOURCES,
 } from '@/lib/resources-data';
-import { Resource } from '@/types/resource';
+import { Resource } from '@/features/resources/types/resource';
 
 describe('resources-data utility module', () => {
   beforeEach(() => {

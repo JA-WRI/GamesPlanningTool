@@ -4,7 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { DashboardResourceRow } from '@/components/resources/DashboardResourceRow';
 import * as resourcesData from '@/lib/resources-data';
-import { Resource } from '@/types/resource';
+import { Resource } from '@/features/resources/types/resource';
 
 vi.mock('@/lib/resources-data', async () => {
   const actual = await vi.importActual('@/lib/resources-data');

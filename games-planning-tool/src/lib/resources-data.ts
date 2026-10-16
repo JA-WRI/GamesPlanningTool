@@ -1,5 +1,8 @@
 // Made with AI agents (Antigravity)
-import { Resource, DEFAULT_CATEGORY } from '@/types/resource';
+import {
+  Resource,
+  DEFAULT_CATEGORY,
+} from '@/features/resources/types/resource';
 import { INITIAL_RESOURCES } from './initial-resources';
 
 export { INITIAL_RESOURCES };
@@ -16,7 +19,7 @@ export function createFolder(
   name: string,
   categories: string[],
   parentId?: string | null,
-): import('@/types/resource').FolderResource {
+): import('@/features/resources/types/resource').FolderResource {
   const randomSuffix =
     typeof crypto !== 'undefined' && crypto.randomUUID
       ? crypto.randomUUID().split('-')[0]

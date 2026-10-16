@@ -2,7 +2,11 @@
 'use client';
 
 import React, { useState, useMemo, useSyncExternalStore, useRef } from 'react';
-import { Resource, FolderResource, FileResource } from '@/types/resource';
+import {
+  Resource,
+  FolderResource,
+  FileResource,
+} from '@/features/resources/types/resource';
 import {
   INITIAL_RESOURCES,
   subscribeToResources,
@@ -15,8 +19,8 @@ import { AddResourceModal } from './AddResourceModal';
 import { ResourceDetailModal } from './ResourceDetailModal';
 import { FolderDirectoryModal } from './FolderDirectoryModal';
 import { EditCategoriesModal } from './EditCategoriesModal';
-import { useSweepSelection } from '../hooks/useSweepSelection';
-import { useResourcesDragAndDrop } from '../hooks/useResourcesDragAndDrop';
+import { useSweepSelection } from '@/features/resources/hooks/useSweepSelection';
+import { useResourcesDragAndDrop } from '@/features/resources/hooks/useResourcesDragAndDrop';
 import { ResourceCard } from './ResourceCard';
 import { ResourcesToolbar } from './ResourcesToolbar';
 import { CreateFolderModal } from './CreateFolderModal';

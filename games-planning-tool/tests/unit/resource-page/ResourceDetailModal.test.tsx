@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { ResourceDetailModal } from '@/app/features/resources/components/ResourceDetailModal';
-import { FileResource } from '@/types/resource';
+import { FileResource } from '@/features/resources/types/resource';
 
 describe('ResourceDetailModal', () => {
   const mockFile: FileResource = {

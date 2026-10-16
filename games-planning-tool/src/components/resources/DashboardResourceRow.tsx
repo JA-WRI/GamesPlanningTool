@@ -7,7 +7,7 @@ import {
   FolderResource,
   FileResource,
   CANADIAN_NSOS,
-} from '@/types/resource';
+} from '@/features/resources/types/resource';
 import {
   subscribeToResources,
   getCachedResources,
@@ -15,10 +15,10 @@ import {
   getFolderChildren,
 } from '@/lib/resources-data';
 import { Games, Nsos } from '@/lib/data';
-import { ResourceCard } from '@/app/features/resources/components/ResourceCard';
-import { FolderDirectoryModal } from '@/app/features/resources/components/FolderDirectoryModal';
+import { ResourceCard } from '@/features/resources/components/ResourceCard';
+import { FolderDirectoryModal } from '@/features/resources/components/FolderDirectoryModal';
 import Link from 'next/link';
-import { ResourceDetailModal } from '@/app/features/resources/components/ResourceDetailModal';
+import { ResourceDetailModal } from '@/features/resources/components/ResourceDetailModal';
 
 export function DashboardResourceRow({
   gameId,
@@ -105,7 +105,7 @@ export function DashboardResourceRow({
         <h2 className="text-xl font-bold">Resources</h2>
         {!nsoId && viewerRole !== 'nso' && (
           <Link
-            href="/resources/admin"
+            href=""
             className="px-4 py-1.5 text-sm font-semibold rounded-md shadow-xs transition-colors bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 cursor-pointer"
           >
             Manage Resources

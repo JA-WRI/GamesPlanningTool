@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Resource } from '@/types/resource';
+import { Resource } from '@/features/resources/types/resource';
 
 export interface FolderCardViewProps {
   resource: Resource;

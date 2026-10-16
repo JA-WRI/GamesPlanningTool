@@ -11,7 +11,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
 import { FolderDirectoryModal } from '@/app/features/resources/components/FolderDirectoryModal';
 import * as resourcesData from '@/lib/resources-data';
-import { FolderResource, Resource } from '@/types/resource';
+import { FolderResource, Resource } from '@/features/resources/types/resource';
 
 vi.mock('@/lib/resources-data', async () => {
   const actual = await vi.importActual('@/lib/resources-data');

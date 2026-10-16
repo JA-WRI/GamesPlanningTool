@@ -1,5 +1,5 @@
 // Made with AI agents (Antigravity)
-import { Resource } from '@/types/resource';
+import { Resource } from '@/features/resources/types/resource';
 
 export const INITIAL_RESOURCES: Resource[] = [
   {
