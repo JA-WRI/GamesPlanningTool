@@ -75,7 +75,7 @@ function EditButtons({
   );
 }
 
-// solid burgundy Total row, same columns and widths as the grid so
+// solid dark Total row, same columns and widths as the grid so
 // each total sits under its header
 export function TotalRow<T extends Record<string, unknown>>({
   rows,
@@ -85,7 +85,7 @@ export function TotalRow<T extends Record<string, unknown>>({
   columns: ColumnDefinition<T>[];
 }) {
   return (
-    <div className="flex rounded-lg bg-[#7d1a16] py-2.5 text-sm font-bold text-white">
+    <div className="flex rounded-lg bg-foreground py-2.5 text-sm font-bold text-white">
       {columns.map((col, index) => (
         <span
           key={String(col.field)}
@@ -105,10 +105,10 @@ type CardBandProps = {
   children?: React.ReactNode;
 };
 
-// soft rose band at the top of a card: title on the left, buttons on the right
+// beige band at the top of a card: title on the left, buttons on the right
 export function CardBand({ title, subtitle, children }: CardBandProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-rose-100 bg-rose-50 px-4 py-2">
+    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 bg-background px-4 py-2">
       <div>
         <h3 className="text-base font-semibold text-gray-900">{title}</h3>
         {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}

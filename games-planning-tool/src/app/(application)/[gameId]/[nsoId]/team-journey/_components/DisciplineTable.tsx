@@ -20,9 +20,9 @@ type DisciplineTableProps = {
   onChange: (disciplines: DisciplineBreakdown) => void;
 };
 
-// Best F and Best M are the 2nd and 3rd columns: burgundy header and numbers
+// Best F and Best M are the 2nd and 3rd columns: muted header and bold muted numbers
 const BEST_COLUMNS_LOOK =
-  '[&_th:nth-child(2)_span]:text-[#7d1a16]! [&_th:nth-child(3)_span]:text-[#7d1a16]! [&_td:nth-child(2)>span]:text-[#7d1a16]! [&_td:nth-child(3)>span]:text-[#7d1a16]! [&_td:nth-child(2)>span]:font-semibold! [&_td:nth-child(3)>span]:font-semibold!';
+  '[&_th:nth-child(2)_span]:text-muted! [&_th:nth-child(3)_span]:text-muted! [&_td:nth-child(2)>span]:text-muted! [&_td:nth-child(3)>span]:text-muted! [&_td:nth-child(2)>span]:font-semibold! [&_td:nth-child(3)>span]:font-semibold!';
 
 const numberColumn = (
   field: keyof DisciplineRow,

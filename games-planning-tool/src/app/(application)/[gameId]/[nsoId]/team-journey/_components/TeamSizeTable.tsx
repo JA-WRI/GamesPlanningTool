@@ -22,9 +22,9 @@ type TeamSizeTableProps = {
   onChange: (teamSize: TeamSize) => void;
 };
 
-// Best guess is the 3rd column: burgundy header and numbers
+// Best guess is the 3rd column: muted header and bold muted numbers
 const BEST_GUESS_LOOK =
-  '[&_th:nth-child(3)_span]:text-[#7d1a16]! [&_td:nth-child(3)>span]:text-[#7d1a16]! [&_td:nth-child(3)>span]:font-semibold!';
+  '[&_th:nth-child(3)_span]:text-muted! [&_td:nth-child(3)>span]:text-muted! [&_td:nth-child(3)>span]:font-semibold!';
 
 const numberColumn = (
   field: keyof TeamSizeRow,
