@@ -65,18 +65,7 @@ export default function TeamJourneyClient() {
         onStepChange={state.setActiveStep}
       />
 
-      <div className="px-10 py-8">
-        <div className="flex justify-end">
-          <button
-            type="button"
-            className="rounded-md bg-[#7B1A15] px-4 py-2 text-sm font-semibold text-white hover:bg-[#65140f]"
-          >
-            Save
-          </button>
-        </div>
-
-        {STEPS[state.activeStep]?.(state)}
-      </div>
+      <div className="px-10 py-8">{STEPS[state.activeStep]?.(state)}</div>
     </div>
   );
 }
