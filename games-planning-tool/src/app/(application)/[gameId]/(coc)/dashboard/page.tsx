@@ -250,6 +250,7 @@ export default function Home() {
               }))}
               selected={statusFilter}
               onChange={(values) => setStatusFilter(values as Status[])}
+              compact={false}
             />
 
             {/* Search bar */}
@@ -298,6 +299,7 @@ export default function Home() {
                           [col.title]: values as Status[],
                         }))
                       }
+                      compact={true}
                     />
                   </div>
                 ))}

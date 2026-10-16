@@ -17,6 +17,7 @@ type FilterButtonProps = {
   onChange: (values: string[]) => void;
   ariaLabel?: string;
   description?: string;
+  compact?: boolean;
 };
 
 export default function FilterButton({
@@ -25,6 +26,7 @@ export default function FilterButton({
   onChange,
   ariaLabel = 'Filter options',
   description = 'Select the options to display:',
+  compact = false,
 }: FilterButtonProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -66,11 +68,13 @@ export default function FilterButton({
         aria-label={ariaLabel}
         aria-expanded={open}
         onClick={() => setOpen((isOpen) => !isOpen)}
-        className={`relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 ${
+        className={`relative flex ${
+          compact ? 'h-6 w-6' : 'h-10 w-10'
+        } items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 ${
           selected.length > 0 ? 'bg-[#EF8B64]/20' : 'bg-white'
         }`}
       >
-        <Funnel size={18} className="text-gray-600" />
+        <Funnel size={compact ? 12 : 18} className="text-gray-600" />
 
         {selected.length > 0 && (
           <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#8B1010] px-1 text-[10px] text-white">
