@@ -132,11 +132,24 @@ export default function Home() {
   const [selectedChart, setSelectedChart] = useState<
     (typeof mockDashboard)[number] | null
   >(null);
-
-  const filteredTeams = useMemo(
-    () => filterTeams(teams, search, statusFilter),
-    [search, statusFilter],
+  const [columnFilters, setColumnFilters] = useState<Record<string, Status[]>>(
+    {},
   );
+
+  const filteredTeams = useMemo(() => {
+    const matchingTeams = filterTeams(teams, search, statusFilter); // Filter teams, all columns by status
+
+    // Filter all teams per column (step) by status
+    return matchingTeams.filter((team) =>
+      Object.entries(columnFilters).every(([columnTitle, statuses]) => {
+        if (statuses.length === 0) return true;
+
+        const column = team.columns.find((col) => col.title === columnTitle);
+
+        return column !== undefined && statuses.includes(column.status);
+      }),
+    );
+  }, [search, statusFilter, columnFilters]);
 
   // Teams sharing the selected chart's column, grouped by their status there.
   const teamNamesByStatus = useMemo(() => {
@@ -256,7 +269,7 @@ export default function Home() {
         {/* Scrolls sideways instead of squeezing the columns on small screens */}
         <div className="overflow-x-auto">
           <div className="min-w-184">
-            {/* Column headers */}
+            {/* Column headers + filter buttons */}
             <div className="flex items-center gap-x-10 px-6 mt-4">
               <div className="w-28 shrink-0" />
 
@@ -265,9 +278,27 @@ export default function Home() {
                 {teams[0].columns.map((col) => (
                   <div
                     key={col.title}
-                    className="flex-1 text-center text-sm font-semibold text-gray-600"
+                    className="flex flex-1 items-center justify-center gap-1"
                   >
-                    {col.title}
+                    <span className="text-center text-sm font-semibold text-gray-600">
+                      {col.title}
+                    </span>
+                    <FilterButton
+                      ariaLabel={`Filter ${col.title} by status`}
+                      description={`Show NSOs by ${col.title} status:`}
+                      options={STATUS_ORDER.map((status) => ({
+                        label: status,
+                        value: status,
+                        color: statusTagColor[status],
+                      }))}
+                      selected={columnFilters[col.title] ?? []}
+                      onChange={(values) =>
+                        setColumnFilters((previous) => ({
+                          ...previous,
+                          [col.title]: values as Status[],
+                        }))
+                      }
+                    />
                   </div>
                 ))}
               </div>
