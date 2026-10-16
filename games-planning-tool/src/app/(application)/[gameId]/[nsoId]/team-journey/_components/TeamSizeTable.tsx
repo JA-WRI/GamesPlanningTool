@@ -48,6 +48,10 @@ const columns: ColumnDefinition<TeamSizeRow>[] = [
   numberColumn('high', 'HIGH'),
 ];
 
+// rows can be saved when every count is in order and a whole number
+const isTeamSizeValid = (rows: TeamSizeRow[]) =>
+  !rows.some(rowHasRangeError) && allWholeCounts(rows, COUNT_FIELDS);
+
 // warnings shown under the table while something can't be saved
 function TeamSizeWarnings({ rows }: { rows: TeamSizeRow[] }) {
   const brokenRows = rows.filter(rowHasRangeError);
@@ -77,8 +81,7 @@ export default function TeamSizeTable({
     initialNotes: teamSize.notes,
     // never called, this table has no add button
     createRow: () => athletesToRows(teamSize.athletes)[0],
-    isValid: (rows) =>
-      !rows.some(rowHasRangeError) && allWholeCounts(rows, COUNT_FIELDS),
+    isValid: isTeamSizeValid,
     onSave: (rows, notes) =>
       onChange({
         ...teamSize,
