@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { CategoryEditor } from '@/app/(application)/admin/resource-management/_components/CategoryEditor';
+import { CategoryEditor } from '@/app/features/resources/components/CategoryEditor';
 
 describe('CategoryEditor', () => {
   it('renders primary categories and handles toggling', () => {

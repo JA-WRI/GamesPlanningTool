@@ -6,12 +6,12 @@ import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import { Resource, FolderResource, FileResource } from '@/types/resource';
 import { getFolderChildren } from '@/lib/resources-data';
 import ResourceCard from './ResourceCard';
-import { useSweepSelection } from './useSweepSelection';
+import { useSweepSelection } from '../hooks/useSweepSelection';
 import { FolderModalHeader } from './folder-modal/FolderModalHeader';
 import { FolderModalToolbar } from './folder-modal/FolderModalToolbar';
-import { useFolderModalDrag } from './folder-modal/useFolderModalDrag';
+import { useFolderModalDrag } from '../hooks/useFolderModalDrag';
 import { FolderDragGhost } from './folder-modal/FolderDragGhost';
-import { getFolderBreadcrumbs } from './folder-modal/folderModalDragHelpers';
+import { getFolderBreadcrumbs } from '../utilities/folderModalDragHelpers';
 import { EditCategoriesModal } from './EditCategoriesModal';
 
 export interface FolderDirectoryModalProps {

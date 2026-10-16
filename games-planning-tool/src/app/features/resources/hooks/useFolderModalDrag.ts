@@ -6,7 +6,7 @@ import { Resource, FolderResource } from '@/types/resource';
 import {
   reorderListWithInjection,
   isPointInsidePanel,
-} from './folderModalDragHelpers';
+} from '../utilities/folderModalDragHelpers';
 
 export interface UseFolderModalDragProps {
   isReadOnly?: boolean;

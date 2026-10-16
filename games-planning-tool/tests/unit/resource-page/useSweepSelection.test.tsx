@@ -2,7 +2,7 @@
 import React, { useRef } from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { useSweepSelection } from '@/app/(application)/admin/resource-management/_components/useSweepSelection';
+import { useSweepSelection } from '@/app/features/resources/hooks/useSweepSelection';
 
 function TestComponent({
   resources,

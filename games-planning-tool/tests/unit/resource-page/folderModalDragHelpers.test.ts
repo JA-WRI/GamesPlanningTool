@@ -4,7 +4,7 @@ import {
   reorderListWithInjection,
   isPointInsidePanel,
   getFolderBreadcrumbs,
-} from '@/app/(application)/admin/resource-management/_components/folder-modal/folderModalDragHelpers';
+} from '@/app/features/resources/utilities/folderModalDragHelpers';
 import { Resource } from '@/types/resource';
 
 describe('folderModalDragHelpers', () => {

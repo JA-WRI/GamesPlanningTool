@@ -4,7 +4,7 @@ import {
   createSweepState,
   runSweepStep,
   SweepGestureState,
-} from './sweep-selection';
+} from '../utilities/sweep-selection';
 
 export function useSweepSelection<T extends { id: string }>(
   resources: T[],

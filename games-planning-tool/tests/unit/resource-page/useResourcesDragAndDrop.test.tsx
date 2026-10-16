@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import React from 'react';
-import { useResourcesDragAndDrop } from '@/app/(application)/admin/resource-management/_components/useResourcesDragAndDrop';
+import { useResourcesDragAndDrop } from '@/app/features/resources/hooks/useResourcesDragAndDrop';
 import { Resource, FolderResource } from '@/types/resource';
 
 describe('useResourcesDragAndDrop', () => {

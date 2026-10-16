@@ -2,8 +2,8 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
-import ResourcesPage from '@/app/(application)/[gameId]/[nsoId]/resources/page';
-import ResourceManagementPage from '@/app/(application)/admin/resource-management/page';
+import ResourcesPage from '@/app/(application)/resources/[gameId]/[nsold]/page';
+import ResourceManagementPage from '@/app/(application)/resources/admin/page';
 
 describe('Resource Page Wrappers', () => {
   it('renders NSO ResourcesPage', () => {

@@ -15,10 +15,7 @@ export function tabRoute(path: string, { role, game, nso, picked }: Ctx) {
   } else if (path === 'dashboard') {
     route = role === 'nso' ? `/${game}/${nso}/dashboard` : `/${game}/dashboard`;
   } else if (path === 'resources') {
-    route =
-      role === 'nso'
-        ? `/${game}/${nso}/resources`
-        : `/admin/resource-management`;
+    route = role === 'nso' ? `/resources/${game}/${nso}` : `/resources/admin`;
   } else {
     route = `/${game}/${nso}/${path}`;
   }

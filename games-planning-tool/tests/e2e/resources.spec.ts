@@ -5,7 +5,7 @@ test.describe('Resources Page E2E', () => {
   test('renders NSO resources page in read-only mode without editing actions', async ({
     page,
   }) => {
-    await page.goto('/game_id_1/nso_1/resources');
+    await page.goto('/resources/game_id_1/nso_1');
     await expect(page.getByRole('link', { name: 'Dashboard' })).toBeVisible();
     await expect(
       page.locator('h1', { hasText: 'Resources Dashboard' }),
@@ -29,7 +29,7 @@ test.describe('Resources Page E2E', () => {
   test('admin resource-management page toggles edit mode and enables selection', async ({
     page,
   }) => {
-    await page.goto('/admin/resource-management');
+    await page.goto('/resources/admin');
     const editBtn = page.getByRole('button', { name: 'Edit' }).first();
     await editBtn.click();
     await expect(page.getByRole('button', { name: 'Done' })).toBeVisible();
@@ -44,7 +44,7 @@ test.describe('Resources Page E2E', () => {
   test('admin resource-management page allows adding resource with automatic General category', async ({
     page,
   }) => {
-    await page.goto('/admin/resource-management');
+    await page.goto('/resources/admin');
     await page.getByRole('button', { name: 'Add Resource' }).click();
     const modal = page.locator('[role="dialog"]', {
       hasText: 'Add New Resource',
@@ -62,7 +62,7 @@ test.describe('Resources Page E2E', () => {
   test('clicking a folder on NSO page opens folder modal in read-only view', async ({
     page,
   }) => {
-    await page.goto('/game_id_1/nso_1/resources');
+    await page.goto('/resources/game_id_1/nso_1');
     await page
       .locator('[data-resource-id][data-resource-type="folder"]')
       .first()
@@ -74,7 +74,7 @@ test.describe('Resources Page E2E', () => {
   test('clicking a file or link opens resource directly in a new tab without detail modal', async ({
     page,
   }) => {
-    await page.goto('/game_id_1/nso_1/resources');
+    await page.goto('/resources/game_id_1/nso_1');
     let openedUrl = '';
     await page.exposeFunction('onWindowOpen', (url: string) => {
       openedUrl = url;
