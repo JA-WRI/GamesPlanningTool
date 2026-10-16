@@ -1,7 +1,7 @@
 // AI contribution: Below 50% AI-generated
 import type { SelectOption } from '@/components/commons/Grid';
 import type { AthleteEstimate, TeamSize } from './teamSizeLogic';
-import { getAthleteRangeErrors } from './teamSizeLogic';
+import { getAthleteRangeErrors, getMedalsMessage } from './teamSizeLogic';
 
 // the grid gives a number or '' when the box is empty
 export type GridNumber = number | '';
@@ -23,6 +23,13 @@ export interface DisciplineRow extends Record<string, unknown> {
   bestM: GridNumber;
   lowF: GridNumber;
   lowM: GridNumber;
+}
+
+export interface MedalObjectiveRow extends Record<string, unknown> {
+  id: 'medals';
+  label: string;
+  low: GridNumber;
+  high: GridNumber;
 }
 
 export type DisciplineBreakdown = {
@@ -156,6 +163,47 @@ export function disciplineHasLowAboveBest(row: DisciplineRow): boolean {
   const lowAbove = (low: GridNumber, best: GridNumber) =>
     low !== '' && best !== '' && low > best;
   return lowAbove(row.lowF, row.bestF) || lowAbove(row.lowM, row.bestM);
+}
+
+// row name that never changes
+export const MEDALS_LABEL = 'Projected medals';
+
+// team size state -> the one "Projected medals" grid row
+export function medalsToRows(teamSize: TeamSize): MedalObjectiveRow[] {
+  return [
+    {
+      id: 'medals',
+      label: MEDALS_LABEL,
+      low: toGridNumber(teamSize.projectedMedalsLow),
+      high: toGridNumber(teamSize.projectedMedalsHigh),
+    },
+  ];
+}
+
+// grid row -> team size state, numbers back to text for the Review step
+export function rowsToMedals(
+  rows: MedalObjectiveRow[],
+  teamSize: TeamSize,
+): TeamSize {
+  const [row] = rows;
+  if (!row) return teamSize;
+  return {
+    ...teamSize,
+    projectedMedalsLow: toText(row.low),
+    projectedMedalsHigh: toText(row.high),
+  };
+}
+
+// fixed name for the "Projected medals" row
+export function withMedalsLabel(
+  rows: MedalObjectiveRow[],
+): MedalObjectiveRow[] {
+  return restoreLabels(rows, { medals: MEDALS_LABEL });
+}
+
+// true when Low is above High (empty boxes are not checked)
+export function medalRowHasError(row: MedalObjectiveRow): boolean {
+  return getMedalsMessage(toText(row.low), toText(row.high)) !== null;
 }
 
 // true when Low ≤ Best ≤ High is broken
