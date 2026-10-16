@@ -2,7 +2,6 @@
 import DisciplineTable from './DisciplineTable';
 import MedalPotentialTable from './MedalPotentialTable';
 import PerformanceObjectives from './PerformanceObjectives';
-import { SectionTitle } from './TeamSizeCard';
 import TeamSizeTable from './TeamSizeTable';
 import { TeamSize } from '../_lib/teamSizeLogic';
 import { DisciplineBreakdown, MedalRow } from '../_lib/teamSizeGridLogic';
@@ -20,7 +19,6 @@ type TeamSizeStepProps = {
 export default function TeamSizeStep(props: TeamSizeStepProps) {
   return (
     <div className="step-fade w-full space-y-3 pt-2">
-      <SectionTitle>Estimated team size</SectionTitle>
       {/* side by side from 1024px (lg), stacked below; grid items stretch,
           so both cards get the same height; min-w-0 lets the tables shrink */}
       <div className="grid gap-3 lg:grid-cols-2 [&>*]:min-w-0">
@@ -29,10 +27,6 @@ export default function TeamSizeStep(props: TeamSizeStepProps) {
           disciplines={props.disciplines}
           onChange={props.onDisciplinesChange}
         />
-      </div>
-
-      <div className="pt-2">
-        <SectionTitle>Performance objectives & medal potential</SectionTitle>
       </div>
       <PerformanceObjectives
         teamSize={props.teamSize}
