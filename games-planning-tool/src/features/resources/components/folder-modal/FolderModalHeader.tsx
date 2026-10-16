@@ -116,7 +116,7 @@ export function FolderModalHeader({
                     type="button"
                     data-breadcrumb-id={b.id}
                     onClick={() => onNavigateFolder(b.id)}
-                    className="hover:underline cursor-pointer transition-all text-gray-600 hover:text-gray-900 max-w-[120px] truncate"
+                    className="hover:underline cursor-pointer transition-all text-gray-600 hover:text-gray-900 max-w-30 truncate"
                     title={b.name}
                   >
                     {b.name}
