@@ -4,7 +4,7 @@
 import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import NotesBox from './NotesBox';
-import TeamSizeCard, { GRID_LOOK, TotalRow } from './TeamSizeCard';
+import TeamSizeCard, { GRID_FIT, TotalRow } from './TeamSizeCard';
 import { useGridCard } from './useGridCard';
 import {
   DisciplineBreakdown,
@@ -19,10 +19,6 @@ type DisciplineTableProps = {
   disciplines: DisciplineBreakdown;
   onChange: (disciplines: DisciplineBreakdown) => void;
 };
-
-// Best F and Best M are the 2nd and 3rd columns: muted header and bold muted numbers
-const BEST_COLUMNS_LOOK =
-  '[&_th:nth-child(2)_span]:text-muted! [&_th:nth-child(3)_span]:text-muted! [&_td:nth-child(2)>span]:text-muted! [&_td:nth-child(3)>span]:text-muted! [&_td:nth-child(2)>span]:font-semibold! [&_td:nth-child(3)>span]:font-semibold!';
 
 const numberColumn = (
   field: keyof DisciplineRow,
@@ -97,7 +93,8 @@ export default function DisciplineTable({
       onCancel={card.cancel}
       onSave={card.save}
     >
-      <div className={`${GRID_LOOK} ${BEST_COLUMNS_LOOK} space-y-1`}>
+      {/* shared grid with its default look; GRID_FIT only changes its width */}
+      <div className={GRID_FIT}>
         <Grid
           columns={columns}
           rows={card.rows}
