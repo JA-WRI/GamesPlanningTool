@@ -41,8 +41,9 @@ export default function StatusOverviewPanel({
   const [expanded, setExpanded] = useState(false);
 
   const total = PANEL_STATUS_ORDER.reduce((sum, s) => sum + counts[s], 0);
-  const completed = counts.Completed;
-  const completedPercent = percentage(completed, total);
+
+  const selectedCount = counts[status];
+  const selectedPercent = percentage(selectedCount, total);
 
   const index = PANEL_STATUS_ORDER.indexOf(status);
   const previous =
@@ -106,14 +107,14 @@ export default function StatusOverviewPanel({
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between text-xs">
             <span className="font-semibold">
-              {completed} of {total} completed
+              {selectedCount} of {total} {status.toLowerCase()}
             </span>
-            <span className="text-gray-500">{completedPercent}%</span>
+            <span className="text-gray-500">{selectedPercent}%</span>
           </div>
           <div
             className="mt-1 flex h-1.5 overflow-hidden rounded-full bg-gray-200"
             role="img"
-            aria-label={`${completed} of ${total} completed`}
+            aria-label={`${selectedCount} of ${total} ${status.toLowerCase()}`}
           >
             {PANEL_STATUS_ORDER.map((s) => (
               <div

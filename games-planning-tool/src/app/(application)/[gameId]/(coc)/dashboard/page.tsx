@@ -51,6 +51,7 @@ const teams: Team[] = [
     ],
   },
   {
+    // Logo is not transparent it doesn't look good on gray background -- either find transparent logo or remove background
     name: 'Basketball Canada',
     logo: '/Basketball_Canada_logo.png',
     columns: [
@@ -123,7 +124,7 @@ const statusTagColor: Record<Status, TagColor> = {
   'Not Started': 'gray',
 };
 
-// mockDashboard is static, so the overall stats never change between renders.
+// mockDashboard is static, so the overall stats never change between renders
 const stats = computeStats(mockDashboard);
 
 export default function Home() {
@@ -150,6 +151,29 @@ export default function Home() {
       }),
     );
   }, [search, statusFilter, columnFilters]);
+
+  const panelData = useMemo(() => {
+    if (!selectedChart) return null;
+
+    const columnIndex = teams[0].columns.findIndex(
+      (column) => column.title === selectedChart.title,
+    );
+
+    if (columnIndex === -1) return null;
+
+    const counts = selectedChart.counts;
+
+    const namesByStatus = Object.fromEntries(
+      STATUS_ORDER.map((status) => [
+        status,
+        teams
+          .filter((team) => team.columns[columnIndex]?.status === status)
+          .map((team) => team.name),
+      ]),
+    ) as Record<Status, string[]>;
+
+    return { counts, namesByStatus };
+  }, [selectedChart]);
 
   // Teams sharing the selected chart's column, grouped by their status there.
   const teamNamesByStatus = useMemo(() => {
@@ -227,8 +251,8 @@ export default function Home() {
           <div className="mt-3">
             <StatusOverviewPanel
               stepTitle={selectedChart.title}
-              counts={selectedChart.counts}
-              nsoNamesByStatus={teamNamesByStatus}
+              counts={panelData?.counts ?? selectedChart.counts}
+              nsoNamesByStatus={panelData?.namesByStatus ?? teamNamesByStatus}
               onClose={() => setSelectedChart(null)}
             />
           </div>

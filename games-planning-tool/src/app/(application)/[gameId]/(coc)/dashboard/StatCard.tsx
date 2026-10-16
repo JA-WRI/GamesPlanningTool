@@ -1,4 +1,4 @@
-//50% or more AI-generated
+// 50% or more AI-generated
 import type { LucideIcon } from 'lucide-react';
 
 type StatCardProps = {
