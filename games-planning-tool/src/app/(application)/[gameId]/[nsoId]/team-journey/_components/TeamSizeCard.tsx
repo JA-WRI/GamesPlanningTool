@@ -2,81 +2,32 @@
 'use client';
 
 import type { ColumnDefinition } from '@/components/commons/Grid';
+import GridHeaderPage from '@/components/commons/GridHeader';
 import { sumColumn } from '../_lib/teamSizeGridLogic';
 
-// restyles the shared grid from outside: fits the card (no sideways
-// scroll), no outer border, white header with gray labels, compact rows
-// (~40px) and inputs that can shrink to the column width
-export const GRID_LOOK =
-  '[&_.MuiTable-root]:min-w-0! [&_.MuiTableContainer-root]:border-0! [&_thead]:bg-transparent! [&_th_span]:text-gray-500! [&_th]:px-2! [&_th]:py-2! [&_td]:px-2! [&_td]:py-2.5! [&_.MuiFormControl-root]:min-w-0!';
+// size only, no colours or fonts: drops the grid's 1000px minimum width (and
+// its inputs' minimum widths) so it fits a half-width card without scrolling
+export const GRID_FIT =
+  '[&_.MuiTable-root]:min-w-0! [&_.MuiFormControl-root]:min-w-0!';
 
-type CardActions = {
+// square bottom corners on the grid's table box, so the Total row below
+// joins it and looks like the table's last row
+export const JOIN_TOTAL_ROW = '[&_.MuiTableContainer-root]:rounded-b-none!';
+
+type TeamSizeCardProps = {
+  title: string;
   isEditing: boolean;
-  canSave: boolean;
+  isPreview: boolean;
   onEdit: () => void;
+  onPreviewToggle: (preview: boolean) => void;
   onCancel: () => void;
   onSave: () => void;
-};
-
-type TeamSizeCardProps = CardActions & {
-  title: string;
-  subtitle?: string;
   children: React.ReactNode;
 };
 
-export function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-gray-800">
-      <span className="h-4 w-1 rounded-sm bg-[#d29b2c]" />
-      {children}
-    </h2>
-  );
-}
-
-function EditButtons({
-  isEditing,
-  canSave,
-  onEdit,
-  onCancel,
-  onSave,
-}: CardActions) {
-  const outline =
-    'cursor-pointer rounded-md border px-4 py-1.5 text-sm font-semibold';
-
-  if (!isEditing) {
-    return (
-      <button
-        type="button"
-        onClick={onEdit}
-        className={`${outline} border-[#7d1a16] text-[#7d1a16] hover:bg-red-50`}
-      >
-        Edit
-      </button>
-    );
-  }
-  return (
-    <div className="flex gap-2">
-      <button
-        type="button"
-        onClick={onCancel}
-        className={`${outline} border-gray-300 text-gray-700 hover:bg-gray-50`}
-      >
-        Cancel
-      </button>
-      <button
-        type="button"
-        onClick={onSave}
-        disabled={!canSave}
-        className={`${outline} border-[#7d1a16] bg-[#7d1a16] text-white hover:bg-[#65140f] disabled:cursor-not-allowed disabled:opacity-50`}
-      >
-        Save
-      </button>
-    </div>
-  );
-}
-
-// solid dark Total row, same columns and widths as the grid so
-// each total sits under its header
+// Total row that looks like the grid's last row: same border colour on the
+// left, right and bottom, rounded bottom corners, same column widths and
+// cell padding, bold text; the table's own bottom border is the line above it
 export function TotalRow<T extends Record<string, unknown>>({
   rows,
   columns,
@@ -85,12 +36,12 @@ export function TotalRow<T extends Record<string, unknown>>({
   columns: ColumnDefinition<T>[];
 }) {
   return (
-    <div className="flex rounded-lg bg-foreground py-2.5 text-sm font-bold text-white">
+    <div className="flex rounded-b-lg border border-t-0 border-gray-200 bg-white py-3 text-sm font-bold text-foreground">
       {columns.map((col, index) => (
         <span
           key={String(col.field)}
           style={{ width: col.width }}
-          className={index === 0 ? 'px-2' : 'px-2 text-center'}
+          className={index === 0 ? 'px-3' : 'px-3 text-center'}
         >
           {index === 0 ? 'Total' : sumColumn(rows, col.field)}
         </span>
@@ -99,38 +50,30 @@ export function TotalRow<T extends Record<string, unknown>>({
   );
 }
 
-type CardBandProps = {
-  title: string;
-  subtitle?: string;
-  children?: React.ReactNode;
-};
-
-// beige band at the top of a card: title on the left, buttons on the right
-export function CardBand({ title, subtitle, children }: CardBandProps) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 bg-background px-4 py-2">
-      <div>
-        <h3 className="text-base font-semibold text-gray-900">{title}</h3>
-        {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-// white card with a title band and Edit / Cancel / Save
+// white card: Marwa's shared GridHeader (title only, used as is), then the table;
+// a column so the notes box can fill the space left at the bottom
 export default function TeamSizeCard({
   title,
-  subtitle,
+  isEditing,
+  isPreview,
+  onEdit,
+  onPreviewToggle,
+  onCancel,
+  onSave,
   children,
-  ...actions
 }: TeamSizeCardProps) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <CardBand title={title} subtitle={subtitle}>
-        <EditButtons {...actions} />
-      </CardBand>
-      <div className="space-y-3 px-4 pt-2 pb-4">{children}</div>
+    <div className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <GridHeaderPage
+        title={title}
+        isEditing={isEditing}
+        isPreview={isPreview}
+        onEditToggle={onEdit}
+        onPreviewToggle={onPreviewToggle}
+        onCancel={onCancel}
+        onSave={onSave}
+      />
+      {children}
     </div>
   );
 }
