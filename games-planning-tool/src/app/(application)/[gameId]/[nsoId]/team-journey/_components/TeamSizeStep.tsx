@@ -21,11 +21,15 @@ export default function TeamSizeStep(props: TeamSizeStepProps) {
   return (
     <div className="step-fade w-full space-y-3 pt-2">
       <SectionTitle>Estimated team size</SectionTitle>
-      <TeamSizeTable teamSize={props.teamSize} onChange={props.onChange} />
-      <DisciplineTable
-        disciplines={props.disciplines}
-        onChange={props.onDisciplinesChange}
-      />
+      {/* side by side from 1024px (lg), stacked below; grid items stretch,
+          so both cards get the same height; min-w-0 lets the tables shrink */}
+      <div className="grid gap-3 lg:grid-cols-2 [&>*]:min-w-0">
+        <TeamSizeTable teamSize={props.teamSize} onChange={props.onChange} />
+        <DisciplineTable
+          disciplines={props.disciplines}
+          onChange={props.onDisciplinesChange}
+        />
+      </div>
 
       <div className="pt-2">
         <SectionTitle>Performance objectives & medal potential</SectionTitle>
