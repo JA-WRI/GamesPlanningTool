@@ -30,14 +30,6 @@ export default function DonutChartCard({
     >
       <div className="relative w-full [&_*:focus]:outline-none">
         <DonutChart segments={segments} />
-        {isSelected && completedPercent !== undefined && (
-          <span
-            title="Completed"
-            className="absolute right-4 top-2 rounded-full bg-white px-2 py-1 text-[11px] font-bold text-lime-600 shadow-md"
-          >
-            {completedPercent}%
-          </span>
-        )}
       </div>
       <h4 className="mb-1 text-center text-sm font-bold">{title}</h4>
     </button>
