@@ -4,7 +4,11 @@
 import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import NotesBox from './NotesBox';
-import TeamSizeCard, { GRID_LOOK, TotalRow } from './TeamSizeCard';
+import TeamSizeCard, {
+  GRID_FIT,
+  JOIN_TOTAL_ROW,
+  TotalRow,
+} from './TeamSizeCard';
 import { useGridCard } from './useGridCard';
 import { TeamSize } from '../_lib/teamSizeLogic';
 import {
@@ -21,10 +25,6 @@ type TeamSizeTableProps = {
   teamSize: TeamSize;
   onChange: (teamSize: TeamSize) => void;
 };
-
-// Best guess is the 3rd column: muted header and bold muted numbers
-const BEST_GUESS_LOOK =
-  '[&_th:nth-child(3)_span]:text-muted! [&_td:nth-child(3)>span]:text-muted! [&_td:nth-child(3)>span]:font-semibold!';
 
 const numberColumn = (
   field: keyof TeamSizeRow,
@@ -91,16 +91,20 @@ export default function TeamSizeTable({
     <TeamSizeCard
       title="Team size estimate"
       isEditing={card.isEditing}
-      canSave={card.canSave}
+      isPreview={card.isPreview}
+      onPreviewToggle={card.setIsPreview}
       onEdit={card.edit}
       onCancel={card.cancel}
       onSave={card.save}
     >
-      <div className={`${GRID_LOOK} ${BEST_GUESS_LOOK} space-y-1`}>
+      {/* shared grid with its default look; only its width and bottom
+          corners change so the Total row joins it */}
+      <div className={`${GRID_FIT} ${JOIN_TOTAL_ROW}`}>
         <Grid
           columns={columns}
           rows={card.rows}
           isEditing={card.isEditing}
+          isPreview={card.isPreview}
           onRowsChange={(rows) => card.setRows(withFixedLabels(rows))}
           onValidationChange={card.setHasCellError}
           allowDelete={false}
@@ -111,7 +115,7 @@ export default function TeamSizeTable({
       <NotesBox
         id="team-size-notes"
         value={card.notes}
-        isEditing={card.isEditing}
+        isEditing={card.isEditing && !card.isPreview}
         onChange={card.setNotes}
       />
     </TeamSizeCard>
