@@ -59,7 +59,7 @@ export default function TeamJourneyClient() {
   const state = useTeamJourneyState();
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-white">
       <StepTabs
         activeStep={state.activeStep}
         onStepChange={state.setActiveStep}

@@ -1,92 +1,102 @@
 // AI contribution: 50% or more AI-generated
 'use client';
 
-import { useState } from 'react';
-import { CardBand } from './TeamSizeCard';
-import { onlyDigits } from '../_lib/utils';
-import { TeamSize, getMedalsMessage } from '../_lib/teamSizeLogic';
+import { Alert } from '@mui/material';
+import Grid, { ColumnDefinition } from '@/components/commons/Grid';
+import TeamSizeCard, { GRID_FIT } from './TeamSizeCard';
+import { useGridCard } from './useGridCard';
+import { TeamSize } from '../_lib/teamSizeLogic';
+import {
+  MAX_COUNT,
+  MedalObjectiveRow,
+  allWholeCounts,
+  medalRowHasError,
+  medalsToRows,
+  rowsToMedals,
+  withMedalsLabel,
+} from '../_lib/teamSizeGridLogic';
 
 type PerformanceObjectivesProps = {
   teamSize: TeamSize;
   onChange: (teamSize: TeamSize) => void;
 };
 
-type MedalInputProps = {
-  id: string;
-  label: string;
-  value: string;
-  hasError: boolean;
-  onChange: (value: string) => void;
-};
+const COUNT_FIELDS: (keyof MedalObjectiveRow)[] = ['low', 'high'];
 
-function MedalInput({ id, label, value, hasError, onChange }: MedalInputProps) {
+const numberColumn = (
+  field: keyof MedalObjectiveRow,
+  label: string,
+): ColumnDefinition<MedalObjectiveRow> => ({
+  field,
+  label,
+  type: 'number',
+  min: 0,
+  max: MAX_COUNT,
+  align: 'center',
+  width: '25%',
+});
+
+const columns: ColumnDefinition<MedalObjectiveRow>[] = [
+  { field: 'label', label: '', width: '50%' },
+  numberColumn('low', 'LOW'),
+  numberColumn('high', 'HIGH'),
+];
+
+// warnings shown under the table while something can't be saved
+function MedalWarnings({ rows }: { rows: MedalObjectiveRow[] }) {
   return (
-    <div className="flex items-center gap-3">
-      <label
-        htmlFor={id}
-        className="text-xs font-semibold uppercase tracking-widest text-gray-500"
-      >
-        {label}
-      </label>
-      <input
-        id={id}
-        type="text"
-        inputMode="numeric"
-        value={value}
-        onChange={(e) => onChange(onlyDigits(e.target.value))}
-        className={`w-20 rounded-md border bg-white px-3 py-1.5 text-center text-sm font-semibold text-gray-900 focus:border-[#7d1a16] focus:outline-none ${hasError ? 'border-red-300 bg-red-50 text-red-700' : 'border-gray-200'}`}
-      />
-    </div>
+    <>
+      {rows.some(medalRowHasError) && (
+        <Alert severity="warning">
+          Projected medals: High must be greater than or equal to Low.
+        </Alert>
+      )}
+      {!allWholeCounts(rows, COUNT_FIELDS) && (
+        <Alert severity="warning">
+          Use whole numbers from 0 to {MAX_COUNT}.
+        </Alert>
+      )}
+    </>
   );
 }
 
-// projected medals, Low and High
+// projected medals Low and High, in the shared grid like the other tables
 export default function PerformanceObjectives({
   teamSize,
   onChange,
 }: PerformanceObjectivesProps) {
-  // what is typed in the boxes, even when it is not valid yet
-  const [low, setLow] = useState(teamSize.projectedMedalsLow);
-  const [high, setHigh] = useState(teamSize.projectedMedalsHigh);
-  // only checked once both boxes are filled
-  const message = getMedalsMessage(low, high);
-
-  // only saved to teamSize when Low ≤ High (or a box is empty)
-  const update = (nextLow: string, nextHigh: string) => {
-    setLow(nextLow);
-    setHigh(nextHigh);
-    if (getMedalsMessage(nextLow, nextHigh)) return;
-    onChange({
-      ...teamSize,
-      projectedMedalsLow: nextLow,
-      projectedMedalsHigh: nextHigh,
-    });
-  };
+  const card = useGridCard<MedalObjectiveRow>({
+    initialRows: medalsToRows(teamSize),
+    // never called, this table has no add button
+    createRow: () => medalsToRows(teamSize)[0],
+    isValid: (rows) =>
+      allWholeCounts(rows, COUNT_FIELDS) && !rows.some(medalRowHasError),
+    onSave: (rows) => onChange(rowsToMedals(rows, teamSize)),
+  });
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <CardBand
-        title="Performance objectives"
-        subtitle="Number of NSO-projected medals"
-      >
-        <div className="flex gap-6">
-          <MedalInput
-            id="medals-low"
-            label="Low"
-            value={low}
-            hasError={Boolean(message)}
-            onChange={(value) => update(value, high)}
-          />
-          <MedalInput
-            id="medals-high"
-            label="High"
-            value={high}
-            hasError={Boolean(message)}
-            onChange={(value) => update(low, value)}
-          />
-        </div>
-      </CardBand>
-      {message && <p className="px-4 py-2 text-xs text-red-600">{message}</p>}
-    </div>
+    <TeamSizeCard
+      title="Performance objectives"
+      isEditing={card.isEditing}
+      isPreview={card.isPreview}
+      onPreviewToggle={card.setIsPreview}
+      onEdit={card.edit}
+      onCancel={card.cancel}
+      onSave={card.save}
+    >
+      {/* shared grid with its default look; GRID_FIT only changes its width */}
+      <div className={GRID_FIT}>
+        <Grid
+          columns={columns}
+          rows={card.rows}
+          isEditing={card.isEditing}
+          isPreview={card.isPreview}
+          onRowsChange={(rows) => card.setRows(withMedalsLabel(rows))}
+          onValidationChange={card.setHasCellError}
+          allowDelete={false}
+        />
+      </div>
+      <MedalWarnings rows={card.rows} />
+    </TeamSizeCard>
   );
 }
