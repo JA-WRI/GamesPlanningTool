@@ -105,7 +105,7 @@ export function DashboardResourceRow({
         <h2 className="text-xl font-bold">Resources</h2>
         {!nsoId && viewerRole !== 'nso' && (
           <Link
-            href=""
+            href={`/${game}/${nso}/resources`}
             className="px-4 py-1.5 text-sm font-semibold rounded-md shadow-xs transition-colors bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 cursor-pointer"
           >
             Manage Resources

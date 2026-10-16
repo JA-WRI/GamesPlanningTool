@@ -9,7 +9,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
-import { FolderDirectoryModal } from '@/app/features/resources/components/FolderDirectoryModal';
+import { FolderDirectoryModal } from '@/features/resources/components/FolderDirectoryModal';
 import * as resourcesData from '@/lib/resources-data';
 import { FolderResource, Resource } from '@/features/resources/types/resource';
 

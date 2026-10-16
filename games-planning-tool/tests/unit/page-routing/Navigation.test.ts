@@ -37,13 +37,13 @@ describe('tabRoute', () => {
   });
   it('resources tab routes to editable management for COC/Admin and view-only for NSO', () => {
     expect(tabRoute('resources', { ...base, role: 'nso' }).href).toBe(
-      '/resources/game1/usa',
+      '/game1/usa/resources',
     );
     expect(tabRoute('resources', { ...base, role: 'coc' }).href).toBe(
-      '/resources/admin',
+      '/game1/usa/resources',
     );
     expect(tabRoute('resources', { ...base, role: 'admin' }).href).toBe(
-      '/resources/admin',
+      '/admin/resource-management',
     );
   });
   it('other tabs live under the NSO', () => {
