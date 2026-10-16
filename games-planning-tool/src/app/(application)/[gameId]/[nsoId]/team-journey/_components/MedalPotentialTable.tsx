@@ -54,9 +54,9 @@ export default function MedalPotentialTable({
   return (
     <TeamSizeCard
       title="Medal potential"
-      subtitle="Athletes / events"
       isEditing={card.isEditing}
-      canSave={card.canSave}
+      isPreview={card.isPreview}
+      onPreviewToggle={card.setIsPreview}
       onEdit={card.edit}
       onCancel={card.cancel}
       onSave={card.save}
@@ -65,6 +65,7 @@ export default function MedalPotentialTable({
         columns={columns}
         rows={card.isEditing ? card.rows : withBlankNotes(card.rows)}
         isEditing={card.isEditing}
+        isPreview={card.isPreview}
         onRowsChange={card.setRows}
         onAddRow={card.handleAddRow}
         addButtonLabel="Add athlete"

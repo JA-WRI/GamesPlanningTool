@@ -4,7 +4,11 @@
 import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import NotesBox from './NotesBox';
-import TeamSizeCard, { GRID_FIT, TotalRow } from './TeamSizeCard';
+import TeamSizeCard, {
+  GRID_FIT,
+  JOIN_TOTAL_ROW,
+  TotalRow,
+} from './TeamSizeCard';
 import { useGridCard } from './useGridCard';
 import {
   DisciplineBreakdown,
@@ -86,19 +90,21 @@ export default function DisciplineTable({
   return (
     <TeamSizeCard
       title="Discipline breakdown"
-      subtitle="Best guess & low estimate"
       isEditing={card.isEditing}
-      canSave={card.canSave}
+      isPreview={card.isPreview}
+      onPreviewToggle={card.setIsPreview}
       onEdit={card.edit}
       onCancel={card.cancel}
       onSave={card.save}
     >
-      {/* shared grid with its default look; GRID_FIT only changes its width */}
-      <div className={GRID_FIT}>
+      {/* shared grid with its default look; only its width and bottom
+          corners change so the Total row joins it */}
+      <div className={`${GRID_FIT} ${JOIN_TOTAL_ROW}`}>
         <Grid
           columns={columns}
           rows={card.rows}
           isEditing={card.isEditing}
+          isPreview={card.isPreview}
           onRowsChange={(rows) => card.setRows(withDisciplineLabels(rows))}
           onValidationChange={card.setHasCellError}
           allowDelete={false}
@@ -109,7 +115,7 @@ export default function DisciplineTable({
       <NotesBox
         id="discipline-notes"
         value={card.notes}
-        isEditing={card.isEditing}
+        isEditing={card.isEditing && !card.isPreview}
         onChange={card.setNotes}
       />
     </TeamSizeCard>
