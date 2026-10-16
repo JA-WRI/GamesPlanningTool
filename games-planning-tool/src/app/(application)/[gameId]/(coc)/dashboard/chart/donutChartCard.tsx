@@ -15,7 +15,6 @@ export default function DonutChartCard({
   segments,
   onClick,
   isSelected = false,
-  completedPercent,
 }: DonutChartCardProps) {
   return (
     <button
