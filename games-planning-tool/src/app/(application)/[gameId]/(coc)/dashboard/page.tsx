@@ -15,10 +15,16 @@ import {
 import DonutChartCard from './chart/donutChartCard';
 import ChartLegend from './chart/chartLegend';
 import StatCard from './StatCard';
-import StatusFilter from './StatusFilter';
+import FilterButton from '@/components/commons/FilterButton';
 import StatusOverviewPanel from './StatusOverviewPanel';
 import { mockDashboard } from '@/lib/mock-data-chart';
-import { computeStats, filterTeams, percentage, totalOf } from '@/lib/dashboard';
+import {
+  computeStats,
+  filterTeams,
+  percentage,
+  totalOf,
+} from '@/lib/dashboard';
+import type { TagColor } from '@/components/commons/tag';
 
 type Column = {
   title: string;
@@ -109,6 +115,14 @@ const teams: Team[] = [
   },
 ];
 
+const statusTagColor: Record<Status, TagColor> = {
+  Completed: 'green',
+  Submitted: 'blue',
+  'In Progress': 'yellow',
+  'Requires Update': 'red',
+  'Not Started': 'gray',
+};
+
 // mockDashboard is static, so the overall stats never change between renders.
 const stats = computeStats(mockDashboard);
 
@@ -126,7 +140,9 @@ export default function Home() {
 
   // Teams sharing the selected chart's column, grouped by their status there.
   const teamNamesByStatus = useMemo(() => {
-    const selectedIndex = selectedChart ? mockDashboard.indexOf(selectedChart) : -1;
+    const selectedIndex = selectedChart
+      ? mockDashboard.indexOf(selectedChart)
+      : -1;
     return Object.fromEntries(
       STATUS_ORDER.map((status) => [
         status,
@@ -159,7 +175,10 @@ export default function Home() {
                 segments={statusToSegments(d.counts)}
                 onClick={() => setSelectedChart(d)}
                 isSelected={selectedChart?.title === d.title}
-                completedPercent={percentage(d.counts.Completed, totalOf(d.counts))}
+                completedPercent={percentage(
+                  d.counts.Completed,
+                  totalOf(d.counts),
+                )}
               />
             ))}
           </div>
@@ -208,7 +227,18 @@ export default function Home() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-3xl">NSOs Progress Overview</h1>
           <div className="flex items-center gap-3">
-            <StatusFilter selected={statusFilter} onChange={setStatusFilter} />
+            <FilterButton
+              ariaLabel="Filter by status"
+              description="Show NSOs with at least one step marked:"
+              options={STATUS_ORDER.map((status) => ({
+                label: status,
+                value: status,
+                color: statusTagColor[status],
+              }))}
+              selected={statusFilter}
+              onChange={(values) => setStatusFilter(values as Status[])}
+            />
+
             {/* Search bar */}
             <div className="my-4 w-70">
               <SearchBar
