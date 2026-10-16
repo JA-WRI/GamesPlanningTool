@@ -1,8 +1,6 @@
 // AI contribution: 50% or more AI-generated
 'use client';
 
-import { TextField } from '@mui/material';
-
 type NotesBoxProps = {
   id: string;
   value: string;
@@ -10,7 +8,9 @@ type NotesBoxProps = {
   onChange: (value: string) => void;
 };
 
-// "Notes / Factors" under a table
+// white box under a table, same border colour and corners as the grid's
+// table; "Notes" label inside, about 4 lines tall even when empty, and
+// stretches to fill the rest of the card so side-by-side cards end together
 export default function NotesBox({
   id,
   value,
@@ -18,31 +18,27 @@ export default function NotesBox({
   onChange,
 }: NotesBoxProps) {
   return (
-    <div className="space-y-1">
-      <label
-        htmlFor={id}
-        className="block text-xs font-semibold uppercase tracking-widest text-gray-500"
-      >
-        Notes / Factors
+    <div className="min-h-28 flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 focus-within:border-gray-400">
+      <label htmlFor={id} className="block text-sm text-gray-500">
+        Notes
       </label>
 
       {isEditing ? (
-        <TextField
+        // grows with the text, starts at 4 lines
+        <textarea
           id={id}
-          multiline
-          minRows={1}
-          fullWidth
-          size="small"
+          rows={4}
           value={value}
           placeholder="Add notes"
           onChange={(e) => onChange(e.target.value)}
+          className="field-sizing-content w-full resize-none bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
         />
       ) : (
         <p
           id={id}
-          className="whitespace-pre-wrap break-words rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700"
+          className="whitespace-pre-wrap break-words text-sm text-gray-700"
         >
-          {value || <span className="text-gray-400">Add note</span>}
+          {value}
         </p>
       )}
     </div>
