@@ -3,6 +3,16 @@ import type { StatusCounts } from '@/components/commons/status';
 
 export const mockDashboard: { title: string; counts: StatusCounts }[] = [
   {
+    title: 'Contact Info',
+    counts: {
+      'Not Started': 14,
+      'In Progress': 10,
+      Completed: 6,
+      Submitted: 5,
+      'Requires Update': 3,
+    },
+  },
+  {
     title: 'Team Size',
     counts: {
       'Not Started': 8,
@@ -23,17 +33,7 @@ export const mockDashboard: { title: string; counts: StatusCounts }[] = [
     },
   },
   {
-    title: 'Arrival/Travel In',
-    counts: {
-      'Not Started': 14,
-      'In Progress': 10,
-      Completed: 6,
-      Submitted: 5,
-      'Requires Update': 3,
-    },
-  },
-  {
-    title: 'Departure/Travel Out',
+    title: 'Estimated Costs',
     counts: {
       'Not Started': 15,
       'In Progress': 9,
