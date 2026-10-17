@@ -165,7 +165,7 @@ export default function Grid<T extends Record<string, unknown>>({
                   </div>
                 </TableCell>
               ))}
-              {isEditing && allowDelete && (
+              {showInputs && allowDelete && (
                 <TableCell
                   align="center"
                   sx={{
@@ -340,7 +340,7 @@ export default function Grid<T extends Record<string, unknown>>({
                     </TableCell>
                   );
                 })}
-                {isEditing && allowDelete && (
+                {showInputs && allowDelete && (
                   <TableCell align="center" sx={{ py: 1.5 }}>
                     {!isPreview ? (
                       <IconButton
