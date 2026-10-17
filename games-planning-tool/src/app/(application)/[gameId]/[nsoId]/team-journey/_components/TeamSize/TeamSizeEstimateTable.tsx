@@ -4,13 +4,9 @@
 import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import NotesBox from './NotesBox';
-import TeamSizeCard, {
-  GRID_FIT,
-  JOIN_TOTAL_ROW,
-  TotalRow,
-} from './TeamSizeCard';
+import GridCard, { GRID_FIT, JOIN_TOTAL_ROW, TotalRow } from './GridCard';
 import { useGridCard } from './useGridCard';
-import { TeamSize } from '../_lib/teamSizeLogic';
+import { TeamSize } from '../../_lib/teamSizeLogic';
 import {
   TeamSizeRow,
   athletesToRows,
@@ -19,9 +15,9 @@ import {
   MAX_COUNT,
   allWholeCounts,
   withFixedLabels,
-} from '../_lib/teamSizeGridLogic';
+} from '../../_lib/teamSizeGridLogic';
 
-type TeamSizeTableProps = {
+type TeamSizeEstimateTableProps = {
   teamSize: TeamSize;
   onChange: (teamSize: TeamSize) => void;
 };
@@ -72,10 +68,10 @@ function TeamSizeWarnings({ rows }: { rows: TeamSizeRow[] }) {
   );
 }
 
-export default function TeamSizeTable({
+export default function TeamSizeEstimateTable({
   teamSize,
   onChange,
-}: TeamSizeTableProps) {
+}: TeamSizeEstimateTableProps) {
   const card = useGridCard<TeamSizeRow>({
     initialRows: athletesToRows(teamSize.athletes),
     initialNotes: teamSize.notes,
@@ -91,7 +87,7 @@ export default function TeamSizeTable({
   });
 
   return (
-    <TeamSizeCard
+    <GridCard
       title="Team size estimate"
       isEditing={card.isEditing}
       isPreview={card.isPreview}
@@ -121,6 +117,6 @@ export default function TeamSizeTable({
         isEditing={card.isEditing && !card.isPreview}
         onChange={card.setNotes}
       />
-    </TeamSizeCard>
+    </GridCard>
   );
 }
