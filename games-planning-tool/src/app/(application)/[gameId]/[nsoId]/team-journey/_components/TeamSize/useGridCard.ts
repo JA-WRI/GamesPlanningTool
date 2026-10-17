@@ -12,7 +12,7 @@ type GridCardOptions<T> = {
   onSave: (rows: T[], notes: string) => void;
 };
 
-// edit / save / cancel for one card: the shared grid rows plus its notes
+// edit, save, cancel for one card(the shared grid rows plus its notes)
 export function useGridCard<
   T extends Record<string, unknown> & { id: string },
 >({
@@ -53,7 +53,11 @@ export function useGridCard<
     save,
     cancel,
     isPreview,
-    setIsPreview,
+    // like BaseGridPage no preview while something can't be saved
+    setIsPreview: (preview: boolean) => {
+      if (preview && !canSave) return;
+      setIsPreview(preview);
+    },
     edit: () => {
       grid.setIsEditing(true);
       setIsPreview(false);

@@ -1,7 +1,7 @@
 // AI contribution: 50% or more AI-generated
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useGridCard } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_components/useGridCard';
+import { useGridCard } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_components/TeamSize/useGridCard';
 
 interface TestRow extends Record<string, unknown> {
   id: string;
@@ -126,6 +126,30 @@ describe('useGridCard', () => {
     expect(result.current.isEditing).toBe(true);
 
     act(() => result.current.setIsPreview(false));
+
+    expect(result.current.isPreview).toBe(false);
+  });
+
+  it('does not switch to Preview when isValid returns false', () => {
+    const { result } = setup((rows) => rows[0].count < 10);
+    act(() => {
+      result.current.edit();
+      result.current.setRows([{ id: '1', count: 50 }]);
+    });
+
+    act(() => result.current.setIsPreview(true));
+
+    expect(result.current.isPreview).toBe(false);
+  });
+
+  it('does not switch to Preview when a grid cell has an error', () => {
+    const { result } = setup();
+    act(() => {
+      result.current.edit();
+      result.current.setHasCellError(true);
+    });
+
+    act(() => result.current.setIsPreview(true));
 
     expect(result.current.isPreview).toBe(false);
   });
