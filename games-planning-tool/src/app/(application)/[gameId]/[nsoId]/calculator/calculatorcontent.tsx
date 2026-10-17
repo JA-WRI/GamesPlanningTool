@@ -28,8 +28,6 @@ const TRAVEL_CATEGORIES = [
   { id: 4, title: 'Support staff @ full NSO cost (incl. non-accredited)', },
 ] as const;
 
-const ACCESS_PRIVILEGES_URL = 'https://docs.google.com/spreadsheets/d/1XK2_WWzjYgJN0BHuGRM_yIyyb82rgw59f-hqg-sY7XY/edit?usp=sharing';
-
 type CalculatorRow = Record<string, unknown> & {
   id: number;
   category: string, 
@@ -106,7 +104,7 @@ function getStayDuration(checkIn: string, checkOut: string) {
 const columns: ColumnDefinition<CalculatorRow>[] = [
   {
     field: 'category',
-    label: '', // access and priviledge placeholder
+    label: 'Access and Priviledges',
     type: 'select',
     width: 430,
     options: TRAVEL_CATEGORIES.map(({ title }) => ({ label: title, value: title })),
@@ -223,27 +221,29 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
   return (
     <Box className="w-full min-w-0" data-calculator-id={calculatorId}>
       <Box className="mb-[14px] flex w-full items-center justify-between gap-4 max-[600px]:items-start">
-        <Typography className="text-[18px]! font-bold! text-[#111]!">Currency:</Typography>
-        <ConversionRates />
+        
+        {/* TO DELETE old placeholder for conversion rates 
+        <ConversionRates /> 
+        */}
       </Box>
       
-      <Paper className="max-w-full overflow-hidden rounded-[4px] border-2 border-[#ab4c27b4] bg-white shadow-none!" variant="outlined">
-        <Box className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#ab4c277a] bg-[#ab4c27] px-4 py-3">
-          <Typography className="text-[18px]! font-semibold! text-[#fffcf8]!">
+      <Paper className="max-w-full overflow-hidden rounded-[4px]" variant="outlined">
+        <Box className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+          <Typography>
             NSO FUNDED TEAM MEMBERS ESTIMATED COSTS
           </Typography>
           
           <Box className="flex items-center gap-2">
             {!isEditing ? (
-              <Button size="small" variant="contained" onClick={startEditing} className="rounded-full! bg-[#252b37]! px-4! text-white! normal-case!">
+              <Button size="small" variant="contained" onClick={startEditing} className="rounded-full! px-4!">
                 Edit
               </Button>
             ) : (
               <>
               {/* Sliding edit button*/}
-              <Box className={"relative flex h-8 w-[170px] items-center rounded-full border border-[#581d06] bg-transparent"}>
+              <Box className={"relative flex h-8 w-[170px] items-center rounded-full border border-[#252b37]"}>
                 <Box
-                  className={`pointer-events-none absolute top-0 left-0 h-full w-1/2 rounded-full bg-[#581d06] transition-transform duration-300 ease-in-out ${
+                  className={`pointer-events-none absolute top-0 left-0 h-full w-1/2 rounded-full bg-[#252b37] transition-transform duration-300 ease-in-out ${
                   isPreview ? 'translate-x-full' : 'translate-x-0'
                   }`}
                 />
@@ -254,8 +254,8 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
                       [calculatorId]: false, 
                     }))
                   }
-                  className={`relative z-10 h-full w-1/2 min-w-0! rounded-full! p-0! normal-case! transition-colors! duration-300! ${
-                    !isPreview ? 'text-white!' : 'text-[#4a1a07]!'
+                  className={`relative z-10 h-full w-1/2 min-w-0! rounded-full! p-0! transition-colors! duration-300! ${
+                    !isPreview ? 'text-white!' : 'text-[#252b37]!'
                   }`}>
                   Edit
                 </Button>
@@ -269,8 +269,8 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
                     [calculatorId]: true,
                     }))
                   }
-                  className={`relative z-10 h-full w-1/2 min-w-0! rounded-full! p-0! normal-case! transition-colors! duration-300! ${
-                    isPreview ? 'text-white!' : 'text-[#4a1a07]!' }`}
+                  className={`relative z-10 h-full w-1/2 min-w-0! rounded-full! p-0! transition-colors! duration-300! ${
+                    isPreview ? 'text-white!' : 'text-[#252b37]!' }`}
                   >
                   Preview
                 </Button>
@@ -279,7 +279,7 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
               <Button
                 size="small"
                 onClick={cancelEditing}
-                className="rounded-full! px-4! text-white! normal-case! "
+                className="rounded-full! px-4!"
               >
                 Cancel
               </Button>
@@ -289,7 +289,7 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
                 variant="contained"
                 disabled={hasValidationError}
                 onClick={saveEditing}
-                className="rounded-full! bg-[#7e2837]! px-4! text-white! normal-case!"
+                className="rounded-full! px-4!"
               >
                 Save
               </Button>
@@ -304,7 +304,7 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
           className="
             relative min-w-0 p-2
             [&_.MuiTable-root]:table-fixed
-            [&_.MuiTable-root]:min-w-[1750px]
+            [&_.MuiTable-root]:min-w-[2000px]
             [&_.MuiTableCell-root]:box-border
             [&_.MuiTableCell-root]:h-[70px]
             [&_.MuiTableCell-root]:overflow-hidden
@@ -312,7 +312,21 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
             [&_.MuiTableCell-root_.MuiFormControl-root]:min-w-0!
             [&_.MuiTableCell-root_.MuiFormControl-root]:w-full
             [&_.MuiTableCell-root_.MuiTextField-root]:min-w-0!
-            [&_.MuiTableCell-root_.MuiTextField-root]:w-full">
+            [&_.MuiTableCell-root_.MuiTextField-root]:w-full
+
+            
+            ${
+              isEditing && !isPreview
+                ? `
+                  [&_.MuiTableHead_.MuiTableCell-root:nth-child(11)]:w-[120px]
+                  [&_.MuiTableHead_.MuiTableCell-root:nth-child(11)]:min-w-[120px]
+                  [&_.MuiTableHead_.MuiTableCell-root:nth-child(11)]:text-center
+                  [&_.MuiTableBody_.MuiTableCell-root:nth-child(11)]:text-center
+                `
+                : ''
+            }
+          `}
+            ">
           <Grid
             columns={columns}
             rows={rows}
@@ -323,15 +337,6 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
             onAddRow={handleAddRow}
             addButtonLabel="Add New Traveler"
           />
-          <a
-            href={ACCESS_PRIVILEGES_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Access and Privileges reference"
-            className="absolute left-[26px] top-[23px] z-10 text-sm font-semibold text-black underline underline-offset-2 hover:text-[#9a431f]"
-          >
-            Access and Privileges
-          </a>
           
         </Box>
       </Paper>
