@@ -11,7 +11,7 @@ type NotesBoxProps = {
   placeholder?: string;
 };
 
-
+// notes box anyone can type in, with its own Save and Discard
 export default function NotesBox({
   id,
   value,
