@@ -38,83 +38,106 @@ type Team = {
   columns: Column[];
 };
 
-const teams: Team[] = [
+// Every team tracks the same five steps in the same order; defining the
+// titles/hrefs once here avoids repeating them for every team below.
+const STEPS: { title: string; href: string }[] = [
+  { title: 'Contact Info', href: '#' },
+  { title: 'Team Size', href: '#' },
+  { title: 'Accreditation', href: '#' },
+  { title: 'Estimated Costs', href: '#' },
+  { title: 'Review and Completion', href: '#' },
+];
+
+type TeamSeed = {
+  name: string;
+  logo?: string;
+  // One status per step, in the same order as STEPS.
+  statuses: Status[];
+};
+
+const teamSeeds: TeamSeed[] = [
   {
     name: 'Badminton Canada',
     logo: '/Badminton_Canada_logo.png',
-    columns: [
-      { title: 'Contact Info', status: 'Requires Update', href: '#' },
-      { title: 'Team Size', status: 'Submitted', href: '#' },
-      { title: 'Accreditation', status: 'Completed', href: '#' },
-      { title: 'Estimated Costs', status: 'In Progress', href: '#' },
-      { title: 'Review and Completion', status: 'Not Started', href: '#' },
+    statuses: [
+      'Requires Update',
+      'Submitted',
+      'Completed',
+      'In Progress',
+      'Not Started',
     ],
   },
   {
     // Logo is not transparent it doesn't look good on gray background -- either find transparent logo or remove background
     name: 'Basketball Canada',
     logo: '/Basketball_Canada_logo.png',
-    columns: [
-      { title: 'Contact Info', status: 'Not Started', href: '#' },
-      { title: 'Team Size', status: 'Submitted', href: '#' },
-      { title: 'Accreditation', status: 'Not Started', href: '#' },
-      { title: 'Estimated Costs', status: 'Not Started', href: '#' },
-      { title: 'Review and Completion', status: 'Not Started', href: '#' },
+    statuses: [
+      'Not Started',
+      'Submitted',
+      'Not Started',
+      'Not Started',
+      'Not Started',
     ],
   },
   {
     name: 'Archery Canada',
     logo: '/Archery_Canada_logo.png',
-    columns: [
-      { title: 'Contact Info', status: 'Not Started', href: '#' },
-      { title: 'Team Size', status: 'Not Started', href: '#' },
-      { title: 'Accreditation', status: 'Not Started', href: '#' },
-      { title: 'Estimated Costs', status: 'Not Started', href: '#' },
-      { title: 'Review and Completion', status: 'Not Started', href: '#' },
+    statuses: [
+      'Not Started',
+      'Not Started',
+      'Not Started',
+      'Not Started',
+      'Not Started',
     ],
   },
   // More placeholder teams (no logo yet) so the panel has names to list
   {
     name: 'Swimming Canada',
-    columns: [
-      { title: 'Contact Info', status: 'Requires Update', href: '#' },
-      { title: 'Team Size', status: 'Completed', href: '#' },
-      { title: 'Accreditation', status: 'In Progress', href: '#' },
-      { title: 'Estimated Costs', status: 'Not Started', href: '#' },
-      { title: 'Review and Completion', status: 'Not Started', href: '#' },
+    statuses: [
+      'Requires Update',
+      'Completed',
+      'In Progress',
+      'Not Started',
+      'Not Started',
     ],
   },
   {
     name: 'Cycling Canada',
-    columns: [
-      { title: 'Contact Info', status: 'Completed', href: '#' },
-      { title: 'Team Size', status: 'Completed', href: '#' },
-      { title: 'Accreditation', status: 'Submitted', href: '#' },
-      { title: 'Estimated Costs', status: 'Not Started', href: '#' },
-      { title: 'Review and Completion', status: 'Not Started', href: '#' },
+    statuses: [
+      'Completed',
+      'Completed',
+      'Submitted',
+      'Not Started',
+      'Not Started',
     ],
   },
   {
     name: 'Rowing Canada',
-    columns: [
-      { title: 'Contact Info', status: 'Not Started', href: '#' },
-      { title: 'Team Size', status: 'Requires Update', href: '#' },
-      { title: 'Accreditation', status: 'Requires Update', href: '#' },
-      { title: 'Estimated Costs', status: 'Not Started', href: '#' },
-      { title: 'Review and Completion', status: 'In Progress', href: '#' },
+    statuses: [
+      'Not Started',
+      'Requires Update',
+      'Requires Update',
+      'Not Started',
+      'In Progress',
     ],
   },
   {
     name: 'Soccer Canada',
-    columns: [
-      { title: 'Contact Info', status: 'In Progress', href: '#' },
-      { title: 'Team Size', status: 'Completed', href: '#' },
-      { title: 'Accreditation', status: 'Completed', href: '#' },
-      { title: 'Estimated Costs', status: 'In Progress', href: '#' },
-      { title: 'Review and Completion', status: 'Not Started', href: '#' },
+    statuses: [
+      'In Progress',
+      'Completed',
+      'Completed',
+      'In Progress',
+      'Not Started',
     ],
   },
 ];
+
+const teams: Team[] = teamSeeds.map((seed) => ({
+  name: seed.name,
+  logo: seed.logo,
+  columns: STEPS.map((step, i) => ({ ...step, status: seed.statuses[i] })),
+}));
 
 const statusTagColor: Record<Status, TagColor> = {
   Completed: 'green',
