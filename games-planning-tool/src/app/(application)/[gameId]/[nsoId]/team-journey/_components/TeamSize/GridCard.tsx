@@ -8,7 +8,6 @@ import { sumColumn } from '../../_lib/teamSizeGridLogic';
 export const GRID_FIT =
   '[&_.MuiTable-root]:min-w-0! [&_.MuiFormControl-root]:min-w-0!';
 
-
 export const JOIN_TOTAL_ROW = '[&_.MuiTableContainer-root]:rounded-b-none!';
 
 type GridCardProps = {
