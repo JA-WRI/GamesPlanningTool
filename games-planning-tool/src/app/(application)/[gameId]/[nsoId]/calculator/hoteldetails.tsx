@@ -1,4 +1,4 @@
-// 10% of teh code was AI generated:
+// 10% of the code was AI generated:
 // - css converted to tailwind
 
 'use client';

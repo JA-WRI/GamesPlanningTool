@@ -1,7 +1,7 @@
 // 60% AI generated code:
 // The following was AI generated:
-// - Original calculator layout, table/input scaffolding, and component organization
-// - Temporary calculator-specific state used before backend persistence is added
+// - Original calculator layout, and component organization
+// - Temporary calculator-specific state used beforedb is connected
 // - css converted to tailwind
 // The table fields and calculator requirements were reviewed and modified manually
 // The grid component was implemented manually 
@@ -230,7 +230,7 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
       <Paper className="max-w-full overflow-hidden rounded-[4px]" variant="outlined">
         <Box className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
           <Typography>
-            NSO FUNDED TEAM MEMBERS ESTIMATED COSTS
+            2026 OLYMPIC WINTER GAMES - MILANO CORTINA
           </Typography>
           
           <Box className="flex items-center gap-2">
@@ -341,7 +341,12 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
         </Box>
       </Paper>
 
-      <EstimatedCosts costs={currentData.estimatedCosts} onChange={updateEstimatedCost} />
+      <EstimatedCosts 
+        costs={currentData.estimatedCosts} 
+        onChange={updateEstimatedCost} 
+        isEditing={isEditing}
+        isPreview={isPreview}
+      />
       <HotelDetails />
       <CostSummary summary={summary} estimatedTotal={estimatedTotal} />
     </Box>
