@@ -7,13 +7,9 @@
 
 'use client';
 
-import {
-  Box,
-  InputAdornment,
-  Paper,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Box, InputAdornment, Paper, TextField, Typography} from '@mui/material';
+
+import ConversionRates, {type Currency, CONVERSION_RATES,} from './conversionrates';
 
 export type EstimatedCostsData = {
   clothingPackage: number;
@@ -32,6 +28,8 @@ type EstimatedCostsProps = {
   readonly onChange: (field: keyof EstimatedCostsData, value: number) => void;
   readonly isEditing?: boolean;
   readonly isPreview?: boolean;
+  readonly currency: Currency;
+  readonly onCurrencyChange: (currency: Currency) => void;
 };
 
 const COST_FIELDS: Array<{
@@ -53,8 +51,20 @@ export default function EstimatedCosts({
   onChange,
   isEditing = false,
   isPreview = false,
+  currency,
+  onCurrencyChange,
 }: Readonly<EstimatedCostsProps>) {
   const showInputs = isEditing && !isPreview;
+
+  const rate = CONVERSION_RATES[currency];
+  const convertFromCAD = (value: number) => value/rate;
+  const convertToCAD = (value:number) => value*rate;
+
+  const formatCost = (value:number) =>
+    new Intl.NumberFormat('en-CA', {
+      style:'currency', currency, minimumFractionDigits:2, maximumFractionDigits:2
+    }).format(convertFromCAD(value));
+
   return (
     <Paper
       className="mt-10 overflow-hidden rounded-[4px] shadow-none!"
@@ -77,13 +87,12 @@ export default function EstimatedCosts({
                 type="number"
                 size="small"
                 fullWidth
-                value={costs[item.field]}
-                onChange={(event) =>
-                  onChange(
-                    item.field,
-                    Math.max(0, Number(event.target.value) || 0),
-                  )
-                }
+                value={Number(convertFromCAD(costs[item.field]).toFixed(2))}
+                onChange={(event) => {
+                  const enteredValue = Math.max(0, Number(event.target.value) || 0);
+                  onChange(item.field, convertToCAD(enteredValue));
+                }}
+
                 slotProps={{
                   htmlInput: {
                     min: 0,
@@ -93,7 +102,7 @@ export default function EstimatedCosts({
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
-                        $
+                        {currency}
                       </InputAdornment>
                     ),
                   },
@@ -102,17 +111,17 @@ export default function EstimatedCosts({
             />
             ) : (
               <Box className="flex h-[38px] items-center rounded-[4px] border border-[#b6b7b8]  px-3 text-[14px] text-[#222]">
-                ${costs[item.field]}
+                {formatCost(costs[item.field])}
               </Box>
             )}
           </Box>
         ))}
       </Box>
-      <Box className="border-t px-4 py-3">
-        <Typography className="text-[11px]! text-[#777]!">
-          CONVERSIONS
-        </Typography>
-      </Box>
+      <ConversionRates
+        currency={currency}
+        onCurrencyChange={onCurrencyChange}
+      />
+      
     </Paper>
   );
 }

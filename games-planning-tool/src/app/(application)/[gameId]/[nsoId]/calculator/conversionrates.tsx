@@ -1,4 +1,4 @@
-// 80% AI generated code:
+// 30% AI generated code:
 // The following was AI generated:
 // - Currency selector component structure
 // - css converted to tailwind
@@ -6,41 +6,72 @@
 
 'use client';
 
-import { useState } from 'react';
-import { Box, MenuItem, Paper, TextField, Typography } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 
-const CURRENCIES = ['EUR', 'USD', 'CAD'] as const;
+export type Currency = 'CAD' | 'USD' | 'EUR';
 
-export default function ConversionRates() {
-  const [currency, setCurrency] = useState<(typeof CURRENCIES)[number]>('CAD');
+// TO DELETE: will be connected to db to update teh conversion rates
+export const CONVERSION_RATES: Record<Currency, number> = {
+  CAD: 1,
+  USD: 1.38,
+  EUR: 1.48,
+};
+
+type ConversionRatesProps = {
+  readonly currency: Currency;
+  readonly onCurrencyChange: (currency: Currency) => void;
+};
+
+export default function ConversionRates({currency, onCurrencyChange,}: Readonly<ConversionRatesProps>) {
 
   return (
-    <Paper
-      className="calculator-content-panel calculator-rates"
-      variant="outlined"
-    >
-      <Box className="calculator-content-section-heading">
-        <Typography>Currency</Typography>
+    <Box className="flex flex-wrap items-center justify-between gap-4 border-t px-4 py-3">
+            <Box className="flex flex-wrap items-center gap-3">
+        <Typography className="text-[11px]! font-semibold! tracking-wide! text-[#777]!">
+          CONVERSIONS
+        </Typography>
+
+        <Box className="rounded-full border border-gray-200 bg-gray-50 px-3 py-2">
+          <Typography className="text-[12px]!">
+            USD → CAD{' '}
+            <span className="font-semibold">
+              {CONVERSION_RATES.USD.toFixed(2)}
+            </span>
+          </Typography>
+        </Box>
+
+        <Box className="rounded-full border border-gray-200 bg-gray-50 px-3 py-2">
+          <Typography className="text-[12px]!">
+            EUR → CAD{' '}
+            <span className="font-semibold">
+              {CONVERSION_RATES.EUR.toFixed(2)}
+            </span>
+          </Typography>
+        </Box>
       </Box>
 
-      <Box className="calculator-rates-grid">
-        <TextField
-          className="calculator-rate-currency"
-          select
-          size="small"
-          value={currency}
-          onChange={(event) =>
-            setCurrency(event.target.value as (typeof CURRENCIES)[number])
-          }
-          slotProps={{ select: { 'aria-label': 'Select currency' } }}
-        >
-          {CURRENCIES.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </TextField>
+      <Box
+        role="group"
+        aria-label="Select calculator currency"
+        className="flex items-center gap-1 rounded-full border border-gray-300 p-1"
+      >
+        {(['CAD', 'USD', 'EUR'] as const).map((option) => (
+          <Button
+            key={option}
+            size="small"
+            aria-pressed={currency === option}
+            onClick={() => onCurrencyChange(option)}
+            className={`min-w-[52px]! rounded-full! px-3! normal-case! ${
+              currency === option
+                ? 'bg-[#252b37]! text-white!'
+                : 'text-[#252b37]!'
+            }`}
+          >
+            {option}
+          </Button>
+        ))}
       </Box>
-    </Paper>
+    </Box>
+   
   );
 }

@@ -14,7 +14,8 @@ import {
   Button,
   Typography,
 } from '@mui/material';
-import ConversionRates from './conversionrates';
+
+import type {Currency} from './conversionrates';
 import CostSummary from './costsummary';
 import EstimatedCosts, { EstimatedCostsData } from './estimatedcosts';
 import HotelDetails from './hoteldetails';
@@ -133,6 +134,8 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
   const hasValidationError = validationByCalculator[calculatorId] ?? false;
   const rows = draftRows[calculatorId] ?? currentData.rows;
 
+  const [currency, setCurrency] = useState<Currency>('CAD');
+
   const updateCurrentCalculator = (update: (data: CalculatorData) => CalculatorData) => {
     setCalculatorData((previous) => {
       const current = previous[calculatorId] ?? createInitialCalculatorData();
@@ -220,15 +223,9 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
 
   return (
     <Box className="w-full min-w-0" data-calculator-id={calculatorId}>
-      <Box className="mb-[14px] flex w-full items-center justify-between gap-4 max-[600px]:items-start">
-        
-        {/* TO DELETE old placeholder for conversion rates 
-        <ConversionRates /> 
-        */}
-      </Box>
-      
       <Paper className="max-w-full overflow-hidden rounded-[4px]" variant="outlined">
         <Box className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+          {/* TO DELETE title is now statis, will be changed to make it static */}
           <Typography>
             2026 OLYMPIC WINTER GAMES - MILANO CORTINA
           </Typography>
@@ -346,6 +343,8 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
         onChange={updateEstimatedCost} 
         isEditing={isEditing}
         isPreview={isPreview}
+        currency={currency}
+        onCurrencyChange={setCurrency}
       />
       <HotelDetails />
       <CostSummary summary={summary} estimatedTotal={estimatedTotal} />
