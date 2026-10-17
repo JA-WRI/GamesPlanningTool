@@ -2,7 +2,7 @@
 // Original file was not AI generated, but it has been modified by AI to some extent to fit desired aesthetic.
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import type { ChartSegment } from './types';
 
@@ -23,6 +23,7 @@ export default function DonutChart({
   className = 'h-36 w-full',
 }: DonutChartProps) {
   const [tooltip, setTooltip] = useState<TooltipState>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const data = segments.map((segment) => ({
     ...segment,
@@ -31,8 +32,35 @@ export default function DonutChart({
 
   const total = data.reduce((sum, segment) => sum + segment.value, 0);
 
+  // Fast cursor movement can jump straight from a sector to outside the
+  // chart without ever firing that sector's onMouseLeave, which left the
+  // percentage bubble stuck on screen. Watching every pointer move and
+  // hiding the bubble once the cursor is actually outside the chart's
+  // bounds catches that case regardless of which element fired (or
+  // missed) its own leave event.
+  useEffect(() => {
+    if (!tooltip) return;
+
+    function handlePointerMove(event: PointerEvent) {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const inside =
+        event.clientX >= rect.left &&
+        event.clientX <= rect.right &&
+        event.clientY >= rect.top &&
+        event.clientY <= rect.bottom;
+
+      if (!inside) setTooltip(null);
+    }
+
+    document.addEventListener('pointermove', handlePointerMove);
+    return () => document.removeEventListener('pointermove', handlePointerMove);
+  }, [tooltip]);
+
   return (
     <div
+      ref={containerRef}
       className={`relative overflow-visible drop-shadow-[0px_0px_8px_rgba(0,0,0,0.3)] mb-6 ${className}`}
       onMouseLeave={() => setTooltip(null)}
     >
