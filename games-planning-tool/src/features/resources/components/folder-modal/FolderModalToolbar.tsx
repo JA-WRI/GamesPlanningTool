@@ -46,7 +46,10 @@ export function FolderModalToolbar({
 
   return (
     <>
-      <div className="border-b border-neutral-200 bg-[#FEFAF6] px-4 py-3 flex items-center justify-between shrink-0 flex-wrap gap-2">
+      <div
+        style={{ backgroundColor: '#FEFAF6' }}
+        className="border-b border-neutral-200 bg-[#FEFAF6] px-4 py-3 flex items-center justify-between shrink-0 flex-wrap gap-2"
+      >
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -115,7 +118,10 @@ export function FolderModalToolbar({
       </div>
 
       {isEditingCategories && (
-        <div className="p-4 bg-[#FEFAF6] border-b border-gray-200 shrink-0">
+        <div
+          style={{ backgroundColor: '#FEFAF6' }}
+          className="p-4 bg-[#FEFAF6] border-b border-gray-200 shrink-0"
+        >
           <CategoryEditor
             selectedCategories={currentFolder.categories}
             onChange={(newCats) =>

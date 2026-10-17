@@ -34,8 +34,11 @@ export function FolderModalHeader({
   isReadOnly = false,
 }: FolderModalHeaderProps) {
   return (
-    <div className="relative bg-[#FEFAF6] border-b border-neutral-200 px-4 py-4 sm:px-6 sm:py-5 flex items-center shrink-0">
-      <div className="flex items-center w-full pr-10">
+    <div
+      style={{ backgroundColor: '#FEFAF6' }}
+      className="relative bg-[#FEFAF6] border-b border-neutral-200 px-4 py-4 sm:px-6 sm:py-5 flex items-center justify-between shrink-0"
+    >
+      <div className="flex items-center min-w-0 flex-1 pr-4">
         <button
           type="button"
           data-folder-nav="back"
@@ -131,7 +134,7 @@ export function FolderModalHeader({
       <button
         type="button"
         onClick={onClose}
-        className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full p-1.5 transition-colors cursor-pointer"
+        className="text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full p-1.5 transition-colors cursor-pointer shrink-0 ml-auto flex items-center justify-center"
         aria-label="Close folder dialog"
       >
         <CloseIcon sx={{ fontSize: 20 }} className="opacity-60" />

@@ -233,7 +233,8 @@ export function FolderDirectoryModal({
         />
         <div
           ref={modalPanelRef}
-          className={`relative w-full max-w-5xl h-[80vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden z-10 transition-all duration-300 ${
+          style={{ backgroundColor: '#FEFAF6' }}
+          className={`relative w-full max-w-5xl h-[80vh] flex flex-col bg-[#FEFAF6] rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden z-10 transition-all duration-300 ${
             hasExitedWindow
               ? 'hidden'
               : isDraggingOutside
@@ -355,6 +356,7 @@ export function FolderDirectoryModal({
 
           <div
             ref={contentRef}
+            style={{ backgroundColor: '#ffffff' }}
             className="p-4 sm:p-6 overflow-y-auto flex-1 bg-white"
           >
             {localOrderedChildren.length === 0 ? (
@@ -365,11 +367,18 @@ export function FolderDirectoryModal({
                 />
                 <p>This folder is empty.</p>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Add files or create subfolders using the actions above.
+                  {isReadOnly
+                    ? 'There are no items in this folder.'
+                    : 'Add files or create subfolders using the actions above.'}
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(88px,1fr))] gap-3 sm:gap-4 pt-2 pb-2 px-1 items-start">
+              <div
+                className="grid gap-3 sm:gap-4 pt-2 pb-2 px-1 items-start"
+                style={{
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))',
+                }}
+              >
                 {localOrderedChildren.map((item) => {
                   const isSubfolder = item.type === 'folder';
                   const isDropTarget = dropTargetFolderId === item.id;
@@ -382,7 +391,8 @@ export function FolderDirectoryModal({
                       key={item.id}
                       data-folder-item-id={item.id}
                       data-resource-type={item.type}
-                      className={`shrink-0 transition-transform ${isDraggingThis ? 'opacity-40 scale-95' : ''}`}
+                      className={`w-full shrink-0 transition-transform ${isDraggingThis ? 'opacity-40 scale-95' : ''}`}
+                      style={{ width: '88px', maxWidth: '88px' }}
                     >
                       <ResourceCard
                         resource={item}
@@ -399,8 +409,7 @@ export function FolderDirectoryModal({
                             : undefined
                         }
                         onToggleSelect={(id) => {
-                          if (isReadOnly || justFinishedSweepRef.current)
-                            return;
+                          if (isReadOnly || justFinishedSweepRef.current) return;
                           setSelectedIds((prev) => {
                             const next = new Set(prev);
                             if (next.has(id)) next.delete(id);
@@ -409,16 +418,10 @@ export function FolderDirectoryModal({
                           });
                         }}
                         onRoundButtonPointerDown={(e) => {
-                          if (!isReadOnly)
-                            handleSweepPointerDown(
-                              e.clientX,
-                              e.clientY,
-                              item.id,
-                            );
+                          if (!isReadOnly) handleSweepPointerDown(e.clientX, e.clientY, item.id);
                         }}
                         onRoundButtonClick={(id) => {
-                          if (isReadOnly || justFinishedSweepRef.current)
-                            return;
+                          if (isReadOnly || justFinishedSweepRef.current) return;
                           setSelectedIds((prev) => {
                             const next = new Set(prev);
                             if (next.has(id)) next.delete(id);
@@ -437,16 +440,9 @@ export function FolderDirectoryModal({
                           if (resource.type === 'folder') {
                             setCurrentFolderId(resource.id);
                           } else if (resource.type === 'link') {
-                            if (resource.URL) {
-                              window.open(
-                                resource.URL,
-                                '_blank',
-                                'noopener,noreferrer',
-                              );
-                            }
+                            if (resource.URL) window.open(resource.URL, '_blank', 'noopener,noreferrer');
                           } else if (resource.type === 'file') {
-                            const url =
-                              (resource as FileResource).fileUrl || '#';
+                            const url = (resource as FileResource).fileUrl || '#';
                             window.open(url, '_blank', 'noopener,noreferrer');
                           } else {
                             onSelectResourceDetail(resource);

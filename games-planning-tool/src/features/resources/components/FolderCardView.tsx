@@ -28,8 +28,8 @@ export function FolderCardView({
 }: FolderCardViewProps) {
   return (
     <div
-      className="w-full relative select-none pointer-events-none filter drop-shadow-sm group-hover:drop-shadow-md transition-all duration-200 flex items-center justify-center"
-      style={{ aspectRatio: '100 / 76' }}
+      className="w-16 h-12 max-w-[68px] max-h-[52px] mx-auto relative select-none pointer-events-none filter drop-shadow-sm group-hover:drop-shadow-md transition-all duration-200 flex items-center justify-center"
+      style={{ width: '68px', height: '52px', aspectRatio: '100 / 76' }}
       title={resource.name}
     >
       {/* Folder SVG: wider than tall */}
