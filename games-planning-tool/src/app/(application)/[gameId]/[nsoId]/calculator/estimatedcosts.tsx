@@ -2,8 +2,10 @@
 // The following was AI generated:
 // - Original estimated cost component structure and MUI inputs
 // - css converted to tailwind
+// - used to help for the original currency logic
 // The layout, cost categories, values, and styling were modified to match the wanted calculator design.
 // The reusable grid component was impleted manually
+
 
 'use client';
 
@@ -20,7 +22,6 @@ export type EstimatedCostsData = {
   mealsPerDay: number;
   villageMealVoucher: number;
   knifeAndFork: number;
-  accommodation: number;
 };
 
 type EstimatedCostsProps = {
@@ -60,10 +61,11 @@ export default function EstimatedCosts({
   const convertFromCAD = (value: number) => value/rate;
   const convertToCAD = (value:number) => value*rate;
 
-  const formatCost = (value:number) =>
-    new Intl.NumberFormat('en-CA', {
+  const currencyFormatter = new Intl.NumberFormat('en-CA', {
       style:'currency', currency, minimumFractionDigits:2, maximumFractionDigits:2
-    }).format(convertFromCAD(value));
+  });
+  
+  const formatCost = (value:number) => currencyFormatter.format(convertFromCAD(value));
 
   return (
     <Paper
@@ -83,7 +85,14 @@ export default function EstimatedCosts({
 
             {showInputs ? (
               <TextField
-              className="[&_.MuiOutlinedInput-root]:h-[38px] [&_.MuiOutlinedInput-root]:rounded-[4px] "
+              className="
+              [&_.MuiOutlinedInput-root]:h-[38px]
+              [&_.MuiOutlinedInput-root]:rounded-[4px]
+              [&_.MuiInputBase-input]:text-[14px]
+              [&_.MuiInputAdornment-root]:mr-1
+              [&_.MuiInputAdornment-root_.MuiTypography-root]:text-[14px]
+              [&_.MuiInputAdornment-root_.MuiTypography-root]:text-[#222]
+              "
                 type="number"
                 size="small"
                 fullWidth
@@ -102,7 +111,7 @@ export default function EstimatedCosts({
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
-                        {currency}
+                        {currency === 'USD' ? 'US$' : currency === 'CAD' ? 'CA$' : '€'}
                       </InputAdornment>
                     ),
                   },
