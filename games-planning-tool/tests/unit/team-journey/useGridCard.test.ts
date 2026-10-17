@@ -11,13 +11,12 @@ interface TestRow extends Record<string, unknown> {
 const initialRows: TestRow[] = [{ id: '1', count: 5 }];
 const createRow = (): TestRow => ({ id: '2', count: 0 });
 
-// starts the hook with these rows and the note "first note"
+// starts the hook with these rows
 function setup(isValid?: (rows: TestRow[]) => boolean) {
   const onSave = vi.fn();
   const hook = renderHook(() =>
     useGridCard<TestRow>({
       initialRows,
-      initialNotes: 'first note',
       createRow,
       isValid,
       onSave,
@@ -36,17 +35,16 @@ describe('useGridCard', () => {
     expect(result.current.isEditing).toBe(true);
   });
 
-  it('saves the rows and notes with onSave', () => {
+  it('saves the rows with onSave', () => {
     const { result, onSave } = setup();
     act(() => {
       result.current.edit();
       result.current.setRows([{ id: '1', count: 8 }]);
-      result.current.setNotes('new note');
     });
 
     act(() => result.current.save());
 
-    expect(onSave).toHaveBeenCalledWith([{ id: '1', count: 8 }], 'new note');
+    expect(onSave).toHaveBeenCalledWith([{ id: '1', count: 8 }]);
     expect(result.current.isEditing).toBe(false);
   });
 
@@ -77,36 +75,17 @@ describe('useGridCard', () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
-  it('puts back the rows and notes on cancel', () => {
+  it('puts back the rows on cancel', () => {
     const { result } = setup();
     act(() => {
       result.current.edit();
       result.current.setRows([{ id: '1', count: 99 }]);
-      result.current.setNotes('changed');
     });
 
     act(() => result.current.cancel());
 
     expect(result.current.rows).toEqual(initialRows);
-    expect(result.current.notes).toBe('first note');
     expect(result.current.isEditing).toBe(false);
-  });
-
-  it('puts back the saved notes, not the first ones, on cancel after a save', () => {
-    const { result } = setup();
-    act(() => {
-      result.current.edit();
-      result.current.setNotes('saved note');
-    });
-    act(() => result.current.save());
-    act(() => {
-      result.current.edit();
-      result.current.setNotes('not saved');
-    });
-
-    act(() => result.current.cancel());
-
-    expect(result.current.notes).toBe('saved note');
   });
 
   it('starts in Edit View, not Preview', () => {

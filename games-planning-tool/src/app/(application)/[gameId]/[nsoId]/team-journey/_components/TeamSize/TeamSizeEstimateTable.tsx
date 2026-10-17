@@ -3,7 +3,7 @@
 
 import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import NotesBox from './NotesBox';
+import NotesBox from '@/components/commons/NotesBox';
 import GridCard, { GRID_FIT, JOIN_TOTAL_ROW, TotalRow } from './GridCard';
 import { useGridCard } from './useGridCard';
 import { TeamSize } from '../../_lib/teamSizeLogic';
@@ -74,15 +74,13 @@ export default function TeamSizeEstimateTable({
 }: TeamSizeEstimateTableProps) {
   const card = useGridCard<TeamSizeRow>({
     initialRows: athletesToRows(teamSize.athletes),
-    initialNotes: teamSize.notes,
     // never called, this table has no add button
     createRow: () => athletesToRows(teamSize.athletes)[0],
     isValid: isTeamSizeValid,
-    onSave: (rows, notes) =>
+    onSave: (rows) =>
       onChange({
         ...teamSize,
         athletes: rowsToAthletes(rows, teamSize.athletes),
-        notes,
       }),
   });
 
@@ -113,9 +111,8 @@ export default function TeamSizeEstimateTable({
       <TeamSizeWarnings rows={card.rows} />
       <NotesBox
         id="team-size-notes"
-        value={card.notes}
-        isEditing={card.isEditing && !card.isPreview}
-        onChange={card.setNotes}
+        value={teamSize.notes}
+        onSave={(notes) => onChange({ ...teamSize, notes })}
       />
     </GridCard>
   );

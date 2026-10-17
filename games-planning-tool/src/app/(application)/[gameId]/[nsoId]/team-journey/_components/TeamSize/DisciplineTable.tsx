@@ -3,7 +3,7 @@
 
 import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import NotesBox from './NotesBox';
+import NotesBox from '@/components/commons/NotesBox';
 import GridCard, { GRID_FIT, JOIN_TOTAL_ROW, TotalRow } from './GridCard';
 import { useGridCard } from './useGridCard';
 import {
@@ -74,13 +74,12 @@ export default function DisciplineTable({
 }: DisciplineTableProps) {
   const card = useGridCard<DisciplineRow>({
     initialRows: disciplines.rows,
-    initialNotes: disciplines.notes,
     // never called, this table has no add button
     createRow: () => disciplines.rows[0],
     isValid: (rows) =>
       allWholeCounts(rows, COUNT_FIELDS) &&
       !rows.some(disciplineHasLowAboveBest),
-    onSave: (rows, notes) => onChange({ rows, notes }),
+    onSave: (rows) => onChange({ ...disciplines, rows }),
   });
 
   return (
@@ -110,9 +109,8 @@ export default function DisciplineTable({
       <DisciplineWarnings rows={card.rows} />
       <NotesBox
         id="discipline-notes"
-        value={card.notes}
-        isEditing={card.isEditing && !card.isPreview}
-        onChange={card.setNotes}
+        value={disciplines.notes}
+        onSave={(notes) => onChange({ ...disciplines, notes })}
       />
     </GridCard>
   );
