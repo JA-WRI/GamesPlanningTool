@@ -1,5 +1,6 @@
 //50% or more AI-generated
 import type { Status, StatusCounts } from '@/components/commons/status';
+import { STATUS_ORDER } from '@/components/commons/status';
 
 export type DashboardStats = {
   total: number;
@@ -54,4 +55,39 @@ export function filterTeams<T extends TeamLike>(
 // Wraps around at both ends so the pager can cycle forever.
 export function cycleIndex(index: number, delta: number, length: number) {
   return (((index + delta) % length) + length) % length;
+}
+
+// Teams grouped by name, bucketed by their status at a given column index,
+// in STATUS_ORDER.
+export function namesByStatusAtColumn<T extends TeamLike>(
+  teams: T[],
+  columnIndex: number,
+): Record<Status, string[]> {
+  return Object.fromEntries(
+    STATUS_ORDER.map((status) => [
+      status,
+      teams
+        .filter((team) => team.columns[columnIndex]?.status === status)
+        .map((team) => team.name),
+    ]),
+  ) as Record<Status, string[]>;
+}
+
+type TeamWithTitledColumns = {
+  columns: { title: string; status: Status }[];
+};
+
+// Keeps only teams where every active column filter matches one of their
+// columns' statuses.
+export function filterByColumnStatuses<T extends TeamWithTitledColumns>(
+  teams: T[],
+  columnFilters: Record<string, Status[]>,
+): T[] {
+  return teams.filter((team) =>
+    Object.entries(columnFilters).every(([columnTitle, statuses]) => {
+      if (statuses.length === 0) return true;
+      const column = team.columns.find((col) => col.title === columnTitle);
+      return column !== undefined && statuses.includes(column.status);
+    }),
+  );
 }

@@ -1,5 +1,5 @@
 // AI usage -> 100%
-import type { StatusCounts } from '@/components/commons/status';
+import type { Status, StatusCounts } from '@/components/commons/status';
 
 export const mockDashboard: { title: string; counts: StatusCounts }[] = [
   {
@@ -53,3 +53,116 @@ export const mockDashboard: { title: string; counts: StatusCounts }[] = [
     },
   },
 ];
+
+export type Column = {
+  title: string;
+  status: Status;
+  href: string;
+};
+
+export type Team = {
+  name: string;
+  logo?: string;
+  columns: Column[];
+};
+
+// Every team tracks the same five steps in the same order; defining the
+// titles/hrefs once here avoids repeating them for every team below.
+const STEPS: { title: string; href: string }[] = [
+  { title: 'Contact Info', href: '#' },
+  { title: 'Team Size', href: '#' },
+  { title: 'Accreditation', href: '#' },
+  { title: 'Estimated Costs', href: '#' },
+  { title: 'Review and Completion', href: '#' },
+];
+
+type TeamSeed = {
+  name: string;
+  logo?: string;
+  // One status per step, in the same order as STEPS.
+  statuses: Status[];
+};
+
+const teamSeeds: TeamSeed[] = [
+  {
+    name: 'Badminton Canada',
+    logo: '/Badminton_Canada_logo.png',
+    statuses: [
+      'Requires Update',
+      'Submitted',
+      'Completed',
+      'In Progress',
+      'Not Started',
+    ],
+  },
+  {
+    // Logo is not transparent it doesn't look good on gray background -- either find transparent logo or remove background
+    name: 'Basketball Canada',
+    logo: '/Basketball_Canada_logo.png',
+    statuses: [
+      'Not Started',
+      'Submitted',
+      'Not Started',
+      'Not Started',
+      'Not Started',
+    ],
+  },
+  {
+    name: 'Archery Canada',
+    logo: '/Archery_Canada_logo.png',
+    statuses: [
+      'Not Started',
+      'Not Started',
+      'Not Started',
+      'Not Started',
+      'Not Started',
+    ],
+  },
+  // More placeholder teams (no logo yet) so the panel has names to list
+  {
+    name: 'Swimming Canada',
+    statuses: [
+      'Requires Update',
+      'Completed',
+      'In Progress',
+      'Not Started',
+      'Not Started',
+    ],
+  },
+  {
+    name: 'Cycling Canada',
+    statuses: [
+      'Completed',
+      'Completed',
+      'Submitted',
+      'Not Started',
+      'Not Started',
+    ],
+  },
+  {
+    name: 'Rowing Canada',
+    statuses: [
+      'Not Started',
+      'Requires Update',
+      'Requires Update',
+      'Not Started',
+      'In Progress',
+    ],
+  },
+  {
+    name: 'Soccer Canada',
+    statuses: [
+      'In Progress',
+      'Completed',
+      'Completed',
+      'In Progress',
+      'Not Started',
+    ],
+  },
+];
+
+export const teams: Team[] = teamSeeds.map((seed) => ({
+  name: seed.name,
+  logo: seed.logo,
+  columns: STEPS.map((step, i) => ({ ...step, status: seed.statuses[i] })),
+}));
