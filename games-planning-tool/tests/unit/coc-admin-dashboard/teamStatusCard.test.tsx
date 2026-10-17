@@ -5,10 +5,10 @@ import TeamStatusCard from '../../../src/app/(application)/[gameId]/(coc)/dashbo
 import type { Status } from '../../../src/components/commons/status';
 
 const columns: { title: string; status: Status; href: string }[] = [
+  { title: 'Contact Info', status: 'Requires Update', href: '/contact-info' },
   { title: 'Team Size', status: 'Submitted', href: '/team-size' },
   { title: 'Accreditation', status: 'Completed', href: '/accreditation' },
-  { title: 'Arrival/Travel In', status: 'Requires Update', href: '/arrival' },
-  { title: 'Departure/Travel Out', status: 'In Progress', href: '/departure' },
+  { title: 'Estimated Costs', status: 'In Progress', href: '/estimated-costs' },
   { title: 'Review and Completion', status: 'Not Started', href: '/review' },
 ];
 
