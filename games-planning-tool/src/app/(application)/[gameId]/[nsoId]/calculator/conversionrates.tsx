@@ -1,7 +1,8 @@
-// 30% AI generated code:
+// 50% AI generated code:
 // The following was AI generated:
 // - Currency selector component structure
 // - css converted to tailwind
+// - ai used for styling
 // The options and layout were reviewed and modified to match the calculator requirements.
 
 'use client';

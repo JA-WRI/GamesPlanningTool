@@ -15,6 +15,9 @@ import {
   Typography,
 } from '@mui/material';
 
+import { useParams } from 'next/navigation';
+import { Games } from '@/lib/data';
+
 import type {Currency} from './conversionrates';
 import CostSummary from './costsummary';
 import EstimatedCosts, { EstimatedCostsData } from './estimatedcosts';
@@ -34,7 +37,7 @@ type CalculatorRow = Record<string, unknown> & {
   category: string, 
   numberOfTeamMembers: number,
   days: number,
-  travelBudget: number, // make it COC or $
+  travelBudget: number,
   checkIn: string,
   checkOut: string,
   accommodationBudget: number,
@@ -61,8 +64,7 @@ const INITIAL_ESTIMATED_COSTS = (): EstimatedCostsData => ({
   cellphone: 108,
   mealsPerDay: 118,
   villageMealVoucher: 57,
-  knifeAndFork: 2279,
-  accommodation: 0,
+  knifeAndFork: 2279
 });
 
 function createTraveler(id: number, category: string = TRAVEL_CATEGORIES[0].title): CalculatorRow {
@@ -122,8 +124,13 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
 ];
 
 export default function CalculatorContent({ calculatorId }: CalculatorContentProps) {
+  const params = useParams<{gameId?:string}>();
+  const selectedGame = Games.find( (game)=> game.id === params.gameId );
+
   const [calculatorData, setCalculatorData] = useState< Record<number, CalculatorData>>({});
   const [draftRows, setDraftRows] = useState<Record<number, CalculatorRow[]>>({});
+  const [draftEstimatedCosts, setDraftEstimatedCosts] = useState<Record<number, EstimatedCostsData>>({});
+  
   const [editingByCalculator, setEditingByCalculator] = useState<Record<number, boolean>>({});
   const [previewByCalculator, setPreviewByCalculator] = useState<Record<number, boolean>>({});
   const [validationByCalculator, setValidationByCalculator] = useState<Record<number, boolean>>({});
@@ -143,18 +150,25 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
     });
   };
 
-  const updateEstimatedCost = (field: keyof EstimatedCostsData, value: number) => {
-    updateCurrentCalculator((data) => ({
-      ...data,
-      estimatedCosts: { ...data.estimatedCosts, [field]: value },
+  const updateEstimatedCost = (
+    field: keyof EstimatedCostsData,
+    value: number
+  ) => {
+    setDraftEstimatedCosts((previous) => ({
+      ...previous,
+      [calculatorId]: {
+        ...(previous[calculatorId] ?? currentData.estimatedCosts),
+        [field]: value,
+      },
     }));
   };
 
   
   const startEditing = () => {
-    setDraftRows((previous) => ({ ...previous, [calculatorId]: currentData.rows }));
-    setEditingByCalculator((previous) => ({ ...previous, [calculatorId]: true }));
-    setPreviewByCalculator((previous) => ({ ...previous, [calculatorId]: false }));
+    setDraftRows((previous) => ({...previous, [calculatorId]: currentData.rows,}));
+    setDraftEstimatedCosts((previous) => ({...previous,[calculatorId]: { ...currentData.estimatedCosts }}));
+    setEditingByCalculator((previous) => ({...previous,[calculatorId]: true}));
+    setPreviewByCalculator((previous) => ({...previous,[calculatorId]: false}));
   };
 
   const cancelEditing = () => {
@@ -163,15 +177,55 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
       delete next[calculatorId];
       return next;
     });
-    setEditingByCalculator((previous) => ({ ...previous, [calculatorId]: false }));
-    setPreviewByCalculator((previous) => ({ ...previous, [calculatorId]: false }));
+  
+    setDraftEstimatedCosts((previous) => {
+      const next = { ...previous };
+      delete next[calculatorId];
+      return next;
+    });
+  
+    setEditingByCalculator((previous) => ({
+      ...previous,
+      [calculatorId]: false,
+    }));
+  
+    setPreviewByCalculator((previous) => ({
+      ...previous,
+      [calculatorId]: false,
+    }));
   };
-
+  
   const saveEditing = () => {
     if (hasValidationError) return;
-    updateCurrentCalculator((data) => ({ ...data, rows }));
-    setEditingByCalculator((previous) => ({ ...previous, [calculatorId]: false }));
-    setPreviewByCalculator((previous) => ({ ...previous, [calculatorId]: false }));
+  
+    updateCurrentCalculator((data) => ({
+      ...data,
+      rows,
+      estimatedCosts:
+        draftEstimatedCosts[calculatorId] ?? data.estimatedCosts,
+    }));
+  
+    setDraftRows((previous) => {
+      const next = { ...previous };
+      delete next[calculatorId];
+      return next;
+    });
+  
+    setDraftEstimatedCosts((previous) => {
+      const next = { ...previous };
+      delete next[calculatorId];
+      return next;
+    });
+  
+    setEditingByCalculator((previous) => ({
+      ...previous,
+      [calculatorId]: false,
+    }));
+  
+    setPreviewByCalculator((previous) => ({
+      ...previous,
+      [calculatorId]: false,
+    }));
   };
 
   const handleGridRowsChange = (updatedRows: CalculatorRow[]) => {
@@ -225,9 +279,8 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
     <Box className="w-full min-w-0" data-calculator-id={calculatorId}>
       <Paper className="max-w-full overflow-hidden rounded-[4px]" variant="outlined">
         <Box className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-          {/* TO DELETE title is now statis, will be changed to make it static */}
           <Typography>
-            2026 OLYMPIC WINTER GAMES - MILANO CORTINA
+            {selectedGame?.title ?? 'SELECT A GAME'}
           </Typography>
           
           <Box className="flex items-center gap-2">
@@ -310,19 +363,6 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
             [&_.MuiTableCell-root_.MuiFormControl-root]:w-full
             [&_.MuiTableCell-root_.MuiTextField-root]:min-w-0!
             [&_.MuiTableCell-root_.MuiTextField-root]:w-full
-
-            
-            ${
-              isEditing && !isPreview
-                ? `
-                  [&_.MuiTableHead_.MuiTableCell-root:nth-child(11)]:w-[120px]
-                  [&_.MuiTableHead_.MuiTableCell-root:nth-child(11)]:min-w-[120px]
-                  [&_.MuiTableHead_.MuiTableCell-root:nth-child(11)]:text-center
-                  [&_.MuiTableBody_.MuiTableCell-root:nth-child(11)]:text-center
-                `
-                : ''
-            }
-          `}
             ">
           <Grid
             columns={columns}
@@ -339,7 +379,7 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
       </Paper>
 
       <EstimatedCosts 
-        costs={currentData.estimatedCosts} 
+        costs={draftEstimatedCosts[calculatorId]?? currentData.estimatedCosts} 
         onChange={updateEstimatedCost} 
         isEditing={isEditing}
         isPreview={isPreview}
