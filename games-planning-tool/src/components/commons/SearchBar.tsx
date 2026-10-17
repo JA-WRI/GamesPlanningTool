@@ -1,3 +1,4 @@
+// Below 50% AI generated
 import { Search } from 'lucide-react';
 
 interface SearchBarProps {
