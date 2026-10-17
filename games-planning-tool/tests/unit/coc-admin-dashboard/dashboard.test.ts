@@ -3,7 +3,9 @@ import { describe, it, expect } from 'vitest';
 import {
   computeStats,
   cycleIndex,
+  filterByColumnStatuses,
   filterTeams,
+  namesByStatusAtColumn,
   percentage,
   totalOf,
 } from '../../../src/lib/dashboard';
@@ -96,5 +98,74 @@ describe('dashboard logic', () => {
     expect(cycleIndex(0, -1, 5)).toBe(4);
     expect(cycleIndex(4, 1, 5)).toBe(0);
     expect(cycleIndex(2, 1, 5)).toBe(3);
+  });
+
+  describe('namesByStatusAtColumn', () => {
+    it('groups team names by their status at the given column index', () => {
+      expect(namesByStatusAtColumn(teams, 0)).toEqual({
+        'Not Started': ['Gamma', 'Delta'],
+        'In Progress': [],
+        Completed: ['Alpha'],
+        Submitted: ['Beta'],
+        'Requires Update': [],
+      });
+    });
+
+    it('returns an empty list for every status when the index is out of range', () => {
+      expect(namesByStatusAtColumn(teams, 99)).toEqual({
+        'Not Started': [],
+        'In Progress': [],
+        Completed: [],
+        Submitted: [],
+        'Requires Update': [],
+      });
+    });
+  });
+
+  describe('filterByColumnStatuses', () => {
+    const titledTeam = (
+      name: string,
+      columns: { title: string; status: Status }[],
+    ) => ({ name, columns });
+
+    const titledTeams = [
+      titledTeam('Alpha', [
+        { title: 'Team Size', status: 'Completed' },
+        { title: 'Accreditation', status: 'Not Started' },
+      ]),
+      titledTeam('Beta', [
+        { title: 'Team Size', status: 'Submitted' },
+        { title: 'Accreditation', status: 'Completed' },
+      ]),
+    ];
+
+    it('keeps every team when there are no active filters', () => {
+      expect(filterByColumnStatuses(titledTeams, {})).toHaveLength(2);
+    });
+
+    it('keeps only teams matching an active column filter', () => {
+      expect(
+        filterByColumnStatuses(titledTeams, {
+          'Team Size': ['Completed'],
+        }).map((t) => t.name),
+      ).toEqual(['Alpha']);
+    });
+
+    it('combines filters across multiple columns', () => {
+      expect(
+        filterByColumnStatuses(titledTeams, {
+          'Team Size': ['Submitted'],
+          Accreditation: ['Completed'],
+        }).map((t) => t.name),
+      ).toEqual(['Beta']);
+    });
+
+    it('excludes teams missing the filtered column entirely', () => {
+      expect(
+        filterByColumnStatuses(titledTeams, {
+          'Missing Column': ['Completed'],
+        }),
+      ).toHaveLength(0);
+    });
   });
 });

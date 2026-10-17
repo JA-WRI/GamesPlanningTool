@@ -5,17 +5,13 @@ import StatusColumn from '../../../src/app/(application)/[gameId]/(coc)/dashboar
 
 describe('StatusColumn', () => {
   it('renders the status tag', () => {
-    render(
-      <StatusColumn title="Team Size" status="Completed" href="/detail" />,
-    );
+    render(<StatusColumn status="Completed" href="/detail" />);
 
     expect(screen.getByText('Completed')).toBeInTheDocument();
   });
 
   it('links "View Detail" to the given href', () => {
-    render(
-      <StatusColumn title="Team Size" status="Completed" href="/detail" />,
-    );
+    render(<StatusColumn status="Completed" href="/detail" />);
 
     expect(screen.getByRole('link', { name: 'View Detail' })).toHaveAttribute(
       'href',
