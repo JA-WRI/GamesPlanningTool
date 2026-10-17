@@ -3,9 +3,9 @@
 
 import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import TeamSizeCard, { GRID_FIT } from './TeamSizeCard';
+import GridCard, { GRID_FIT } from './GridCard';
 import { useGridCard } from './useGridCard';
-import { TeamSize } from '../_lib/teamSizeLogic';
+import { TeamSize } from '../../_lib/teamSizeLogic';
 import {
   MAX_COUNT,
   MedalObjectiveRow,
@@ -14,9 +14,9 @@ import {
   medalsToRows,
   rowsToMedals,
   withMedalsLabel,
-} from '../_lib/teamSizeGridLogic';
+} from '../../_lib/teamSizeGridLogic';
 
-type PerformanceObjectivesProps = {
+type PerformanceObjectivesTableProps = {
   teamSize: TeamSize;
   onChange: (teamSize: TeamSize) => void;
 };
@@ -61,10 +61,10 @@ function MedalWarnings({ rows }: { rows: MedalObjectiveRow[] }) {
 }
 
 // projected medals Low and High, in the shared grid like the other tables
-export default function PerformanceObjectives({
+export default function PerformanceObjectivesTable({
   teamSize,
   onChange,
-}: PerformanceObjectivesProps) {
+}: PerformanceObjectivesTableProps) {
   const card = useGridCard<MedalObjectiveRow>({
     initialRows: medalsToRows(teamSize),
     // never called, this table has no add button
@@ -75,7 +75,7 @@ export default function PerformanceObjectives({
   });
 
   return (
-    <TeamSizeCard
+    <GridCard
       title="Performance objectives"
       isEditing={card.isEditing}
       isPreview={card.isPreview}
@@ -84,7 +84,7 @@ export default function PerformanceObjectives({
       onCancel={card.cancel}
       onSave={card.save}
     >
-      {/* shared grid with its default look; GRID_FIT only changes its width */}
+      {/* shared grid with its default look GRID_FIT only changes its width */}
       <div className={GRID_FIT}>
         <Grid
           columns={columns}
@@ -97,6 +97,6 @@ export default function PerformanceObjectives({
         />
       </div>
       <MedalWarnings rows={card.rows} />
-    </TeamSizeCard>
+    </GridCard>
   );
 }
