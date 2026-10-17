@@ -1,9 +1,25 @@
+// AI contribution: Below 50% AI-generated
 // AI use to associate a form label with a control
+
+/**
+ * IMPORTANT: JUSTIFICATION FOR FILE LENGTH GREATER THAN 500 LINES:
+ *
+ * While this file exceeds 500 lines, it strictly adheres to the Single Responsibility Principle.
+ * Indeed, its sole reason to change is related to the business domain of managing Pre-Games Training Camp (PGTC)
+ * Information and Arrivals for sports disciplines.
+ *
+ * Two main reasons why the line count is high:
+ * - Comprehensive schema: Each discipline record contains a vast array of discrete, domain-specific
+ *    form fields (arrival/departure schedules, full addresses, and arrival notes).
+ * - Dual-Mode rendering (edit mode and preview): Every single field requires conditional logic
+ *    (showInputs ? <TextBox />) to swap between interactive inputs and static text labels without isssues
+ */
+
 'use client';
 
-import React, { useState } from 'react';
-import ContactInfoHeaderPage from './ContactInfoHeader';
-import TextBox from '@/components/commons/TextBox';
+import { useState } from 'react';
+import GridHeaderPage from '@/components/commons/GridHeader';
+import TextBox from '@/components/commons/GridTextBox';
 
 export interface DisciplineData {
   id: string;
@@ -50,6 +66,7 @@ interface DisciplinesSectionProps {
 export default function DisciplinesSection({
   initialDisciplines = [],
 }: DisciplinesSectionProps) {
+  const [isPreview, setIsPreview] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [disciplines, setDisciplines] =
     useState<DisciplineData[]>(initialDisciplines);
@@ -77,14 +94,26 @@ export default function DisciplinesSection({
     setIsEditing(false);
   };
 
+  // edit vs preview
+  const showInputs = isEditing && !isPreview;
+
   return (
     <div className="space-y-6">
-      <ContactInfoHeaderPage
+      <GridHeaderPage
         title="Pre-Games Training Camp (PGTC) Information and Arrivals"
         isEditing={isEditing}
-        onEditToggle={() => setIsEditing(!isEditing)}
-        onSave={handleSave}
-        onCancel={handleCancel}
+        isPreview={isPreview}
+        onEditToggle={() => {
+          setIsEditing(!isEditing);
+          setIsPreview(false);
+        }}
+        onPreviewToggle={(previewState) => setIsPreview(previewState)}
+        onSave={() => {
+          handleSave();
+        }}
+        onCancel={() => {
+          handleCancel();
+        }}
       />
 
       <div className="space-y-8">
@@ -101,7 +130,7 @@ export default function DisciplinesSection({
               >
                 Name of Discipline
               </label>
-              {isEditing ? (
+              {showInputs ? (
                 <div className="max-w-xs">
                   <TextBox
                     id={`discipline-name-${discipline.id}`}
@@ -133,7 +162,7 @@ export default function DisciplinesSection({
                   >
                     Arrival Date
                   </label>
-                  {isEditing ? (
+                  {showInputs ? (
                     <TextBox
                       id={`arrival-date-${discipline.id}`}
                       type="date"
@@ -160,7 +189,7 @@ export default function DisciplinesSection({
                   >
                     Arrival Time
                   </label>
-                  {isEditing ? (
+                  {showInputs ? (
                     <TextBox
                       id={`arrival-time-${discipline.id}`}
                       type="time"
@@ -187,7 +216,7 @@ export default function DisciplinesSection({
                   >
                     Departure Date
                   </label>
-                  {isEditing ? (
+                  {showInputs ? (
                     <TextBox
                       id={`departure-date-${discipline.id}`}
                       type="date"
@@ -214,7 +243,7 @@ export default function DisciplinesSection({
                   >
                     Departure Time
                   </label>
-                  {isEditing ? (
+                  {showInputs ? (
                     <TextBox
                       id={`departure-time-${discipline.id}`}
                       type="time"
@@ -243,7 +272,7 @@ export default function DisciplinesSection({
                 >
                   Accommodation Name
                 </label>
-                {isEditing ? (
+                {showInputs ? (
                   <TextBox
                     id={`accommodation-name-${discipline.id}`}
                     value={discipline.accommodationName}
@@ -271,7 +300,7 @@ export default function DisciplinesSection({
                   >
                     Street Name
                   </label>
-                  {isEditing ? (
+                  {showInputs ? (
                     <TextBox
                       id={`street-name-${discipline.id}`}
                       value={discipline.streetName}
@@ -297,7 +326,7 @@ export default function DisciplinesSection({
                   >
                     Street Number
                   </label>
-                  {isEditing ? (
+                  {showInputs ? (
                     <TextBox
                       id={`street-number-${discipline.id}`}
                       value={discipline.streetNumber}
@@ -323,7 +352,7 @@ export default function DisciplinesSection({
                   >
                     Zip Code
                   </label>
-                  {isEditing ? (
+                  {showInputs ? (
                     <TextBox
                       id={`zip-code-${discipline.id}`}
                       value={discipline.zipCode}
@@ -349,7 +378,7 @@ export default function DisciplinesSection({
                   >
                     City
                   </label>
-                  {isEditing ? (
+                  {showInputs ? (
                     <TextBox
                       id={`city-${discipline.id}`}
                       value={discipline.city}
@@ -371,7 +400,7 @@ export default function DisciplinesSection({
                   >
                     State or Province
                   </label>
-                  {isEditing ? (
+                  {showInputs ? (
                     <TextBox
                       id={`state-or-province-${discipline.id}`}
                       value={discipline.state}
@@ -397,7 +426,7 @@ export default function DisciplinesSection({
                   >
                     Country
                   </label>
-                  {isEditing ? (
+                  {showInputs ? (
                     <TextBox
                       id={`country-${discipline.id}`}
                       value={discipline.country}
@@ -431,7 +460,7 @@ export default function DisciplinesSection({
                   >
                     Travel Method
                   </label>
-                  {isEditing ? (
+                  {showInputs ? (
                     <TextBox
                       id={`travel-method-${discipline.id}`}
                       value={discipline.travelMethod}
@@ -457,7 +486,7 @@ export default function DisciplinesSection({
                   >
                     Point of Entry (POE)
                   </label>
-                  {isEditing ? (
+                  {showInputs ? (
                     <TextBox
                       id={`point-of-entry-${discipline.id}`}
                       value={discipline.pointOfEntry}
@@ -483,7 +512,7 @@ export default function DisciplinesSection({
                   >
                     Additional Notes
                   </label>
-                  {isEditing ? (
+                  {showInputs ? (
                     <TextBox
                       id={`additional-notes-${discipline.id}`}
                       value={discipline.additionalNotes}
@@ -507,15 +536,17 @@ export default function DisciplinesSection({
         ))}
 
         {/* New Discipline button */}
-        <div>
-          <button
-            type="button"
-            onClick={handleAddDiscipline}
-            className="px-4 py-2 text-sm font-medium text-white bg-[#8B0000] hover:bg-[#6b0000] rounded-md transition-colors"
-          >
-            Add New Discipline
-          </button>
-        </div>
+        {showInputs && (
+          <div>
+            <button
+              type="button"
+              onClick={handleAddDiscipline}
+              className="px-4 py-2 text-sm font-medium text-white bg-burgundy hover:bg-burgundy/90 rounded-md transition-colors cursor-pointer shadow-sm"
+            >
+              Add New Discipline
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
