@@ -1,10 +1,10 @@
 // AI contribution: 50% or more AI-generated
 import DisciplineTable from './DisciplineTable';
 import MedalPotentialTable from './MedalPotentialTable';
-import PerformanceObjectives from './PerformanceObjectives';
-import TeamSizeTable from './TeamSizeTable';
-import { TeamSize } from '../_lib/teamSizeLogic';
-import { DisciplineBreakdown, MedalRow } from '../_lib/teamSizeGridLogic';
+import PerformanceObjectivesTable from './PerformanceObjectivesTable';
+import TeamSizeEstimateTable from './TeamSizeEstimateTable';
+import { TeamSize } from '../../_lib/teamSizeLogic';
+import { DisciplineBreakdown, MedalRow } from '../../_lib/teamSizeGridLogic';
 
 type TeamSizeStepProps = {
   teamSize: TeamSize;
@@ -22,13 +22,16 @@ export default function TeamSizeStep(props: TeamSizeStepProps) {
       {/* side by side from 1024px (lg), stacked below; grid items stretch,
           so both cards get the same height; min-w-0 lets the tables shrink */}
       <div className="grid gap-3 lg:grid-cols-2 [&>*]:min-w-0">
-        <TeamSizeTable teamSize={props.teamSize} onChange={props.onChange} />
+        <TeamSizeEstimateTable
+          teamSize={props.teamSize}
+          onChange={props.onChange}
+        />
         <DisciplineTable
           disciplines={props.disciplines}
           onChange={props.onDisciplinesChange}
         />
       </div>
-      <PerformanceObjectives
+      <PerformanceObjectivesTable
         teamSize={props.teamSize}
         onChange={props.onChange}
       />

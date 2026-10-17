@@ -2,7 +2,7 @@
 'use client';
 
 import StepTabs from './StepTabs';
-import TeamSizeStep from './TeamSizeStep';
+import TeamSizeStep from './TeamSize/TeamSizeStep';
 import AccreditationStep from './AccreditationStep';
 import ArrivalStep from './ArrivalStep';
 import DepartureStep from './DepartureStep';

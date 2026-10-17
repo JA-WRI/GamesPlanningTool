@@ -3,7 +3,7 @@
 
 import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import TeamSizeCard from './TeamSizeCard';
+import GridCard from './GridCard';
 import { useGridCard } from './useGridCard';
 import {
   MEDAL_POTENTIAL_OPTIONS,
@@ -11,7 +11,7 @@ import {
   createEmptyMedalRow,
   rowsMissingName,
   withBlankNotes,
-} from '../_lib/teamSizeGridLogic';
+} from '../../_lib/teamSizeGridLogic';
 
 type MedalPotentialTableProps = {
   rows: MedalRow[];
@@ -52,7 +52,7 @@ export default function MedalPotentialTable({
   });
 
   return (
-    <TeamSizeCard
+    <GridCard
       title="Medal potential"
       isEditing={card.isEditing}
       isPreview={card.isPreview}
@@ -81,6 +81,6 @@ export default function MedalPotentialTable({
           Every athlete needs a first and last name.
         </Alert>
       )}
-    </TeamSizeCard>
+    </GridCard>
   );
 }
