@@ -182,6 +182,16 @@ export function FolderDirectoryModal({
     setIsCreatingFolder(false);
   };
 
+  const handleToggleSelect = (id: string) => {
+    if (isReadOnly || justFinishedSweepRef.current) return;
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   return (
     <>
       <div
@@ -408,27 +418,16 @@ export function FolderDirectoryModal({
                             ? getFolderChildren(allResources, item.id).length
                             : undefined
                         }
-                        onToggleSelect={(id) => {
-                          if (isReadOnly || justFinishedSweepRef.current) return;
-                          setSelectedIds((prev) => {
-                            const next = new Set(prev);
-                            if (next.has(id)) next.delete(id);
-                            else next.add(id);
-                            return next;
-                          });
-                        }}
+                        onToggleSelect={handleToggleSelect}
                         onRoundButtonPointerDown={(e) => {
-                          if (!isReadOnly) handleSweepPointerDown(e.clientX, e.clientY, item.id);
+                          if (!isReadOnly)
+                            handleSweepPointerDown(
+                              e.clientX,
+                              e.clientY,
+                              item.id,
+                            );
                         }}
-                        onRoundButtonClick={(id) => {
-                          if (isReadOnly || justFinishedSweepRef.current) return;
-                          setSelectedIds((prev) => {
-                            const next = new Set(prev);
-                            if (next.has(id)) next.delete(id);
-                            else next.add(id);
-                            return next;
-                          });
-                        }}
+                        onRoundButtonClick={handleToggleSelect}
                         onCardPointerDown={(e) => {
                           if (!isReadOnly) {
                             handleCardPointerDown(e, item.id);
@@ -439,10 +438,15 @@ export function FolderDirectoryModal({
                           if (justDraggedRef.current) return;
                           if (resource.type === 'folder') {
                             setCurrentFolderId(resource.id);
-                          } else if (resource.type === 'link') {
-                            if (resource.URL) window.open(resource.URL, '_blank', 'noopener,noreferrer');
+                          } else if (resource.type === 'link' && resource.URL) {
+                            window.open(
+                              resource.URL,
+                              '_blank',
+                              'noopener,noreferrer',
+                            );
                           } else if (resource.type === 'file') {
-                            const url = (resource as FileResource).fileUrl || '#';
+                            const url =
+                              (resource as FileResource).fileUrl || '#';
                             window.open(url, '_blank', 'noopener,noreferrer');
                           } else {
                             onSelectResourceDetail(resource);
