@@ -8,11 +8,12 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
+    testTimeout: 15000,
     include: ['tests/unit/**/*.test.ts', 'tests/unit/**/*.test.tsx'],
     exclude: ['node_modules', '.next', 'tests/e2e/**'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'lcov'],
+      reporter: ['text', 'lcov', 'html', 'json'],
       reportsDirectory: './coverage',
       include: ['src/**'],
       exclude: ['src/generated/prisma', 'src/lib/prisma.ts'],
