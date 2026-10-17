@@ -68,9 +68,6 @@ describe('DonutChartCard', () => {
       />,
     );
 
-    expect(screen.getByRole('button')).toHaveAttribute(
-      'aria-pressed',
-      'false',
-    );
+    expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'false');
   });
 });

@@ -93,9 +93,7 @@ describe('Dashboard page', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'Filter Team Size by status' }),
     );
-    await userEvent.click(
-      screen.getByRole('checkbox', { name: 'Completed' }),
-    );
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Completed' }));
 
     // Only Team Size === Completed: Swimming, Cycling, and Soccer.
     expect(findTeam('Swimming Canada')).toBeInTheDocument();

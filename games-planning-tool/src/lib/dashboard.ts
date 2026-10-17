@@ -18,7 +18,9 @@ export function totalOf(counts: StatusCounts): number {
 
 // Every step tracks the same NSOs, so the first step gives the NSO total.
 // Percentages are computed over all step counts combined.
-export function computeStats(steps: { counts: StatusCounts }[]): DashboardStats {
+export function computeStats(
+  steps: { counts: StatusCounts }[],
+): DashboardStats {
   const all = steps.reduce((sum, s) => sum + totalOf(s.counts), 0);
   const sumOf = (status: Status) =>
     steps.reduce((sum, s) => sum + s.counts[status], 0);

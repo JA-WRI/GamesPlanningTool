@@ -29,9 +29,7 @@ describe('DonutChart', () => {
   });
 
   it('shows the hovered segment percentage on mouse enter', () => {
-    const { container, getByText } = render(
-      <DonutChart segments={segments} />,
-    );
+    const { container, getByText } = render(<DonutChart segments={segments} />);
 
     const sectors = container.querySelectorAll('path.recharts-sector');
     fireEvent.mouseEnter(sectors[1]);

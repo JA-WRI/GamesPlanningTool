@@ -79,9 +79,7 @@ describe('StatusOverviewPanel', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Submitted' }));
 
-    expect(
-      screen.getByText('No NSOs with this status.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('No NSOs with this status.')).toBeInTheDocument();
   });
 
   it('pages to the neighbouring statuses', async () => {

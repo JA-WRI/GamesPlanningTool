@@ -11,7 +11,9 @@ const options: FilterOption[] = [
   { label: 'Submitted', value: 'Submitted', color: 'blue' },
 ];
 
-function renderFilter(overrides: Partial<Parameters<typeof FilterButton>[0]> = {}) {
+function renderFilter(
+  overrides: Partial<Parameters<typeof FilterButton>[0]> = {},
+) {
   const onChange = vi.fn();
   render(
     <div>
@@ -42,7 +44,10 @@ describe('FilterButton', () => {
   });
 
   it('uses a custom aria-label and description', async () => {
-    renderFilter({ ariaLabel: 'Filter by status', description: 'Pick a status:' });
+    renderFilter({
+      ariaLabel: 'Filter by status',
+      description: 'Pick a status:',
+    });
 
     await openMenu('Filter by status');
 
@@ -83,7 +88,9 @@ describe('FilterButton', () => {
     await openMenu();
 
     options.forEach((option) => {
-      expect(screen.getByRole('checkbox', { name: option.label })).toBeInTheDocument();
+      expect(
+        screen.getByRole('checkbox', { name: option.label }),
+      ).toBeInTheDocument();
     });
   });
 

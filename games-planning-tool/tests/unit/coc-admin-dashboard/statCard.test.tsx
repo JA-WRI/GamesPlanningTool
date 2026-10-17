@@ -38,6 +38,8 @@ describe('StatCard', () => {
       <StatCard icon={Users} label="Total" value={0} description="" />,
     );
 
-    expect(container.querySelector('svg[aria-hidden="true"]')).toBeInTheDocument();
+    expect(
+      container.querySelector('svg[aria-hidden="true"]'),
+    ).toBeInTheDocument();
   });
 });
