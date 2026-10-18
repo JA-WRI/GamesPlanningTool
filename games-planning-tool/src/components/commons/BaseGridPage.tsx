@@ -21,6 +21,8 @@ interface BaseGridPageProps<T extends Record<string, unknown>> {
   allowAddRow?: boolean;
   onSave?: (savedRows: (T & { id: string })[]) => void;
   isValid?: (rows: (T & { id: string })[]) => boolean;
+  minWidth?: number | string;
+  fitWidth?: boolean;
 }
 
 export default function BaseGridPage<T extends Record<string, unknown>>({
@@ -36,6 +38,8 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
   allowAddRow = true,
   onSave,
   isValid,
+  minWidth,
+  fitWidth,
 }: BaseGridPageProps<T>) {
   const [isPreview, setIsPreview] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -144,6 +148,8 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
         onValidationChange={(errorState) => setHasValidationError(errorState)}
         allowDelete={allowDelete}
         allowAddRow={allowAddRow}
+        minWidth={minWidth}
+        fitWidth={fitWidth}
       />
     </div>
   );

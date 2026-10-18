@@ -293,7 +293,7 @@ export default function Grid<T extends Record<string, unknown>>({
                               />
                             )}
                             sx={{
-                              minWidth: '140px',
+                              minWidth: fitWidth ? 0 : '140px',
                               '& .MuiOutlinedInput-root': {
                                 backgroundColor: '#FFFFFF',
                                 borderRadius: '6px',
@@ -340,8 +340,11 @@ export default function Grid<T extends Record<string, unknown>>({
                               );
                             }}
                             sx={{
-                              minWidth:
-                                col.type === 'number' ? '90px' : '120px',
+                              minWidth: fitWidth
+                                ? 0
+                                : col.type === 'number'
+                                  ? '90px'
+                                  : '120px',
                             }}
                             slotProps={{
                               htmlInput: {
