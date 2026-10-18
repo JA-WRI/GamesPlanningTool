@@ -47,6 +47,7 @@ const travelerColumns: ColumnDefinition<TravelerRow>[] = [
     min: 1, // min and max are used to enforce the bounds of the input numbers
     max: 100,
     align: 'center',
+    readOnly: true,
   },
   {
     field: 'daysOnSite',
@@ -123,6 +124,7 @@ export default function TestGridPage({
       })}
       addButtonLabel="Add Property Row"
       searchPlaceholder="Search travelers..."
+      allowAddRow={false}
     />
   );
 }

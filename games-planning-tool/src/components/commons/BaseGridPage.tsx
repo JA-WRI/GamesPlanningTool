@@ -18,6 +18,7 @@ interface BaseGridPageProps<T extends Record<string, unknown>> {
   searchPlaceholder?: string;
   showSearch?: boolean;
   allowDelete?: boolean;
+  allowAddRow?: boolean;
 }
 
 export default function BaseGridPage<T extends Record<string, unknown>>({
@@ -30,6 +31,7 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
   searchPlaceholder = 'Search records...',
   showSearch = true,
   allowDelete = true,
+  allowAddRow = true,
 }: BaseGridPageProps<T>) {
   const [isPreview, setIsPreview] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -131,6 +133,7 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
         addButtonLabel={addButtonLabel}
         onValidationChange={(errorState) => setHasValidationError(errorState)}
         allowDelete={allowDelete}
+        allowAddRow={allowAddRow}
       />
     </div>
   );

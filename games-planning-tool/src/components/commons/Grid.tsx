@@ -54,6 +54,7 @@ export interface ColumnDefinition<T> {
   formula?: ColumnFormula<T>;
   formatValue?: (val: number) => string;
   allowedTextValues?: string[];
+  readOnly?: boolean;
 }
 
 interface GridProps<T extends Record<string, unknown>> {
@@ -66,6 +67,7 @@ interface GridProps<T extends Record<string, unknown>> {
   addButtonLabel?: string;
   onValidationChange?: (hasError: boolean) => void;
   allowDelete?: boolean;
+  allowAddRow?: boolean;
 }
 
 export default function Grid<T extends Record<string, unknown>>({
@@ -78,6 +80,7 @@ export default function Grid<T extends Record<string, unknown>>({
   addButtonLabel = 'Add Row',
   onValidationChange,
   allowDelete = true,
+  allowAddRow = true,
 }: GridProps<T>) {
   const [deleteTargetIndex, setDeleteTargetIndex] = useState<number | null>(
     null,
@@ -216,7 +219,7 @@ export default function Grid<T extends Record<string, unknown>>({
                       align={col.align || 'left'}
                       sx={{ py: 1.5, px: 1.5 }}
                     >
-                      {showInputs && !col.formula ? (
+                      {showInputs && !col.formula && !col.readOnly ? (
                         col.type === 'select' ? (
                           <Autocomplete
                             size="small"
@@ -329,9 +332,11 @@ export default function Grid<T extends Record<string, unknown>>({
                       ) : (
                         <span
                           className={`text-sm block whitespace-nowrap ${
-                            col.formula
-                              ? 'text-foreground font-bold'
-                              : 'text-foreground font-normal'
+                            col.readOnly && showInputs
+                              ? 'bg-gray-100 text-gray-600 px-2.5 py-1 rounded border border-gray-200 inline-block font-medium'
+                              : col.formula
+                                ? 'text-foreground font-bold'
+                                : 'text-foreground font-normal'
                           }`}
                         >
                           {displayVal || '-'}
@@ -367,7 +372,7 @@ export default function Grid<T extends Record<string, unknown>>({
         </Table>
       </TableContainer>
 
-      {showInputs && onAddRow && (
+      {showInputs && onAddRow && allowAddRow && (
         <button
           onClick={onAddRow}
           type="button"
