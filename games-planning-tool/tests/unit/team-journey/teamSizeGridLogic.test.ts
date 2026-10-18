@@ -24,7 +24,6 @@ import {
   rowsToAthletes,
   toGridNumber,
   toText,
-  withBlankNotes,
 } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/teamSizeGridLogic';
 
 // one "Low" row with these male and female counts
@@ -154,21 +153,6 @@ describe('createEmptyMedalRow', () => {
 
   it('gives every row a different id', () => {
     expect(createEmptyMedalRow().id).not.toBe(createEmptyMedalRow().id);
-  });
-});
-
-describe('withBlankNotes', () => {
-  it('turns an empty note into a space so the grid shows nothing', () => {
-    expect(withBlankNotes(MOCK_MEDAL_ROWS)[0].notes).toBe(' ');
-  });
-
-  it('keeps real notes as they are', () => {
-    expect(withBlankNotes(MOCK_MEDAL_ROWS)[2].notes).toBe('New');
-  });
-
-  it('does not change the original rows', () => {
-    withBlankNotes(MOCK_MEDAL_ROWS);
-    expect(MOCK_MEDAL_ROWS[0].notes).toBe('');
   });
 });
 

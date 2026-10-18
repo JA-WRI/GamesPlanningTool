@@ -1,16 +1,15 @@
 // AI contribution: 50% or more AI-generated
 'use client';
 
+import { useState } from 'react';
 import { Alert } from '@mui/material';
-import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import GridCard from './GridCard';
-import { useGridCard } from './useGridCard';
+import BaseGridPage from '@/components/commons/BaseGridPage';
+import type { ColumnDefinition } from '@/components/commons/Grid';
 import {
   MEDAL_POTENTIAL_OPTIONS,
   MedalRow,
   createEmptyMedalRow,
   rowsMissingName,
-  withBlankNotes,
 } from '../../_lib/teamSizeGridLogic';
 
 type MedalPotentialTableProps = {
@@ -44,43 +43,33 @@ export default function MedalPotentialTable({
   rows,
   onChange,
 }: MedalPotentialTableProps) {
-  const card = useGridCard<MedalRow>({
-    initialRows: rows,
-    createRow: createEmptyMedalRow,
-    isValid: (rows) => rowsMissingName(rows).length === 0,
-    onSave: (savedRows) => onChange(savedRows),
-  });
+  // the rows as the user types, so the messages update live
+  const [liveRows, setLiveRows] = useState(rows);
 
   return (
-    <GridCard
-      title="Medal potential"
-      isEditing={card.isEditing}
-      isPreview={card.isPreview}
-      onPreviewToggle={card.setIsPreview}
-      onEdit={card.edit}
-      onCancel={card.cancel}
-      onSave={card.save}
-    >
-      <Grid
+    <div className="flex flex-col gap-3">
+      <BaseGridPage
+        title="Medal potential"
         columns={columns}
-        rows={card.isEditing ? card.rows : withBlankNotes(card.rows)}
-        isEditing={card.isEditing}
-        isPreview={card.isPreview}
-        onRowsChange={card.setRows}
-        onAddRow={card.handleAddRow}
+        initialData={rows}
+        createEmptyRow={createEmptyMedalRow}
         addButtonLabel="Add athlete"
-        onValidationChange={card.setHasCellError}
+        isValid={(rows) => rowsMissingName(rows).length === 0}
+        onSave={onChange}
+        onRowsChange={setLiveRows}
+        showSearch={false}
       />
-      {card.rows.length === 0 && (
+      {liveRows.length === 0 && (
         <p className="py-2 text-center text-sm text-gray-400">
           No athletes added yet
         </p>
       )}
-      {card.isEditing && rowsMissingName(card.rows).length > 0 && (
+      {/* only new rows can miss a name, saved rows always have both */}
+      {rowsMissingName(liveRows).length > 0 && (
         <Alert severity="warning">
           Every athlete needs a first and last name.
         </Alert>
       )}
-    </GridCard>
+    </div>
   );
 }

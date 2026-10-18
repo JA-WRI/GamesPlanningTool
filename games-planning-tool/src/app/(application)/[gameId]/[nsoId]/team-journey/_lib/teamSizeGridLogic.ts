@@ -180,12 +180,6 @@ export function medalRowHasError(row: MedalObjectiveRow): boolean {
   return getMedalsMessage(toText(row.low), toText(row.high)) !== null;
 }
 
-// the shared grid shows "-" for an empty cell, a space keeps the note blank
-// (only for showing, never saved)
-export function withBlankNotes(rows: MedalRow[]): MedalRow[] {
-  return rows.map((row) => (row.notes ? row : { ...row, notes: ' ' }));
-}
-
 // athletes missing a first or last name (spaces only count as missing)
 export function rowsMissingName(rows: MedalRow[]): MedalRow[] {
   return rows.filter((row) => !row.firstName.trim() || !row.lastName.trim());
