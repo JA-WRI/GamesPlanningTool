@@ -4,16 +4,23 @@
 import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import NotesBox from '@/components/commons/NotesBox';
-import GridCard, { GRID_FIT, JOIN_TOTAL_ROW, TotalRow } from './GridCard';
+import GridCard, { GRID_FIT } from './GridCard';
 import { useGridCard } from './useGridCard';
 import {
   DisciplineBreakdown,
-  DisciplineRow,
   MAX_COUNT,
   allWholeCounts,
   disciplineHasLowAboveBest,
-  withDisciplineLabels,
 } from '../../_lib/teamSizeGridLogic';
+import {
+  DISCIPLINE_IDS,
+  DISCIPLINE_TOTAL_COLUMN,
+  DisciplineGridRow,
+  disciplinesToGridRows,
+  gridRowsToDisciplines,
+  withDisciplineLevelLabels,
+  withDisciplineTotals,
+} from '../../_lib/disciplineGridLogic';
 
 type DisciplineTableProps = {
   disciplines: DisciplineBreakdown;
@@ -21,42 +28,43 @@ type DisciplineTableProps = {
 };
 
 const numberColumn = (
-  field: keyof DisciplineRow,
+  field: keyof DisciplineGridRow,
   label: string,
-): ColumnDefinition<DisciplineRow> => ({
+): ColumnDefinition<DisciplineGridRow> => ({
   field,
   label,
   type: 'number',
   min: 0,
   max: MAX_COUNT,
   align: 'center',
-  width: '20%',
+  width: '16%',
 });
 
-const COUNT_FIELDS: (keyof DisciplineRow)[] = [
-  'bestF',
-  'bestM',
-  'lowF',
-  'lowM',
+const COUNT_FIELDS: (keyof DisciplineGridRow)[] = DISCIPLINE_IDS;
+
+const columns: ColumnDefinition<DisciplineGridRow>[] = [
+  { field: 'label', label: '', width: '20%' },
+  numberColumn('hp', 'HP'),
+  numberColumn('ssba', 'SS/BA'),
+  numberColumn('ae', 'AE'),
+  numberColumn('mo', 'MO'),
+  DISCIPLINE_TOTAL_COLUMN,
 ];
 
-const columns: ColumnDefinition<DisciplineRow>[] = [
-  { field: 'label', label: '', width: '20%' },
-  numberColumn('bestF', 'BEST · F'),
-  numberColumn('bestM', 'BEST · M'),
-  numberColumn('lowF', 'LOW · F'),
-  numberColumn('lowM', 'LOW · M'),
-];
+// disciplines where Low is above Best ['HP'...]
+const brokenDisciplines = (rows: DisciplineGridRow[]) =>
+  gridRowsToDisciplines(rows)
+    .filter(disciplineHasLowAboveBest)
+    .map((discipline) => discipline.label);
 
 // warnings shown under the table while something can't be saved
-function DisciplineWarnings({ rows }: { rows: DisciplineRow[] }) {
-  const brokenRows = rows.filter(disciplineHasLowAboveBest);
+function DisciplineWarnings({ rows }: { rows: DisciplineGridRow[] }) {
+  const broken = brokenDisciplines(rows);
   return (
     <>
-      {brokenRows.length > 0 && (
+      {broken.length > 0 && (
         <Alert severity="warning">
-          {brokenRows.map((row) => row.label).join(', ')}: Low can&apos;t be
-          higher than Best guess.
+          {broken.join(', ')}: Low can&apos;t be higher than Best guess.
         </Alert>
       )}
       {!allWholeCounts(rows, COUNT_FIELDS) && (
@@ -72,14 +80,15 @@ export default function DisciplineTable({
   disciplines,
   onChange,
 }: DisciplineTableProps) {
-  const card = useGridCard<DisciplineRow>({
-    initialRows: disciplines.rows,
+  const card = useGridCard<DisciplineGridRow>({
+    initialRows: disciplinesToGridRows(disciplines.rows),
     // never called, this table has no add button
-    createRow: () => disciplines.rows[0],
+    createRow: () => disciplinesToGridRows(disciplines.rows)[0],
     isValid: (rows) =>
       allWholeCounts(rows, COUNT_FIELDS) &&
-      !rows.some(disciplineHasLowAboveBest),
-    onSave: (rows) => onChange({ ...disciplines, rows }),
+      brokenDisciplines(rows).length === 0,
+    onSave: (rows) =>
+      onChange({ ...disciplines, rows: gridRowsToDisciplines(rows) }),
   });
 
   return (
@@ -92,19 +101,19 @@ export default function DisciplineTable({
       onCancel={card.cancel}
       onSave={card.save}
     >
-      {/* shared grid with its default look; only its width and bottom
-          corners change so the Total row joins it */}
-      <div className={`${GRID_FIT} ${JOIN_TOTAL_ROW}`}>
+      {/* shared grid with its default look; GRID_FIT only changes its width */}
+      <div className={GRID_FIT}>
         <Grid
           columns={columns}
           rows={card.rows}
           isEditing={card.isEditing}
           isPreview={card.isPreview}
-          onRowsChange={(rows) => card.setRows(withDisciplineLabels(rows))}
+          onRowsChange={(rows) =>
+            card.setRows(withDisciplineTotals(withDisciplineLevelLabels(rows)))
+          }
           onValidationChange={card.setHasCellError}
           allowDelete={false}
         />
-        <TotalRow rows={card.rows} columns={columns} />
       </div>
       <DisciplineWarnings rows={card.rows} />
       <NotesBox

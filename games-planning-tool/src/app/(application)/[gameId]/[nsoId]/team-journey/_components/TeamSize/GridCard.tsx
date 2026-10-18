@@ -1,14 +1,11 @@
 // AI contribution: 50% or more AI-generated
 'use client';
 
-import type { ColumnDefinition } from '@/components/commons/Grid';
 import GridHeaderPage from '@/components/commons/GridHeader';
-import { sumColumn } from '../../_lib/teamSizeGridLogic';
 
+// size only, no colours or fonts:lets the grid fit a half width card
 export const GRID_FIT =
   '[&_.MuiTable-root]:min-w-0! [&_.MuiFormControl-root]:min-w-0!';
-
-export const JOIN_TOTAL_ROW = '[&_.MuiTableContainer-root]:rounded-b-none!';
 
 type GridCardProps = {
   title: string;
@@ -20,31 +17,6 @@ type GridCardProps = {
   onSave: () => void;
   children: React.ReactNode;
 };
-
-// Total row that looks like the grid's last row: same border colour on the
-// left,right and bottom, rounded bottom corners, same column widths and
-// cell padding, bold text, the table's own bottom border is the line above it
-export function TotalRow<T extends Record<string, unknown>>({
-  rows,
-  columns,
-}: {
-  rows: T[];
-  columns: ColumnDefinition<T>[];
-}) {
-  return (
-    <div className="flex rounded-b-lg border border-t-0 border-gray-200 bg-white py-3 text-sm font-bold text-foreground">
-      {columns.map((col, index) => (
-        <span
-          key={String(col.field)}
-          style={{ width: col.width }}
-          className={index === 0 ? 'px-3' : 'px-3 text-center'}
-        >
-          {index === 0 ? 'Total' : sumColumn(rows, col.field)}
-        </span>
-      ))}
-    </div>
-  );
-}
 
 // white card: Marwa's shared GridHeader (title only, used as is)then the table
 // a column so the notes box can fill the space left at the bottom
