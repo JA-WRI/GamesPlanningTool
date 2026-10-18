@@ -4,7 +4,7 @@
 import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import NotesBox from '@/components/commons/NotesBox';
-import GridCard, { GRID_FIT } from './GridCard';
+import GridCard from './GridCard';
 import { useGridCard } from './useGridCard';
 import {
   DisciplineBreakdown,
@@ -18,8 +18,6 @@ import {
   DisciplineGridRow,
   disciplinesToGridRows,
   gridRowsToDisciplines,
-  withDisciplineLevelLabels,
-  withDisciplineTotals,
 } from '../../_lib/disciplineGridLogic';
 
 type DisciplineTableProps = {
@@ -43,7 +41,7 @@ const numberColumn = (
 const COUNT_FIELDS: (keyof DisciplineGridRow)[] = DISCIPLINE_IDS;
 
 const columns: ColumnDefinition<DisciplineGridRow>[] = [
-  { field: 'label', label: '', width: '20%' },
+  { field: 'label', label: '', width: '20%', readOnly: true },
   numberColumn('hp', 'HP'),
   numberColumn('ssba', 'SS/BA'),
   numberColumn('ae', 'AE'),
@@ -101,20 +99,16 @@ export default function DisciplineTable({
       onCancel={card.cancel}
       onSave={card.save}
     >
-      {/* shared grid with its default look; GRID_FIT only changes its width */}
-      <div className={GRID_FIT}>
-        <Grid
-          columns={columns}
-          rows={card.rows}
-          isEditing={card.isEditing}
-          isPreview={card.isPreview}
-          onRowsChange={(rows) =>
-            card.setRows(withDisciplineTotals(withDisciplineLevelLabels(rows)))
-          }
-          onValidationChange={card.setHasCellError}
-          allowDelete={false}
-        />
-      </div>
+      <Grid
+        columns={columns}
+        rows={card.rows}
+        isEditing={card.isEditing}
+        isPreview={card.isPreview}
+        onRowsChange={card.setRows}
+        onValidationChange={card.setHasCellError}
+        allowDelete={false}
+        fitWidth
+      />
       <DisciplineWarnings rows={card.rows} />
       <NotesBox
         id="discipline-notes"

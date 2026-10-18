@@ -7,83 +7,48 @@ import {
 import {
   DISCIPLINE_TOTAL_COLUMN,
   DisciplineGridRow,
+  disciplineTotal,
   disciplinesToGridRows,
   gridRowsToDisciplines,
-  withDisciplineLevelLabels,
-  withDisciplineTotals,
 } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/disciplineGridLogic';
 import { GridNumber } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/teamSizeGridLogic';
 
-// one "Best F" row with HP,SS/BA, AE, MO counts and a total to be replaced
+// one "Best F" row with HP, SS/BA, AE, MO counts
 function row(
   hp: GridNumber,
   ssba: GridNumber,
   ae: GridNumber,
   mo: GridNumber,
 ): DisciplineGridRow {
-  return { id: 'bestF', label: 'Best F', hp, ssba, ae, mo, total: -1 };
+  return { id: 'bestF', label: 'Best F', hp, ssba, ae, mo };
 }
 
 // the total of one estimate row in the mock data
-const mockTotal = (id: DisciplineGridRow['id']) =>
-  disciplinesToGridRows(MOCK_DISCIPLINES.rows).find((r) => r.id === id)?.total;
+const mockTotal = (id: DisciplineGridRow['id']) => {
+  const rows = disciplinesToGridRows(MOCK_DISCIPLINES.rows);
+  const found = rows.find((r) => r.id === id);
+  return found ? disciplineTotal(found) : undefined;
+};
 
-describe('DISCIPLINE_TOTAL_COLUMN', () => {
-  const formula = DISCIPLINE_TOTAL_COLUMN.formula!;
-
-  it('is a formula column, so the grid shows it bold and read-only', () => {
-    expect(DISCIPLINE_TOTAL_COLUMN.field).toBe('total');
-    expect(DISCIPLINE_TOTAL_COLUMN.type).toBe('calculated');
-    expect(formula.fieldA).toBe('total');
-  });
-
-  it('points its second field at nothing, so the grid adds 0', () => {
-    const [bestF] = disciplinesToGridRows(MOCK_DISCIPLINES.rows);
-    expect(bestF[formula.fieldB]).toBeUndefined();
-  });
-
-  it('shows the real sum for every row, the way the grid works it out', () => {
-    // same steps as the shared grid: Number(value) || 0 for each field, then +
-    const shown = (r: DisciplineGridRow) =>
-      (Number(r[formula.fieldA]) || 0) + (Number(r[formula.fieldB]) || 0);
-    const rows = disciplinesToGridRows(MOCK_DISCIPLINES.rows);
-    expect(rows.map(shown)).toEqual([13, 12, 10, 12]);
-  });
-});
-
-describe('withDisciplineTotals', () => {
+describe('disciplineTotal', () => {
   it('adds HP + SS/BA + AE + MO', () => {
-    expect(withDisciplineTotals([row(4, 4, 2, 3)])[0].total).toBe(13);
+    expect(disciplineTotal(row(4, 4, 2, 3))).toBe(13);
   });
 
   it('counts empty boxes as 0', () => {
-    expect(withDisciplineTotals([row('', 3, '', 1)])[0].total).toBe(4);
-    expect(withDisciplineTotals([row('', '', '', '')])[0].total).toBe(0);
-  });
-
-  it('replaces whatever was typed in Total', () => {
-    const typedOver = { ...row(1, 1, 1, 1), total: 99 };
-    expect(withDisciplineTotals([typedOver])[0].total).toBe(4);
-  });
-
-  it('keeps the other values as they are', () => {
-    const [fixed] = withDisciplineTotals([row(1, 2, 3, 4)]);
-    expect(fixed).toEqual({ ...row(1, 2, 3, 4), total: 10 });
+    expect(disciplineTotal(row('', 3, '', 1))).toBe(4);
+    expect(disciplineTotal(row('', '', '', ''))).toBe(0);
   });
 });
 
-describe('withDisciplineLevelLabels', () => {
-  it('puts the row names back after a user types over them', () => {
-    const rows = disciplinesToGridRows(MOCK_DISCIPLINES.rows).map((r) => ({
-      ...r,
-      label: 'x',
-    }));
-    expect(withDisciplineLevelLabels(rows).map((r) => r.label)).toEqual([
-      'Best F',
-      'Best M',
-      'Low F',
-      'Low M',
-    ]);
+describe('DISCIPLINE_TOTAL_COLUMN', () => {
+  it('is a calculated column, so the grid shows it bold and read-only', () => {
+    expect(DISCIPLINE_TOTAL_COLUMN.field).toBe('total');
+    expect(DISCIPLINE_TOTAL_COLUMN.type).toBe('calculated');
+  });
+
+  it('works out the total with disciplineTotal', () => {
+    expect(DISCIPLINE_TOTAL_COLUMN.formula?.evaluate).toBe(disciplineTotal);
   });
 });
 
@@ -91,6 +56,12 @@ describe('disciplinesToGridRows', () => {
   it('makes a Best F, Best M, Low F and Low M row', () => {
     const rows = disciplinesToGridRows(MOCK_DISCIPLINES.rows);
     expect(rows.map((r) => r.id)).toEqual(['bestF', 'bestM', 'lowF', 'lowM']);
+    expect(rows.map((r) => r.label)).toEqual([
+      'Best F',
+      'Best M',
+      'Low F',
+      'Low M',
+    ]);
   });
 
   it('puts each discipline in its own column', () => {
@@ -98,7 +69,7 @@ describe('disciplinesToGridRows', () => {
     expect(bestF).toMatchObject({ hp: 4, ssba: 4, ae: 2, mo: 3 });
   });
 
-  it('fills in the totals', () => {
+  it('gives totals that match the mock data', () => {
     expect(mockTotal('bestF')).toBe(13);
   });
 
