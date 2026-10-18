@@ -50,7 +50,6 @@ export default async function Page({ params }: DashboardPageProps) {
               </li>
             ))}
           </ol>
-          ß
         </DashboardPanel>
         <PlanningProgressCard />
         <ActionsRequiredCard actions={actions} />

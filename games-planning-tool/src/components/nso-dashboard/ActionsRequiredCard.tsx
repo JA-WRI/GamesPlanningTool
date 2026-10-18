@@ -13,8 +13,7 @@ export default function ActionsRequiredCard({
       <div
         role="region"
         aria-labelledby="actions-heading"
-        tabIndex={0}
-        className="mt-8 h-[428px] overflow-y-auto rounded-lg pr-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ocean"
+        className="mt-8 h-[428px] overflow-y-auto rounded-lg pr-1"
       >
         <ol className="space-y-3">
           {actions.map((action, index) => (
