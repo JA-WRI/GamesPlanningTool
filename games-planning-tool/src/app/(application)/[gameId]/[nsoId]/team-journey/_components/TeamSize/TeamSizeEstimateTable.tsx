@@ -1,11 +1,11 @@
 // AI contribution: 50% or more AI-generated
 'use client';
 
+import { useState } from 'react';
 import { Alert } from '@mui/material';
-import Grid, { ColumnDefinition } from '@/components/commons/Grid';
+import BaseGridPage from '@/components/commons/BaseGridPage';
+import type { ColumnDefinition } from '@/components/commons/Grid';
 import NotesBox from '@/components/commons/NotesBox';
-import GridCard from './GridCard';
-import { useGridCard } from './useGridCard';
 import { TeamSize } from '../../_lib/teamSizeLogic';
 import {
   TeamSizeRow,
@@ -80,40 +80,35 @@ export default function TeamSizeEstimateTable({
   teamSize,
   onChange,
 }: TeamSizeEstimateTableProps) {
-  const card = useGridCard<TeamSizeRow>({
-    initialRows: athletesToRows(teamSize.athletes),
-    // never called, this table has no add button
-    createRow: () => athletesToRows(teamSize.athletes)[0],
-    isValid: isTeamSizeValid,
-    onSave: (rows) => onChange({ ...teamSize, athletes: rowsToAthletes(rows) }),
-  });
+  // the rows as the user types, so the warnings update live
+  const [liveRows, setLiveRows] = useState(() =>
+    athletesToRows(teamSize.athletes),
+  );
 
   return (
-    <GridCard
-      title="Team size estimate"
-      isEditing={card.isEditing}
-      isPreview={card.isPreview}
-      onPreviewToggle={card.setIsPreview}
-      onEdit={card.edit}
-      onCancel={card.cancel}
-      onSave={card.save}
-    >
-      <Grid
+    <div className="flex flex-col gap-3">
+      <BaseGridPage
+        title="Team size estimate"
         columns={columns}
-        rows={card.rows}
-        isEditing={card.isEditing}
-        isPreview={card.isPreview}
-        onRowsChange={card.setRows}
-        onValidationChange={card.setHasCellError}
+        initialData={athletesToRows(teamSize.athletes)}
+        // never called, this table has no add button
+        createEmptyRow={() => athletesToRows(teamSize.athletes)[0]}
+        isValid={isTeamSizeValid}
+        onSave={(rows) =>
+          onChange({ ...teamSize, athletes: rowsToAthletes(rows) })
+        }
+        onRowsChange={setLiveRows}
+        showSearch={false}
+        allowAddRow={false}
         allowDelete={false}
         fitWidth
       />
-      <TeamSizeWarnings rows={card.rows} />
+      <TeamSizeWarnings rows={liveRows} />
       <NotesBox
         id="team-size-notes"
         value={teamSize.notes}
         onSave={(notes) => onChange({ ...teamSize, notes })}
       />
-    </GridCard>
+    </div>
   );
 }
