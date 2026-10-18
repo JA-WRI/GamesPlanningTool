@@ -4,13 +4,13 @@
 import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import NotesBox from '@/components/commons/NotesBox';
-import GridCard, { GRID_FIT, JOIN_TOTAL_ROW, TotalRow } from './GridCard';
+import GridCard, { GRID_FIT } from './GridCard';
 import { useGridCard } from './useGridCard';
 import { TeamSize } from '../../_lib/teamSizeLogic';
 import {
   TeamSizeRow,
   athletesToRows,
-  rowHasRangeError,
+  gendersWithRangeError,
   rowsToAthletes,
   MAX_COUNT,
   allWholeCounts,
@@ -35,28 +35,37 @@ const numberColumn = (
   width: '25%',
 });
 
-const COUNT_FIELDS: (keyof TeamSizeRow)[] = ['low', 'bestGuess', 'high'];
+const COUNT_FIELDS: (keyof TeamSizeRow)[] = ['male', 'female'];
 
 const columns: ColumnDefinition<TeamSizeRow>[] = [
   { field: 'label', label: '', width: '25%' },
-  numberColumn('low', 'LOW'),
-  numberColumn('bestGuess', 'BEST GUESS'),
-  numberColumn('high', 'HIGH'),
+  numberColumn('male', 'MALE'),
+  numberColumn('female', 'FEMALE'),
+  // the shared grid adds Male + Female on its own
+  {
+    field: 'total',
+    label: 'TOTAL',
+    type: 'calculated',
+    formula: { operator: '+', fieldA: 'male', fieldB: 'female' },
+    align: 'center',
+    width: '25%',
+  },
 ];
 
 // rows can be saved when every count is in order and a whole number
 const isTeamSizeValid = (rows: TeamSizeRow[]) =>
-  !rows.some(rowHasRangeError) && allWholeCounts(rows, COUNT_FIELDS);
+  gendersWithRangeError(rows).length === 0 &&
+  allWholeCounts(rows, COUNT_FIELDS);
 
 // warnings shown under the table while something can't be saved
 function TeamSizeWarnings({ rows }: { rows: TeamSizeRow[] }) {
-  const brokenRows = rows.filter(rowHasRangeError);
+  const brokenGenders = gendersWithRangeError(rows);
   return (
     <>
-      {brokenRows.length > 0 && (
+      {brokenGenders.length > 0 && (
         <Alert severity="warning">
-          {brokenRows.map((row) => row.label).join(', ')}: Low must be ≤ Best
-          guess ≤ High. Fix this before saving.
+          {brokenGenders.join(', ')}: Low must be ≤ Best guess ≤ High. Fix this
+          before saving.
         </Alert>
       )}
       {!allWholeCounts(rows, COUNT_FIELDS) && (
@@ -77,11 +86,7 @@ export default function TeamSizeEstimateTable({
     // never called, this table has no add button
     createRow: () => athletesToRows(teamSize.athletes)[0],
     isValid: isTeamSizeValid,
-    onSave: (rows) =>
-      onChange({
-        ...teamSize,
-        athletes: rowsToAthletes(rows, teamSize.athletes),
-      }),
+    onSave: (rows) => onChange({ ...teamSize, athletes: rowsToAthletes(rows) }),
   });
 
   return (
@@ -94,9 +99,8 @@ export default function TeamSizeEstimateTable({
       onCancel={card.cancel}
       onSave={card.save}
     >
-      {/* shared grid with its default look; only its width and bottom
-          corners change so the Total row joins it */}
-      <div className={`${GRID_FIT} ${JOIN_TOTAL_ROW}`}>
+      {/* shared grid with its default look; GRID_FIT only changes its width */}
+      <div className={GRID_FIT}>
         <Grid
           columns={columns}
           rows={card.rows}
@@ -106,7 +110,6 @@ export default function TeamSizeEstimateTable({
           onValidationChange={card.setHasCellError}
           allowDelete={false}
         />
-        <TotalRow rows={card.rows} columns={columns} />
       </div>
       <TeamSizeWarnings rows={card.rows} />
       <NotesBox

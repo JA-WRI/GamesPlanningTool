@@ -6,12 +6,14 @@ import { getAthleteRangeErrors, getMedalsMessage } from './teamSizeLogic';
 // the grid gives a number or '' when the box is empty
 export type GridNumber = number | '';
 
+export type EstimateLevel = 'low' | 'bestGuess' | 'high';
+
+// one row per estimate (Low, Best Guess, High), one column per gender
 export interface TeamSizeRow extends Record<string, unknown> {
-  id: 'male' | 'female';
+  id: EstimateLevel;
   label: string;
-  low: GridNumber;
-  bestGuess: GridNumber;
-  high: GridNumber;
+  male: GridNumber;
+  female: GridNumber;
 }
 
 export type DisciplineId = 'hp' | 'ssba' | 'ae' | 'mo';
@@ -65,20 +67,16 @@ export function toText(value: unknown): string {
   return value === '' || value === undefined ? '' : String(value);
 }
 
-// adds one column from top to bottom
-export function sumColumn<T extends Record<string, unknown>>(
-  rows: T[],
-  field: keyof T,
-): number {
-  // empty boxes count as 0
-  return rows.reduce((total, row) => total + (Number(row[field]) || 0), 0);
-}
-
 // row names that never change
-export const ATHLETE_LABELS: Record<TeamSizeRow['id'], string> = {
-  male: 'Male',
-  female: 'Female',
+export const ESTIMATE_LABELS: Record<EstimateLevel, string> = {
+  low: 'Low',
+  bestGuess: 'Best Guess',
+  high: 'High',
 };
+
+const ESTIMATE_LEVELS: EstimateLevel[] = ['low', 'bestGuess', 'high'];
+
+const GENDER_LABELS = { male: 'Male', female: 'Female' } as const;
 
 // discipline names that never change
 export const DISCIPLINE_LABELS: Record<DisciplineId, string> = {
@@ -88,55 +86,51 @@ export const DISCIPLINE_LABELS: Record<DisciplineId, string> = {
   mo: 'MO',
 };
 
-// team size state -> Male and Female grid rows
+// team size state -> Low, Best Guess and High grid rows
 export function athletesToRows(athletes: TeamSize['athletes']): TeamSizeRow[] {
-  const toRow = (id: TeamSizeRow['id']): TeamSizeRow => ({
+  return ESTIMATE_LEVELS.map((id) => ({
     id,
-    label: ATHLETE_LABELS[id],
-    low: toGridNumber(athletes[id].low),
-    bestGuess: toGridNumber(athletes[id].bestGuess),
-    high: toGridNumber(athletes[id].high),
-  });
-  return [toRow('male'), toRow('female')];
+    label: ESTIMATE_LABELS[id],
+    male: toGridNumber(athletes.male[id]),
+    female: toGridNumber(athletes.female[id]),
+  }));
 }
 
-// one grid row ->values used by teamSizeLogic
-export function rowToEstimate(row: TeamSizeRow): AthleteEstimate {
-  return {
-    low: toText(row.low),
-    bestGuess: toText(row.bestGuess),
-    high: toText(row.high),
-  };
-}
-
-// grid rows -> team size state
-export function rowsToAthletes(
-  rows: TeamSizeRow[],
-  current: TeamSize['athletes'],
-): TeamSize['athletes'] {
-  const athletes = { ...current };
+// grid rows -> team size state, numbers back to text for the Review step
+export function rowsToAthletes(rows: TeamSizeRow[]): TeamSize['athletes'] {
+  const empty = (): AthleteEstimate => ({ low: '', bestGuess: '', high: '' });
+  const athletes = { male: empty(), female: empty() };
   rows.forEach((row) => {
-    athletes[row.id] = rowToEstimate(row);
+    athletes.male[row.id] = toText(row.male);
+    athletes.female[row.id] = toText(row.female);
   });
   return athletes;
 }
 
+// "Male" and/or "Female" when their Low ≤ Best ≤ High is broken
+export function gendersWithRangeError(rows: TeamSizeRow[]): string[] {
+  const athletes = rowsToAthletes(rows);
+  return (['male', 'female'] as const)
+    .filter((gender) => {
+      const errors = getAthleteRangeErrors(athletes[gender]);
+      return (
+        errors.lowIsInvalid || errors.bestIsInvalid || errors.rangeIsInvalid
+      );
+    })
+    .map((gender) => GENDER_LABELS[gender]);
+}
+
 // puts the row names back if someone typed over them
-function restoreLabels<T extends { id: string; label: string }>(
+export function restoreLabels<T extends { id: string; label: string }>(
   rows: T[],
   labels: Record<string, string>,
 ): T[] {
   return rows.map((row) => ({ ...row, label: labels[row.id] }));
 }
 
-// fixed names for the Male/Female rows
+// fixed names for the Low, Best Guess, High rows
 export function withFixedLabels(rows: TeamSizeRow[]): TeamSizeRow[] {
-  return restoreLabels(rows, ATHLETE_LABELS);
-}
-
-// fixed names for the HP, SS/BA, AE, MO rows
-export function withDisciplineLabels(rows: DisciplineRow[]): DisciplineRow[] {
-  return restoreLabels(rows, DISCIPLINE_LABELS);
+  return restoreLabels(rows, ESTIMATE_LABELS);
 }
 
 // biggest number allowed in a count box
@@ -204,14 +198,6 @@ export function withMedalsLabel(
 // true when Low is above High (empty boxes are not checked)
 export function medalRowHasError(row: MedalObjectiveRow): boolean {
   return getMedalsMessage(toText(row.low), toText(row.high)) !== null;
-}
-
-// true when Low ≤ Best ≤ High is broken
-export function rowHasRangeError(row: TeamSizeRow): boolean {
-  const { lowIsInvalid, bestIsInvalid, rangeIsInvalid } = getAthleteRangeErrors(
-    rowToEstimate(row),
-  );
-  return lowIsInvalid || bestIsInvalid || rangeIsInvalid;
 }
 
 // the shared grid shows "-" for an empty cell, a space keeps the note blank

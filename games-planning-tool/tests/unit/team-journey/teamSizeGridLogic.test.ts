@@ -7,6 +7,7 @@ import {
   MOCK_TEAM_SIZE,
 } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/mockData';
 import {
+  GridNumber,
   MAX_COUNT,
   TeamSizeRow,
   allWholeCounts,
@@ -19,24 +20,33 @@ import {
   athletesToRows,
   createEmptyMedalRow,
   disciplineHasLowAboveBest,
-  rowHasRangeError,
-  rowToEstimate,
+  gendersWithRangeError,
   rowsMissingName,
   rowsToAthletes,
-  sumColumn,
   toGridNumber,
   toText,
   withBlankNotes,
-  withDisciplineLabels,
   withFixedLabels,
 } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/teamSizeGridLogic';
 
-function row(
-  low: number | '',
-  bestGuess: number | '',
-  high: number | '',
-): TeamSizeRow {
-  return { id: 'male', label: 'Male', low, bestGuess, high };
+// one "Low" row with these male and female counts
+function row(male: GridNumber, female: GridNumber): TeamSizeRow {
+  return { id: 'low', label: 'Low', male, female };
+}
+
+const LEVELS = ['low', 'bestGuess', 'high'] as const;
+
+// Low, Best Guess, High rows from [low, best, high] for each gender
+function estimateRows(
+  male: GridNumber[],
+  female: GridNumber[] = ['', '', ''],
+): TeamSizeRow[] {
+  return LEVELS.map((id, i) => ({
+    id,
+    label: id,
+    male: male[i],
+    female: female[i],
+  }));
 }
 
 describe('toGridNumber', () => {
@@ -62,64 +72,30 @@ describe('toText', () => {
   });
 });
 
-describe('sumColumn', () => {
-  it('adds one column from top to bottom', () => {
-    const rows = [row(12, 12, 16), row(10, 13, 13)];
-    expect(sumColumn(rows, 'low')).toBe(22);
-    expect(sumColumn(rows, 'bestGuess')).toBe(25);
-    expect(sumColumn(rows, 'high')).toBe(29);
-  });
-
-  it('counts empty boxes as 0', () => {
-    expect(sumColumn([row('', 3, ''), row(2, '', '')], 'low')).toBe(2);
-  });
-
-  it('is 0 when there are no rows', () => {
-    expect(sumColumn<TeamSizeRow>([], 'low')).toBe(0);
-  });
-});
-
 describe('athletesToRows', () => {
-  it('makes a Male and a Female row', () => {
+  it('makes a Low, a Best Guess and a High row', () => {
     const rows = athletesToRows(INITIAL_TEAM_SIZE.athletes);
-    expect(rows.map((r) => r.label)).toEqual(['Male', 'Female']);
-    expect(rows[0]).toEqual({
-      id: 'male',
-      label: 'Male',
-      low: '',
-      bestGuess: '',
-      high: '',
-    });
+    expect(rows.map((r) => r.label)).toEqual(['Low', 'Best Guess', 'High']);
+    expect(rows[0]).toEqual({ id: 'low', label: 'Low', male: '', female: '' });
   });
 
-  it('turns the text values into numbers', () => {
+  it('puts each gender in its own column, as numbers', () => {
     const athletes = {
       male: { low: '12', bestGuess: '12', high: '16' },
       female: { low: '10', bestGuess: '', high: '13' },
     };
-    const [male, female] = athletesToRows(athletes);
-    expect(male.high).toBe(16);
-    expect(female.bestGuess).toBe('');
-  });
-});
-
-describe('rowToEstimate', () => {
-  it('turns a grid row back into text values', () => {
-    expect(rowToEstimate(row(1, '', 3))).toEqual({
-      low: '1',
-      bestGuess: '',
-      high: '3',
-    });
+    const [low, best, high] = athletesToRows(athletes);
+    expect(low).toMatchObject({ male: 12, female: 10 });
+    expect(best.female).toBe('');
+    expect(high.male).toBe(16);
   });
 });
 
 describe('rowsToAthletes', () => {
-  it('updates the team size state from the grid rows', () => {
-    const rows = athletesToRows(INITIAL_TEAM_SIZE.athletes);
-    rows[1] = { ...rows[1], bestGuess: 13 };
-    const athletes = rowsToAthletes(rows, INITIAL_TEAM_SIZE.athletes);
-    expect(athletes.female.bestGuess).toBe('13');
-    expect(athletes.male).toEqual(INITIAL_TEAM_SIZE.athletes.male);
+  it('turns the grid rows back into text for each gender', () => {
+    const athletes = rowsToAthletes(estimateRows([1, '', 3], [4, 5, 6]));
+    expect(athletes.male).toEqual({ low: '1', bestGuess: '', high: '3' });
+    expect(athletes.female).toEqual({ low: '4', bestGuess: '5', high: '6' });
   });
 
   it('round-trips without losing values', () => {
@@ -127,38 +103,42 @@ describe('rowsToAthletes', () => {
       male: { low: '1', bestGuess: '2', high: '3' },
       female: { low: '', bestGuess: '5', high: '' },
     };
-    expect(rowsToAthletes(athletesToRows(athletes), athletes)).toEqual(
-      athletes,
-    );
+    expect(rowsToAthletes(athletesToRows(athletes))).toEqual(athletes);
   });
 
-  it('does not change the original object', () => {
-    const rows = [row(4, 4, 4)];
-    rowsToAthletes(rows, INITIAL_TEAM_SIZE.athletes);
-    expect(INITIAL_TEAM_SIZE.athletes.male.low).toBe('');
+  it('leaves a level empty when its row is missing', () => {
+    const athletes = rowsToAthletes([row(4, 7)]);
+    expect(athletes.male).toEqual({ low: '4', bestGuess: '', high: '' });
+    expect(athletes.female.low).toBe('7');
   });
 });
 
-describe('rowHasRangeError', () => {
-  it('is false when Low ≤ Best ≤ High', () => {
-    expect(rowHasRangeError(row(1, 2, 3))).toBe(false);
-    expect(rowHasRangeError(row(5, 5, 5))).toBe(false);
+describe('gendersWithRangeError', () => {
+  it('is empty when Low ≤ Best ≤ High for both genders', () => {
+    expect(gendersWithRangeError(estimateRows([1, 2, 3], [5, 5, 5]))).toEqual(
+      [],
+    );
   });
 
-  it('is true when Low > Best', () => {
-    expect(rowHasRangeError(row(5, 4, 9))).toBe(true);
+  it('finds Male when its Low > Best', () => {
+    expect(gendersWithRangeError(estimateRows([5, 4, 9]))).toEqual(['Male']);
   });
 
-  it('is true when Best > High', () => {
-    expect(rowHasRangeError(row(1, 6, 5))).toBe(true);
+  it('finds Female when its Best > High', () => {
+    expect(gendersWithRangeError(estimateRows([], [1, 6, 5]))).toEqual([
+      'Female',
+    ]);
   });
 
-  it('is true when Low > High and Best is empty', () => {
-    expect(rowHasRangeError(row(9, '', 1))).toBe(true);
+  it('finds both genders at once', () => {
+    expect(gendersWithRangeError(estimateRows([9, '', 1], [3, 2, 1]))).toEqual([
+      'Male',
+      'Female',
+    ]);
   });
 
-  it('is false when the boxes are empty', () => {
-    expect(rowHasRangeError(row('', '', ''))).toBe(false);
+  it('is empty when the boxes are empty', () => {
+    expect(gendersWithRangeError(estimateRows(['', '', '']))).toEqual([]);
   });
 });
 
@@ -184,31 +164,15 @@ describe('withFixedLabels', () => {
     const rows = athletesToRows(INITIAL_TEAM_SIZE.athletes);
     rows[0] = { ...rows[0], label: 'oops' };
     expect(withFixedLabels(rows).map((r) => r.label)).toEqual([
-      'Male',
-      'Female',
+      'Low',
+      'Best Guess',
+      'High',
     ]);
   });
 
   it('keeps the numbers as they are', () => {
-    const fixed = withFixedLabels([{ ...row(1, 2, 3), label: '' }]);
-    expect(fixed[0]).toEqual(row(1, 2, 3));
-  });
-});
-
-describe('withDisciplineLabels', () => {
-  it('puts the discipline names back after a user types over them', () => {
-    const rows = MOCK_DISCIPLINES.rows.map((r) => ({ ...r, label: 'x' }));
-    expect(withDisciplineLabels(rows).map((r) => r.label)).toEqual([
-      'HP',
-      'SS/BA',
-      'AE',
-      'MO',
-    ]);
-  });
-
-  it('keeps the numbers as they are', () => {
-    const [hp] = withDisciplineLabels(MOCK_DISCIPLINES.rows);
-    expect(hp).toEqual(MOCK_DISCIPLINES.rows[0]);
+    const fixed = withFixedLabels([{ ...row(1, 2), label: '' }]);
+    expect(fixed[0]).toEqual(row(1, 2));
   });
 });
 
@@ -259,18 +223,18 @@ describe('isWholeCount', () => {
 });
 
 describe('allWholeCounts', () => {
-  const fields: (keyof TeamSizeRow)[] = ['low', 'bestGuess', 'high'];
+  const fields: (keyof TeamSizeRow)[] = ['male', 'female'];
 
   it('is true when every box is fine', () => {
-    expect(allWholeCounts([row(1, 2, 3), row('', '', '')], fields)).toBe(true);
+    expect(allWholeCounts([row(1, 2), row('', '')], fields)).toBe(true);
   });
 
   it('is false when one box has a decimal', () => {
-    expect(allWholeCounts([row(1, 2, 3), row(1, 2.5, 3)], fields)).toBe(false);
+    expect(allWholeCounts([row(1, 2), row(1, 2.5)], fields)).toBe(false);
   });
 
   it('only checks the given columns', () => {
-    expect(allWholeCounts([row(1, 2.5, 3)], ['low', 'high'])).toBe(true);
+    expect(allWholeCounts([row(1, 2.5)], ['male'])).toBe(true);
   });
 
   it('is true when there are no rows', () => {
@@ -309,54 +273,18 @@ describe('rowsMissingName', () => {
   });
 });
 
-describe('mock discipline data', () => {
-  const { male, female } = MOCK_TEAM_SIZE.athletes;
-  const rows = MOCK_DISCIPLINES.rows;
-
-  it('adds up to the team size best guess', () => {
-    expect(sumColumn(rows, 'bestF')).toBe(Number(female.bestGuess));
-    expect(sumColumn(rows, 'bestM')).toBe(Number(male.bestGuess));
+describe('gendersWithRangeError edge cases', () => {
+  it('is empty when Low is 0 and the others are bigger', () => {
+    expect(gendersWithRangeError(estimateRows([0, 3, 5]))).toEqual([]);
   });
 
-  it('adds up to the team size low estimate', () => {
-    expect(sumColumn(rows, 'lowF')).toBe(Number(female.low));
-    expect(sumColumn(rows, 'lowM')).toBe(Number(male.low));
-  });
-
-  it('never has Low above Best for a discipline', () => {
-    rows.forEach((r) => {
-      expect(r.lowF).toBeLessThanOrEqual(r.bestF as number);
-      expect(r.lowM).toBeLessThanOrEqual(r.bestM as number);
-    });
-  });
-});
-
-describe('sumColumn edge cases', () => {
-  it('adds negative numbers as they are', () => {
-    expect(sumColumn([row(-3, 0, 0), row(5, 0, 0)], 'low')).toBe(2);
-  });
-
-  it('handles very large numbers', () => {
-    expect(sumColumn([row(999, 0, 0), row(999, 0, 0)], 'low')).toBe(1998);
-  });
-
-  it('can give a long decimal, which is why decimals are blocked', () => {
-    expect(sumColumn([row(0.1, 0, 0), row(0.2, 0, 0)], 'low')).not.toBe(0.3);
-  });
-});
-
-describe('rowHasRangeError edge cases', () => {
-  it('is false when Low is 0 and the others are bigger', () => {
-    expect(rowHasRangeError(row(0, 3, 5))).toBe(false);
-  });
-
-  it('is true when Best is 0 but Low is bigger', () => {
-    expect(rowHasRangeError(row(2, 0, 5))).toBe(true);
+  it('finds the gender when Best is 0 but Low is bigger', () => {
+    expect(gendersWithRangeError(estimateRows([2, 0, 5]))).toEqual(['Male']);
   });
 
   it('compares negative numbers correctly', () => {
-    expect(rowHasRangeError(row(-5, -2, 0))).toBe(false);
-    expect(rowHasRangeError(row(-1, -2, 0))).toBe(true);
+    expect(gendersWithRangeError(estimateRows([-5, -2, 0]))).toEqual([]);
+    expect(gendersWithRangeError(estimateRows([-1, -2, 0]))).toEqual(['Male']);
   });
 });
 
