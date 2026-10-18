@@ -3,7 +3,7 @@
 
 import { ColumnDefinition } from '../../../../games-planning-tool/src/components/commons/Grid';
 import '@testing-library/jest-dom/vitest';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import BaseGridPage from '../../../../games-planning-tool/src/components/commons/BaseGridPage';
 
@@ -100,5 +100,71 @@ describe('BaseGridPage', () => {
 
     expect(screen.getByText('Gaming Laptop')).toBeInTheDocument();
     expect(screen.getByText('Desk')).toBeInTheDocument();
+  });
+
+  it('calls custom onSave callback with saved rows when provided', () => {
+    const handleSaveMock = vi.fn();
+    render(
+      <BaseGridPage
+        title="Inventory"
+        initialData={initialData}
+        columns={columns}
+        createEmptyRow={createEmptyRow}
+        onSave={handleSaveMock}
+      />,
+    );
+
+    const editButton = screen.getByRole('button', { name: /edit/i });
+    fireEvent.click(editButton);
+
+    const saveButton = screen.getByRole('button', { name: /save/i });
+    fireEvent.click(saveButton);
+
+    expect(handleSaveMock).toHaveBeenCalledTimes(1);
+    expect(handleSaveMock).toHaveBeenCalledWith(initialData);
+  });
+
+  it('blocks saving and shows alert when custom isValid rule returns false', () => {
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    const handleSaveMock = vi.fn();
+
+    render(
+      <BaseGridPage
+        title="Inventory"
+        initialData={initialData}
+        columns={columns}
+        createEmptyRow={createEmptyRow}
+        onSave={handleSaveMock}
+        isValid={() => false}
+      />,
+    );
+
+    const editButton = screen.getByRole('button', { name: /edit/i });
+    fireEvent.click(editButton);
+
+    const saveButton = screen.getByRole('button', { name: /save/i });
+    fireEvent.click(saveButton);
+
+    expect(alertSpy).toHaveBeenCalled();
+    expect(handleSaveMock).not.toHaveBeenCalled();
+
+    alertSpy.mockRestore();
+  });
+
+  it('uses default "Add Row" label when addButtonLabel is omitted', () => {
+    render(
+      <BaseGridPage
+        title="Inventory"
+        initialData={initialData}
+        columns={columns}
+        createEmptyRow={createEmptyRow}
+      />,
+    );
+
+    const editButton = screen.getByRole('button', { name: /edit/i });
+    fireEvent.click(editButton);
+
+    const addButton = screen.getByRole('button', { name: /add row/i });
+    expect(addButton).toBeInTheDocument();
   });
 });
