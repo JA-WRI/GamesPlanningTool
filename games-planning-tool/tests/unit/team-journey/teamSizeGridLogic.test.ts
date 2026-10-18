@@ -16,7 +16,6 @@ import {
   medalRowHasError,
   medalsToRows,
   rowsToMedals,
-  withMedalsLabel,
   athletesToRows,
   createEmptyMedalRow,
   disciplineHasLowAboveBest,
@@ -26,7 +25,6 @@ import {
   toGridNumber,
   toText,
   withBlankNotes,
-  withFixedLabels,
 } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/teamSizeGridLogic';
 
 // one "Low" row with these male and female counts
@@ -156,23 +154,6 @@ describe('createEmptyMedalRow', () => {
 
   it('gives every row a different id', () => {
     expect(createEmptyMedalRow().id).not.toBe(createEmptyMedalRow().id);
-  });
-});
-
-describe('withFixedLabels', () => {
-  it('puts the row names back after a user types over them', () => {
-    const rows = athletesToRows(INITIAL_TEAM_SIZE.athletes);
-    rows[0] = { ...rows[0], label: 'oops' };
-    expect(withFixedLabels(rows).map((r) => r.label)).toEqual([
-      'Low',
-      'Best Guess',
-      'High',
-    ]);
-  });
-
-  it('keeps the numbers as they are', () => {
-    const fixed = withFixedLabels([{ ...row(1, 2), label: '' }]);
-    expect(fixed[0]).toEqual(row(1, 2));
   });
 });
 
@@ -374,13 +355,6 @@ describe('rowsToMedals', () => {
 
   it('returns the team size unchanged when there is no row', () => {
     expect(rowsToMedals([], MOCK_TEAM_SIZE)).toBe(MOCK_TEAM_SIZE);
-  });
-});
-
-describe('withMedalsLabel', () => {
-  it('puts the row name back after a user types over it', () => {
-    const typedOver = { ...medalRow(2, 5), label: 'oops' };
-    expect(withMedalsLabel([typedOver])).toEqual([medalRow(2, 5)]);
   });
 });
 

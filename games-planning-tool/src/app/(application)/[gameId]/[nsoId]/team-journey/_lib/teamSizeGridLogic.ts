@@ -120,19 +120,6 @@ export function gendersWithRangeError(rows: TeamSizeRow[]): string[] {
     .map((gender) => GENDER_LABELS[gender]);
 }
 
-// puts the row names back if someone typed over them
-export function restoreLabels<T extends { id: string; label: string }>(
-  rows: T[],
-  labels: Record<string, string>,
-): T[] {
-  return rows.map((row) => ({ ...row, label: labels[row.id] }));
-}
-
-// fixed names for the Low, Best Guess, High rows
-export function withFixedLabels(rows: TeamSizeRow[]): TeamSizeRow[] {
-  return restoreLabels(rows, ESTIMATE_LABELS);
-}
-
 // biggest number allowed in a count box
 export const MAX_COUNT = 999;
 
@@ -186,13 +173,6 @@ export function rowsToMedals(
     projectedMedalsLow: toText(row.low),
     projectedMedalsHigh: toText(row.high),
   };
-}
-
-// fixed name for the "Projected medals" row
-export function withMedalsLabel(
-  rows: MedalObjectiveRow[],
-): MedalObjectiveRow[] {
-  return restoreLabels(rows, { medals: MEDALS_LABEL });
 }
 
 // true when Low is above High (empty boxes are not checked)

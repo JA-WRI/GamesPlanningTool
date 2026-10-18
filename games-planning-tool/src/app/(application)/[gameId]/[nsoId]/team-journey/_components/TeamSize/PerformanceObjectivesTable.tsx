@@ -3,7 +3,7 @@
 
 import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import GridCard, { GRID_FIT } from './GridCard';
+import GridCard from './GridCard';
 import { useGridCard } from './useGridCard';
 import { TeamSize } from '../../_lib/teamSizeLogic';
 import {
@@ -13,7 +13,6 @@ import {
   medalRowHasError,
   medalsToRows,
   rowsToMedals,
-  withMedalsLabel,
 } from '../../_lib/teamSizeGridLogic';
 
 type PerformanceObjectivesTableProps = {
@@ -37,7 +36,7 @@ const numberColumn = (
 });
 
 const columns: ColumnDefinition<MedalObjectiveRow>[] = [
-  { field: 'label', label: '', width: '50%' },
+  { field: 'label', label: '', width: '50%', readOnly: true },
   numberColumn('low', 'LOW'),
   numberColumn('high', 'HIGH'),
 ];
@@ -84,18 +83,16 @@ export default function PerformanceObjectivesTable({
       onCancel={card.cancel}
       onSave={card.save}
     >
-      {/* shared grid with its default look GRID_FIT only changes its width */}
-      <div className={GRID_FIT}>
-        <Grid
-          columns={columns}
-          rows={card.rows}
-          isEditing={card.isEditing}
-          isPreview={card.isPreview}
-          onRowsChange={(rows) => card.setRows(withMedalsLabel(rows))}
-          onValidationChange={card.setHasCellError}
-          allowDelete={false}
-        />
-      </div>
+      <Grid
+        columns={columns}
+        rows={card.rows}
+        isEditing={card.isEditing}
+        isPreview={card.isPreview}
+        onRowsChange={card.setRows}
+        onValidationChange={card.setHasCellError}
+        allowDelete={false}
+        fitWidth
+      />
       <MedalWarnings rows={card.rows} />
     </GridCard>
   );

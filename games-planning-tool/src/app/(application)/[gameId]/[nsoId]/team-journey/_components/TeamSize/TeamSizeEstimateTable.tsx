@@ -4,7 +4,7 @@
 import { Alert } from '@mui/material';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import NotesBox from '@/components/commons/NotesBox';
-import GridCard, { GRID_FIT } from './GridCard';
+import GridCard from './GridCard';
 import { useGridCard } from './useGridCard';
 import { TeamSize } from '../../_lib/teamSizeLogic';
 import {
@@ -14,7 +14,6 @@ import {
   rowsToAthletes,
   MAX_COUNT,
   allWholeCounts,
-  withFixedLabels,
 } from '../../_lib/teamSizeGridLogic';
 
 type TeamSizeEstimateTableProps = {
@@ -38,7 +37,7 @@ const numberColumn = (
 const COUNT_FIELDS: (keyof TeamSizeRow)[] = ['male', 'female'];
 
 const columns: ColumnDefinition<TeamSizeRow>[] = [
-  { field: 'label', label: '', width: '25%' },
+  { field: 'label', label: '', width: '25%', readOnly: true },
   numberColumn('male', 'MALE'),
   numberColumn('female', 'FEMALE'),
   // the shared grid adds Male + Female on its own
@@ -99,18 +98,16 @@ export default function TeamSizeEstimateTable({
       onCancel={card.cancel}
       onSave={card.save}
     >
-      {/* shared grid with its default look; GRID_FIT only changes its width */}
-      <div className={GRID_FIT}>
-        <Grid
-          columns={columns}
-          rows={card.rows}
-          isEditing={card.isEditing}
-          isPreview={card.isPreview}
-          onRowsChange={(rows) => card.setRows(withFixedLabels(rows))}
-          onValidationChange={card.setHasCellError}
-          allowDelete={false}
-        />
-      </div>
+      <Grid
+        columns={columns}
+        rows={card.rows}
+        isEditing={card.isEditing}
+        isPreview={card.isPreview}
+        onRowsChange={card.setRows}
+        onValidationChange={card.setHasCellError}
+        allowDelete={false}
+        fitWidth
+      />
       <TeamSizeWarnings rows={card.rows} />
       <NotesBox
         id="team-size-notes"
