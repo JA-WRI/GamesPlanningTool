@@ -14,10 +14,15 @@ interface BaseGridPageProps<T extends Record<string, unknown>> {
   initialData?: T[];
   columns: ColumnDefinition<T>[];
   createEmptyRow: () => T;
-  addButtonLabel: string;
+  addButtonLabel?: string;
   searchPlaceholder?: string;
   showSearch?: boolean;
   allowDelete?: boolean;
+  allowAddRow?: boolean;
+  onSave?: (savedRows: (T & { id: string })[]) => void;
+  isValid?: (rows: (T & { id: string })[]) => boolean;
+  minWidth?: number | string;
+  fitWidth?: boolean;
 }
 
 export default function BaseGridPage<T extends Record<string, unknown>>({
@@ -26,10 +31,15 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
   initialData = [],
   columns,
   createEmptyRow,
-  addButtonLabel,
+  addButtonLabel = 'Add Row',
   searchPlaceholder = 'Search records...',
   showSearch = true,
   allowDelete = true,
+  allowAddRow = true,
+  onSave,
+  isValid,
+  minWidth,
+  fitWidth,
 }: BaseGridPageProps<T>) {
   const [isPreview, setIsPreview] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,7 +56,11 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
     initialData as (T & { id: string })[],
     createEmptyRow as () => T & { id: string },
     (savedRows) => {
-      console.log(`Saved ${title} to API:`, savedRows);
+      if (onSave) {
+        onSave(savedRows);
+      } else {
+        console.log(`Saved ${title} to API:`, savedRows);
+      }
     },
   );
 
@@ -77,6 +91,8 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
     }
   };
 
+  const isInvalid = hasValidationError || (isValid ? !isValid(rows) : false);
+
   return (
     <div className="space-y-6 p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
       <GridHeaderPage
@@ -89,7 +105,7 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
           setIsPreview(false);
         }}
         onPreviewToggle={(previewState) => {
-          if (previewState && hasValidationError) {
+          if (previewState && isInvalid) {
             alert(
               'Please fix the invalid range inputs before switching to preview.',
             );
@@ -98,7 +114,7 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
           setIsPreview(previewState);
         }}
         onSave={() => {
-          if (hasValidationError) {
+          if (isInvalid) {
             alert('Please fix the invalid range inputs before saving.');
             return;
           }
@@ -131,6 +147,9 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
         addButtonLabel={addButtonLabel}
         onValidationChange={(errorState) => setHasValidationError(errorState)}
         allowDelete={allowDelete}
+        allowAddRow={allowAddRow}
+        minWidth={minWidth}
+        fitWidth={fitWidth}
       />
     </div>
   );

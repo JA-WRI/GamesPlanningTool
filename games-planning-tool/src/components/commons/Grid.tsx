@@ -33,11 +33,21 @@ export interface SelectOption {
   value: string | number;
 }
 
-export interface ColumnFormula<T> {
-  operator: CalculationOperator;
-  fieldA: keyof T;
-  fieldB: keyof T;
-}
+// discrimination union so empty formulas are not allowed.
+export type ColumnFormula<T> =
+  | {
+      operator: CalculationOperator;
+      fieldA: keyof T;
+      fieldB: keyof T;
+      evaluate?: never;
+    }
+  | {
+      // added for multi-parameter/multi-operation calculations
+      evaluate: (row: T) => number;
+      operator?: never;
+      fieldA?: never;
+      fieldB?: never;
+    };
 
 export interface ColumnDefinition<T> {
   field: keyof T;
@@ -54,6 +64,7 @@ export interface ColumnDefinition<T> {
   formula?: ColumnFormula<T>;
   formatValue?: (val: number) => string;
   allowedTextValues?: string[];
+  readOnly?: boolean;
 }
 
 interface GridProps<T extends Record<string, unknown>> {
@@ -66,6 +77,9 @@ interface GridProps<T extends Record<string, unknown>> {
   addButtonLabel?: string;
   onValidationChange?: (hasError: boolean) => void;
   allowDelete?: boolean;
+  allowAddRow?: boolean;
+  minWidth?: number | string; // customizavle minWidth
+  fitWidth?: boolean; // option to fit table width
 }
 
 export default function Grid<T extends Record<string, unknown>>({
@@ -78,6 +92,9 @@ export default function Grid<T extends Record<string, unknown>>({
   addButtonLabel = 'Add Row',
   onValidationChange,
   allowDelete = true,
+  allowAddRow = true,
+  minWidth = 1000,
+  fitWidth = false,
 }: GridProps<T>) {
   const [deleteTargetIndex, setDeleteTargetIndex] = useState<number | null>(
     null,
@@ -107,8 +124,15 @@ export default function Grid<T extends Record<string, unknown>>({
 
   const calculateValue = (row: T, formula?: ColumnFormula<T>): number => {
     if (!formula) return 0;
-    const valA = Number(row[formula.fieldA]) || 0;
-    const valB = Number(row[formula.fieldB]) || 0;
+    if (formula.evaluate) {
+      return formula.evaluate(row);
+    }
+
+    // because optional, need safety check
+    const valA =
+      formula.fieldA !== undefined ? Number(row[formula.fieldA]) || 0 : 0;
+    const valB =
+      formula.fieldB !== undefined ? Number(row[formula.fieldB]) || 0 : 0;
 
     switch (formula.operator) {
       case '+':
@@ -137,7 +161,10 @@ export default function Grid<T extends Record<string, unknown>>({
           backgroundColor: 'var(--color-surface, #ffffff)',
         }}
       >
-        <Table sx={{ minWidth: 1000 }} aria-label="editable grid table">
+        <Table
+          sx={{ minWidth: fitWidth ? '100%' : minWidth }}
+          aria-label="editable grid table"
+        >
           <TableHead
             sx={{ backgroundColor: 'var(--color-background, #f8f5f0)' }}
           >
@@ -216,7 +243,7 @@ export default function Grid<T extends Record<string, unknown>>({
                       align={col.align || 'left'}
                       sx={{ py: 1.5, px: 1.5 }}
                     >
-                      {showInputs && !col.formula ? (
+                      {showInputs && !col.formula && !col.readOnly ? (
                         col.type === 'select' ? (
                           <Autocomplete
                             size="small"
@@ -266,7 +293,7 @@ export default function Grid<T extends Record<string, unknown>>({
                               />
                             )}
                             sx={{
-                              minWidth: '140px',
+                              minWidth: fitWidth ? 0 : '140px',
                               '& .MuiOutlinedInput-root': {
                                 backgroundColor: '#FFFFFF',
                                 borderRadius: '6px',
@@ -302,7 +329,7 @@ export default function Grid<T extends Record<string, unknown>>({
                               );
                               const parsedValue =
                                 isAllowedText ||
-                                isNaN(Number(val)) ||
+                                Number.isNaN(Number(val)) ||
                                 val === ''
                                   ? val
                                   : Number(val);
@@ -313,8 +340,11 @@ export default function Grid<T extends Record<string, unknown>>({
                               );
                             }}
                             sx={{
-                              minWidth:
-                                col.type === 'number' ? '90px' : '120px',
+                              minWidth: fitWidth
+                                ? 0
+                                : col.type === 'number'
+                                  ? '90px'
+                                  : '120px',
                             }}
                             slotProps={{
                               htmlInput: {
@@ -329,9 +359,11 @@ export default function Grid<T extends Record<string, unknown>>({
                       ) : (
                         <span
                           className={`text-sm block whitespace-nowrap ${
-                            col.formula
-                              ? 'text-foreground font-bold'
-                              : 'text-foreground font-normal'
+                            col.readOnly && showInputs
+                              ? 'bg-gray-100 text-gray-600 px-2.5 py-1 rounded border border-gray-200 inline-block font-medium'
+                              : col.formula
+                                ? 'text-foreground font-bold'
+                                : 'text-foreground font-normal'
                           }`}
                         >
                           {displayVal || '-'}
@@ -367,7 +399,7 @@ export default function Grid<T extends Record<string, unknown>>({
         </Table>
       </TableContainer>
 
-      {showInputs && onAddRow && (
+      {showInputs && onAddRow && allowAddRow && (
         <button
           onClick={onAddRow}
           type="button"

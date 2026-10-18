@@ -47,6 +47,7 @@ const travelerColumns: ColumnDefinition<TravelerRow>[] = [
     min: 1, // min and max are used to enforce the bounds of the input numbers
     max: 100,
     align: 'center',
+    readOnly: true,
   },
   {
     field: 'daysOnSite',
@@ -87,10 +88,14 @@ const travelerColumns: ColumnDefinition<TravelerRow>[] = [
     label: 'TOTAL / MEMBER',
     type: 'calculated',
     align: 'right',
+    // example of multiple parameters and operations
     formula: {
-      operator: '*',
-      fieldA: 'daysOnSite',
-      fieldB: 'travelRate',
+      evaluate: (row) => {
+        const days = Number(row.daysOnSite) || 0;
+        const rate = Number(row.travelRate) || 0;
+        const members = Number(row.teamMembers) || 1;
+        return days * rate + members * 100;
+      },
     },
     formatValue: (val) => `$${val.toLocaleString('en-US')}`,
   },
@@ -123,6 +128,7 @@ export default function TestGridPage({
       })}
       addButtonLabel="Add Property Row"
       searchPlaceholder="Search travelers..."
+      allowAddRow={false}
     />
   );
 }
