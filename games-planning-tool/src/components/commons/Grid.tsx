@@ -34,9 +34,10 @@ export interface SelectOption {
 }
 
 export interface ColumnFormula<T> {
-  operator: CalculationOperator;
-  fieldA: keyof T;
-  fieldB: keyof T;
+  operator?: CalculationOperator;
+  fieldA?: keyof T;
+  fieldB?: keyof T;
+  evaluate?: (row: T) => number; // added for multi-parameter/multi-operation calculations
 }
 
 export interface ColumnDefinition<T> {
@@ -110,8 +111,15 @@ export default function Grid<T extends Record<string, unknown>>({
 
   const calculateValue = (row: T, formula?: ColumnFormula<T>): number => {
     if (!formula) return 0;
-    const valA = Number(row[formula.fieldA]) || 0;
-    const valB = Number(row[formula.fieldB]) || 0;
+    if (formula.evaluate) {
+      return formula.evaluate(row);
+    }
+
+    // because optional, need safety check
+    const valA =
+      formula.fieldA !== undefined ? Number(row[formula.fieldA]) || 0 : 0;
+    const valB =
+      formula.fieldB !== undefined ? Number(row[formula.fieldB]) || 0 : 0;
 
     switch (formula.operator) {
       case '+':

@@ -88,10 +88,14 @@ const travelerColumns: ColumnDefinition<TravelerRow>[] = [
     label: 'TOTAL / MEMBER',
     type: 'calculated',
     align: 'right',
+    // example of multiple parameters and operations
     formula: {
-      operator: '*',
-      fieldA: 'daysOnSite',
-      fieldB: 'travelRate',
+      evaluate: (row) => {
+        const days = Number(row.daysOnSite) || 0;
+        const rate = Number(row.travelRate) || 0;
+        const members = Number(row.teamMembers) || 1;
+        return days * rate + members * 100;
+      },
     },
     formatValue: (val) => `$${val.toLocaleString('en-US')}`,
   },
