@@ -26,7 +26,9 @@ describe('Grid Component', () => {
       field: 'total',
       label: 'Total',
       type: 'calculated',
-      formula: { operator: '*', fieldA: 'quantity', fieldB: 'price' },
+      formula: {
+        evaluate: (row) => Number(row.quantity) * Number(row.price),
+      },
       formatValue: (val) => `$${val.toFixed(2)}`,
     },
   ];
@@ -103,5 +105,50 @@ describe('Grid Component', () => {
     fireEvent.click(confirmButton);
 
     expect(mockOnRowsChange).toHaveBeenCalledWith([]);
+  });
+
+  it('applies fitWidth style correctly to the table container', () => {
+    const { container } = render(
+      <Grid
+        columns={columns}
+        rows={rows}
+        isEditing={false}
+        fitWidth={true}
+        onRowsChange={mockOnRowsChange}
+      />,
+    );
+
+    const table = container.querySelector('table');
+    expect(table).toHaveStyle({ minWidth: '100%' });
+  });
+
+  it('applies custom minWidth style correctly to the table container', () => {
+    const { container } = render(
+      <Grid
+        columns={columns}
+        rows={rows}
+        isEditing={false}
+        minWidth={800}
+        onRowsChange={mockOnRowsChange}
+      />,
+    );
+
+    const table = container.querySelector('table');
+    expect(table).toHaveStyle({ minWidth: '800px' });
+  });
+
+  it('computes and formats calculated column formulas accurately via evaluate', () => {
+    const customRows = [{ id: '1', name: 'Apple', quantity: 3, price: 4.0 }];
+    render(
+      <Grid
+        columns={columns}
+        rows={customRows}
+        isEditing={false}
+        onRowsChange={mockOnRowsChange}
+      />,
+    );
+
+    // 3 * 4.0 = $12.00
+    expect(screen.getByText('$12.00')).toBeInTheDocument();
   });
 });

@@ -33,12 +33,21 @@ export interface SelectOption {
   value: string | number;
 }
 
-export interface ColumnFormula<T> {
-  operator?: CalculationOperator;
-  fieldA?: keyof T;
-  fieldB?: keyof T;
-  evaluate?: (row: T) => number; // added for multi-parameter/multi-operation calculations
-}
+// discrimination union so empty formulas are not allowed.
+export type ColumnFormula<T> =
+  | {
+      operator: CalculationOperator;
+      fieldA: keyof T;
+      fieldB: keyof T;
+      evaluate?: never;
+    }
+  | {
+      // added for multi-parameter/multi-operation calculations
+      evaluate: (row: T) => number;
+      operator?: never;
+      fieldA?: never;
+      fieldB?: never;
+    };
 
 export interface ColumnDefinition<T> {
   field: keyof T;
@@ -69,6 +78,8 @@ interface GridProps<T extends Record<string, unknown>> {
   onValidationChange?: (hasError: boolean) => void;
   allowDelete?: boolean;
   allowAddRow?: boolean;
+  minWidth?: number | string; // customizavle minWidth
+  fitWidth?: boolean; // option to fit table width
 }
 
 export default function Grid<T extends Record<string, unknown>>({
@@ -82,6 +93,8 @@ export default function Grid<T extends Record<string, unknown>>({
   onValidationChange,
   allowDelete = true,
   allowAddRow = true,
+  minWidth = 1000,
+  fitWidth = false,
 }: GridProps<T>) {
   const [deleteTargetIndex, setDeleteTargetIndex] = useState<number | null>(
     null,
@@ -148,7 +161,10 @@ export default function Grid<T extends Record<string, unknown>>({
           backgroundColor: 'var(--color-surface, #ffffff)',
         }}
       >
-        <Table sx={{ minWidth: 1000 }} aria-label="editable grid table">
+        <Table
+          sx={{ minWidth: fitWidth ? '100%' : minWidth }}
+          aria-label="editable grid table"
+        >
           <TableHead
             sx={{ backgroundColor: 'var(--color-background, #f8f5f0)' }}
           >
