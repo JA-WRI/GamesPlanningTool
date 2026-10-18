@@ -6,8 +6,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import ActionsRequiredCard from '../../../src/components/nso-dashboard/ActionsRequiredCard';
 import DashboardPanel from '../../../src/components/nso-dashboard/DashboardPanel';
-import DeadlinesAheadCard from '../../../src/components/nso-dashboard/DeadlinesAheadCard';
-import PlanningProgressCard from '../../../src/components/nso-dashboard/PlanningProgressCard';
 
 const { chartMock } = vi.hoisted(() => ({ chartMock: vi.fn() }));
 
