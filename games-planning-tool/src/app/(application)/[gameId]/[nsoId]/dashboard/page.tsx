@@ -6,9 +6,18 @@ import ActionsRequiredCard from '../../../../../components/nso-dashboard/Actions
 import DeadlinesAheadCard from '../../../../../components/nso-dashboard/DeadlinesAheadCard';
 import PlanningProgressCard from '../../../../../components/nso-dashboard/PlanningProgressCard';
 import DashboardPanel from '../../../../../components/nso-dashboard/DashboardPanel';
+import { DashboardResourceRow } from '../../../../../components/resources/DashboardResourceRow';
 import { actions, deadlines, announcements } from './mock-data';
 
-export default function Page() {
+type DashboardPageProps = {
+  params: Promise<{
+    gameId: string;
+    nsoId: string;
+  }>;
+};
+
+export default async function Page({ params }: DashboardPageProps) {
+  const { gameId, nsoId } = await params;
   return (
     // Shared application layout supplies the header and navigation.
     <div className="w-full bg-white px-2 py-6 text-foreground sm:px-4">
@@ -41,21 +50,18 @@ export default function Page() {
               </li>
             ))}
           </ol>
+          ß
         </DashboardPanel>
         <PlanningProgressCard />
         <ActionsRequiredCard actions={actions} />
         <DeadlinesAheadCard deadlines={deadlines} />
-        <DashboardPanel
-          id="resources-heading"
-          title="Resources"
-          className="col-span-full"
-        >
-          <p className="mt-4 text-sm leading-6 text-muted">
-            This section is a placeholder for future resources content. It can
-            include links, documents, or other relevant materials for the NSO
-            dashboard. Will be imported later.
-          </p>
-        </DashboardPanel>
+        <div className="col-span-full min-w-0 rounded-xl border border-muted/30 bg-surface p-5 [&_h2]:text-base">
+          <DashboardResourceRow
+            gameId={gameId}
+            nsoId={nsoId}
+            viewerRole="nso"
+          />
+        </div>
       </div>
     </div>
   );

@@ -4,8 +4,15 @@ import { render, screen } from '@testing-library/react';
 import Page from '@/app/(application)/[gameId]/[nsoId]/dashboard/page';
 
 describe('NSO Dashboard Page', () => {
-  it('renders correctly', () => {
-    render(<Page />);
+  it('renders correctly', async () => {
+    const page = await Page({
+      params: Promise.resolve({
+        gameId: 'game_id_1',
+        nsoId: 'nso_1',
+      }),
+    });
+
+    render(page);
 
     expect(
       screen.getByRole('heading', { name: 'NSO Dashboard', level: 1 }),
