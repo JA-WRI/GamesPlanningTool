@@ -3,10 +3,6 @@
 
 import GridHeaderPage from '@/components/commons/GridHeader';
 
-// size only, no colours or fonts:lets the grid fit a half width card
-export const GRID_FIT =
-  '[&_.MuiTable-root]:min-w-0! [&_.MuiFormControl-root]:min-w-0!';
-
 type GridCardProps = {
   title: string;
   isEditing: boolean;
