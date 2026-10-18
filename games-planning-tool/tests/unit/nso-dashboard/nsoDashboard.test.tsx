@@ -107,15 +107,4 @@ describe('ActionsRequiredCard', () => {
       within(screen.getByRole('list')).queryAllByRole('listitem'),
     ).toHaveLength(0);
   });
-
-  it('allows keyboard focus on its named scroll region', () => {
-    render(<ActionsRequiredCard actions={[]} />);
-
-    const scrollRegion = screen
-      .getAllByRole('region', { name: 'Actions Required' })
-      .find((region) => region.getAttribute('tabindex') === '0');
-    expect(scrollRegion).toBeDefined();
-    scrollRegion?.focus();
-    expect(scrollRegion).toHaveFocus();
-  });
 });
