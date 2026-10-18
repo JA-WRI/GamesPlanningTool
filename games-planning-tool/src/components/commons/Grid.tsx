@@ -313,7 +313,7 @@ export default function Grid<T extends Record<string, unknown>>({
                               );
                               const parsedValue =
                                 isAllowedText ||
-                                isNaN(Number(val)) ||
+                                Number.isNaN(Number(val)) ||
                                 val === ''
                                   ? val
                                   : Number(val);

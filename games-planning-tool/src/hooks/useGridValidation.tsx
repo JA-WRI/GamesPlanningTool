@@ -28,7 +28,7 @@ export function useGridValidation<T extends Record<string, unknown>>(
 
     if (col.type === 'number') {
       const num = Number(stringVal);
-      if (isNaN(num)) {
+      if (Number.isNaN(num)) {
         const allowedStr = col.allowedTextValues
           ? ` or ${col.allowedTextValues.join(', ')}`
           : '';
