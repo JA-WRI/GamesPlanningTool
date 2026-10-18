@@ -5,7 +5,9 @@ import DashboardPanel from './DashboardPanel';
 type Action = { id: string; title: string; description: string };
 type ActionsRequiredCardProps = { actions: Action[] };
 
-export default function ActionsRequiredCard({ actions }: ActionsRequiredCardProps) {
+export default function ActionsRequiredCard({
+  actions,
+}: ActionsRequiredCardProps) {
   return (
     <DashboardPanel id="actions-heading" title="Actions Required">
       <div
@@ -28,7 +30,9 @@ export default function ActionsRequiredCard({ actions }: ActionsRequiredCardProp
               </span>
               <div className="min-w-0">
                 <h3 className="text-sm font-semibold">{action.title}</h3>
-                <p className="mt-1 text-xs leading-5 text-muted">{action.description}</p>
+                <p className="mt-1 text-xs leading-5 text-muted">
+                  {action.description}
+                </p>
               </div>
             </li>
           ))}

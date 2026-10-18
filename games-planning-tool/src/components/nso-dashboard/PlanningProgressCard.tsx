@@ -7,18 +7,47 @@ import DashboardPanel from './DashboardPanel';
 
 //Mock data for the moment
 const segments: ChartSegment[] = [
-  { key: 'complete', label: 'Complete', value: 68, color: 'var(--color-success)' },
-  { key: 'submitted', label: 'Submitted', value: 10, color: 'var(--color-info)' },
-  { key: 'required-actions', label: 'Required Actions', value: 7, color: 'var(--color-error)' },
-  { key: 'in-progress', label: 'In Progress', value: 5, color: 'var(--color-warning)' },
-  { key: 'not-started', label: 'Not Started', value: 10, color: 'var(--color-muted)' },
+  {
+    key: 'complete',
+    label: 'Complete',
+    value: 68,
+    color: 'var(--color-success)',
+  },
+  {
+    key: 'submitted',
+    label: 'Submitted',
+    value: 10,
+    color: 'var(--color-info)',
+  },
+  {
+    key: 'required-actions',
+    label: 'Required Actions',
+    value: 7,
+    color: 'var(--color-error)',
+  },
+  {
+    key: 'in-progress',
+    label: 'In Progress',
+    value: 5,
+    color: 'var(--color-warning)',
+  },
+  {
+    key: 'not-started',
+    label: 'Not Started',
+    value: 10,
+    color: 'var(--color-muted)',
+  },
 ];
 
 export default function PlanningProgressCard() {
-  const complete = segments.find((segment) => segment.key === 'complete')?.value ?? 0;
+  const complete =
+    segments.find((segment) => segment.key === 'complete')?.value ?? 0;
 
   return (
-    <DashboardPanel id="progress-heading" title={`Planning Progress – ${complete}% complete`}>
+    <DashboardPanel
+      id="progress-heading"
+      title={`Planning Progress – ${complete}% complete`}
+    >
       <div className="mt-6 flex flex-col items-center justify-center gap-6 sm:flex-row sm:flex-wrap xl:flex-nowrap">
         <div className="w-full max-w-72 shrink-0">
           <div
