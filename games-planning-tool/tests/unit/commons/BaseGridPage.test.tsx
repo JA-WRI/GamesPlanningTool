@@ -151,6 +151,69 @@ describe('BaseGridPage', () => {
     alertSpy.mockRestore();
   });
 
+  it('tells the page the current rows with onRowsChange while editing', () => {
+    const handleRowsChange = vi.fn();
+    render(
+      <BaseGridPage
+        title="Inventory"
+        initialData={initialData}
+        columns={columns}
+        createEmptyRow={createEmptyRow}
+        onRowsChange={handleRowsChange}
+      />,
+    );
+    expect(handleRowsChange).toHaveBeenLastCalledWith(initialData);
+
+    fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+    fireEvent.change(screen.getByDisplayValue('Laptop'), {
+      target: { value: 'Gaming Laptop' },
+    });
+
+    expect(handleRowsChange).toHaveBeenLastCalledWith([
+      { id: '1', item: 'Gaming Laptop', category: 'Electronics' },
+      initialData[1],
+    ]);
+  });
+
+  it('gives back the saved rows with onRowsChange after Cancel', () => {
+    const handleRowsChange = vi.fn();
+    render(
+      <BaseGridPage
+        title="Inventory"
+        initialData={initialData}
+        columns={columns}
+        createEmptyRow={createEmptyRow}
+        onRowsChange={handleRowsChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+    fireEvent.change(screen.getByDisplayValue('Laptop'), {
+      target: { value: 'Changed' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+
+    expect(handleRowsChange).toHaveBeenLastCalledWith(initialData);
+  });
+
+  it('works the same without onRowsChange', () => {
+    render(
+      <BaseGridPage
+        title="Inventory"
+        initialData={initialData}
+        columns={columns}
+        createEmptyRow={createEmptyRow}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+    fireEvent.change(screen.getByDisplayValue('Laptop'), {
+      target: { value: 'Gaming Laptop' },
+    });
+
+    expect(screen.getByDisplayValue('Gaming Laptop')).toBeInTheDocument();
+  });
+
   it('uses default "Add Row" label when addButtonLabel is omitted', () => {
     render(
       <BaseGridPage
