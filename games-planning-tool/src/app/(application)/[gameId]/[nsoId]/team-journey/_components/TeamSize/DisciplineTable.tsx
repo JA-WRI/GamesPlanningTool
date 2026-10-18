@@ -1,11 +1,11 @@
 // AI contribution: 50% or more AI-generated
 'use client';
 
+import { useState } from 'react';
 import { Alert } from '@mui/material';
-import Grid, { ColumnDefinition } from '@/components/commons/Grid';
+import BaseGridPage from '@/components/commons/BaseGridPage';
+import type { ColumnDefinition } from '@/components/commons/Grid';
 import NotesBox from '@/components/commons/NotesBox';
-import GridCard from './GridCard';
-import { useGridCard } from './useGridCard';
 import {
   DisciplineBreakdown,
   MAX_COUNT,
@@ -78,43 +78,38 @@ export default function DisciplineTable({
   disciplines,
   onChange,
 }: DisciplineTableProps) {
-  const card = useGridCard<DisciplineGridRow>({
-    initialRows: disciplinesToGridRows(disciplines.rows),
-    // never called, this table has no add button
-    createRow: () => disciplinesToGridRows(disciplines.rows)[0],
-    isValid: (rows) =>
-      allWholeCounts(rows, COUNT_FIELDS) &&
-      brokenDisciplines(rows).length === 0,
-    onSave: (rows) =>
-      onChange({ ...disciplines, rows: gridRowsToDisciplines(rows) }),
-  });
+  // the rows as the user types, so the warnings update live
+  const [liveRows, setLiveRows] = useState(() =>
+    disciplinesToGridRows(disciplines.rows),
+  );
 
   return (
-    <GridCard
-      title="Discipline breakdown"
-      isEditing={card.isEditing}
-      isPreview={card.isPreview}
-      onPreviewToggle={card.setIsPreview}
-      onEdit={card.edit}
-      onCancel={card.cancel}
-      onSave={card.save}
-    >
-      <Grid
+    <div className="flex flex-col gap-3">
+      <BaseGridPage
+        title="Discipline breakdown"
         columns={columns}
-        rows={card.rows}
-        isEditing={card.isEditing}
-        isPreview={card.isPreview}
-        onRowsChange={card.setRows}
-        onValidationChange={card.setHasCellError}
+        initialData={disciplinesToGridRows(disciplines.rows)}
+        // never called, this table has no add button
+        createEmptyRow={() => disciplinesToGridRows(disciplines.rows)[0]}
+        isValid={(rows) =>
+          allWholeCounts(rows, COUNT_FIELDS) &&
+          brokenDisciplines(rows).length === 0
+        }
+        onSave={(rows) =>
+          onChange({ ...disciplines, rows: gridRowsToDisciplines(rows) })
+        }
+        onRowsChange={setLiveRows}
+        showSearch={false}
+        allowAddRow={false}
         allowDelete={false}
         fitWidth
       />
-      <DisciplineWarnings rows={card.rows} />
+      <DisciplineWarnings rows={liveRows} />
       <NotesBox
         id="discipline-notes"
         value={disciplines.notes}
         onSave={(notes) => onChange({ ...disciplines, notes })}
       />
-    </GridCard>
+    </div>
   );
 }
