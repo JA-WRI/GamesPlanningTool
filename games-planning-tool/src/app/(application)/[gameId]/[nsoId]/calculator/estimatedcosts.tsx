@@ -6,12 +6,20 @@
 // The layout, cost categories, values, and styling were modified to match the wanted calculator design.
 // The reusable grid component was impleted manually
 
-
 'use client';
 
-import { Box, InputAdornment, Paper, TextField, Typography} from '@mui/material';
+import {
+  Box,
+  InputAdornment,
+  Paper,
+  TextField,
+  Typography,
+} from '@mui/material';
 
-import ConversionRates, {type Currency, CONVERSION_RATES,} from './conversionrates';
+import ConversionRates, {
+  type Currency,
+  CONVERSION_RATES,
+} from './conversionrates';
 
 export type EstimatedCostsData = {
   clothingPackage: number;
@@ -58,14 +66,18 @@ export default function EstimatedCosts({
   const showInputs = isEditing && !isPreview;
 
   const rate = CONVERSION_RATES[currency];
-  const convertFromCAD = (value: number) => value/rate;
-  const convertToCAD = (value:number) => value*rate;
+  const convertFromCAD = (value: number) => value / rate;
+  const convertToCAD = (value: number) => value * rate;
 
   const currencyFormatter = new Intl.NumberFormat('en-CA', {
-      style:'currency', currency, minimumFractionDigits:2, maximumFractionDigits:2
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
-  
-  const formatCost = (value:number) => currencyFormatter.format(convertFromCAD(value));
+
+  const formatCost = (value: number) =>
+    currencyFormatter.format(convertFromCAD(value));
 
   return (
     <Paper
@@ -85,7 +97,7 @@ export default function EstimatedCosts({
 
             {showInputs ? (
               <TextField
-              className="
+                className="
               [&_.MuiOutlinedInput-root]:h-[38px]
               [&_.MuiOutlinedInput-root]:rounded-[4px]
               [&_.MuiInputBase-input]:text-[14px]
@@ -98,7 +110,10 @@ export default function EstimatedCosts({
                 fullWidth
                 value={Number(convertFromCAD(costs[item.field]).toFixed(2))}
                 onChange={(event) => {
-                  const enteredValue = Math.max(0, Number(event.target.value) || 0);
+                  const enteredValue = Math.max(
+                    0,
+                    Number(event.target.value) || 0,
+                  );
                   onChange(item.field, convertToCAD(enteredValue));
                 }}
 
@@ -111,13 +126,16 @@ export default function EstimatedCosts({
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
-                        {currency === 'USD' ? 'US$' : currency === 'CAD' ? 'CA$' : '€'}
+                        {currency === 'USD'
+                          ? 'US$'
+                          : currency === 'CAD'
+                            ? 'CA$'
+                            : '€'}
                       </InputAdornment>
                     ),
                   },
                 }}
-              
-            />
+              />
             ) : (
               <Box className="flex h-[38px] items-center rounded-[4px] border border-[#b6b7b8]  px-3 text-[14px] text-[#222]">
                 {formatCost(costs[item.field])}
@@ -130,7 +148,6 @@ export default function EstimatedCosts({
         currency={currency}
         onCurrencyChange={onCurrencyChange}
       />
-      
     </Paper>
   );
 }

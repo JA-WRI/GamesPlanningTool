@@ -23,11 +23,13 @@ type ConversionRatesProps = {
   readonly onCurrencyChange: (currency: Currency) => void;
 };
 
-export default function ConversionRates({currency, onCurrencyChange,}: Readonly<ConversionRatesProps>) {
-
+export default function ConversionRates({
+  currency,
+  onCurrencyChange,
+}: Readonly<ConversionRatesProps>) {
   return (
     <Box className="flex flex-wrap items-center justify-between gap-4 border-t px-4 py-3">
-            <Box className="flex flex-wrap items-center gap-3">
+      <Box className="flex flex-wrap items-center gap-3">
         <Typography className="text-[11px]! font-semibold! tracking-wide! text-[#777]!">
           CONVERSIONS
         </Typography>
@@ -73,6 +75,5 @@ export default function ConversionRates({currency, onCurrencyChange,}: Readonly<
         ))}
       </Box>
     </Box>
-   
   );
 }

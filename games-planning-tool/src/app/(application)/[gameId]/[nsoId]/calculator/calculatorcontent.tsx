@@ -4,46 +4,47 @@
 // - Temporary calculator-specific state used beforedb is connected
 // - css converted to tailwind
 // The table fields and calculator requirements were reviewed and modified manually
-// The grid component was implemented manually 
+// The grid component was implemented manually
 'use client';
 
 import { useState, useCallback } from 'react';
-import {
-  Box,
-  Paper,
-  Button,
-  Typography,
-} from '@mui/material';
+import { Box, Paper, Button, Typography } from '@mui/material';
 
 import { useParams } from 'next/navigation';
 import { Games } from '@/lib/data';
 
-import type {Currency} from './conversionrates';
+import type { Currency } from './conversionrates';
 import CostSummary from './costsummary';
 import EstimatedCosts, { EstimatedCostsData } from './estimatedcosts';
 import HotelDetails from './hoteldetails';
-import Grid, {type ColumnDefinition} from '@/components/commons/Grid';
+import Grid, { type ColumnDefinition } from '@/components/commons/Grid';
 
 // these categories are now hard-coded values until we connect to the db
 const TRAVEL_CATEGORIES = [
-  { id: 1, title: 'Travelling Accredited Alternate Athletes @ partial NSO cost (Ap)',},
-  { id: 2, title: 'Travelling Non-accredited Alternate Athletes @ full NSO cost', },
-  { id: 3, title: 'Support staff @ partial NSO cost (e.g., partial Ao)', },
-  { id: 4, title: 'Support staff @ full NSO cost (incl. non-accredited)', },
+  {
+    id: 1,
+    title: 'Travelling Accredited Alternate Athletes @ partial NSO cost (Ap)',
+  },
+  {
+    id: 2,
+    title: 'Travelling Non-accredited Alternate Athletes @ full NSO cost',
+  },
+  { id: 3, title: 'Support staff @ partial NSO cost (e.g., partial Ao)' },
+  { id: 4, title: 'Support staff @ full NSO cost (incl. non-accredited)' },
 ] as const;
 
 type CalculatorRow = Record<string, unknown> & {
   id: number;
-  category: string, 
-  numberOfTeamMembers: number,
-  days: number,
-  travelBudget: number,
-  checkIn: string,
-  checkOut: string,
-  accommodationBudget: number,
-  mealsBudget: number,
-  insuranceBudget: number,
-  totalCostPerTeamMember: number
+  category: string;
+  numberOfTeamMembers: number;
+  days: number;
+  travelBudget: number;
+  checkIn: string;
+  checkOut: string;
+  accommodationBudget: number;
+  mealsBudget: number;
+  insuranceBudget: number;
+  totalCostPerTeamMember: number;
 };
 
 type CalculatorData = {
@@ -64,10 +65,13 @@ const INITIAL_ESTIMATED_COSTS = (): EstimatedCostsData => ({
   cellphone: 108,
   mealsPerDay: 118,
   villageMealVoucher: 57,
-  knifeAndFork: 2279
+  knifeAndFork: 2279,
 });
 
-function createTraveler(id: number, category: string = TRAVEL_CATEGORIES[0].title): CalculatorRow {
+function createTraveler(
+  id: number,
+  category: string = TRAVEL_CATEGORIES[0].title,
+): CalculatorRow {
   return {
     id,
     category,
@@ -83,14 +87,15 @@ function createTraveler(id: number, category: string = TRAVEL_CATEGORIES[0].titl
   };
 }
 
-
 function createInitialCalculatorData(): CalculatorData {
   return {
-    rows: TRAVEL_CATEGORIES.map((category) => createTraveler(category.id, category.title)),
+    rows: TRAVEL_CATEGORIES.map((category) =>
+      createTraveler(category.id, category.title),
+    ),
     estimatedCosts: INITIAL_ESTIMATED_COSTS(),
   };
 }
- 
+
 function getStayDuration(checkIn: string, checkOut: string) {
   if (!checkIn || !checkOut) return { days: 0, nights: 0 };
 
@@ -110,32 +115,115 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
     label: 'Access and Priviledges',
     type: 'select',
     width: 430,
-    options: TRAVEL_CATEGORIES.map(({ title }) => ({ label: title, value: title })),
+    options: TRAVEL_CATEGORIES.map(({ title }) => ({
+      label: title,
+      value: title,
+    })),
   },
-  { field: 'numberOfTeamMembers', label: 'Number of Team Members', type: 'number', min: 0, step: 1, width: 150, align: 'center' },
-  { field: 'days', label: 'Days on Site', type: 'number', min: 0, step: 1, width: 125, align: 'center' },
-  { field: 'travelBudget', label: 'Travel Budget', type: 'number', min: 0, width: 155, align: 'center' },
-  { field: 'checkIn', label: 'Check-in Date', type: 'text', placeholder: 'YYYY-MM-DD', width: 155, align: 'center' },
-  { field: 'checkOut', label: 'Check-out Date', type: 'text', placeholder: 'YYYY-MM-DD', width: 155, align: 'center' },
-  { field: 'accommodationBudget', label: 'Accommodation Budget', type: 'number', min: 0, width: 175, align: 'center' },
-  { field: 'mealsBudget', label: 'Meals Budget', type: 'number', min: 0, width: 150, align: 'center' },
-  { field: 'insuranceBudget', label: 'Insurance Budget', type: 'number', min: 0, width: 150, align: 'center' },
-  { field: 'totalCostPerTeamMember', label: 'Total Cost / Member', type: 'number', min: 0, width: 175, align: 'center' },
+  {
+    field: 'numberOfTeamMembers',
+    label: 'Number of Team Members',
+    type: 'number',
+    min: 0,
+    step: 1,
+    width: 150,
+    align: 'center',
+  },
+  {
+    field: 'days',
+    label: 'Days on Site',
+    type: 'number',
+    min: 0,
+    step: 1,
+    width: 125,
+    align: 'center',
+  },
+  {
+    field: 'travelBudget',
+    label: 'Travel Budget',
+    type: 'number',
+    min: 0,
+    width: 155,
+    align: 'center',
+  },
+  {
+    field: 'checkIn',
+    label: 'Check-in Date',
+    type: 'text',
+    placeholder: 'YYYY-MM-DD',
+    width: 155,
+    align: 'center',
+  },
+  {
+    field: 'checkOut',
+    label: 'Check-out Date',
+    type: 'text',
+    placeholder: 'YYYY-MM-DD',
+    width: 155,
+    align: 'center',
+  },
+  {
+    field: 'accommodationBudget',
+    label: 'Accommodation Budget',
+    type: 'number',
+    min: 0,
+    width: 175,
+    align: 'center',
+  },
+  {
+    field: 'mealsBudget',
+    label: 'Meals Budget',
+    type: 'number',
+    min: 0,
+    width: 150,
+    align: 'center',
+  },
+  {
+    field: 'insuranceBudget',
+    label: 'Insurance Budget',
+    type: 'number',
+    min: 0,
+    width: 150,
+    align: 'center',
+  },
+  {
+    field: 'totalCostPerTeamMember',
+    label: 'Total Cost / Member',
+    type: 'number',
+    min: 0,
+    width: 175,
+    align: 'center',
+  },
 ];
 
-export default function CalculatorContent({ calculatorId }: CalculatorContentProps) {
-  const params = useParams<{gameId?:string}>();
-  const selectedGame = Games.find( (game)=> game.id === params.gameId );
+export default function CalculatorContent({
+  calculatorId,
+}: CalculatorContentProps) {
+  const params = useParams<{ gameId?: string }>();
+  const selectedGame = Games.find((game) => game.id === params.gameId);
 
-  const [calculatorData, setCalculatorData] = useState< Record<number, CalculatorData>>({});
-  const [draftRows, setDraftRows] = useState<Record<number, CalculatorRow[]>>({});
-  const [draftEstimatedCosts, setDraftEstimatedCosts] = useState<Record<number, EstimatedCostsData>>({});
-  
-  const [editingByCalculator, setEditingByCalculator] = useState<Record<number, boolean>>({});
-  const [previewByCalculator, setPreviewByCalculator] = useState<Record<number, boolean>>({});
-  const [validationByCalculator, setValidationByCalculator] = useState<Record<number, boolean>>({});
+  const [calculatorData, setCalculatorData] = useState<
+    Record<number, CalculatorData>
+  >({});
+  const [draftRows, setDraftRows] = useState<Record<number, CalculatorRow[]>>(
+    {},
+  );
+  const [draftEstimatedCosts, setDraftEstimatedCosts] = useState<
+    Record<number, EstimatedCostsData>
+  >({});
 
-  const currentData = calculatorData[calculatorId] ?? createInitialCalculatorData();
+  const [editingByCalculator, setEditingByCalculator] = useState<
+    Record<number, boolean>
+  >({});
+  const [previewByCalculator, setPreviewByCalculator] = useState<
+    Record<number, boolean>
+  >({});
+  const [validationByCalculator, setValidationByCalculator] = useState<
+    Record<number, boolean>
+  >({});
+
+  const currentData =
+    calculatorData[calculatorId] ?? createInitialCalculatorData();
   const isEditing = editingByCalculator[calculatorId] ?? false;
   const isPreview = previewByCalculator[calculatorId] ?? false;
   const hasValidationError = validationByCalculator[calculatorId] ?? false;
@@ -143,7 +231,9 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
 
   const [currency, setCurrency] = useState<Currency>('CAD');
 
-  const updateCurrentCalculator = (update: (data: CalculatorData) => CalculatorData) => {
+  const updateCurrentCalculator = (
+    update: (data: CalculatorData) => CalculatorData,
+  ) => {
     setCalculatorData((previous) => {
       const current = previous[calculatorId] ?? createInitialCalculatorData();
       return { ...previous, [calculatorId]: update(current) };
@@ -152,7 +242,7 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
 
   const updateEstimatedCost = (
     field: keyof EstimatedCostsData,
-    value: number
+    value: number,
   ) => {
     setDraftEstimatedCosts((previous) => ({
       ...previous,
@@ -163,12 +253,23 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
     }));
   };
 
-  
   const startEditing = () => {
-    setDraftRows((previous) => ({...previous, [calculatorId]: currentData.rows,}));
-    setDraftEstimatedCosts((previous) => ({...previous,[calculatorId]: { ...currentData.estimatedCosts }}));
-    setEditingByCalculator((previous) => ({...previous,[calculatorId]: true}));
-    setPreviewByCalculator((previous) => ({...previous,[calculatorId]: false}));
+    setDraftRows((previous) => ({
+      ...previous,
+      [calculatorId]: currentData.rows,
+    }));
+    setDraftEstimatedCosts((previous) => ({
+      ...previous,
+      [calculatorId]: { ...currentData.estimatedCosts },
+    }));
+    setEditingByCalculator((previous) => ({
+      ...previous,
+      [calculatorId]: true,
+    }));
+    setPreviewByCalculator((previous) => ({
+      ...previous,
+      [calculatorId]: false,
+    }));
   };
 
   const cancelEditing = () => {
@@ -177,51 +278,50 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
       delete next[calculatorId];
       return next;
     });
-  
+
     setDraftEstimatedCosts((previous) => {
       const next = { ...previous };
       delete next[calculatorId];
       return next;
     });
-  
+
     setEditingByCalculator((previous) => ({
       ...previous,
       [calculatorId]: false,
     }));
-  
+
     setPreviewByCalculator((previous) => ({
       ...previous,
       [calculatorId]: false,
     }));
   };
-  
+
   const saveEditing = () => {
     if (hasValidationError) return;
-  
+
     updateCurrentCalculator((data) => ({
       ...data,
       rows,
-      estimatedCosts:
-        draftEstimatedCosts[calculatorId] ?? data.estimatedCosts,
+      estimatedCosts: draftEstimatedCosts[calculatorId] ?? data.estimatedCosts,
     }));
-  
+
     setDraftRows((previous) => {
       const next = { ...previous };
       delete next[calculatorId];
       return next;
     });
-  
+
     setDraftEstimatedCosts((previous) => {
       const next = { ...previous };
       delete next[calculatorId];
       return next;
     });
-  
+
     setEditingByCalculator((previous) => ({
       ...previous,
       [calculatorId]: false,
     }));
-  
+
     setPreviewByCalculator((previous) => ({
       ...previous,
       [calculatorId]: false,
@@ -232,16 +332,16 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
     setDraftRows((previous) => ({
       ...previous,
       [calculatorId]: updatedRows.map((row) => ({
-        ...row, ...getStayDuration(row.checkIn, row.checkOut),
+        ...row,
+        ...getStayDuration(row.checkIn, row.checkOut),
       })),
     }));
   };
-  
+
   const handleAddRow = () => {
     const nextId = Math.max(0, ...rows.map((row) => row.id)) + 1;
     handleGridRowsChange([...rows, createTraveler(nextId)]);
   };
-
 
   const accommodationTotal = 0;
   const travelTotal = 0;
@@ -264,93 +364,104 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
         if (previous[calculatorId] === hasError) {
           return previous;
         }
-  
+
         return {
           ...previous,
           [calculatorId]: hasError,
         };
       });
     },
-    [calculatorId]
+    [calculatorId],
   );
-
 
   return (
     <Box className="w-full min-w-0" data-calculator-id={calculatorId}>
-      <Paper className="max-w-full overflow-hidden rounded-[4px]" variant="outlined">
+      <Paper
+        className="max-w-full overflow-hidden rounded-[4px]"
+        variant="outlined"
+      >
         <Box className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <Typography>
-            {selectedGame?.title ?? 'SELECT A GAME'}
-          </Typography>
-          
+          <Typography>{selectedGame?.title ?? 'SELECT A GAME'}</Typography>
+
           <Box className="flex items-center gap-2">
             {!isEditing ? (
-              <Button size="small" variant="contained" onClick={startEditing} className="rounded-full! px-4!">
+              <Button
+                size="small"
+                variant="contained"
+                onClick={startEditing}
+                className="rounded-full! px-4!"
+              >
                 Edit
               </Button>
             ) : (
               <>
-              {/* Sliding edit button*/}
-              <Box className={"relative flex h-8 w-[170px] items-center rounded-full border border-[#252b37]"}>
+                {/* Sliding edit button*/}
                 <Box
-                  className={`pointer-events-none absolute top-0 left-0 h-full w-1/2 rounded-full bg-[#252b37] transition-transform duration-300 ease-in-out ${
-                  isPreview ? 'translate-x-full' : 'translate-x-0'
-                  }`}
-                />
-                <Button size="small" 
-                  onClick={() => 
-                    setPreviewByCalculator((prev) => ({ 
-                      ...prev, 
-                      [calculatorId]: false, 
-                    }))
+                  className={
+                    'relative flex h-8 w-[170px] items-center rounded-full border border-[#252b37]'
                   }
-                  className={`relative z-10 h-full w-1/2 min-w-0! rounded-full! p-0! transition-colors! duration-300! ${
-                    !isPreview ? 'text-white!' : 'text-[#252b37]!'
-                  }`}>
-                  Edit
+                >
+                  <Box
+                    className={`pointer-events-none absolute top-0 left-0 h-full w-1/2 rounded-full bg-[#252b37] transition-transform duration-300 ease-in-out ${
+                      isPreview ? 'translate-x-full' : 'translate-x-0'
+                    }`}
+                  />
+                  <Button
+                    size="small"
+                    onClick={() =>
+                      setPreviewByCalculator((prev) => ({
+                        ...prev,
+                        [calculatorId]: false,
+                      }))
+                    }
+                    className={`relative z-10 h-full w-1/2 min-w-0! rounded-full! p-0! transition-colors! duration-300! ${
+                      !isPreview ? 'text-white!' : 'text-[#252b37]!'
+                    }`}
+                  >
+                    Edit
+                  </Button>
+
+                  <Button
+                    size="small"
+                    disabled={hasValidationError}
+                    onClick={() =>
+                      setPreviewByCalculator((prev) => ({
+                        ...prev,
+                        [calculatorId]: true,
+                      }))
+                    }
+                    className={`relative z-10 h-full w-1/2 min-w-0! rounded-full! p-0! transition-colors! duration-300! ${
+                      isPreview ? 'text-white!' : 'text-[#252b37]!'
+                    }`}
+                  >
+                    Preview
+                  </Button>
+                </Box>
+
+                <Button
+                  size="small"
+                  onClick={cancelEditing}
+                  className="rounded-full! px-4!"
+                >
+                  Cancel
                 </Button>
 
                 <Button
                   size="small"
+                  variant="contained"
                   disabled={hasValidationError}
-                  onClick={() =>
-                    setPreviewByCalculator((prev) => ({
-                    ...prev,
-                    [calculatorId]: true,
-                    }))
-                  }
-                  className={`relative z-10 h-full w-1/2 min-w-0! rounded-full! p-0! transition-colors! duration-300! ${
-                    isPreview ? 'text-white!' : 'text-[#252b37]!' }`}
-                  >
-                  Preview
+                  onClick={saveEditing}
+                  className="rounded-full! px-4!"
+                >
+                  Save
                 </Button>
-              </Box>
-
-              <Button
-                size="small"
-                onClick={cancelEditing}
-                className="rounded-full! px-4!"
-              >
-                Cancel
-              </Button>
-
-              <Button
-                size="small"
-                variant="contained"
-                disabled={hasValidationError}
-                onClick={saveEditing}
-                className="rounded-full! px-4!"
-              >
-                Save
-              </Button>
-            </>
-          )}
-        </Box>
-
+              </>
+            )}
+          </Box>
         </Box>
 
         {/*These settings are to keep the table column sizes from changing when pressing edit and preview */}
-        <Box 
+        <Box
           className="
             relative min-w-0 p-2
             [&_.MuiTable-root]:table-fixed
@@ -363,7 +474,8 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
             [&_.MuiTableCell-root_.MuiFormControl-root]:w-full
             [&_.MuiTableCell-root_.MuiTextField-root]:min-w-0!
             [&_.MuiTableCell-root_.MuiTextField-root]:w-full
-            ">
+            "
+        >
           <Grid
             columns={columns}
             rows={rows}
@@ -374,13 +486,12 @@ export default function CalculatorContent({ calculatorId }: CalculatorContentPro
             onAddRow={handleAddRow}
             addButtonLabel="Add New Traveler"
           />
-          
         </Box>
       </Paper>
 
-      <EstimatedCosts 
-        costs={draftEstimatedCosts[calculatorId]?? currentData.estimatedCosts} 
-        onChange={updateEstimatedCost} 
+      <EstimatedCosts
+        costs={draftEstimatedCosts[calculatorId] ?? currentData.estimatedCosts}
+        onChange={updateEstimatedCost}
         isEditing={isEditing}
         isPreview={isPreview}
         currency={currency}
