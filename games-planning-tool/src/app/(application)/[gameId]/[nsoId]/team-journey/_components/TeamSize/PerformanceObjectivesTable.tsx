@@ -1,10 +1,10 @@
 // AI contribution: 50% or more AI-generated
 'use client';
 
+import { useState } from 'react';
 import { Alert } from '@mui/material';
-import Grid, { ColumnDefinition } from '@/components/commons/Grid';
-import GridCard from './GridCard';
-import { useGridCard } from './useGridCard';
+import BaseGridPage from '@/components/commons/BaseGridPage';
+import type { ColumnDefinition } from '@/components/commons/Grid';
 import { TeamSize } from '../../_lib/teamSizeLogic';
 import {
   MAX_COUNT,
@@ -64,36 +64,28 @@ export default function PerformanceObjectivesTable({
   teamSize,
   onChange,
 }: PerformanceObjectivesTableProps) {
-  const card = useGridCard<MedalObjectiveRow>({
-    initialRows: medalsToRows(teamSize),
-    // never called, this table has no add button
-    createRow: () => medalsToRows(teamSize)[0],
-    isValid: (rows) =>
-      allWholeCounts(rows, COUNT_FIELDS) && !rows.some(medalRowHasError),
-    onSave: (rows) => onChange(rowsToMedals(rows, teamSize)),
-  });
+  // the rows as the user types, so the warnings update live
+  const [liveRows, setLiveRows] = useState(() => medalsToRows(teamSize));
 
   return (
-    <GridCard
-      title="Performance objectives"
-      isEditing={card.isEditing}
-      isPreview={card.isPreview}
-      onPreviewToggle={card.setIsPreview}
-      onEdit={card.edit}
-      onCancel={card.cancel}
-      onSave={card.save}
-    >
-      <Grid
+    <div className="flex flex-col gap-3">
+      <BaseGridPage
+        title="Performance objectives"
         columns={columns}
-        rows={card.rows}
-        isEditing={card.isEditing}
-        isPreview={card.isPreview}
-        onRowsChange={card.setRows}
-        onValidationChange={card.setHasCellError}
+        initialData={medalsToRows(teamSize)}
+        // never called, this table has no add button
+        createEmptyRow={() => medalsToRows(teamSize)[0]}
+        isValid={(rows) =>
+          allWholeCounts(rows, COUNT_FIELDS) && !rows.some(medalRowHasError)
+        }
+        onSave={(rows) => onChange(rowsToMedals(rows, teamSize))}
+        onRowsChange={setLiveRows}
+        showSearch={false}
+        allowAddRow={false}
         allowDelete={false}
         fitWidth
       />
-      <MedalWarnings rows={card.rows} />
-    </GridCard>
+      <MedalWarnings rows={liveRows} />
+    </div>
   );
 }
