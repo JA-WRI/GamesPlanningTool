@@ -7,7 +7,6 @@ type DonutChartCardProps = {
   segments: ChartSegment[];
   onClick: () => void;
   isSelected: boolean;
-  completedPercent?: number;
 };
 
 export default function DonutChartCard({
