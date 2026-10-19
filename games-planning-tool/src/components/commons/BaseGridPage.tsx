@@ -2,7 +2,7 @@
 // AI Generated content for refactoring of code duplication in ContactsGridPage.tsx and TestGridPage.tsx files.
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import GridHeaderPage from '@/components/commons/GridHeader';
 import SearchBar from '@/components/commons/SearchBar';
@@ -23,6 +23,8 @@ interface BaseGridPageProps<T extends Record<string, unknown>> {
   isValid?: (rows: (T & { id: string })[]) => boolean;
   minWidth?: number | string;
   fitWidth?: boolean;
+  // optional: tells the page the current rows (typing, add, delete, cancel)
+  onRowsChange?: (rows: (T & { id: string })[]) => void;
 }
 
 export default function BaseGridPage<T extends Record<string, unknown>>({
@@ -40,6 +42,7 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
   isValid,
   minWidth,
   fitWidth,
+  onRowsChange,
 }: BaseGridPageProps<T>) {
   const [isPreview, setIsPreview] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,6 +66,11 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
       }
     },
   );
+
+  // lets a page show its own live warnings while editing
+  useEffect(() => {
+    onRowsChange?.(rows);
+  }, [rows, onRowsChange]);
 
   // filtering rows based on a match of any traveller field
   const filteredRows = rows.filter((row) =>
