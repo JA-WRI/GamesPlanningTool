@@ -14,9 +14,10 @@ import { Games } from '@/lib/data';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
 import { type Currency, CONVERSION_RATES } from './conversionrates';
-import CostSummary from './costsummary';
 import EstimatedCosts from './estimatedcosts';
-import HotelDetails from './hoteldetails';
+// these will be added later
+//import CostSummary from './costsummary';
+//import HotelDetails from './hoteldetails';
 
 // these categories are now hard-coded values until we connect to the db
 const TRAVEL_CATEGORIES = [
@@ -276,8 +277,10 @@ export default function CalculatorContent({
         currency={currency}
         onCurrencyChange={handleCurrencyChange}
       />
+      {/* will be implemented later 
       <HotelDetails />
       <CostSummary summary={summary} estimatedTotal={0} />
+      */}
     </Box>
   );
 }
