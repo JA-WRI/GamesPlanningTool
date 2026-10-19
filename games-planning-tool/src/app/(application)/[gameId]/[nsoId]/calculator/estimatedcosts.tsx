@@ -163,31 +163,34 @@ export default function EstimatedCosts({
   };
 
   return (
-    <Box className="mt-10 min-w-0 ">
-      <BaseGridPage<EstimatedCostRow>
-        key={currency}
-        title="ESTIMATED COSTS"
-        initialData={displayCosts(savedCAD, currency)}
-        columns={columns}
-        createEmptyRow={() => ({
-          id: crypto.randomUUID(),
-          category: '',
-          amount: 0,
-          unitOfMeasure: currency,
-          notes: '',
-        })}
-        addButtonLabel="Add New Cost"
-        showSearch={false}
-        allowAddRow={true}
-        allowDelete={true}
-        fitWidth={true}
-        onSave={handleSave}
-      />
-      <Box className="mt-3">
-        <ConversionRates
-          currency={currency}
-          onCurrencyChange={onCurrencyChange}
+    <Box className="mt-10 min-w-0 [&>div>div:first-child]:!rounded-b-none [&>div>div:first-child]:!border-b-0">
+      <Box className="rounded-lg shadow-sm">
+        <BaseGridPage<EstimatedCostRow>
+          key={currency}
+          title="ESTIMATED COSTS"
+          initialData={displayCosts(savedCAD, currency)}
+          columns={columns}
+          createEmptyRow={() => ({
+            id: crypto.randomUUID(),
+            category: '',
+            amount: 0,
+            unitOfMeasure: currency,
+            notes: '',
+          })}
+          addButtonLabel="Add New Cost"
+          showSearch={false}
+          allowAddRow={true}
+          allowDelete={true}
+          fitWidth={true}
+          onSave={handleSave}
         />
+
+        <Box className="border-x border-b border-gray-200 rounded-b-lg bg-white px-6 py-3">
+          <ConversionRates
+            currency={currency}
+            onCurrencyChange={onCurrencyChange}
+          />
+        </Box>
       </Box>
     </Box>
   );
