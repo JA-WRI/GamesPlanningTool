@@ -8,14 +8,10 @@
 
 'use client';
 
-import {
-  Box,
-  InputAdornment,
-  Paper,
-  TextField,
-  Typography,
-} from '@mui/material';
-
+import { Box } from '@mui/material';
+import { useEffect, useRef, useState } from 'react';
+import BaseGridPage from '@/components/commons/BaseGridPage';
+import type { ColumnDefinition } from '@/components/commons/Grid';
 import ConversionRates, {
   type Currency,
   CONVERSION_RATES,
@@ -32,122 +28,162 @@ export type EstimatedCostsData = {
   knifeAndFork: number;
 };
 
+type EstimatedCostRow = Record<string, unknown> & {
+  id: string;
+  category: string;
+  amount: number;
+};
+
 type EstimatedCostsProps = {
-  readonly costs: EstimatedCostsData;
-  readonly onChange: (field: keyof EstimatedCostsData, value: number) => void;
-  readonly isEditing?: boolean;
-  readonly isPreview?: boolean;
   readonly currency: Currency;
   readonly onCurrencyChange: (currency: Currency) => void;
 };
 
-const COST_FIELDS: Array<{
-  field: keyof EstimatedCostsData;
-  label: string;
-}> = [
-  { field: 'travelEconomyFare', label: 'Travel Economy Fare' },
-  { field: 'athleteInsurance', label: 'Athlete Insurance' },
-  { field: 'supportStaffInsurance', label: 'Support Staff Insurance' },
-  { field: 'cellphone', label: 'Cellphone (local plan)' },
-  { field: 'mealsPerDay', label: 'Meals' },
-  { field: 'villageMealVoucher', label: 'Village Meal Voucher' },
-  { field: 'knifeAndFork', label: 'Knife & Fork for Ap' },
-  { field: 'clothingPackage', label: 'Clothing Package' },
+const INITIAL_COST_ROWS: EstimatedCostRow[] = [
+  { id: 'travelEconomyFare', category: 'Travel Economy Fare', amount: 2400 },
+  { id: 'athleteInsurance', category: 'Athlete Insurance', amount: 50 },
+  {
+    id: 'supportStaffInsurance',
+    category: 'Support Staff Insurance',
+    amount: 28,
+  },
+  { id: 'cellphone', category: 'Cellphone (local plan)', amount: 108 },
+  { id: 'mealsPerDay', category: 'Meals', amount: 118 },
+  { id: 'villageMealVoucher', category: 'Village Meal Voucher', amount: 57 },
+  { id: 'knifeAndFork', category: 'Knife & Fork for Ap', amount: 2279 },
+  { id: 'clothingPackage', category: 'Clothing Package', amount: 3200 },
+];
+
+const columns: ColumnDefinition<EstimatedCostRow>[] = [
+  { field: 'category', label: 'Estimated Cost', type: 'text', width: 300 },
+  {
+    field: 'amount',
+    label: 'Amount (CAD)',
+    type: 'number',
+    min: 0,
+    step: 0.01,
+    width: 180,
+  },
 ];
 
 export default function EstimatedCosts({
-  costs,
-  onChange,
-  isEditing = false,
-  isPreview = false,
   currency,
   onCurrencyChange,
 }: Readonly<EstimatedCostsProps>) {
-  const showInputs = isEditing && !isPreview;
+  const sectionRef = useRef<HTMLDivElement>(null);
+  // Keep saved amounts in CAD, even while another currency is displayed.
+  const [savedCAD, setSavedCAD] = useState(() =>
+    INITIAL_COST_ROWS.map((row) => ({ ...row })),
+  );
+  const draftCAD = useRef(savedCAD.map((row) => ({ ...row })));
+  const [gridVersion, setGridVersion] = useState(0);
+  const [renderRowsCAD, setRenderRowsCAD] = useState<EstimatedCostRow[]>(() =>
+    INITIAL_COST_ROWS.map((row) => ({ ...row })),
+  );
 
-  const rate = CONVERSION_RATES[currency];
-  const convertFromCAD = (value: number) => value / rate;
-  const convertToCAD = (value: number) => value * rate;
+  const handleCurrencyChange = (nextCurrency: Currency) => {
+    if (nextCurrency === currency) return;
+    // Rebuild the grid using the current draft amounts converted from CAD.
+    // The shared BaseGridPage does not expose its internal row state.
+    setRenderRowsCAD(draftCAD.current.map((row) => ({ ...row })));
+    setGridVersion((version) => version + 1);
+    onCurrencyChange(nextCurrency);
+  };
 
-  const currencyFormatter = new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const handleInputCapture = (event: React.FormEvent<HTMLDivElement>) => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) return;
+    const cell = input.closest('td');
+    const row = input.closest('tr');
+    if (!cell || !row || cell.cellIndex !== 1) return;
+    const index = Array.from(row.parentElement?.children ?? []).indexOf(row);
+    if (index < 0 || !draftCAD.current[index]) return;
+    const number = Number(input.value);
+    if (!Number.isFinite(number) || number < 0) return;
+    draftCAD.current[index] = {
+      ...draftCAD.current[index],
+      amount: number * CONVERSION_RATES[currency],
+    };
+  };
 
-  const formatCost = (value: number) =>
-    currencyFormatter.format(convertFromCAD(value));
+  const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
+    const button = (event.target as HTMLElement).closest('button');
+    if (!button) return;
+    const action = button.textContent?.trim();
+    if (action === 'Save') {
+      setSavedCAD(draftCAD.current.map((row) => ({ ...row })));
+    } else if (action === 'Cancel') {
+      draftCAD.current = savedCAD.map((row) => ({ ...row }));
+    } else if (action === 'Edit') {
+      draftCAD.current = savedCAD.map((row) => ({ ...row }));
+    }
+  };
+  // BaseGridPage initializes its rows only on mount. A currency switch remounts
+  // the grid with amounts displayed in the selected currency.
+  const displayRows = renderRowsCAD.map((row) => ({
+    ...row,
+    amount: Number((row.amount / CONVERSION_RATES[currency]).toFixed(2)),
+  }));
+
+  // BaseGridPage currently has no read-only column option. Keep category
+  // inputs non-editable without changing the shared component.
+  useEffect(() => {
+    const root = sectionRef.current;
+    if (!root) return;
+
+    const lockCategoryInputs = () => {
+      root
+        .querySelectorAll<HTMLInputElement>(
+          '.MuiTableBody-root > .MuiTableRow-root > .MuiTableCell-root:first-child input',
+        )
+        .forEach((input) => {
+          input.readOnly = true;
+          input.tabIndex = -1;
+        });
+    };
+
+    lockCategoryInputs();
+    const observer = new MutationObserver(lockCategoryInputs);
+    observer.observe(root, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
+  const currencySymbol =
+    currency === 'EUR' ? '€' : currency === 'USD' ? 'US$' : 'CA$';
 
   return (
-    <Paper
-      className="mt-10 overflow-hidden rounded-[4px] shadow-none!"
-      variant="outlined"
+    <Box
+      ref={sectionRef}
+      onInputCapture={handleInputCapture}
+      onClickCapture={handleClickCapture}
+      className="mt-10 min-w-0 overflow-hidden rounded-[4px] border border-[#e5e7eb]"
     >
-      <Box className="px-4 py-[14px]">
-        <Typography>ESTIMATED COSTS</Typography>
+      <Box
+        style={
+          { '--cost-symbol': `"${currencySymbol}"` } as React.CSSProperties
+        }
+      >
+        <BaseGridPage<EstimatedCostRow>
+          key={`${currency}-${gridVersion}`}
+          title="ESTIMATED COSTS"
+          initialData={displayRows}
+          columns={columns}
+          createEmptyRow={() => ({
+            id: crypto.randomUUID(),
+            category: '',
+            amount: 0,
+          })}
+          addButtonLabel="Add Estimated Cost"
+          showSearch={false}
+          allowDelete={false}
+        />
       </Box>
-
-      <Box className="grid grid-cols-4 gap-x-4 gap-y-5 p-4 max-[1024px]:grid-cols-2 max-[600px]:grid-cols-1">
-        {COST_FIELDS.map((item) => (
-          <Box key={item.field} className="min-w-0">
-            <Typography className="mb-1 text-[11px]! font-semibold!  tracking-wide text-[#625e5c]!">
-              {item.label}
-            </Typography>
-
-            {showInputs ? (
-              <TextField
-                className="
-              [&_.MuiOutlinedInput-root]:h-[38px]
-              [&_.MuiOutlinedInput-root]:rounded-[4px]
-              [&_.MuiInputBase-input]:text-[14px]
-              [&_.MuiInputAdornment-root]:mr-1
-              [&_.MuiInputAdornment-root_.MuiTypography-root]:text-[14px]
-              [&_.MuiInputAdornment-root_.MuiTypography-root]:text-[#222]
-              "
-                type="number"
-                size="small"
-                fullWidth
-                value={Number(convertFromCAD(costs[item.field]).toFixed(2))}
-                onChange={(event) => {
-                  const enteredValue = Math.max(
-                    0,
-                    Number(event.target.value) || 0,
-                  );
-                  onChange(item.field, convertToCAD(enteredValue));
-                }}
-
-                slotProps={{
-                  htmlInput: {
-                    min: 0,
-                    step: 0.01,
-                    'aria-label': item.label,
-                  },
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        {currency === 'USD'
-                          ? 'US$'
-                          : currency === 'CAD'
-                            ? 'CA$'
-                            : '€'}
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
-            ) : (
-              <Box className="flex h-[38px] items-center rounded-[4px] border border-[#b6b7b8]  px-3 text-[14px] text-[#222]">
-                {formatCost(costs[item.field])}
-              </Box>
-            )}
-          </Box>
-        ))}
+      <Box className="border-t border-[#e5e7eb]">
+        <ConversionRates
+          currency={currency}
+          onCurrencyChange={handleCurrencyChange}
+        />
       </Box>
-      <ConversionRates
-        currency={currency}
-        onCurrencyChange={onCurrencyChange}
-      />
-    </Paper>
+    </Box>
   );
 }

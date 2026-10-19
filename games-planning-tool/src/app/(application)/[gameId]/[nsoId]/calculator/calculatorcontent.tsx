@@ -7,17 +7,16 @@
 // The grid component was implemented manually
 'use client';
 
-import { useState, useCallback } from 'react';
-import { Box, Paper, Button, Typography } from '@mui/material';
-
+import { useRef, useState } from 'react';
+import { Box } from '@mui/material';
 import { useParams } from 'next/navigation';
 import { Games } from '@/lib/data';
-
-import type { Currency } from './conversionrates';
+import BaseGridPage from '@/components/commons/BaseGridPage';
+import type { ColumnDefinition } from '@/components/commons/Grid';
+import { type Currency, CONVERSION_RATES } from './conversionrates';
 import CostSummary from './costsummary';
-import EstimatedCosts, { EstimatedCostsData } from './estimatedcosts';
+import EstimatedCosts from './estimatedcosts';
 import HotelDetails from './hoteldetails';
-import Grid, { type ColumnDefinition } from '@/components/commons/Grid';
 
 // these categories are now hard-coded values until we connect to the db
 const TRAVEL_CATEGORIES = [
@@ -34,7 +33,7 @@ const TRAVEL_CATEGORIES = [
 ] as const;
 
 type CalculatorRow = Record<string, unknown> & {
-  id: number;
+  id: string;
   category: string;
   numberOfTeamMembers: number;
   days: number;
@@ -47,29 +46,8 @@ type CalculatorRow = Record<string, unknown> & {
   totalCostPerTeamMember: number;
 };
 
-type CalculatorData = {
-  rows: CalculatorRow[];
-  estimatedCosts: EstimatedCostsData;
-};
-
-type CalculatorContentProps = {
-  readonly calculatorId: number;
-};
-
-// these will be changed later on when we connnect to db (just default values)
-const INITIAL_ESTIMATED_COSTS = (): EstimatedCostsData => ({
-  clothingPackage: 3200,
-  travelEconomyFare: 2400,
-  athleteInsurance: 50,
-  supportStaffInsurance: 28,
-  cellphone: 108,
-  mealsPerDay: 118,
-  villageMealVoucher: 57,
-  knifeAndFork: 2279,
-});
-
 function createTraveler(
-  id: number,
+  id: string,
   category: string = TRAVEL_CATEGORIES[0].title,
 ): CalculatorRow {
   return {
@@ -85,28 +63,6 @@ function createTraveler(
     insuranceBudget: 0,
     totalCostPerTeamMember: 0,
   };
-}
-
-function createInitialCalculatorData(): CalculatorData {
-  return {
-    rows: TRAVEL_CATEGORIES.map((category) =>
-      createTraveler(category.id, category.title),
-    ),
-    estimatedCosts: INITIAL_ESTIMATED_COSTS(),
-  };
-}
-
-function getStayDuration(checkIn: string, checkOut: string) {
-  if (!checkIn || !checkOut) return { days: 0, nights: 0 };
-
-  const start = Date.parse(`${checkIn}T00:00:00Z`);
-  const end = Date.parse(`${checkOut}T00:00:00Z`);
-  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
-    return { days: 0, nights: 0 };
-  }
-
-  const nights = Math.round((end - start) / 86400000);
-  return { days: nights + 1, nights };
 }
 
 const columns: ColumnDefinition<CalculatorRow>[] = [
@@ -195,310 +151,133 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
     align: 'center',
   },
 ];
+const BUDGET_FIELDS = [
+  'travelBudget',
+  'accommodationBudget',
+  'mealsBudget',
+  'insuranceBudget',
+  'totalCostPerTeamMember',
+] as const;
+const INITIAL_ROWS = TRAVEL_CATEGORIES.map(({ id, title }) =>
+  createTraveler(String(id), title),
+);
+function convertRows(
+  rows: CalculatorRow[],
+  currency: Currency,
+): CalculatorRow[] {
+  return rows.map((row) => {
+    const result = { ...row };
+    for (const field of BUDGET_FIELDS)
+      result[field] = Number(
+        (row[field] / CONVERSION_RATES[currency]).toFixed(2),
+      );
+    return result;
+  });
+}
 
 export default function CalculatorContent({
   calculatorId,
-}: CalculatorContentProps) {
+}: {
+  readonly calculatorId: number;
+}) {
   const params = useParams<{ gameId?: string }>();
   const selectedGame = Games.find((game) => game.id === params.gameId);
-
-  const [calculatorData, setCalculatorData] = useState<
-    Record<number, CalculatorData>
-  >({});
-  const [draftRows, setDraftRows] = useState<Record<number, CalculatorRow[]>>(
-    {},
-  );
-  const [draftEstimatedCosts, setDraftEstimatedCosts] = useState<
-    Record<number, EstimatedCostsData>
-  >({});
-
-  const [editingByCalculator, setEditingByCalculator] = useState<
-    Record<number, boolean>
-  >({});
-  const [previewByCalculator, setPreviewByCalculator] = useState<
-    Record<number, boolean>
-  >({});
-  const [validationByCalculator, setValidationByCalculator] = useState<
-    Record<number, boolean>
-  >({});
-
-  const currentData =
-    calculatorData[calculatorId] ?? createInitialCalculatorData();
-  const isEditing = editingByCalculator[calculatorId] ?? false;
-  const isPreview = previewByCalculator[calculatorId] ?? false;
-  const hasValidationError = validationByCalculator[calculatorId] ?? false;
-  const rows = draftRows[calculatorId] ?? currentData.rows;
-
   const [currency, setCurrency] = useState<Currency>('CAD');
-
-  const updateCurrentCalculator = (
-    update: (data: CalculatorData) => CalculatorData,
-  ) => {
-    setCalculatorData((previous) => {
-      const current = previous[calculatorId] ?? createInitialCalculatorData();
-      return { ...previous, [calculatorId]: update(current) };
-    });
-  };
-
-  const updateEstimatedCost = (
-    field: keyof EstimatedCostsData,
-    value: number,
-  ) => {
-    setDraftEstimatedCosts((previous) => ({
-      ...previous,
-      [calculatorId]: {
-        ...(previous[calculatorId] ?? currentData.estimatedCosts),
-        [field]: value,
-      },
-    }));
-  };
-
-  const startEditing = () => {
-    setDraftRows((previous) => ({
-      ...previous,
-      [calculatorId]: currentData.rows,
-    }));
-    setDraftEstimatedCosts((previous) => ({
-      ...previous,
-      [calculatorId]: { ...currentData.estimatedCosts },
-    }));
-    setEditingByCalculator((previous) => ({
-      ...previous,
-      [calculatorId]: true,
-    }));
-    setPreviewByCalculator((previous) => ({
-      ...previous,
-      [calculatorId]: false,
-    }));
-  };
-
-  const cancelEditing = () => {
-    setDraftRows((previous) => {
-      const next = { ...previous };
-      delete next[calculatorId];
-      return next;
-    });
-
-    setDraftEstimatedCosts((previous) => {
-      const next = { ...previous };
-      delete next[calculatorId];
-      return next;
-    });
-
-    setEditingByCalculator((previous) => ({
-      ...previous,
-      [calculatorId]: false,
-    }));
-
-    setPreviewByCalculator((previous) => ({
-      ...previous,
-      [calculatorId]: false,
-    }));
-  };
-
-  const saveEditing = () => {
-    if (hasValidationError) return;
-
-    updateCurrentCalculator((data) => ({
-      ...data,
-      rows,
-      estimatedCosts: draftEstimatedCosts[calculatorId] ?? data.estimatedCosts,
-    }));
-
-    setDraftRows((previous) => {
-      const next = { ...previous };
-      delete next[calculatorId];
-      return next;
-    });
-
-    setDraftEstimatedCosts((previous) => {
-      const next = { ...previous };
-      delete next[calculatorId];
-      return next;
-    });
-
-    setEditingByCalculator((previous) => ({
-      ...previous,
-      [calculatorId]: false,
-    }));
-
-    setPreviewByCalculator((previous) => ({
-      ...previous,
-      [calculatorId]: false,
-    }));
-  };
-
-  const handleGridRowsChange = (updatedRows: CalculatorRow[]) => {
-    setDraftRows((previous) => ({
-      ...previous,
-      [calculatorId]: updatedRows.map((row) => ({
-        ...row,
-        ...getStayDuration(row.checkIn, row.checkOut),
-      })),
-    }));
-  };
-
-  const handleAddRow = () => {
-    const nextId = Math.max(0, ...rows.map((row) => row.id)) + 1;
-    handleGridRowsChange([...rows, createTraveler(nextId)]);
-  };
-
-  const accommodationTotal = 0;
-  const travelTotal = 0;
-  const foodTotal = 0;
-  const insuranceTotal = 0;
-  const simTotal = 0;
-  const estimatedTotal = 0;
-
-  const summary = [
-    { label: 'Accommodation:', value: accommodationTotal },
-    { label: 'Travel:', value: travelTotal },
-    { label: 'Food:', value: foodTotal },
-    { label: 'Insurance:', value: insuranceTotal },
-    { label: 'SIM card:', value: simTotal },
-  ];
-
-  const handleValidationChange = useCallback(
-    (hasError: boolean) => {
-      setValidationByCalculator((previous) => {
-        if (previous[calculatorId] === hasError) {
-          return previous;
-        }
-
-        return {
-          ...previous,
-          [calculatorId]: hasError,
-        };
-      });
-    },
-    [calculatorId],
+  const [gridVersion, setGridVersion] = useState(0);
+  const [renderRowsCAD, setRenderRowsCAD] = useState<CalculatorRow[]>(() =>
+    INITIAL_ROWS.map((row) => ({ ...row })),
   );
+  const savedCAD = useRef<CalculatorRow[]>(
+    INITIAL_ROWS.map((row) => ({ ...row })),
+  );
+  const draftCAD = useRef<CalculatorRow[]>(
+    INITIAL_ROWS.map((row) => ({ ...row })),
+  );
+
+  // keeping budget values in CAD when switching currencies
+  const handleInputCapture = (event: React.FormEvent<HTMLDivElement>) => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) return;
+    const cell = input.closest('td');
+    const row = input.closest('tr');
+    if (!cell || !row) return;
+    const field = columns[cell.cellIndex]?.field;
+    if (!field || !BUDGET_FIELDS.some((budgetField) => budgetField === field))
+      return;
+    const index = Array.from(row.parentElement?.children ?? []).indexOf(row);
+    if (index < 0 || !draftCAD.current[index]) return;
+    const amount = Number(input.value);
+    if (!Number.isFinite(amount) || amount < 0) return;
+    draftCAD.current[index] = {
+      ...draftCAD.current[index],
+      [field]: amount * CONVERSION_RATES[currency],
+    };
+  };
+
+  const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
+    const button = (event.target as HTMLElement).closest('button');
+    if (!button) return;
+    const action = button.textContent?.trim();
+    if (action === 'Save')
+      savedCAD.current = draftCAD.current.map((row) => ({ ...row }));
+    else if (action === 'Cancel')
+      draftCAD.current = savedCAD.current.map((row) => ({ ...row }));
+  };
+
+  const handleCurrencyChange = (nextCurrency: Currency) => {
+    if (nextCurrency === currency) return;
+    setRenderRowsCAD(draftCAD.current.map((row) => ({ ...row })));
+    setCurrency(nextCurrency);
+    setGridVersion((version) => version + 1);
+  };
+
+  // Totals remain placeholders until the calculator's business calculations are connected
+  const summary = [
+    { label: 'Accommodation:', value: 0 },
+    { label: 'Travel:', value: 0 },
+    { label: 'Food:', value: 0 },
+    { label: 'Insurance:', value: 0 },
+    { label: 'SIM card:', value: 0 },
+  ];
 
   return (
     <Box className="w-full min-w-0" data-calculator-id={calculatorId}>
-      <Paper
-        className="max-w-full overflow-hidden rounded-[4px]"
-        variant="outlined"
+      {/* Keep column widths stable between Edit and Preview */}
+      <Box
+        onInputCapture={handleInputCapture}
+        onChangeCapture={handleInputCapture}
+        onClickCapture={handleClickCapture}
+        className="
+          relative min-w-0 p-2
+          [&_.MuiTable-root]:table-fixed
+          [&_.MuiTable-root]:min-w-[2000px]
+          [&_.MuiTableCell-root]:box-border
+          [&_.MuiTableCell-root]:h-[70px]
+          [&_.MuiTableCell-root]:overflow-hidden
+          [&_.MuiTableCell-root]:align-middle
+          [&_.MuiTableCell-root_.MuiFormControl-root]:min-w-0!
+          [&_.MuiTableCell-root_.MuiFormControl-root]:w-full
+          [&_.MuiTableCell-root_.MuiTextField-root]:min-w-0!
+          [&_.MuiTableCell-root_.MuiTextField-root]:w-full
+        "
       >
-        <Box className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <Typography>{selectedGame?.title ?? 'SELECT A GAME'}</Typography>
-
-          <Box className="flex items-center gap-2">
-            {!isEditing ? (
-              <Button
-                size="small"
-                variant="contained"
-                onClick={startEditing}
-                className="rounded-full! px-4!"
-              >
-                Edit
-              </Button>
-            ) : (
-              <>
-                {/* Sliding edit button*/}
-                <Box
-                  className={
-                    'relative flex h-8 w-[170px] items-center rounded-full border border-[#252b37]'
-                  }
-                >
-                  <Box
-                    className={`pointer-events-none absolute top-0 left-0 h-full w-1/2 rounded-full bg-[#252b37] transition-transform duration-300 ease-in-out ${
-                      isPreview ? 'translate-x-full' : 'translate-x-0'
-                    }`}
-                  />
-                  <Button
-                    size="small"
-                    onClick={() =>
-                      setPreviewByCalculator((prev) => ({
-                        ...prev,
-                        [calculatorId]: false,
-                      }))
-                    }
-                    className={`relative z-10 h-full w-1/2 min-w-0! rounded-full! p-0! transition-colors! duration-300! ${
-                      !isPreview ? 'text-white!' : 'text-[#252b37]!'
-                    }`}
-                  >
-                    Edit
-                  </Button>
-
-                  <Button
-                    size="small"
-                    disabled={hasValidationError}
-                    onClick={() =>
-                      setPreviewByCalculator((prev) => ({
-                        ...prev,
-                        [calculatorId]: true,
-                      }))
-                    }
-                    className={`relative z-10 h-full w-1/2 min-w-0! rounded-full! p-0! transition-colors! duration-300! ${
-                      isPreview ? 'text-white!' : 'text-[#252b37]!'
-                    }`}
-                  >
-                    Preview
-                  </Button>
-                </Box>
-
-                <Button
-                  size="small"
-                  onClick={cancelEditing}
-                  className="rounded-full! px-4!"
-                >
-                  Cancel
-                </Button>
-
-                <Button
-                  size="small"
-                  variant="contained"
-                  disabled={hasValidationError}
-                  onClick={saveEditing}
-                  className="rounded-full! px-4!"
-                >
-                  Save
-                </Button>
-              </>
-            )}
-          </Box>
-        </Box>
-
-        {/*These settings are to keep the table column sizes from changing when pressing edit and preview */}
-        <Box
-          className="
-            relative min-w-0 p-2
-            [&_.MuiTable-root]:table-fixed
-            [&_.MuiTable-root]:min-w-[2000px]
-            [&_.MuiTableCell-root]:box-border
-            [&_.MuiTableCell-root]:h-[70px]
-            [&_.MuiTableCell-root]:overflow-hidden
-            [&_.MuiTableCell-root]:align-middle
-            [&_.MuiTableCell-root_.MuiFormControl-root]:min-w-0!
-            [&_.MuiTableCell-root_.MuiFormControl-root]:w-full
-            [&_.MuiTableCell-root_.MuiTextField-root]:min-w-0!
-            [&_.MuiTableCell-root_.MuiTextField-root]:w-full
-            "
-        >
-          <Grid
-            columns={columns}
-            rows={rows}
-            isEditing={isEditing}
-            isPreview={isPreview}
-            onRowsChange={handleGridRowsChange}
-            onValidationChange={handleValidationChange}
-            onAddRow={handleAddRow}
-            addButtonLabel="Add New Traveler"
-          />
-        </Box>
-      </Paper>
+        <BaseGridPage<CalculatorRow>
+          key={gridVersion}
+          title={selectedGame?.title ?? 'SELECT A GAME'}
+          initialData={convertRows(renderRowsCAD, currency)}
+          columns={columns}
+          createEmptyRow={() => createTraveler(crypto.randomUUID())}
+          addButtonLabel="Add New Traveler"
+          showSearch={false}
+        />
+      </Box>
 
       <EstimatedCosts
-        costs={draftEstimatedCosts[calculatorId] ?? currentData.estimatedCosts}
-        onChange={updateEstimatedCost}
-        isEditing={isEditing}
-        isPreview={isPreview}
         currency={currency}
-        onCurrencyChange={setCurrency}
+        onCurrencyChange={handleCurrencyChange}
       />
       <HotelDetails />
-      <CostSummary summary={summary} estimatedTotal={estimatedTotal} />
+      <CostSummary summary={summary} estimatedTotal={0} />
     </Box>
   );
 }
