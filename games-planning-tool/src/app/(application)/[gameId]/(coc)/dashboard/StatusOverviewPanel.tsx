@@ -232,7 +232,7 @@ export default function StatusOverviewPanel({
   return (
     <aside
       aria-label="Status Overview Panel"
-      className="relative w-full shrink-0 lg:w-80 xl:w-96 rounded-3xl bg-[#F8F8F8] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.14)]"
+      className="relative w-full shrink-0 lg:w-80 xl:w-96 rounded-3xl bg-white p-5 shadow-[0_2px_10px_rgba(15,23,42,0.12)]"
     >
       <CloseButton onClose={onClose} />
 

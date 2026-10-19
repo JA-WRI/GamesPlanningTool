@@ -48,7 +48,9 @@ export default function CompletionByStepSection({
   onSelectChart: (chart: (typeof mockDashboard)[number]) => void;
 }) {
   return (
-    <div className="min-w-0 max-w-full mt-3 w-full rounded-3xl bg-[#F8F8F8] py-4 shadow-[0_8px_30px_rgba(0,0,0,0.14)] lg:flex-1">
+    <div
+      className={`min-w-0 max-w-full mt-3 w-full rounded-3xl bg-white py-4 lg:flex-1 shadow-[0_2px_10px_rgba(15,23,42,0.12)]`}
+    >
       <div
         className={`flex flex-wrap ${
           selectedChart
@@ -63,7 +65,6 @@ export default function CompletionByStepSection({
             segments={statusToSegments(d.counts)}
             onClick={() => onSelectChart(d)}
             isSelected={selectedChart?.title === d.title}
-            completedPercent={percentage(d.counts.Completed, totalOf(d.counts))}
           />
         ))}
       </div>
