@@ -78,6 +78,7 @@ const STEPS: { title: string; href: string }[] = [
 
 type TeamSeed = {
   name: string;
+  altNames: string[],
   logo?: string;
   // One status per step, in the same order as STEPS.
   statuses: Status[];
@@ -86,6 +87,7 @@ type TeamSeed = {
 const teamSeeds: TeamSeed[] = [
   {
     name: 'Badminton Canada',
+    altNames: [''],
     logo: '/Badminton_Canada_logo.png',
     statuses: [
       'Requires Update',
@@ -98,6 +100,7 @@ const teamSeeds: TeamSeed[] = [
   {
     // Logo is not transparent it doesn't look good on gray background -- either find transparent logo or remove background
     name: 'Basketball Canada',
+    altNames: [''],
     logo: '/Basketball_Canada_logo.png',
     statuses: [
       'Not Started',
@@ -109,6 +112,7 @@ const teamSeeds: TeamSeed[] = [
   },
   {
     name: 'Archery Canada',
+    altNames: ['Tir à l\'Arc Canada'],
     logo: '/Archery_Canada_logo.png',
     statuses: [
       'Not Started',
@@ -121,6 +125,7 @@ const teamSeeds: TeamSeed[] = [
   // More placeholder teams (no logo yet) so the panel has names to list
   {
     name: 'Swimming Canada',
+    altNames: ['Natation Canada'],
     statuses: [
       'Requires Update',
       'Completed',
@@ -131,6 +136,7 @@ const teamSeeds: TeamSeed[] = [
   },
   {
     name: 'Cycling Canada',
+    altNames: ['Cyclisme Canada'],
     statuses: [
       'Completed',
       'Completed',
@@ -140,7 +146,8 @@ const teamSeeds: TeamSeed[] = [
     ],
   },
   {
-    name: 'Rowing Canada',
+    name: 'Rowing Canada Aviron',
+    altNames: [''],
     statuses: [
       'Not Started',
       'Requires Update',
@@ -151,6 +158,7 @@ const teamSeeds: TeamSeed[] = [
   },
   {
     name: 'Soccer Canada',
+    altNames: [''],
     statuses: [
       'In Progress',
       'Completed',
