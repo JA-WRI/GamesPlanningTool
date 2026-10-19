@@ -51,3 +51,14 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Agent rules & scratch files
+AGENTS.md
+test_*.js
+*.orig
+*.rej
+
+# Stray images & screenshots
+/*.png
+/*.jpg
+/*.jpeg

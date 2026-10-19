@@ -19,6 +19,7 @@
       }
     ],
     "paths": {
+      "@/types/resource": ["./src/app/features/resources/types/resource"],
       "@/*": ["./src/*"]
     }
   },

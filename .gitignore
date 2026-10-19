@@ -1,0 +1,14 @@
+# OS files
+.DS_Store
+
+# Agent rules & scratch files
+AGENTS.md
+test_*.js
+*.orig
+*.rej
+
+# Stray images and screenshots (ignore anywhere except public directories)
+*.png
+*.jpg
+*.jpeg
+!games-planning-tool/public/**
