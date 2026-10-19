@@ -1,7 +1,7 @@
 //50% or more AI-generated
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import TeamStatusCard from '../../../src/app/(application)/[gameId]/(coc)/dashboard/TeamStatusCard';
+import TeamStatusCard from '../../../src/app/(application)/[gameId]/(coc)/dashboard/_components/TeamStatusCard';
 import type { Status } from '../../../src/components/commons/status';
 
 const columns: { title: string; status: Status; href: string }[] = [
