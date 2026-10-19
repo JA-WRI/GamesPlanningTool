@@ -34,7 +34,11 @@ export function computeStats(
   };
 }
 
-type TeamLike = { name: string; altNames: string[];columns: { status: Status }[] };
+type TeamLike = { 
+  name: string; 
+  altNames?: string[]; 
+  columns: { title: string, status: Status }[] 
+};
 
 // A team matches when its name contains the search text and, if any statuses
 // are selected, at least one of its steps has one of those statuses.
