@@ -9,8 +9,8 @@ import {
   type Status,
   type StatusCounts,
 } from '@/components/commons/status';
-import { tagHex } from '@/components/commons/tag';
-import DonutChart from './chart/donutChart';
+import { tagHex } from '@/components/commons/Tag';
+import DonutChart from './chart/DonutChart';
 import { cycleIndex, percentage } from '@/lib/dashboard';
 
 // Order of the status chips and of the previous/next pager.

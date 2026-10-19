@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import DonutChartCard from '../../../src/app/(application)/[gameId]/(coc)/dashboard/chart/donutChartCard';
+import DonutChartCard from '../../../src/app/(application)/[gameId]/(coc)/dashboard/chart/DonutChartCard';
 
 // DonutChart needs real layout to render via recharts; the card's own
 // behaviour (title, selection state, click handling) doesn't depend on it.

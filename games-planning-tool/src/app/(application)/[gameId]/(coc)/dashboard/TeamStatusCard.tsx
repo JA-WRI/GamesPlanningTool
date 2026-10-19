@@ -1,5 +1,5 @@
 // Below 50% AI generated
-import StatusColumn from './statusColumn';
+import StatusColumn from './StatusColumn';
 import type { Status } from '@/components/commons/status';
 import Image from 'next/image';
 

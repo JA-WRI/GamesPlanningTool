@@ -1,5 +1,5 @@
 // Below 50% AI generated
-import DonutChart from './donutChart';
+import DonutChart from './DonutChart';
 import type { ChartSegment } from './types';
 
 type DonutChartCardProps = {

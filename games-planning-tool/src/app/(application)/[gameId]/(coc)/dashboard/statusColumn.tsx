@@ -1,7 +1,7 @@
 // Below 50% AI generated
 import { Status, statusColor } from '@/components/commons/status';
 import Link from 'next/link';
-import Tag from '@/components/commons/tag';
+import Tag from '@/components/commons/Tag';
 
 type StatusColumnProps = {
   status: Status;

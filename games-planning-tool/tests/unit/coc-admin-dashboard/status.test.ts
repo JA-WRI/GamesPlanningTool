@@ -7,7 +7,7 @@ import {
   statusToSegments,
   type StatusCounts,
 } from '../../../src/components/commons/status';
-import { tagHex } from '../../../src/components/commons/tag';
+import { tagHex } from '../../../src/components/commons/Tag';
 
 const counts: StatusCounts = {
   'Not Started': 1,

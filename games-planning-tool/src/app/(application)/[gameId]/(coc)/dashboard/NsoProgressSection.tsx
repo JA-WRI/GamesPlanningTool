@@ -4,14 +4,14 @@
 import TeamStatusCard from './TeamStatusCard';
 import SearchBar from '@/components/commons/SearchBar';
 import FilterButton from '@/components/commons/FilterButton';
-import ChartLegend from './chart/chartLegend';
+import ChartLegend from './chart/ChartLegend';
 import {
   Status,
   STATUS_ORDER,
   statusLegendItems,
 } from '@/components/commons/status';
 import { teams, type Team } from '@/lib/mock-data-chart';
-import type { TagColor } from '@/components/commons/tag';
+import type { TagColor } from '@/components/commons/Tag';
 
 const statusTagColor: Record<Status, TagColor> = {
   Completed: 'green',

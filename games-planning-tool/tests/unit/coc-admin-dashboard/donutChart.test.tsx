@@ -1,7 +1,7 @@
 //50% or more AI-generated
 import { describe, it, expect, beforeAll } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
-import DonutChart from '../../../src/app/(application)/[gameId]/(coc)/dashboard/chart/donutChart';
+import DonutChart from '../../../src/app/(application)/[gameId]/(coc)/dashboard/chart/DonutChart';
 import { mockChartLayout } from './chartTestUtils';
 
 beforeAll(() => {

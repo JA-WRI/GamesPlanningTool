@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { Funnel } from 'lucide-react';
-import Tag, { type TagColor } from '@/components/commons/tag';
+import Tag, { type TagColor } from '@/components/commons/Tag';
 
 export type FilterOption = {
   label: string;

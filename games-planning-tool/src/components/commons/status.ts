@@ -1,7 +1,7 @@
 //50% or more AI-generated
 import type { ChartSegment } from '@/app/(application)/[gameId]/(coc)/dashboard/chart/types';
-import type { TagColor } from './tag';
-import { tagHex } from './tag';
+import type { TagColor } from './Tag';
+import { tagHex } from './Tag';
 
 export type Status =
   'Submitted' | 'In Progress' | 'Completed' | 'Not Started' | 'Requires Update';
