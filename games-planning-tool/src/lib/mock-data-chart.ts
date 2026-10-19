@@ -62,6 +62,7 @@ export type Column = {
 
 export type Team = {
   name: string;
+  altNames?: string[];
   logo?: string;
   columns: Column[];
 };
@@ -78,7 +79,7 @@ const STEPS: { title: string; href: string }[] = [
 
 type TeamSeed = {
   name: string;
-  altNames: string[],
+  altNames?: string[],
   logo?: string;
   // One status per step, in the same order as STEPS.
   statuses: Status[];
@@ -171,6 +172,7 @@ const teamSeeds: TeamSeed[] = [
 
 export const teams: Team[] = teamSeeds.map((seed) => ({
   name: seed.name,
+  altNames: seed.altNames,
   logo: seed.logo,
   columns: STEPS.map((step, i) => ({ ...step, status: seed.statuses[i] })),
 }));

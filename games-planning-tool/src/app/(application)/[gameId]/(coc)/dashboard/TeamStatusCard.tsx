@@ -11,7 +11,6 @@ type Column = {
 
 type TeamStatusCardProps = {
   teamName: string;
-  altNames?: string[];
   logo?: string;
   columns: Column[];
 };

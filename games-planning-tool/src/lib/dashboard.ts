@@ -34,7 +34,7 @@ export function computeStats(
   };
 }
 
-type TeamLike = { name: string; columns: { status: Status }[] };
+type TeamLike = { name: string; altNames: string[];columns: { status: Status }[] };
 
 // A team matches when its name contains the search text and, if any statuses
 // are selected, at least one of its steps has one of those statuses.
@@ -46,7 +46,7 @@ export function filterTeams<T extends TeamLike>(
   const query = search.trim().toLowerCase();
   return teams.filter(
     (team) =>
-      team.name.toLowerCase().includes(query) &&
+    (team.name.toLowerCase().includes(query) || team.altNames?.some((name) => name.toLowerCase().includes(query))) &&
       (statuses.length === 0 ||
         team.columns.some((col) => statuses.includes(col.status))),
   );
