@@ -1,3 +1,4 @@
+// Below 50% AI generated
 import React from 'react';
 import { Search } from 'lucide-react';
 import CloseIcon from '@mui/icons-material/Close';
