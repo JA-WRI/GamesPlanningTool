@@ -1,8 +1,8 @@
 // This page has been coded by both me and AI (50%).
 // I started coding the general structure of the component and used AI to accelerate the process and get the right placement of elements
-import DonutChart from '../coc-admin-dashboard/chart/donutChart';
-import ChartLegend from '../coc-admin-dashboard/chart/chartLegend';
-import type { ChartSegment } from '../coc-admin-dashboard/chart/types';
+import DonutChart from '@/components/commons/DonutChart';
+import ChartLegend from '@/components/commons/ChartLegend';
+import type { ChartSegment } from '@/components/commons/chartTypes';
 import DashboardPanel from './DashboardPanel';
 
 //Mock data for the moment
