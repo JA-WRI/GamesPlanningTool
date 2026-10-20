@@ -4,11 +4,14 @@
 
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import type { ChartSegment } from './types';
+import type { ChartSegment } from './chartTypes';
 
 type DonutChartProps = {
   segments: ChartSegment[];
   className?: string;
+  // When provided, each sector becomes clickable (with a hover affordance)
+  // and reports which segment was clicked.
+  onSegmentClick?: (segment: ChartSegment, index: number) => void;
 };
 
 type TooltipState = {
@@ -87,15 +90,13 @@ function TooltipBubble({ tooltip }: { tooltip: TooltipState }) {
   );
 }
 
-type SliceData = ChartSegment & { fill: string };
-
 // Extracted so the JSX handler stays a one-liner; event typing is kept
 // loose since recharts' Pie callback types aren't worth fighting here.
 function handleSectorEnter(
   entry: unknown,
   index: number,
   event: { currentTarget?: unknown },
-  data: SliceData[],
+  segments: ChartSegment[],
   total: number,
   onHover: (tooltip: TooltipState) => void,
 ) {
@@ -111,24 +112,33 @@ function handleSectorEnter(
     outerRadius: number;
   };
 
-  onHover(hoverTooltipFor(sector, data[index].value, total, data[index].color));
+  onHover(
+    hoverTooltipFor(
+      sector,
+      segments[index].value,
+      total,
+      segments[index].color,
+    ),
+  );
 }
 
 // Owns the recharts Pie itself and reports hover state up via onHover.
 function HoverTrackingPie({
-  data,
+  segments,
   total,
   onHover,
+  onSegmentClick,
 }: {
-  data: SliceData[];
+  segments: ChartSegment[];
   total: number;
   onHover: (tooltip: TooltipState) => void;
+  onSegmentClick?: (segment: ChartSegment, index: number) => void;
 }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <PieChart>
         <Pie
-          data={data}
+          data={segments}
           dataKey="value"
           nameKey="label"
           innerRadius="50%"
@@ -139,11 +149,22 @@ function HoverTrackingPie({
           stroke="none"
           isAnimationActive={false}
           onMouseEnter={(entry, index, event) =>
-            handleSectorEnter(entry, index, event, data, total, onHover)
+            handleSectorEnter(entry, index, event, segments, total, onHover)
           }
           onMouseLeave={() => onHover(null)}
+          onClick={
+            onSegmentClick
+              ? (_entry, index, event) => {
+                  // The card this chart lives in is itself clickable and
+                  // opens the panel to a default status; stop the event
+                  // here so a sector click only reports its own segment.
+                  event?.stopPropagation?.();
+                  onSegmentClick(segments[index], index);
+                }
+              : undefined
+          }
         >
-          {data.map((segment, index) => (
+          {segments.map((segment, index) => (
             <Cell key={`segment-${index}`} fill={segment.color} />
           ))}
         </Pie>
@@ -152,29 +173,39 @@ function HoverTrackingPie({
   );
 }
 
+// Generic donut chart: renders `segments` as a recharts donut with a
+// percentage tooltip on hover. Has no knowledge of status colours or any
+// other dashboard-specific concept, so it can be reused anywhere a set of
+// labelled/coloured values needs to be visualized. Callers fully control
+// sizing and spacing via `className`.
 export default function DonutChart({
   segments,
   className = 'h-36 w-full',
+  onSegmentClick,
 }: DonutChartProps) {
   const [tooltip, setTooltip] = useState<TooltipState>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const data = segments.map((segment) => ({
-    ...segment,
-    fill: segment.color,
-  }));
-
-  const total = data.reduce((sum, segment) => sum + segment.value, 0);
+  const total = segments.reduce((sum, segment) => sum + segment.value, 0);
 
   useHideTooltipOnPointerLeave(containerRef, tooltip, setTooltip);
 
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-visible mb-6 ${className}`}
+      className={`relative overflow-visible ${className} ${
+        onSegmentClick
+          ? '[&_.recharts-sector]:cursor-pointer [&_.recharts-sector]:transition-opacity [&_.recharts-sector:hover]:opacity-80'
+          : ''
+      }`}
       onMouseLeave={() => setTooltip(null)}
     >
-      <HoverTrackingPie data={data} total={total} onHover={setTooltip} />
+      <HoverTrackingPie
+        segments={segments}
+        total={total}
+        onHover={setTooltip}
+        onSegmentClick={onSegmentClick}
+      />
       <TooltipBubble tooltip={tooltip} />
     </div>
   );

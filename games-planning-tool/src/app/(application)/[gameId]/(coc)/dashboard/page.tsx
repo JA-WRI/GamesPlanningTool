@@ -16,11 +16,13 @@ import {
 // Right-side panel shown once a chart is selected; renders nothing until then.
 function SelectedChartPanel({
   selectedChart,
+  selectedStatus,
   panelData,
   teamNamesByStatus,
   onClose,
 }: {
   selectedChart: (typeof mockDashboard)[number] | null;
+  selectedStatus: Status;
   panelData: ReturnType<typeof useSelectedChartData>['panelData'];
   teamNamesByStatus: ReturnType<
     typeof useSelectedChartData
@@ -32,10 +34,14 @@ function SelectedChartPanel({
   return (
     <div className="mt-3">
       <StatusOverviewPanel
+        // Remounts the panel (resetting its chip selection) whenever a new
+        // step or status is picked, e.g. by clicking a specific donut slice.
+        key={`${selectedChart.title}-${selectedStatus}`}
         stepTitle={selectedChart.title}
         counts={panelData?.counts ?? selectedChart.counts}
         nsoNamesByStatus={panelData?.namesByStatus ?? teamNamesByStatus}
         onClose={onClose}
+        initialStatus={selectedStatus}
       />
     </div>
   );
@@ -74,6 +80,17 @@ function useSelectedChartData() {
   const [selectedChart, setSelectedChart] = useState<
     (typeof mockDashboard)[number] | null
   >(null);
+  const [selectedStatus, setSelectedStatus] = useState<Status>('Completed');
+
+  // Selects a chart/step, optionally opening it directly on a given status
+  // (e.g. when a specific donut slice was clicked rather than the card).
+  function selectChart(
+    chart: (typeof mockDashboard)[number],
+    status?: Status,
+  ) {
+    setSelectedChart(chart);
+    setSelectedStatus(status ?? 'Completed');
+  }
 
   const panelData = useMemo(() => {
     if (!selectedChart) return null;
@@ -98,7 +115,14 @@ function useSelectedChartData() {
     return namesByStatusAtColumn(teams, selectedIndex);
   }, [selectedChart]);
 
-  return { selectedChart, setSelectedChart, panelData, teamNamesByStatus };
+  return {
+    selectedChart,
+    selectedStatus,
+    selectChart,
+    setSelectedChart,
+    panelData,
+    teamNamesByStatus,
+  };
 }
 
 export default function Home() {
@@ -111,8 +135,14 @@ export default function Home() {
     setColumnFilters,
     filteredTeams,
   } = useFilters();
-  const { selectedChart, setSelectedChart, panelData, teamNamesByStatus } =
-    useSelectedChartData();
+  const {
+    selectedChart,
+    selectedStatus,
+    selectChart,
+    setSelectedChart,
+    panelData,
+    teamNamesByStatus,
+  } = useSelectedChartData();
 
   return (
     <main className="pt-2 ml-6 mr-6">
@@ -123,10 +153,11 @@ export default function Home() {
       <div className="flex w-full flex-col items-stretch gap-4 lg:flex-row lg:items-start">
         <CompletionByStepSection
           selectedChart={selectedChart}
-          onSelectChart={setSelectedChart}
+          onSelectChart={selectChart}
         />
         <SelectedChartPanel
           selectedChart={selectedChart}
+          selectedStatus={selectedStatus}
           panelData={panelData}
           teamNamesByStatus={teamNamesByStatus}
           onClose={() => setSelectedChart(null)}

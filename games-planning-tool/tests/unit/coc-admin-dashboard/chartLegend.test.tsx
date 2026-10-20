@@ -1,7 +1,7 @@
 //50% or more AI-generated
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import ChartLegend from '../../../src/app/(application)/[gameId]/(coc)/dashboard/_components/chart/ChartLegend';
+import ChartLegend from '../../../src/components/commons/ChartLegend';
 import { statusLegendItems } from '../../../src/components/commons/status';
 
 describe('ChartLegend', () => {

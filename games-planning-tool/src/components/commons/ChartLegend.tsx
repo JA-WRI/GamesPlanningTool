@@ -1,5 +1,5 @@
-// 100% AI
-import type { ChartSegment } from './types';
+//50% or more AI-generated
+import type { ChartSegment } from './chartTypes';
 
 type ChartLegendProps = {
   items: Pick<ChartSegment, 'key' | 'label' | 'color'>[];

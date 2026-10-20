@@ -1,4 +1,4 @@
-// AI usage -> 100%
+//50% or more AI-generated
 import type { Status, StatusCounts } from '@/components/commons/status';
 
 export const mockDashboard: { title: string; counts: StatusCounts }[] = [
@@ -147,7 +147,7 @@ const teamSeeds: TeamSeed[] = [
     ],
   },
   {
-    name: 'Rowing Canada Aviron',
+    name: 'Rowing Canada',
     altNames: [''],
     statuses: [
       'Not Started',

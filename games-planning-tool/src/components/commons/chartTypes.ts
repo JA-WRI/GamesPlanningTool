@@ -1,4 +1,4 @@
-// 100% AI
+//50% or more AI-generated
 export type ChartSegment = {
   key: string;
   label: string;

@@ -2,7 +2,7 @@
 'use client';
 
 import { BookOpen, Gauge, TriangleAlert, Users } from 'lucide-react';
-import { statusToSegments } from '@/components/commons/status';
+import { statusToSegments, type Status } from '@/components/commons/status';
 import DonutChartCard from './chart/DonutChartCard';
 import StatCard from './StatCard';
 import { mockDashboard } from '@/lib/mock-data-chart';
@@ -45,7 +45,10 @@ export default function CompletionByStepSection({
   onSelectChart,
 }: {
   selectedChart: (typeof mockDashboard)[number] | null;
-  onSelectChart: (chart: (typeof mockDashboard)[number]) => void;
+  onSelectChart: (
+    chart: (typeof mockDashboard)[number],
+    status?: Status,
+  ) => void;
 }) {
   return (
     <div
@@ -64,6 +67,9 @@ export default function CompletionByStepSection({
             title={d.title}
             segments={statusToSegments(d.counts)}
             onClick={() => onSelectChart(d)}
+            onSegmentClick={(segment) =>
+              onSelectChart(d, segment.label as Status)
+            }
             isSelected={selectedChart?.title === d.title}
           />
         ))}

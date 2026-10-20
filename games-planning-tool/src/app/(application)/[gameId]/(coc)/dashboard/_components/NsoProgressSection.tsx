@@ -4,22 +4,14 @@
 import TeamStatusCard from './TeamStatusCard';
 import SearchBar from '@/components/commons/SearchBar';
 import FilterButton from '@/components/commons/FilterButton';
-import ChartLegend from './chart/ChartLegend';
+import ChartLegend from '@/components/commons/ChartLegend';
 import {
   Status,
   STATUS_ORDER,
+  statusColor,
   statusLegendItems,
 } from '@/components/commons/status';
 import { teams, type Team } from '@/lib/mock-data-chart';
-import type { TagColor } from '@/components/commons/Tag';
-
-const statusTagColor: Record<Status, TagColor> = {
-  Completed: 'green',
-  Submitted: 'blue',
-  'In Progress': 'yellow',
-  'Requires Update': 'red',
-  'Not Started': 'gray',
-};
 
 // Column titles + their per-column filter buttons, above the team cards.
 function ColumnHeaderRow({
@@ -49,7 +41,7 @@ function ColumnHeaderRow({
               options={STATUS_ORDER.map((status) => ({
                 label: status,
                 value: status,
-                color: statusTagColor[status],
+                color: statusColor[status],
               }))}
               selected={columnFilters[col.title] ?? []}
               onChange={(values) =>
@@ -89,7 +81,7 @@ function NsoFilterHeader({
           options={STATUS_ORDER.map((status) => ({
             label: status,
             value: status,
-            color: statusTagColor[status],
+            color: statusColor[status],
           }))}
           selected={statusFilter}
           onChange={(values) => onStatusFilterChange(values as Status[])}

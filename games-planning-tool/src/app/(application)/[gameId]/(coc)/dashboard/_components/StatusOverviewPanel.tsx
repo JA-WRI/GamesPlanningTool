@@ -10,7 +10,7 @@ import {
   type StatusCounts,
 } from '@/components/commons/status';
 import { tagHex } from '@/components/commons/Tag';
-import DonutChart from './chart/DonutChart';
+import DonutChart from '@/components/commons/DonutChart';
 import { cycleIndex, percentage } from '@/lib/dashboard';
 
 // Order of the status chips and of the previous/next pager.
@@ -29,6 +29,10 @@ type StatusOverviewPanelProps = {
   counts: StatusCounts;
   nsoNamesByStatus: Record<Status, string[]>;
   onClose: () => void;
+  // Which status chip is selected when the panel first mounts. The parent
+  // forces a remount (e.g. via `key`) when it wants to reopen the panel on
+  // a different status, such as after clicking a specific donut slice.
+  initialStatus?: Status;
 };
 
 // Status chips the user clicks to switch which status the panel is showing.
@@ -217,8 +221,9 @@ export default function StatusOverviewPanel({
   counts,
   nsoNamesByStatus,
   onClose,
+  initialStatus = 'Completed',
 }: StatusOverviewPanelProps) {
-  const [status, setStatus] = useState<Status>('Completed');
+  const [status, setStatus] = useState<Status>(initialStatus);
   const [expanded, setExpanded] = useState(false);
 
   const { total, selectedCount, selectedPercent, previous, next } =
