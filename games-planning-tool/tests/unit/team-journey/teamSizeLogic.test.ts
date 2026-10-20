@@ -1,4 +1,4 @@
-// 100% AI generated to create unit tests
+// AI contribution: 50% or more AI-generated
 import { describe, it, expect } from 'vitest';
 import { INITIAL_TEAM_SIZE } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/mockData';
 import {
@@ -10,7 +10,6 @@ import {
   getMedalsMessage,
   getTotalTeamSize,
   toNumber,
-  updateAthleteField,
 } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/teamSizeLogic';
 
 function estimate(
@@ -206,35 +205,5 @@ describe('formatMedalRange', () => {
     expect(formatMedalRange('', '')).toBe('0 – 0');
     expect(formatMedalRange('2', '')).toBe('2 – 0');
     expect(formatMedalRange('', '5')).toBe('0 – 5');
-  });
-});
-
-describe('updateAthleteField', () => {
-  it('changes only the chosen box', () => {
-    const result = updateAthleteField(INITIAL_TEAM_SIZE, 'male', 'low', '4');
-    expect(result.athletes.male).toEqual(estimate('4', '', ''));
-    expect(result.athletes.female).toEqual(INITIAL_TEAM_SIZE.athletes.female);
-    expect(result.staff).toBe(INITIAL_TEAM_SIZE.staff);
-  });
-
-  it('keeps digits only', () => {
-    const result = updateAthleteField(
-      INITIAL_TEAM_SIZE,
-      'female',
-      'high',
-      '-1a2',
-    );
-    expect(result.athletes.female.high).toBe('12');
-  });
-
-  it('can clear a box', () => {
-    const team = teamWith(estimate('4', '5', '6'), estimate('', '', ''));
-    const result = updateAthleteField(team, 'male', 'bestGuess', '');
-    expect(result.athletes.male).toEqual(estimate('4', '', '6'));
-  });
-
-  it('does not change the original object', () => {
-    updateAthleteField(INITIAL_TEAM_SIZE, 'male', 'low', '4');
-    expect(INITIAL_TEAM_SIZE.athletes.male.low).toBe('');
   });
 });

@@ -1,0 +1,15 @@
+<svg width="72" height="84" viewBox="0 0 72 84" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Document Base -->
+  <path d="M10 4C10 1.79086 11.7909 0 14 0H48L66 18V80C66 82.2091 64.2091 84 62 84H14C11.7909 84 10 82.2091 10 80V4Z" fill="#FEFAF6" stroke="#E5DDD0" stroke-width="1.5"/>
+  <!-- Corner Fold -->
+  <path d="M48 0V18H66L48 0Z" fill="#F3EEE8" stroke="#E5DDD0" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- Top header accent lines -->
+  <line x1="20" y1="14" x2="38" y2="14" stroke="#D5CDC3" stroke-width="2" stroke-linecap="round"/>
+  <!-- Text lines on page -->
+  <line x1="20" y1="28" x2="52" y2="28" stroke="#525252" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="20" y1="36" x2="52" y2="36" stroke="#525252" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="20" y1="44" x2="44" y2="44" stroke="#525252" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="20" y1="52" x2="52" y2="52" stroke="#737373" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="20" y1="60" x2="46" y2="60" stroke="#737373" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="20" y1="68" x2="34" y2="68" stroke="#A3A3A3" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

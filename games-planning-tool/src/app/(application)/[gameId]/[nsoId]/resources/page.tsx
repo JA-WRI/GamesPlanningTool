@@ -1,5 +1,17 @@
+// Made with AI agents (Antigravity)
 import React from 'react';
+import { ResourcesPageContent } from '@/features/resources/components/ResourcesPageContent';
 
-export default function page() {
-  return <div>page</div>;
+export const metadata = {
+  title: 'Resources | Games Planning Tool',
+  description:
+    'Manage and view games planning resources, documents, policies, and guidelines.',
+};
+
+export default function ResourcesPage() {
+  return (
+    <div className="min-h-screen flex flex-col bg-white">
+      <ResourcesPageContent isReadOnly={true} />
+    </div>
+  );
 }
