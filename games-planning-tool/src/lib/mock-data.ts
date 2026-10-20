@@ -1,9 +1,21 @@
 //to be deleted onces authentication is setup
 import { Role } from './types';
 export const Games = [
-  { id: 'game_id_1', name: 'LA 2028' },
-  { id: 'game_id_2', name: 'Milan 2026' },
-  { id: 'game_id_3', name: 'Paris 2024' },
+  {
+    id: 'game_id_1',
+    name: 'LA 2028',
+    title: '2028 OLYMPIC SUMMER GAMES - LOS ANGELES',
+  },
+  {
+    id: 'game_id_2',
+    name: 'Milan 2026',
+    title: '2026 OLYMPIC WINTER GAMES - MILANO CORTINA',
+  },
+  {
+    id: 'game_id_3',
+    name: 'Paris 2024',
+    title: '2024 OLYMPIC SUMMER GAMES - PARIS',
+  },
 ];
 
 export const Nsos = [
