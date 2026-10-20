@@ -1,0 +1,14 @@
+<svg width="72" height="84" viewBox="0 0 72 84" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Document Base -->
+  <path d="M10 4C10 1.79086 11.7909 0 14 0H48L66 18V80C66 82.2091 64.2091 84 62 84H14C11.7909 84 10 82.2091 10 80V4Z" fill="#FEFAF6" stroke="#E5DDD0" stroke-width="1.5"/>
+  <!-- Corner Fold -->
+  <path d="M48 0V18H66L48 0Z" fill="#F3EEE8" stroke="#E5DDD0" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- Top header accent lines -->
+  <line x1="20" y1="14" x2="38" y2="14" stroke="#D5CDC3" stroke-width="2" stroke-linecap="round"/>
+  <line x1="20" y1="22" x2="32" y2="22" stroke="#E5DDD0" stroke-width="2" stroke-linecap="round"/>
+  <!-- Image Badge -->
+  <rect x="16" y="32" width="40" height="38" rx="4" fill="#0891B2"/>
+  <!-- Mountains and Sun -->
+  <circle cx="27" cy="42" r="3" fill="#ffffff"/>
+  <path d="M22 60L33 48L42 56L46 52L50 60H22Z" fill="#ffffff"/>
+</svg>

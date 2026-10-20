@@ -65,4 +65,22 @@ describe('SearchBar', () => {
 
     expect(container.querySelector('svg')).toBeInTheDocument();
   });
+
+  it('renders clear button when clearable is true and value is present', async () => {
+    const user = userEvent.setup();
+    const handleChange = vi.fn();
+    render(<SearchBar value="Winter" onChange={handleChange} clearable />);
+
+    const clearBtn = screen.getByRole('button', { name: /clear search/i });
+    expect(clearBtn).toBeInTheDocument();
+
+    await user.click(clearBtn);
+    expect(handleChange).toHaveBeenCalledWith('');
+  });
+
+  it('does not render clear button when clearable is false even if value is present', () => {
+    render(<SearchBar value="Winter" onChange={() => {}} />);
+
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
 });

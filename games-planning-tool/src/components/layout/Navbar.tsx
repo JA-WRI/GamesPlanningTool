@@ -49,13 +49,7 @@ const navItems: NavItem[] = [
     label: 'Resources',
     path: 'resources',
     icon: '/icons/resources.svg',
-    roles: ['nso'],
-  },
-  {
-    label: 'Resource Management',
-    path: '/admin/resource-management',
-    icon: '/icons/resources.svg',
-    roles: ['admin'],
+    roles: ['nso', 'coc', 'admin'],
   },
   {
     label: 'User Management',

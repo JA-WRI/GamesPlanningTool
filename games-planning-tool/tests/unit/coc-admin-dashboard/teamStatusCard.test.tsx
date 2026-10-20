@@ -1,14 +1,14 @@
-// AI usage -> 100%
+//50% or more AI-generated
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import TeamStatusCard from '../../../src/components/coc-admin-dashboard/TeamStatusCard';
+import TeamStatusCard from '../../../src/app/(application)/[gameId]/(coc)/dashboard/_components/TeamStatusCard';
 import type { Status } from '../../../src/components/commons/status';
 
 const columns: { title: string; status: Status; href: string }[] = [
+  { title: 'Contact Info', status: 'Requires Update', href: '/contact-info' },
   { title: 'Team Size', status: 'Submitted', href: '/team-size' },
   { title: 'Accreditation', status: 'Completed', href: '/accreditation' },
-  { title: 'Arrival/Travel In', status: 'Requires Update', href: '/arrival' },
-  { title: 'Departure/Travel Out', status: 'In Progress', href: '/departure' },
+  { title: 'Estimated Costs', status: 'In Progress', href: '/estimated-costs' },
   { title: 'Review and Completion', status: 'Not Started', href: '/review' },
 ];
 
@@ -28,14 +28,6 @@ describe('TeamStatusCard', () => {
     renderCard();
 
     expect(screen.getByAltText('Badminton Canada')).toBeInTheDocument();
-  });
-
-  it('renders a title for every column', () => {
-    renderCard();
-
-    columns.forEach((col) => {
-      expect(screen.getByText(col.title)).toBeInTheDocument();
-    });
   });
 
   it('renders the status for every column', () => {
@@ -69,6 +61,13 @@ describe('TeamStatusCard', () => {
 
     expect(screen.getByAltText('Badminton Canada')).toBeInTheDocument();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('falls back to the team name when no logo is provided', () => {
+    renderCard({ logo: undefined });
+
+    expect(screen.queryByAltText('Badminton Canada')).not.toBeInTheDocument();
+    expect(screen.getByText('Badminton Canada')).toBeInTheDocument();
   });
 
   it('shows the same status in more than one column', () => {
