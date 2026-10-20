@@ -15,7 +15,7 @@ import type { ColumnDefinition } from '@/components/commons/Grid';
 import ConversionRates, {
   type Currency,
   CONVERSION_RATES,
-} from './conversionrates';
+} from './ConversionRates';
 
 export type EstimatedCostsData = {
   clothingPackage: number;
@@ -111,18 +111,6 @@ function displayCosts(
     unitOfMeasure: row.unitOfMeasure.replace(/^(CAD|USD|EUR)/, currency),
   }));
 }
-
-const columns: ColumnDefinition<EstimatedCostRow>[] = [
-  { field: 'category', label: 'Estimated Cost', type: 'text', width: 300 },
-  {
-    field: 'amount',
-    label: 'Amount (CAD)',
-    type: 'number',
-    min: 0,
-    step: 0.01,
-    width: 180,
-  },
-];
 
 export default function EstimatedCosts({
   currency,

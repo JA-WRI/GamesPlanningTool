@@ -13,8 +13,8 @@ import { useParams } from 'next/navigation';
 import { Games } from '@/lib/data';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
-import { type Currency, CONVERSION_RATES } from './conversionrates';
-import EstimatedCosts from './estimatedcosts';
+import { type Currency, CONVERSION_RATES } from './ConversionRates';
+import EstimatedCosts from './EstimatedCosts';
 // these will be added later
 //import CostSummary from './costsummary';
 //import HotelDetails from './hoteldetails';

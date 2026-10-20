@@ -2,7 +2,7 @@
 'use client';
 
 import { Box } from '@mui/material';
-import CalculatorContent from './calculatorcontent';
+import CalculatorContent from './CalculatorContent';
 
 export default function CalculatorClient() {
   return (
