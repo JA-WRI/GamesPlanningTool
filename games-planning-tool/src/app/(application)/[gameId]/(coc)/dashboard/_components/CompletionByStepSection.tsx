@@ -6,7 +6,7 @@ import { statusToSegments, type Status } from '@/components/commons/status';
 import DonutChartCard from './chart/DonutChartCard';
 import StatCard from './StatCard';
 import { mockDashboard } from '@/lib/mock-data-chart';
-import { computeStats, percentage, totalOf } from '@/lib/dashboard';
+import { computeStats } from '@/lib/dashboard';
 
 // mockDashboard is static, so the overall stats never change between renders
 const stats = computeStats(mockDashboard);
