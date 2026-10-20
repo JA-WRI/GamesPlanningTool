@@ -84,10 +84,7 @@ function useSelectedChartData() {
 
   // Selects a chart/step, optionally opening it directly on a given status
   // (e.g. when a specific donut slice was clicked rather than the card).
-  function selectChart(
-    chart: (typeof mockDashboard)[number],
-    status?: Status,
-  ) {
+  function selectChart(chart: (typeof mockDashboard)[number], status?: Status) {
     setSelectedChart(chart);
     setSelectedStatus(status ?? 'Completed');
   }

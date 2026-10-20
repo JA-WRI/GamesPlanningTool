@@ -79,7 +79,7 @@ const STEPS: { title: string; href: string }[] = [
 
 type TeamSeed = {
   name: string;
-  altNames?: string[],
+  altNames?: string[];
   logo?: string;
   // One status per step, in the same order as STEPS.
   statuses: Status[];
@@ -113,7 +113,7 @@ const teamSeeds: TeamSeed[] = [
   },
   {
     name: 'Archery Canada',
-    altNames: ['Tir à l\'Arc Canada'],
+    altNames: ["Tir à l'Arc Canada"],
     logo: '/Archery_Canada_logo.png',
     statuses: [
       'Not Started',
