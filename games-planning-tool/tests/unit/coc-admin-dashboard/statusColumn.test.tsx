@@ -1,7 +1,7 @@
 //50% or more AI-generated
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import StatusColumn from '../../../src/app/(application)/[gameId]/(coc)/dashboard/_components/StatusColumn';
+import StatusColumn from '../../../src/features/coc-dash/components/StatusColumn';
 
 describe('StatusColumn', () => {
   it('renders the status tag', () => {
