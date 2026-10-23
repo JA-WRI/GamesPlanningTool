@@ -3,9 +3,9 @@
 
 import { useMemo, useState } from 'react';
 import type { Status } from '@/components/commons/status';
-import StatusOverviewPanel from './_components/StatusOverviewPanel';
-import CompletionByStepSection from './_components/CompletionByStepSection';
-import NsoProgressSection from './_components/NsoProgressSection';
+import StatusOverviewPanel from '../../../../../features/coc-dash/components/StatusOverviewPanel';
+import CompletionByStepSection from '../../../../../features/coc-dash/components/CompletionByStepSection';
+import NsoProgressSection from '../../../../../features/coc-dash/components/NsoProgressSection';
 import { mockDashboard, teams } from '@/lib/mock-data-chart';
 import {
   filterTeams,
