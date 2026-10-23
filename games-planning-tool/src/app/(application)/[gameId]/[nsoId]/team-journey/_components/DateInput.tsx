@@ -1,11 +1,14 @@
 // 60% AI generated
-import { inputClass, onlyDigits } from '../_lib/utils';
+import {
+  inputClass,
+  onlyDigits,
+} from '../../../../../../features/team-size/lib/utils';
 import {
   DateValue,
   InvalidParts,
   isInRange,
   noInvalidParts,
-} from '../_lib/dateLogic';
+} from '../../../../../../features/team-size/lib/dateLogic';
 //reusable DD/MM/YYYY date field(reuse it in Steps 3 and 4)
 
 type DateInputProps = {

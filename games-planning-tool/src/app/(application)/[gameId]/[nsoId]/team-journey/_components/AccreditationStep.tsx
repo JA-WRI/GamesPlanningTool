@@ -1,7 +1,13 @@
 // 70% AI generated
 import Image from 'next/image';
-import { ACCREDITATION_TYPES, PARTICIPANT_CATEGORIES } from '../_lib/mockData';
-import { inputClass, onlyDigits } from '../_lib/utils';
+import {
+  ACCREDITATION_TYPES,
+  PARTICIPANT_CATEGORIES,
+} from '../../../../../../features/team-size/lib/mockData';
+import {
+  inputClass,
+  onlyDigits,
+} from '../../../../../../features/team-size/lib/utils';
 import {
   AccreditationRow,
   FinishedDateBoxes,
@@ -10,7 +16,7 @@ import {
   deleteAccreditationRow,
   getRowErrors,
   updateAccreditationRow,
-} from '../_lib/accreditationLogic';
+} from '../../../../../../features/team-size/lib/accreditationLogic';
 import DateInput from './DateInput';
 
 type AccreditationStepProps = {

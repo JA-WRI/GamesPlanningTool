@@ -5,7 +5,7 @@ import {
   MOCK_DISCIPLINES,
   MOCK_MEDAL_ROWS,
   MOCK_TEAM_SIZE,
-} from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/mockData';
+} from '@/features/team-size/lib/mockData';
 import {
   GridNumber,
   MAX_COUNT,
@@ -24,7 +24,7 @@ import {
   rowsToAthletes,
   toGridNumber,
   toText,
-} from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/teamSizeGridLogic';
+} from '@/features/team-size/lib/teamSizeGridLogic';
 
 // one "Low" row with these male and female counts
 function row(male: GridNumber, female: GridNumber): TeamSizeRow {

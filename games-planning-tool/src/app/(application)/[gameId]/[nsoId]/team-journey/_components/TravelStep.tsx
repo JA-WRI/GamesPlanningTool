@@ -1,12 +1,15 @@
 // shared table + row logic for the Arrival and Departure steps (same shape, different field names)
-import { PARTICIPANT_CATEGORIES } from '../_lib/mockData';
-import { inputClass, onlyDigits } from '../_lib/utils';
+import { PARTICIPANT_CATEGORIES } from '../../../../../../features/team-size/lib/mockData';
+import {
+  inputClass,
+  onlyDigits,
+} from '../../../../../../features/team-size/lib/utils';
 import {
   DateValue,
   getDateProblem,
   getInvalidParts,
   noInvalidParts,
-} from '../_lib/dateLogic';
+} from '../../../../../../features/team-size/lib/dateLogic';
 import DateInput from './DateInput';
 
 // Date boxes the user already finished (we only show errors for these)

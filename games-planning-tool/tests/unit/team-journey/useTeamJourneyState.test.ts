@@ -6,7 +6,7 @@ import {
   MOCK_DISCIPLINES,
   MOCK_MEDAL_ROWS,
   MOCK_TEAM_SIZE,
-} from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/mockData';
+} from '@/features/team-size/lib/mockData';
 
 describe('useTeamJourneyState', () => {
   it('starts on step 1 with the mock team size data', () => {

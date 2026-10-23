@@ -4,18 +4,21 @@
 import { useState } from 'react';
 import { ArrivalRow, createEmptyArrivalRow } from './ArrivalStep';
 import { DepartureRow, createEmptyDepartureRow } from './DepartureStep';
-import { TeamSize } from '../_lib/teamSizeLogic';
+import { TeamSize } from '../../../../../../features/team-size/lib/teamSizeLogic';
 import {
   AccreditationRow,
   createEmptyAccreditationRow,
   FinishedDateBoxes,
-} from '../_lib/accreditationLogic';
+} from '../../../../../../features/team-size/lib/accreditationLogic';
 import {
   MOCK_DISCIPLINES,
   MOCK_MEDAL_ROWS,
   MOCK_TEAM_SIZE,
-} from '../_lib/mockData';
-import { DisciplineBreakdown, MedalRow } from '../_lib/teamSizeGridLogic';
+} from '../../../../../../features/team-size/lib/mockData';
+import {
+  DisciplineBreakdown,
+  MedalRow,
+} from '../../../../../../features/team-size/lib/teamSizeGridLogic';
 
 // all the team journey data, kept here so nothing is lost when switching tabs
 export function useTeamJourneyState() {

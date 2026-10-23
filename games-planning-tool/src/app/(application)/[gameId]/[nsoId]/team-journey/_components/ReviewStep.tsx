@@ -1,12 +1,12 @@
-import { AccreditationRow } from '../_lib/accreditationLogic';
+import { AccreditationRow } from '../../../../../../features/team-size/lib/accreditationLogic';
 import { ArrivalRow } from './ArrivalStep';
 import { DepartureRow } from './DepartureStep';
-import { formatDate } from '../_lib/dateLogic';
+import { formatDate } from '../../../../../../features/team-size/lib/dateLogic';
 import {
   TeamSize,
   formatMedalRange,
   getTotalTeamSize,
-} from '../_lib/teamSizeLogic';
+} from '../../../../../../features/team-size/lib/teamSizeLogic';
 
 type ReviewStepProps = {
   teamSize: TeamSize;
