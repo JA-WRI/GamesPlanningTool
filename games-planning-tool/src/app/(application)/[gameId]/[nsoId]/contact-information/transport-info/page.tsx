@@ -2,7 +2,7 @@
 // AI use to decouple the client state and ui
 import GamesTransportationSection, {
   ContactRow,
-} from '../_components/GamesTransportInfo';
+} from '../../../../../../features/contact-information/components/GamesTransportInfo';
 
 // To be deleted after all ui implementation
 const initialData: ContactRow[] = [

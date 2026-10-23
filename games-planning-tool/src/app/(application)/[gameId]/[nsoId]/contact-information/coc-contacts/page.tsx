@@ -1,5 +1,5 @@
 // No substantial AI-generated code
-import ContactsGridPage from '../_components/ContactsGridPage';
+import ContactsGridPage from '../../../../../../features/contact-information/components/ContactsGridPage';
 
 const initialCocData = [
   {

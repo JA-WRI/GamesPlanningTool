@@ -4,7 +4,7 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import ContactsSideMenu from '../../../src/app/(application)/[gameId]/[nsoId]/contact-information/_components/ContactsSideMenu';
+import ContactsSideMenu from '../../../src/features/contact-information/components/ContactsSideMenu';
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/game1/nso1/contact-information/coc-contacts',
