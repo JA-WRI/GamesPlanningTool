@@ -1,7 +1,9 @@
 // No substantial AI-generated code
 'use client';
 
-import NSOGeneralInfoSection, { NSOInfoPage } from './_components/NSOInfoPage';
+import NSOGeneralInfoSection, {
+  NSOInfoPage,
+} from '../../../../../features/contact-information/components/NSOInfoPage';
 
 // mock data
 const initialNSOData: NSOInfoPage = {

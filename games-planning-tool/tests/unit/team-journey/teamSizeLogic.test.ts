@@ -1,6 +1,6 @@
 // AI contribution: 50% or more AI-generated
 import { describe, it, expect } from 'vitest';
-import { INITIAL_TEAM_SIZE } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/mockData';
+import { INITIAL_TEAM_SIZE } from '@/features/team-size/lib/mockData';
 import {
   AthleteEstimate,
   TeamSize,
@@ -10,7 +10,7 @@ import {
   getMedalsMessage,
   getTotalTeamSize,
   toNumber,
-} from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/teamSizeLogic';
+} from '@/features/team-size/lib/teamSizeLogic';
 
 function estimate(
   low: string,

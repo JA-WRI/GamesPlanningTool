@@ -4,7 +4,7 @@
 import { BookOpen, Gauge, TriangleAlert, Users } from 'lucide-react';
 import { statusToSegments, type Status } from '@/components/commons/status';
 import DonutChartCard from './chart/DonutChartCard';
-import StatCard from './StatCard';
+import StatCard from '../components/StatCard';
 import { mockDashboard } from '@/lib/mock-data-chart';
 import { computeStats } from '@/lib/dashboard';
 

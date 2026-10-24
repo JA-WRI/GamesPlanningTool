@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Users } from 'lucide-react';
-import StatCard from '../../../src/app/(application)/[gameId]/(coc)/dashboard/_components/StatCard';
+import StatCard from '../../../src/features/coc-dash/components/StatCard';
 
 describe('StatCard', () => {
   it('renders the label, value, and description', () => {
