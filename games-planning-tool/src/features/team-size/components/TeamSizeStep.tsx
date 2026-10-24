@@ -21,7 +21,7 @@ export default function TeamSizeStep(props: TeamSizeStepProps) {
     <div className="step-fade w-full space-y-3 pt-2">
       {/* side by side from 1024px (lg), stacked below; grid items stretch,
           so both cards get the same height; min-w-0 lets the tables shrink */}
-      <div className="grid gap-3 lg:grid-cols-2 [&>*]:min-w-0">
+      <div className="grid gap-3 lg:grid-cols-2 *:min-w-0">
         <TeamSizeEstimateTable
           teamSize={props.teamSize}
           onChange={props.onChange}
