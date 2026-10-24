@@ -151,7 +151,7 @@ export default function EstimatedCosts({
   };
 
   return (
-    <Box className="mt-10 min-w-0 [&>div>div:first-child]:!rounded-b-none [&>div>div:first-child]:!border-b-0">
+    <Box className="mt-10 min-w-0 [&>div>div:first-child]:rounded-b-none! [&>div>div:first-child]:border-b-0!">
       <Box className="rounded-lg shadow-sm">
         <BaseGridPage<EstimatedCostRow>
           key={currency}
