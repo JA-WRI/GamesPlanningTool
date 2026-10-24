@@ -3,8 +3,8 @@ import DisciplineTable from './DisciplineTable';
 import MedalPotentialTable from './MedalPotentialTable';
 import PerformanceObjectivesTable from './PerformanceObjectivesTable';
 import TeamSizeEstimateTable from './TeamSizeEstimateTable';
-import { TeamSize } from '../../_lib/teamSizeLogic';
-import { DisciplineBreakdown, MedalRow } from '../../_lib/teamSizeGridLogic';
+import { TeamSize } from '../lib/teamSizeLogic';
+import { DisciplineBreakdown, MedalRow } from '../lib/teamSizeGridLogic';
 
 type TeamSizeStepProps = {
   teamSize: TeamSize;

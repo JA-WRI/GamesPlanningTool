@@ -2,8 +2,6 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrivalRow, createEmptyArrivalRow } from './ArrivalStep';
-import { DepartureRow, createEmptyDepartureRow } from './DepartureStep';
 import { TeamSize } from '../../../../../../features/team-size/lib/teamSizeLogic';
 import {
   AccreditationRow,
@@ -34,17 +32,7 @@ export function useTeamJourneyState() {
   // date fields the user already left
   const [accreditationFinishedDateBoxes, setAccreditationFinishedDateBoxes] =
     useState<FinishedDateBoxes>({});
-  // 4 empty rows to start
-  const [arrivals, setArrivals] = useState<ArrivalRow[]>(() =>
-    [1, 2, 3, 4].map(createEmptyArrivalRow),
-  );
-  // date fields the user already left
-  const [arrivalFinishedDateBoxes, setArrivalFinishedDateBoxes] =
-    useState<FinishedDateBoxes>({});
-  // 4 empty rows to start
-  const [departures, setDepartures] = useState<DepartureRow[]>(() =>
-    [1, 2, 3, 4].map(createEmptyDepartureRow),
-  );
+
   // date fields the user already left
   const [departureFinishedDateBoxes, setDepartureFinishedDateBoxes] =
     useState<FinishedDateBoxes>({});
@@ -62,12 +50,6 @@ export function useTeamJourneyState() {
     setAccreditations,
     accreditationFinishedDateBoxes,
     setAccreditationFinishedDateBoxes,
-    arrivals,
-    setArrivals,
-    arrivalFinishedDateBoxes,
-    setArrivalFinishedDateBoxes,
-    departures,
-    setDepartures,
     departureFinishedDateBoxes,
     setDepartureFinishedDateBoxes,
   };
