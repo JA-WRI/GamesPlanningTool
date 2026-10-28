@@ -37,6 +37,9 @@ jobs:
       - name: Check Prettier formatting
         run: npm run format:check
 
+      - name: Type check
+        run: npm run typecheck
+
   unit-tests:
     name: Unit Tests (Vitest)
     runs-on: ubuntu-latest
@@ -118,3 +121,19 @@ jobs:
           name: playwright-report
           path: games-planning-tool/playwright-report/
           retention-days: 7
+  
+  build:
+    name: Build
+    needs: [lint, unit-tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: games-planning-tool/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run prisma:generate
+      - run: npm run build

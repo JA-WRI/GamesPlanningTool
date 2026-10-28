@@ -16,7 +16,8 @@
     "prisma:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "e2e:install": "playwright install --with-deps",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@emnapi/wasi-threads": "^1.2.3",
