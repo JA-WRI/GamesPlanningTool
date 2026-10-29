@@ -3,7 +3,7 @@
 
 //import StepTabs from './StepTabs';
 import TeamSizeStep from '@/features/team-size/components/TeamSizeStep';
-import { TeamJourneyState, useTeamJourneyState } from './useTeamJourneyState';
+import { useTeamJourneyState } from './useTeamJourneyState';
 
 // one small function per step, with the same props as before
 // const STEPS: Record<number, (state: TeamJourneyState) => React.ReactNode> = {
