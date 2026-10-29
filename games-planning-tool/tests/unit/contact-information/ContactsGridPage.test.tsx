@@ -4,7 +4,7 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import ContactsGridPage from '../../../src/app/(application)/[gameId]/[nsoId]/contact-information/_components/ContactsGridPage';
+import ContactsGridPage from '../../../src/features/contact-information/components/ContactsGridPage';
 
 describe('ContactsGridPage', () => {
   it('renders base grid page with correct title and initial data', () => {

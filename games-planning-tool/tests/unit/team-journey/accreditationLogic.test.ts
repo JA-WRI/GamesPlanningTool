@@ -1,6 +1,6 @@
 // 100% AI generated to create unit tests
 import { describe, it, expect } from 'vitest';
-import { ALLOWED_YEAR_RANGE } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/constants';
+import { ALLOWED_YEAR_RANGE } from '@/features/team-size/lib/constants';
 import {
   addAccreditationRow,
   clearFinishedDateBoxes,
@@ -9,12 +9,12 @@ import {
   getDateMessage,
   getRowErrors,
   updateAccreditationRow,
-} from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/accreditationLogic';
+} from '@/features/team-size/lib/accreditationLogic';
 import {
   allInvalidParts,
   emptyDate,
   noInvalidParts,
-} from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/dateLogic';
+} from '@/features/team-size/lib/dateLogic';
 
 const year = String(ALLOWED_YEAR_RANGE.min);
 const tooLateYear = String(ALLOWED_YEAR_RANGE.max + 1);

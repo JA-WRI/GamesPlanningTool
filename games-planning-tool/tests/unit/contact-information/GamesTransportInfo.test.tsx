@@ -7,7 +7,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import GamesTransportationSection, {
   ContactRow,
-} from '../../../src/app/(application)/[gameId]/[nsoId]/contact-information/_components/GamesTransportInfo';
+} from '../../../src/features/contact-information/components/GamesTransportInfo';
 
 describe('GamesTransportationSection', () => {
   const initialData: ContactRow[] = [

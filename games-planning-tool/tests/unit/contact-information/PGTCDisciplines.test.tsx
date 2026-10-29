@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import DisciplinesSection, {
   DisciplineData,
-} from '../../../src/app/(application)/[gameId]/[nsoId]/contact-information/_components/PGTCDisciplines';
+} from '../../../src/features/contact-information/components/PGTCDisciplines';
 
 describe('DisciplinesSection', () => {
   const initialDisciplines: DisciplineData[] = [

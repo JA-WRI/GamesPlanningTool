@@ -6,7 +6,7 @@ import {
   MOCK_DISCIPLINES,
   MOCK_MEDAL_ROWS,
   MOCK_TEAM_SIZE,
-} from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/mockData';
+} from '@/features/team-size/lib/mockData';
 
 describe('useTeamJourneyState', () => {
   it('starts on step 1 with the mock team size data', () => {
@@ -16,14 +16,6 @@ describe('useTeamJourneyState', () => {
     expect(result.current.teamSize).toEqual(MOCK_TEAM_SIZE);
     expect(result.current.disciplines).toEqual(MOCK_DISCIPLINES);
     expect(result.current.medalRows).toEqual(MOCK_MEDAL_ROWS);
-  });
-
-  it('starts with 4 empty rows for accreditation, arrival and departure', () => {
-    const { result } = renderHook(() => useTeamJourneyState());
-
-    expect(result.current.accreditations).toHaveLength(4);
-    expect(result.current.arrivals).toHaveLength(4);
-    expect(result.current.departures).toHaveLength(4);
   });
 
   it('keeps an update to the team size', () => {

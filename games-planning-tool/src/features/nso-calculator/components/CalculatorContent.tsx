@@ -233,13 +233,13 @@ export default function CalculatorContent({
   };
 
   // Totals remain placeholders until the calculator's business calculations are connected
-  const summary = [
-    { label: 'Accommodation:', value: 0 },
-    { label: 'Travel:', value: 0 },
-    { label: 'Food:', value: 0 },
-    { label: 'Insurance:', value: 0 },
-    { label: 'SIM card:', value: 0 },
-  ];
+  // const summary = [
+  //   { label: 'Accommodation:', value: 0 },
+  //   { label: 'Travel:', value: 0 },
+  //   { label: 'Food:', value: 0 },
+  //   { label: 'Insurance:', value: 0 },
+  //   { label: 'SIM card:', value: 0 },
+  // ];
 
   return (
     <Box className="w-full min-w-0" data-calculator-id={calculatorId}>

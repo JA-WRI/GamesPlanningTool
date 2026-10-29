@@ -1,5 +1,5 @@
 // No AI usage
-import CalculatorClient from './_components/CalculatorClient';
+import CalculatorClient from '@/features/nso-calculator/components/CalculatorClient';
 
 export default function CalculatorPage() {
   return <CalculatorClient />;

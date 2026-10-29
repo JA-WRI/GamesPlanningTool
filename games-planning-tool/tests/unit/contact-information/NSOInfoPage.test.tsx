@@ -4,7 +4,7 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import NSOInfoPageSection from '../../../src/app/(application)/[gameId]/[nsoId]/contact-information/_components/NSOInfoPage';
+import NSOInfoPageSection from '../../../src/features/contact-information/components/NSOInfoPage';
 
 describe('NSOInfoPageSection', () => {
   it('renders default NSO general information fields', () => {
