@@ -14,10 +14,10 @@ import { Games } from '@/lib/data';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
 import { type Currency, CONVERSION_RATES } from './ConversionRates';
-import EstimatedCosts from './EstimatedCosts';
-// these will be added later
-//import CostSummary from './costsummary';
-//import HotelDetails from './hoteldetails';
+import EstimatedCosts, { type EstimatedCostRow } from './EstimatedCosts';
+import HotelPricingTable from './HotelPricingTable';
+import CostSummary from './CostSummary';
+import { calculateCostSummary } from './calculateCostSummary';
 
 // these categories are now hard-coded values until we connect to the db
 const TRAVEL_CATEGORIES = [
@@ -181,6 +181,8 @@ export default function CalculatorContent({
 }: {
   readonly calculatorId: number;
 }) {
+  const [summaryRows, setSummaryRows] = useState<CalculatorRow[]>(INITIAL_ROWS);
+  const [estimatedCosts, setEstimatedCosts] = useState<EstimatedCostRow[]>([]);
   const params = useParams<{ gameId?: string }>();
   const selectedGame = Games.find((game) => game.id === params.gameId);
   const [currency, setCurrency] = useState<Currency>('CAD');
@@ -232,15 +234,6 @@ export default function CalculatorContent({
     setGridVersion((version) => version + 1);
   };
 
-  // Totals remain placeholders until the calculator's business calculations are connected
-  const summary = [
-    { label: 'Accommodation:', value: 0 },
-    { label: 'Travel:', value: 0 },
-    { label: 'Food:', value: 0 },
-    { label: 'Insurance:', value: 0 },
-    { label: 'SIM card:', value: 0 },
-  ];
-
   return (
     <Box className="w-full min-w-0" data-calculator-id={calculatorId}>
       {/* Keep column widths stable between Edit and Preview */}
@@ -270,17 +263,30 @@ export default function CalculatorContent({
           createEmptyRow={() => createTraveler(crypto.randomUUID())}
           addButtonLabel="Add New Traveler"
           showSearch={false}
+          onSave={(rows) => {
+            const rowsCAD = rows.map((row) => {
+              const result = { ...row };
+              for (const field of BUDGET_FIELDS)
+                result[field] = Number(row[field]) * CONVERSION_RATES[currency];
+              return result;
+            });
+            savedCAD.current = rowsCAD;
+            draftCAD.current = rowsCAD;
+            setSummaryRows(rowsCAD);
+          }}
         />
       </Box>
 
       <EstimatedCosts
         currency={currency}
         onCurrencyChange={handleCurrencyChange}
+        onSavedRowsChange={setEstimatedCosts}
       />
-      {/* will be implemented later 
-      <HotelDetails />
-      <CostSummary summary={summary} estimatedTotal={0} />
-      */}
+      <HotelPricingTable />
+      <CostSummary
+        data={calculateCostSummary(summaryRows, estimatedCosts)}
+        currency={currency}
+      />
     </Box>
   );
 }
