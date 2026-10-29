@@ -4,6 +4,7 @@
 interface GridHeaderProps {
   title: string;
   description?: string;
+  readOnly?: boolean;
   isEditing: boolean;
   isPreview: boolean;
   onEditToggle: () => void;
@@ -15,6 +16,7 @@ interface GridHeaderProps {
 export default function GridHeaderPage({
   title,
   description,
+  readOnly = false,
   isEditing,
   isPreview,
   onEditToggle,
@@ -32,59 +34,61 @@ export default function GridHeaderPage({
         )}
       </div>
       {/*Edit, cancel, and save buttons*/}
-      <div className="flex items-center gap-3 shrink-0">
-        {isEditing ? (
-          <>
-            <button
-              type="button"
-              onClick={onCancel || onEditToggle}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
-            {/* pill toggle for edit view and preview */}
-            <div className="flex items-center bg-gray-100 p-1 rounded-full border border-gray-200 shadow-inner">
+      {!readOnly && (
+        <div className="flex items-center gap-3 shrink-0">
+          {isEditing ? (
+            <>
               <button
                 type="button"
-                onClick={() => onPreviewToggle(false)}
-                className={`px-3.5 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer ${
-                  !isPreview
-                    ? 'bg-burgundy text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                onClick={onCancel || onEditToggle}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
               >
-                Edit View
+                Cancel
               </button>
+              {/* pill toggle for edit view and preview */}
+              <div className="flex items-center bg-gray-100 p-1 rounded-full border border-gray-200 shadow-inner">
+                <button
+                  type="button"
+                  onClick={() => onPreviewToggle(false)}
+                  className={`px-3.5 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer ${
+                    !isPreview
+                      ? 'bg-burgundy text-white shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Edit View
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onPreviewToggle(true)}
+                  className={`px-3.5 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer ${
+                    isPreview
+                      ? 'bg-burgundy text-white shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Preview
+                </button>
+              </div>
               <button
                 type="button"
-                onClick={() => onPreviewToggle(true)}
-                className={`px-3.5 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer ${
-                  isPreview
-                    ? 'bg-burgundy text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                onClick={onSave}
+                className="px-5 py-2 text-sm font-medium text-white bg-burgundy hover:bg-burgundy/90 rounded-md transition-colors shadow-sm cursor-pointer"
               >
-                Preview
+                Save
               </button>
-            </div>
+            </>
+          ) : (
             <button
               type="button"
-              onClick={onSave}
-              className="px-5 py-2 text-sm font-medium text-white bg-burgundy hover:bg-burgundy/90 rounded-md transition-colors shadow-sm cursor-pointer"
+              onClick={onEditToggle}
+              className="px-5 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors cursor-pointer"
             >
-              Save
+              Edit
             </button>
-          </>
-        ) : (
-          <button
-            type="button"
-            onClick={onEditToggle}
-            className="px-5 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors cursor-pointer"
-          >
-            Edit
-          </button>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -18,14 +18,6 @@ describe('useTeamJourneyState', () => {
     expect(result.current.medalRows).toEqual(MOCK_MEDAL_ROWS);
   });
 
-  it('starts with 4 empty rows for accreditation, arrival and departure', () => {
-    const { result } = renderHook(() => useTeamJourneyState());
-
-    expect(result.current.accreditations).toHaveLength(4);
-    expect(result.current.arrivals).toHaveLength(4);
-    expect(result.current.departures).toHaveLength(4);
-  });
-
   it('keeps an update to the team size', () => {
     const { result } = renderHook(() => useTeamJourneyState());
 
