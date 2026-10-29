@@ -17,7 +17,7 @@
     "db:migrate": "prisma migrate deploy",
     "e2e:install": "playwright install --with-deps",
     "e2e": "playwright test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@emnapi/wasi-threads": "^1.2.3",
