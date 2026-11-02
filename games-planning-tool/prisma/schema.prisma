@@ -134,12 +134,12 @@ model GameMember {
 }
 
 
-model Resources {
+model Resource {
   id String @id @default(uuid()) @db.Uuid
 
   parentFolderId String? @map("parent_folder_id") @db.Uuid
-  parent Resources? @relation("ParentElement", fields: [parentFolderId], references: [id])
-  children Resources[] @relation("ParentElement")
+  parent Resource? @relation("ParentElement", fields: [parentFolderId], references: [id])
+  children Resource[] @relation("ParentElement")
 
   name String
   fileOrWebpageURL String? @map("file_or_webpage_URL")
@@ -147,12 +147,12 @@ model Resources {
   categories String[]
 
   previousElementId String? @map("previous_element_id") @db.Uuid
-  previous Resources? @relation("PreviousElement", fields: [previousElementId], references: [id])
-  nextFromPrevious Resources[] @relation("PreviousElement")
+  previous Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
+  nextFromPrevious Resource[] @relation("PreviousElement")
 
   nextElementId String? @map("next_element_id") @db.Uuid
-  next Resources? @relation("NextElement", fields: [nextElementId], references: [id])
-  previousFromNext Resources[] @relation("NextElement")
+  next Resource? @relation("NextElement", fields: [nextElementId], references: [id])
+  previousFromNext Resource[] @relation("NextElement")
 
   @@map("resources")
 }

@@ -360,7 +360,7 @@ async function updateResourceLinks(records: ResourceRecord[]) {
 
   await Promise.all(
     linked.map((r) =>
-      prisma.resources.update({
+      prisma.resource.update({
         where: { id: r.id },
         data: {
           parentFolderId: r.parentFolderId,
@@ -392,7 +392,7 @@ async function seedResources() {
 
   const allRecords = [...rootRecords, ...childRecords];
 
-  await prisma.resources.createMany({
+  await prisma.resource.createMany({
     data: allRecords.map(
       ({ id, name, isWebpage, fileOrWebpageURL, categories }) => ({
         id,
@@ -409,7 +409,7 @@ async function seedResources() {
 
 async function main() {
   // Wipe in dependency order (children first)
-  await prisma.resources.deleteMany();
+  await prisma.resource.deleteMany();
   await prisma.gameMember.deleteMany();
   await prisma.gameNso.deleteMany();
   await prisma.member.deleteMany();
