@@ -315,7 +315,9 @@ type ResourceRecord = {
 
 // Resources helpers
 
-function groupChildrenByParent(seeds: ResourceSeed[]): Map<string, ResourceSeed[]> {
+function groupChildrenByParent(
+  seeds: ResourceSeed[],
+): Map<string, ResourceSeed[]> {
   const map = new Map<string, ResourceSeed[]>();
   for (const seed of seeds) {
     if (!seed.parentId) continue;
@@ -349,33 +351,58 @@ function buildLinkedRecords(
 }
 
 async function updateResourceLinks(records: ResourceRecord[]) {
-  const linked = records.filter(r => r.parent_folder_id !== null || r.previous_element_id !== null || r.next_element_id !== null);
+  const linked = records.filter(
+    (r) =>
+      r.parent_folder_id !== null ||
+      r.previous_element_id !== null ||
+      r.next_element_id !== null,
+  );
 
   await Promise.all(
-    linked.map(r => prisma.resources.update({
+    linked.map((r) =>
+      prisma.resources.update({
         where: { id: r.id },
         data: {
           parent_folder_id: r.parent_folder_id,
           previous_element_id: r.previous_element_id,
           next_element_id: r.next_element_id,
         },
-    }))
+      }),
+    ),
   );
 }
 
 async function seedResources() {
   const resourceIdMap = new Map<string, string>();
-  for (const item of resourceSeeds) resourceIdMap.set(item.id, crypto.randomUUID());
+  for (const item of resourceSeeds)
+    resourceIdMap.set(item.id, crypto.randomUUID());
 
   const rootResources = resourceSeeds.filter((item) => !item.parentId);
   const childrenByParent = groupChildrenByParent(resourceSeeds);
 
   const rootRecords = buildLinkedRecords(rootResources, resourceIdMap, null);
-  const childRecords = Array.from(childrenByParent.entries()).flatMap(([parentId, children]) => buildLinkedRecords(children, resourceIdMap, resourceIdMap.get(parentId) ?? null));
+  const childRecords = Array.from(childrenByParent.entries()).flatMap(
+    ([parentId, children]) =>
+      buildLinkedRecords(
+        children,
+        resourceIdMap,
+        resourceIdMap.get(parentId) ?? null,
+      ),
+  );
 
   const allRecords = [...rootRecords, ...childRecords];
 
-  await prisma.resources.createMany({ data: allRecords.map(({ id, name, is_webpage, file_or_webpage_URL, categories }) => ({ id, name, is_webpage, file_or_webpage_URL, categories})) });
+  await prisma.resources.createMany({
+    data: allRecords.map(
+      ({ id, name, is_webpage, file_or_webpage_URL, categories }) => ({
+        id,
+        name,
+        is_webpage,
+        file_or_webpage_URL,
+        categories,
+      }),
+    ),
+  });
 
   await updateResourceLinks(allRecords);
 }
