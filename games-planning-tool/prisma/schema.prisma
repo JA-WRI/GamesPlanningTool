@@ -142,9 +142,9 @@ model Resource {
   children Resource[] @relation("ParentElement")
 
   name String
-  fileOrWebpageURL String? @map("file_or_webpage_URL")
-  isWebpage Boolean @map("is_webpage")
-  categories String[]
+  fileOrWebpageURL String? @map("file_or_webpage_URL") // null: folder
+  isWebpage Boolean @map("is_webpage") @default(false)
+  categories String[] @default([])
 
   previousElementId String? @map("previous_element_id") @db.Uuid
   previous Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
