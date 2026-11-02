@@ -24,47 +24,4 @@ enum UserStatus {
   inactive
 }
 
-model Game {
-  id                  Int      @id @default(autoincrement())
-  name                String
-  country             String
-  city                String
-  startDate           DateTime @map("start_date") @db.Date
-  endDate             DateTime @map("end_date") @db.Date
-  planningPeriodStart DateTime @map("planning_period_start")
-  planningPeriodEnd   DateTime @map("planning_period_end")
-  isActive            Boolean  @default(true) @map("is_active")
-  createdAt           DateTime @default(now())
 
-  gameNsos    GameNso[]
-  gameMembers GameMember[]
-  
-  @@map("games")
-}
-
-model Nso {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String
-  sport     String
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  users    User[]
-  members  Member[]
-  gameNsos GameNso[]
-
-  @@map("nsos")
-}
-
-model GameNso {
-  id     String @id @default(uuid()) @db.Uuid
-  gameId Int    @map("game_id")
-  nsoId  String @map("nso_id") @db.Uuid
-
-  game Game @relation(fields: [gameId], references: [id])
-  nso  Nso  @relation(fields: [nsoId], references: [id])
-
-  @@unique([gameId, nsoId])
-  @@index([nsoId])
-  @@map("game_nsos")
-}
