@@ -69,3 +69,19 @@ model GameNso {
   @@map("game_nsos")
 }
 
+model User {
+  id        String     @id @default(uuid()) @db.Uuid
+  email     String     @unique
+  firstName String     @map("first_name")
+  lastName  String     @map("last_name")
+  nsoId     String?    @map("nso_id") @db.Uuid
+  role      Role
+  status    UserStatus @default(invited)
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  nso Nso? @relation(fields: [nsoId], references: [id])
+
+  @@index([nsoId])
+  @@map("users")
+}
+
