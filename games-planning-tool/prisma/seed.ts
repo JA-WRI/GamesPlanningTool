@@ -1,5 +1,6 @@
 //50% or more AI generated seed data to have shared generic information accross developer databases
 import 'dotenv/config';
+import crypto from 'crypto';
 import { prisma } from '../src/lib/prisma';
 import { Role, MemberType, UserStatus } from '../src/generated/prisma/enums';
 
@@ -119,8 +120,269 @@ const memberSeeds: MemberSeed[] = [
   },
 ];
 
+type ResourceSeed = {
+  id: string;
+  name: string;
+  is_webpage: boolean;
+  file_or_webpage_URL: string | null;
+  categories: string[];
+  parentId?: string;
+};
+
+const resourceSeeds: ResourceSeed[] = [
+  {
+    id: 'res-w-folder-1',
+    name: 'Competition Schedules',
+    is_webpage: false,
+    file_or_webpage_URL: null,
+    categories: ['Winter Games'],
+  },
+  {
+    id: 'res-w-child-1',
+    name: 'Alpine Training Runs',
+    is_webpage: false,
+    file_or_webpage_URL: '#',
+    categories: ['Winter Games'],
+    parentId: 'res-w-folder-1',
+  },
+  {
+    id: 'res-w-1',
+    name: 'Milano Cortina 2026 Manual',
+    is_webpage: true,
+    file_or_webpage_URL:
+      'https://olympics.com/en/olympic-games/milano-cortina-2026',
+    categories: ['Winter Games'],
+  },
+  {
+    id: 'res-w-2',
+    name: 'Winter Logistics Policy',
+    is_webpage: false,
+    file_or_webpage_URL: '#',
+    categories: ['Winter Games'],
+  },
+  {
+    id: 'res-w-3',
+    name: 'Alpine Equipment Manifest',
+    is_webpage: false,
+    file_or_webpage_URL: '#',
+    categories: ['Winter Games', 'Alpine Canada'],
+  },
+  {
+    id: 'res-w-4',
+    name: 'Snowboard Prep Protocols',
+    is_webpage: true,
+    file_or_webpage_URL: 'https://canadasnowboard.ca/en/team/protocols',
+    categories: ['Winter Games', 'Canada Snowboard'],
+  },
+  {
+    id: 'res-w-5',
+    name: 'Ice Hockey Accreditations',
+    is_webpage: false,
+    file_or_webpage_URL: '#',
+    categories: ['Winter Games', 'Hockey Canada'],
+  },
+  {
+    id: 'res-w-6',
+    name: 'Speed Skating Oval Schedule',
+    is_webpage: false,
+    file_or_webpage_URL: '#',
+    categories: ['Winter Games', 'Speed Skating Canada'],
+  },
+  {
+    id: 'res-w-7',
+    name: 'Curling Equipment Guidelines',
+    is_webpage: true,
+    file_or_webpage_URL: 'https://curling.ca/high-performance/olympics',
+    categories: ['Winter Games', 'Curling Canada'],
+  },
+  {
+    id: 'res-w-8',
+    name: 'Winter Medical Protocols',
+    is_webpage: false,
+    file_or_webpage_URL: '#',
+    categories: ['Winter Games'],
+  },
+  {
+    id: 'res-s-1',
+    name: 'LA 2028 Village Guide',
+    is_webpage: true,
+    file_or_webpage_URL: 'https://la28.org/en/games-plan',
+    categories: ['Summer Games'],
+  },
+  {
+    id: 'res-s-2',
+    name: 'Summer Accreditation Matrix',
+    is_webpage: false,
+    file_or_webpage_URL: '#',
+    categories: ['Summer Games'],
+  },
+  {
+    id: 'res-s-3',
+    name: 'Athletics Trials Schedule',
+    is_webpage: true,
+    file_or_webpage_URL: 'https://athletics.ca/national-championships-trials',
+    categories: ['Summer Games', 'Athletics Canada'],
+  },
+  {
+    id: 'res-s-4',
+    name: 'Aquatics Training Center Plan',
+    is_webpage: false,
+    file_or_webpage_URL: '#',
+    categories: ['Summer Games', 'Swimming Canada'],
+  },
+  {
+    id: 'res-s-5',
+    name: 'Rowing Shell Transit Plan',
+    is_webpage: false,
+    file_or_webpage_URL: '#',
+    categories: ['Summer Games', 'Rowing Canada'],
+  },
+  {
+    id: 'res-s-6',
+    name: 'Cycling Team Roadmap',
+    is_webpage: true,
+    file_or_webpage_URL: 'https://cyclingcanada.ca/olympic-pathway',
+    categories: ['Summer Games', 'Cycling Canada'],
+  },
+  {
+    id: 'res-s-7',
+    name: 'Rugby Sevens Staging Handbook',
+    is_webpage: false,
+    file_or_webpage_URL: '#',
+    categories: ['Summer Games', 'Rugby Canada'],
+  },
+  {
+    id: 'res-s-8',
+    name: 'Gymnastics Podium Training Slots',
+    is_webpage: true,
+    file_or_webpage_URL: 'https://gymcan.org/olympic-staging',
+    categories: ['Summer Games', 'Gymnastics Canada'],
+  },
+  {
+    id: 'res-g-1',
+    name: 'COC Brand Identity Guide',
+    is_webpage: false,
+    file_or_webpage_URL: '#',
+    categories: ['General'],
+  },
+  {
+    id: 'res-g-2',
+    name: 'Athlete Code of Conduct',
+    is_webpage: false,
+    file_or_webpage_URL: '#',
+    categories: ['General'],
+  },
+  {
+    id: 'res-g-3',
+    name: 'Planning Master Timeline',
+    is_webpage: false,
+    file_or_webpage_URL: '#',
+    categories: ['General'],
+  },
+  {
+    id: 'res-g-4',
+    name: 'SIM & Communications Guide',
+    is_webpage: true,
+    file_or_webpage_URL: 'https://olympic.ca/operations/communications-roaming',
+    categories: ['General'],
+  },
+  {
+    id: 'res-g-5',
+    name: 'Safe Sport & Safeguarding',
+    is_webpage: false,
+    file_or_webpage_URL: '#',
+    categories: ['General'],
+  },
+  {
+    id: 'res-g-6',
+    name: 'Per Diem Expense Policy',
+    is_webpage: true,
+    file_or_webpage_URL: 'https://olympic.ca/operations/finance/per-diem',
+    categories: ['General'],
+  },
+];
+
+type ResourceRecord = {
+  id: string;
+  name: string;
+  is_webpage: boolean;
+  file_or_webpage_URL: string | null;
+  categories: string[];
+  parent_folder_id: string | null;
+  previous_element_id: string | null;
+  next_element_id: string | null;
+};
+
+// Resources helpers
+
+function groupChildrenByParent(seeds: ResourceSeed[]): Map<string, ResourceSeed[]> {
+  const map = new Map<string, ResourceSeed[]>();
+  for (const seed of seeds) {
+    if (!seed.parentId) continue;
+    const children = map.get(seed.parentId) ?? [];
+    children.push(seed);
+    map.set(seed.parentId, children);
+  }
+  return map;
+}
+
+function buildLinkedRecords(
+  items: ResourceSeed[],
+  idMap: Map<string, string>,
+  parentFolderId: string | null,
+): ResourceRecord[] {
+  return items.map((item, index) => {
+    const prevSeed = index > 0 ? items[index - 1] : undefined;
+    const nextSeed = index < items.length - 1 ? items[index + 1] : undefined;
+
+    return {
+      id: idMap.get(item.id)!,
+      name: item.name,
+      is_webpage: item.is_webpage,
+      file_or_webpage_URL: item.file_or_webpage_URL,
+      categories: item.categories,
+      parent_folder_id: parentFolderId,
+      previous_element_id: prevSeed ? (idMap.get(prevSeed.id) ?? null) : null,
+      next_element_id: nextSeed ? (idMap.get(nextSeed.id) ?? null) : null,
+    };
+  });
+}
+
+async function updateResourceLinks(records: ResourceRecord[]) {
+  const linked = records.filter(r => r.parent_folder_id !== null || r.previous_element_id !== null || r.next_element_id !== null);
+
+  await Promise.all(
+    linked.map(r => prisma.resources.update({
+        where: { id: r.id },
+        data: {
+          parent_folder_id: r.parent_folder_id,
+          previous_element_id: r.previous_element_id,
+          next_element_id: r.next_element_id,
+        },
+    }))
+  );
+}
+
+async function seedResources() {
+  const resourceIdMap = new Map<string, string>();
+  for (const item of resourceSeeds) resourceIdMap.set(item.id, crypto.randomUUID());
+
+  const rootResources = resourceSeeds.filter((item) => !item.parentId);
+  const childrenByParent = groupChildrenByParent(resourceSeeds);
+
+  const rootRecords = buildLinkedRecords(rootResources, resourceIdMap, null);
+  const childRecords = Array.from(childrenByParent.entries()).flatMap(([parentId, children]) => buildLinkedRecords(children, resourceIdMap, resourceIdMap.get(parentId) ?? null));
+
+  const allRecords = [...rootRecords, ...childRecords];
+
+  await prisma.resources.createMany({ data: allRecords.map(({ id, name, is_webpage, file_or_webpage_URL, categories }) => ({ id, name, is_webpage, file_or_webpage_URL, categories})) });
+
+  await updateResourceLinks(allRecords);
+}
+
 async function main() {
   // Wipe in dependency order (children first)
+  await prisma.resources.deleteMany();
   await prisma.gameMember.deleteMany();
   await prisma.gameNso.deleteMany();
   await prisma.member.deleteMany();
@@ -226,6 +488,9 @@ async function main() {
       },
     ],
   });
+
+  // Resources (helper function)
+  await seedResources();
 
   console.log('Seed complete.');
 }
