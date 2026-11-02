@@ -85,3 +85,52 @@ model User {
   @@map("users")
 }
 
+// Staff and athletes (one row per person, across all games)
+model Member {
+  id         String     @id @default(uuid()) @db.Uuid
+  firstName  String     @map("first_name")
+  lastName   String     @map("last_name")
+  gender     String
+  type       MemberType
+  discipline String?
+  nsoId      String     @map("nso_id") @db.Uuid
+
+  nso         Nso          @relation(fields: [nsoId], references: [id])
+  gameMembers GameMember[]
+
+  @@index([nsoId])
+  @@map("members")
+}
+
+// A member's participation in one game
+model GameMember {
+  id               String    @id @default(uuid()) @db.Uuid
+  gameId           Int       @map("game_id")
+  memberId         String    @map("member_id") @db.Uuid
+
+  // Shared by staff and athletes
+  fundedBy         String?   @map("funded_by")
+  clothing         String?
+  outfittingBag    String?   @map("outfitting_bag")
+  requestRoomNotes String?   @map("request_room_notes")
+  gameArrival      DateTime? @map("game_arrival") @db.Date
+  gameDeparture    DateTime? @map("game_departure") @db.Date
+
+  // Staff only
+  gamesRole        String?   @map("games_role")
+  rank             String?
+
+  // Athletes only
+  event            String?
+  medal            String?
+  medalNotes       String?   @map("medal_notes")
+
+  game   Game   @relation(fields: [gameId], references: [id])
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@unique([gameId, memberId])
+  @@index([memberId])
+  @@map("game_members")
+}
+
+
