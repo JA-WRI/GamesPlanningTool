@@ -1,4 +1,4 @@
-//50% or more AI generated seed data to have shared generic information accross developer databases
+// 50% or more AI-generated seed data and supporting setup code to have shared generic information accross developer databases
 import 'dotenv/config';
 import crypto from 'crypto';
 import { prisma } from '../src/lib/prisma';
@@ -351,12 +351,7 @@ function buildLinkedRecords(
 }
 
 async function updateResourceLinks(records: ResourceRecord[]) {
-  const linked = records.filter(
-    (r) =>
-      r.parentFolderId !== null ||
-      r.previousElementId !== null ||
-      r.nextElementId !== null,
-  );
+  const linked = records.filter(r => r.parentFolderId !== null || r.previousElementId !== null || r.nextElementId !== null);
 
   await Promise.all(
     linked.map((r) =>
@@ -381,14 +376,7 @@ async function seedResources() {
   const childrenByParent = groupChildrenByParent(resourceSeeds);
 
   const rootRecords = buildLinkedRecords(rootResources, resourceIdMap, null);
-  const childRecords = Array.from(childrenByParent.entries()).flatMap(
-    ([parentId, children]) =>
-      buildLinkedRecords(
-        children,
-        resourceIdMap,
-        resourceIdMap.get(parentId) ?? null,
-      ),
-  );
+  const childRecords = Array.from(childrenByParent.entries()).flatMap(([parentId, children]) => buildLinkedRecords(children, resourceIdMap, resourceIdMap.get(parentId) ?? null));
 
   const allRecords = [...rootRecords, ...childRecords];
 
