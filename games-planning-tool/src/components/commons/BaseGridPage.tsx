@@ -19,7 +19,6 @@ interface BaseGridPageProps<T extends Record<string, unknown>> {
   showSearch?: boolean;
   allowDelete?: boolean;
   allowAddRow?: boolean;
-  readOnly?: boolean;
   onSave?: (savedRows: (T & { id: string })[]) => void;
   isValid?: (rows: (T & { id: string })[]) => boolean;
   minWidth?: number | string;
@@ -39,7 +38,6 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
   showSearch = true,
   allowDelete = true,
   allowAddRow = true,
-  readOnly = false,
   onSave,
   isValid,
   minWidth,
@@ -108,8 +106,7 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
       <GridHeaderPage
         title={title}
         description={description}
-        readOnly={readOnly}
-        isEditing={isEditing && !readOnly}
+        isEditing={isEditing}
         isPreview={isPreview}
         onEditToggle={() => {
           setIsEditing(!isEditing);
@@ -151,14 +148,14 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
       <Grid
         columns={columns}
         rows={filteredRows} // fix for row filtering correctly
-        isEditing={isEditing && !readOnly}
+        isEditing={isEditing}
         isPreview={isPreview}
         onRowsChange={handleRowsChange}
         onAddRow={handleAddRow}
         addButtonLabel={addButtonLabel}
         onValidationChange={(errorState) => setHasValidationError(errorState)}
-        allowDelete={allowDelete && !readOnly}
-        allowAddRow={allowAddRow && !readOnly}
+        allowDelete={allowDelete}
+        allowAddRow={allowAddRow}
         minWidth={minWidth}
         fitWidth={fitWidth}
       />

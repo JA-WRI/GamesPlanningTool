@@ -44,14 +44,12 @@ interface ContactsGridPageProps {
   title: string;
   description: string;
   initialData?: ContactRow[];
-  readOnly?: boolean;
 }
 
 export default function ContactsGridPage({
   title,
   description,
   initialData = [],
-  readOnly = false,
 }: ContactsGridPageProps) {
   return (
     <BaseGridPage<ContactRow>
@@ -70,7 +68,6 @@ export default function ContactsGridPage({
       })}
       addButtonLabel="Add Another Contact"
       searchPlaceholder="Search contacts by name, email, role..."
-      readOnly={readOnly}
     />
   );
 }
