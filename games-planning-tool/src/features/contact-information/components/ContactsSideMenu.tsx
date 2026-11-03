@@ -24,11 +24,6 @@ const navItems: MenuItem[] = [
   { label: 'COC Contacts', slug: 'coc-contacts', icon: Star },
   { label: 'NSO Contacts', slug: 'nso-contacts', icon: Users },
   {
-    label: 'Games Transport Information',
-    slug: 'transport-info',
-    icon: CarFront,
-  },
-  {
     label: 'PGTC Information and Arrivals',
     slug: 'pgtc-info',
     icon: PlaneLanding,
