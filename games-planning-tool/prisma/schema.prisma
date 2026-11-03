@@ -134,3 +134,25 @@ model GameMember {
 }
 
 
+model Resource {
+  id String @id @default(uuid()) @db.Uuid
+
+  parentFolderId String? @map("parent_folder_id") @db.Uuid
+  parent Resource? @relation("ParentElement", fields: [parentFolderId], references: [id])
+  children Resource[] @relation("ParentElement")
+
+  name String
+  fileOrWebpageURL String? @map("file_or_webpage_URL") // null: folder
+  isWebpage Boolean @map("is_webpage") @default(false)
+  categories String[] @default([])
+
+  previousElementId String? @map("previous_element_id") @db.Uuid
+  previous Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
+  nextFromPrevious Resource[] @relation("PreviousElement")
+
+  nextElementId String? @map("next_element_id") @db.Uuid
+  next Resource? @relation("NextElement", fields: [nextElementId], references: [id])
+  previousFromNext Resource[] @relation("NextElement")
+
+  @@map("resources")
+}
