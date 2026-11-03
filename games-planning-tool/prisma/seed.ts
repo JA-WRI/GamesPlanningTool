@@ -351,7 +351,11 @@ function buildLinkedRecords(
 }
 
 async function updateResourceLinks(records: ResourceRecord[]) {
-  const linked = records.filter(r => r.parentFolderId !== null || r.previousElementId !== null || r.nextElementId !== null);
+  const linked = records.filter(
+    r => r.parentFolderId !== null ||
+      r.previousElementId !== null ||
+      r.nextElementId !== null,
+  );
 
   await Promise.all(
     linked.map((r) =>
@@ -369,14 +373,20 @@ async function updateResourceLinks(records: ResourceRecord[]) {
 
 async function seedResources() {
   const resourceIdMap = new Map<string, string>();
-  for (const item of resourceSeeds)
-    resourceIdMap.set(item.id, crypto.randomUUID());
+  for (const item of resourceSeeds) resourceIdMap.set(item.id, crypto.randomUUID());
 
   const rootResources = resourceSeeds.filter((item) => !item.parentId);
   const childrenByParent = groupChildrenByParent(resourceSeeds);
 
   const rootRecords = buildLinkedRecords(rootResources, resourceIdMap, null);
-  const childRecords = Array.from(childrenByParent.entries()).flatMap(([parentId, children]) => buildLinkedRecords(children, resourceIdMap, resourceIdMap.get(parentId) ?? null));
+  const childRecords = Array.from(childrenByParent.entries()).flatMap(
+    ([parentId, children]) =>
+      buildLinkedRecords(
+        children,
+        resourceIdMap,
+        resourceIdMap.get(parentId) ?? null,
+      ),
+  );
 
   const allRecords = [...rootRecords, ...childRecords];
 
