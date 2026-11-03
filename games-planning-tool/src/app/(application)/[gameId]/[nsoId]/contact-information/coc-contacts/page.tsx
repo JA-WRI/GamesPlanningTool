@@ -28,6 +28,7 @@ export default function Page() {
       title="COC Contacts"
       description="Canadian Olympic Committee contact details and key personnel information."
       initialData={initialCocData}
+      readOnly={true}
     />
   );
 }

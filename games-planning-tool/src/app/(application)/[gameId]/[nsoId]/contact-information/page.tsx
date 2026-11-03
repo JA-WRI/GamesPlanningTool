@@ -9,7 +9,6 @@ import NSOGeneralInfoSection, {
 const initialNSOData: NSOInfoPage = {
   name: 'Badminton Canada',
   sport: 'Badminton',
-  information: 'National governing body for badmintonin Canada.',
   primaryContactEmail: 'info@badmintoncanada.org',
 };
 

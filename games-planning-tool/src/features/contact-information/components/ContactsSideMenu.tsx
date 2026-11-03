@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import {
   Home,
   Users,
-  CarFront,
   PlaneLanding,
   LucideIcon,
   Star,
@@ -23,11 +22,6 @@ const navItems: MenuItem[] = [
   { label: 'Home', slug: '', icon: Home },
   { label: 'COC Contacts', slug: 'coc-contacts', icon: Star },
   { label: 'NSO Contacts', slug: 'nso-contacts', icon: Users },
-  {
-    label: 'Games Transport Information',
-    slug: 'transport-info',
-    icon: CarFront,
-  },
   {
     label: 'PGTC Information and Arrivals',
     slug: 'pgtc-info',
