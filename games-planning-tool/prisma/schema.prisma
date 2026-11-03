@@ -7,10 +7,130 @@ datasource db {
   provider = "postgresql"
 }
 
-model Games {
-  id        Int      @id @default(autoincrement())
-  name      String
-  startDate String
-  endDate   String
-  createdAt DateTime @default(now())
+enum Role {
+  Admin
+  COC
+  NSO
 }
+
+enum MemberType {
+  Athlete
+  Staff
+}
+
+enum UserStatus {
+  invited
+  active
+  inactive
+}
+
+model Game {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  country             String
+  city                String
+  startDate           DateTime @map("start_date") @db.Date
+  endDate             DateTime @map("end_date") @db.Date
+  planningPeriodStart DateTime @map("planning_period_start")
+  planningPeriodEnd   DateTime @map("planning_period_end")
+  isActive            Boolean  @default(true) @map("is_active")
+  createdAt           DateTime @default(now())
+
+  gameNsos    GameNso[]
+  gameMembers GameMember[]
+  
+  @@map("games")
+}
+
+model Nso {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  sport     String
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  users    User[]
+  members  Member[]
+  gameNsos GameNso[]
+
+  @@map("nsos")
+}
+
+model GameNso {
+  id     String @id @default(uuid()) @db.Uuid
+  gameId Int    @map("game_id")
+  nsoId  String @map("nso_id") @db.Uuid
+
+  game Game @relation(fields: [gameId], references: [id])
+  nso  Nso  @relation(fields: [nsoId], references: [id])
+
+  @@unique([gameId, nsoId])
+  @@index([nsoId])
+  @@map("game_nsos")
+}
+
+model User {
+  id        String     @id @default(uuid()) @db.Uuid
+  email     String     @unique
+  firstName String     @map("first_name")
+  lastName  String     @map("last_name")
+  nsoId     String?    @map("nso_id") @db.Uuid
+  role      Role
+  status    UserStatus @default(invited)
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  nso Nso? @relation(fields: [nsoId], references: [id])
+
+  @@index([nsoId])
+  @@map("users")
+}
+
+// Staff and athletes (one row per person, across all games)
+model Member {
+  id         String     @id @default(uuid()) @db.Uuid
+  firstName  String     @map("first_name")
+  lastName   String     @map("last_name")
+  gender     String
+  type       MemberType
+  discipline String?
+  nsoId      String     @map("nso_id") @db.Uuid
+
+  nso         Nso          @relation(fields: [nsoId], references: [id])
+  gameMembers GameMember[]
+
+  @@index([nsoId])
+  @@map("members")
+}
+
+// A member's participation in one game
+model GameMember {
+  id               String    @id @default(uuid()) @db.Uuid
+  gameId           Int       @map("game_id")
+  memberId         String    @map("member_id") @db.Uuid
+
+  // Shared by staff and athletes
+  fundedBy         String?   @map("funded_by")
+  clothing         String?
+  outfittingBag    String?   @map("outfitting_bag")
+  requestRoomNotes String?   @map("request_room_notes")
+  gameArrival      DateTime? @map("game_arrival") @db.Date
+  gameDeparture    DateTime? @map("game_departure") @db.Date
+
+  // Staff only
+  gamesRole        String?   @map("games_role")
+  rank             String?
+
+  // Athletes only
+  event            String?
+  medal            String?
+  medalNotes       String?   @map("medal_notes")
+
+  game   Game   @relation(fields: [gameId], references: [id])
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@unique([gameId, memberId])
+  @@index([memberId])
+  @@map("game_members")
+}
+
+
