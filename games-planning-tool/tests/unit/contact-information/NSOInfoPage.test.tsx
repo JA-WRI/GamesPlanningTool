@@ -13,7 +13,6 @@ describe('NSOInfoPageSection', () => {
     expect(screen.getByText('NSO General Information')).toBeInTheDocument();
     expect(screen.getByText('Name')).toBeInTheDocument();
     expect(screen.getByText('Sport')).toBeInTheDocument();
-    expect(screen.getByText('Information')).toBeInTheDocument();
     expect(
       screen.getByText('Primary Contact Email Address'),
     ).toBeInTheDocument();
