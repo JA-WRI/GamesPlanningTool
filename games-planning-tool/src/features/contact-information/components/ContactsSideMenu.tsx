@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import {
   Home,
   Users,
-  CarFront,
   PlaneLanding,
   LucideIcon,
   Star,
