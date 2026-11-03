@@ -352,7 +352,8 @@ function buildLinkedRecords(
 
 async function updateResourceLinks(records: ResourceRecord[]) {
   const linked = records.filter(
-    r => r.parentFolderId !== null ||
+    (r) =>
+      r.parentFolderId !== null ||
       r.previousElementId !== null ||
       r.nextElementId !== null,
   );
@@ -373,7 +374,8 @@ async function updateResourceLinks(records: ResourceRecord[]) {
 
 async function seedResources() {
   const resourceIdMap = new Map<string, string>();
-  for (const item of resourceSeeds) resourceIdMap.set(item.id, crypto.randomUUID());
+  for (const item of resourceSeeds)
+    resourceIdMap.set(item.id, crypto.randomUUID());
 
   const rootResources = resourceSeeds.filter((item) => !item.parentId);
   const childrenByParent = groupChildrenByParent(resourceSeeds);
