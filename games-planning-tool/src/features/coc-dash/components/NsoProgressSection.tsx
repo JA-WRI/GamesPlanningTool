@@ -11,13 +11,15 @@ import {
   statusColor,
   statusLegendItems,
 } from '@/components/commons/status';
-import { teams, type Team } from '@/lib/mock-data-chart';
+import type { Team } from '@/lib/dashboard';
 
 // Column titles + their per-column filter buttons, above the team cards.
 function ColumnHeaderRow({
+  teams,
   columnFilters,
   onColumnFiltersChange,
 }: {
+  teams: Team[];
   columnFilters: Record<string, Status[]>;
   onColumnFiltersChange: (
     updater: (previous: Record<string, Status[]>) => Record<string, Status[]>,
@@ -27,7 +29,7 @@ function ColumnHeaderRow({
     <div className="flex items-center gap-x-10 px-6 mt-4">
       <div className="w-28 shrink-0" />
       <div className="flex flex-1 justify-between gap-4">
-        {teams[0].columns.map((col) => (
+        {teams[0]?.columns.map((col) => (
           <div
             key={col.title}
             className="flex flex-1 items-center justify-center gap-1"
@@ -125,6 +127,7 @@ function TeamCardsList({ filteredTeams }: { filteredTeams: Team[] }) {
 // Bottom section: title/search/filter header, legend, column headers, and
 // the list of team status cards.
 export default function NsoProgressSection({
+  teams,
   search,
   onSearchChange,
   statusFilter,
@@ -133,6 +136,7 @@ export default function NsoProgressSection({
   onColumnFiltersChange,
   filteredTeams,
 }: {
+  teams: Team[];
   search: string;
   onSearchChange: (value: string) => void;
   statusFilter: Status[];
@@ -159,6 +163,7 @@ export default function NsoProgressSection({
       <div className="overflow-x-auto">
         <div className="min-w-184">
           <ColumnHeaderRow
+            teams={teams}
             columnFilters={columnFilters}
             onColumnFiltersChange={onColumnFiltersChange}
           />

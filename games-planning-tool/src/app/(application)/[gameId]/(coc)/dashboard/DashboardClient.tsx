@@ -190,6 +190,7 @@ export default function DashboardClient({
 
       {/* NSOs */}
       <NsoProgressSection
+        teams={teams}
         search={search}
         onSearchChange={setSearch}
         statusFilter={statusFilter}

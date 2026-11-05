@@ -1,6 +1,6 @@
 // AI contribution: Above 50% AI generated
 import type { Status, StatusCounts } from '@/components/commons/status';
-import type { Column, Team } from '@/lib/dashboard';
+import type { Team } from '@/lib/dashboard';
 
 // Db enum mapping to frontend status strings
 const statusMap = {
