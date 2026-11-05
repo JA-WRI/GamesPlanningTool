@@ -2,6 +2,19 @@
 import type { Status, StatusCounts } from '@/components/commons/status';
 import { STATUS_ORDER } from '@/components/commons/status';
 
+export type Column = {
+  title: string;
+  status: Status;
+  href: string;
+}
+
+export type Team = {
+  name: string;
+  altNames?: string[];
+  logo?: string;
+  columns: Column[];
+}
+
 export type DashboardStats = {
   total: number;
   avgCompletion: number;

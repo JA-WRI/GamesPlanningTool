@@ -1,5 +1,6 @@
 //50% or more AI-generated
 import type { Status, StatusCounts } from '@/components/commons/status';
+import type { Column, Team } from '@/lib/dashboard';
 
 export const mockDashboard: { title: string; counts: StatusCounts }[] = [
   {
@@ -53,19 +54,6 @@ export const mockDashboard: { title: string; counts: StatusCounts }[] = [
     },
   },
 ];
-
-export type Column = {
-  title: string;
-  status: Status;
-  href: string;
-};
-
-export type Team = {
-  name: string;
-  altNames?: string[];
-  logo?: string;
-  columns: Column[];
-};
 
 // Every team tracks the same five steps in the same order; defining the
 // titles/hrefs once here avoids repeating them for every team below.
