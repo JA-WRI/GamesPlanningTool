@@ -1,4 +1,4 @@
-// Below 50% AI generated
+// AI contribution: Below 50% AI generated
 'use client';
 import { useMemo, useState } from 'react';
 import type { Status } from '@/components/commons/status';
@@ -10,12 +10,7 @@ import {
   filterByColumnStatuses,
   namesByStatusAtColumn,
 } from '@/lib/dashboard';
-import type { Team } from '@/lib/dashboard';
-
-type DashboardChart = {
-  title: string;
-  counts: Record<Status, number>;
-};
+import type { Team, DashboardChart } from '@/lib/dashboard';
 
 type DashboardClientProps = {
   teams: Team[];
@@ -179,6 +174,7 @@ export default function DashboardClient({
 
       <div className="flex w-full flex-col items-stretch gap-4 lg:flex-row lg:items-start">
         <CompletionByStepSection
+          dashboardCharts={dashboardCharts}
           selectedChart={selectedChart}
           onSelectChart={selectChart}
         />

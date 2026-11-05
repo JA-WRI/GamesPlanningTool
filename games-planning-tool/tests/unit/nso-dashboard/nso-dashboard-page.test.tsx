@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// AI contribution: Made with AI agents (Antigravity) - 100%
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Page from '@/app/(application)/[gameId]/[nsoId]/dashboard/page';

@@ -1,3 +1,4 @@
+// AI contribution: None 0%
 import { prisma } from '@/lib/prisma';
 import { transformDashboardData } from '@/lib/dashboard-data';
 import DashboardClient from './DashboardClient';

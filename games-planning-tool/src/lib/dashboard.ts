@@ -1,4 +1,4 @@
-//50% or more AI-generated
+// AI contribution: 50% or more AI-generated
 import type { Status, StatusCounts } from '@/components/commons/status';
 import { STATUS_ORDER } from '@/components/commons/status';
 
@@ -21,6 +21,12 @@ export type DashboardStats = {
   toReview: number;
   toStart: number;
 };
+
+export type DashboardChart = {
+  title: string;
+  counts: Record<Status, number>;
+};
+
 
 export function percentage(part: number, whole: number): number {
   return whole === 0 ? 0 : Math.round((part / whole) * 100);

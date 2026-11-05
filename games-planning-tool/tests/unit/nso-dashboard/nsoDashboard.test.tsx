@@ -1,4 +1,4 @@
-// AI usage -> 80%
+// AI contribution: 80%
 
 // Tests for the NSO dashboard components.
 import '@testing-library/jest-dom/vitest';

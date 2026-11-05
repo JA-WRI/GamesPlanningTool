@@ -1,4 +1,4 @@
-// Above 50% AI generated
+// AI contribution: Above 50% AI generated
 import type { Status, StatusCounts } from '@/components/commons/status';
 import type { Column, Team } from '@/lib/dashboard';
 
