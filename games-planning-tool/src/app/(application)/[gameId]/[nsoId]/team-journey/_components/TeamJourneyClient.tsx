@@ -2,7 +2,13 @@
 'use client';
 
 //import StepTabs from './StepTabs';
+import { useState } from 'react';
+import { Alert } from '@mui/material';
 import TeamSizeStep from '@/features/team-size/components/TeamSizeStep';
+import { saveTeamSize } from '@/features/team-size/actions/teamSizeActions';
+import type { SavedTeamSize } from '@/features/team-size/lib/teamSizeDbMapping';
+import type { TeamSize } from '@/features/team-size/lib/teamSizeLogic';
+import type { DisciplineBreakdown } from '@/features/team-size/lib/teamSizeGridLogic';
 import { useTeamJourneyState } from './useTeamJourneyState';
 
 // one small function per step, with the same props as before
@@ -33,7 +39,17 @@ import { useTeamJourneyState } from './useTeamJourneyState';
 //     </div>
 //   );
 // }
-export default function TeamJourneyClient() {
+type TeamJourneyClientProps = {
+  gameId: string;
+  nsoId: string;
+  saved?: SavedTeamSize | null;
+};
+
+export default function TeamJourneyClient({
+  gameId,
+  nsoId,
+  saved,
+}: TeamJourneyClientProps) {
   const {
     teamSize,
     setTeamSize,
@@ -41,15 +57,38 @@ export default function TeamJourneyClient() {
     setDisciplines,
     medalRows,
     setMedalRows,
-  } = useTeamJourneyState();
+  } = useTeamJourneyState(saved);
+  const [saveFailed, setSaveFailed] = useState(false);
+
+  // saves to the db, only with real ids (the fake menu ids keep the mock data)
+  const saveToDb = (
+    nextTeamSize: TeamSize,
+    nextDisciplines: DisciplineBreakdown,
+  ) => {
+    if (!saved) return;
+    saveTeamSize(gameId, nsoId, nextTeamSize, nextDisciplines)
+      .then((result) => setSaveFailed(!result.ok))
+      .catch(() => setSaveFailed(true));
+  };
 
   return (
     <div className="min-h-screen bg-white px-10 py-8">
+      {saveFailed && (
+        <Alert severity="error">
+          Your last change was not saved. Please try again.
+        </Alert>
+      )}
       <TeamSizeStep
         teamSize={teamSize}
-        onChange={setTeamSize}
+        onChange={(next) => {
+          setTeamSize(next);
+          saveToDb(next, disciplines);
+        }}
         disciplines={disciplines}
-        onDisciplinesChange={setDisciplines}
+        onDisciplinesChange={(next) => {
+          setDisciplines(next);
+          saveToDb(teamSize, next);
+        }}
         medalRows={medalRows}
         onMedalRowsChange={setMedalRows}
       />
