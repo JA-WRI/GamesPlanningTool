@@ -1,4 +1,4 @@
-//50% or more AI-generated
+// AI declaration:50% or more AI-generated
 import { describe, it, expect } from 'vitest';
 import {
   computeStats,
