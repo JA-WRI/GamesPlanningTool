@@ -33,12 +33,18 @@ type GameNsoRecord = {
     } | null;
 }
 
+// Return logo path by parsin NSO name, e.g. "Badminton Canada" -> "Badminton_Canada_logo.png"
+function getLogoPath(nsoName: string): string {
+    return `/logos/${nsoName.replace(/\s+/g, '_')}_logo.png`;
+}
+
 export function transformDashboardData(records: GameNsoRecord[]) {
     const teams: Team[] = records.map((record) => {
         const progress = record.progressTracking;
 
         return {
             name: record.nso.name,
+            logo: getLogoPath(record.nso.name),
             columns: STEPS.map((step) => ({
                 title: step.title,
                 href: '#',
