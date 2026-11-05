@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import Dashboard from '../../../src/app/(application)/[gameId]/(coc)/dashboard/page';
+import Dashboard from '../../../src/app/(application)/[gameId]/(coc)/dashboard/DashboardClient';
 import { computeStats } from '../../../src/lib/dashboard';
 import { mockDashboard } from '../../../src/lib/mock-data-chart';
 import { mockChartLayout } from './chartTestUtils';
