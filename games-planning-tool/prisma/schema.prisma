@@ -24,6 +24,13 @@ enum UserStatus {
   inactive
 }
 
+enum Discipline {
+  hp
+  ssba @map("ss_ba")
+  ae
+  mo
+}
+
 model Game {
   id                  Int      @id @default(autoincrement())
   name                String
@@ -36,8 +43,9 @@ model Game {
   isActive            Boolean  @default(true) @map("is_active")
   createdAt           DateTime @default(now())
 
-  gameNsos    GameNso[]
-  gameMembers GameMember[]
+  gameNsos          GameNso[]
+  gameMembers       GameMember[]
+  teamSizeEstimates TeamSizeEstimate[]
   
   @@map("games")
 }
@@ -49,9 +57,10 @@ model Nso {
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
 
-  users    User[]
-  members  Member[]
-  gameNsos GameNso[]
+  users             User[]
+  members           Member[]
+  gameNsos          GameNso[]
+  teamSizeEstimates TeamSizeEstimate[]
 
   @@map("nsos")
 }
@@ -131,6 +140,49 @@ model GameMember {
   @@unique([gameId, memberId])
   @@index([memberId])
   @@map("game_members")
+}
+
+// Team size of one NSO for one game
+model TeamSizeEstimate {
+  nsoId  String @map("nso_id") @db.Uuid
+  gameId Int    @map("game_id")
+
+  lowFemale                Int?   @map("low_female")
+  bestGuessFemale          Int?   @map("best_guess_female")
+  highFemale               Int?   @map("high_female")
+  lowMale                  Int?   @map("low_male")
+  bestGuessMale            Int?   @map("best_guess_male")
+  highMale                 Int?   @map("high_male")
+  notes                    String @default("")
+  disciplineBreakdownNotes String @default("") @map("discipline_breakdown_notes")
+  lowMedals                Int?   @map("low_medals")
+  highMedals               Int?   @map("high_medals")
+
+  nso                  Nso                   @relation(fields: [nsoId], references: [id])
+  game                 Game                  @relation(fields: [gameId], references: [id])
+  disciplineBreakdowns DisciplineBreakdown[]
+
+  @@id([nsoId, gameId])
+  @@index([gameId])
+  @@map("team_size_estimates")
+}
+
+// one row per discipline for each NSO per game
+model DisciplineBreakdown {
+  id         String     @id @default(uuid()) @db.Uuid
+  nsoId      String     @map("nso_id") @db.Uuid
+  gameId     Int        @map("game_id")
+  discipline Discipline
+
+  bestFemale Int? @map("best_female")
+  bestMale   Int? @map("best_male")
+  lowFemale  Int? @map("low_female")
+  lowMale    Int? @map("low_male")
+
+  teamSizeEstimate TeamSizeEstimate @relation(fields: [nsoId, gameId], references: [nsoId, gameId])
+
+  @@unique([nsoId, gameId, discipline])
+  @@map("discipline_breakdowns")
 }
 
 
