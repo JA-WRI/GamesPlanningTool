@@ -3,9 +3,6 @@ import {
   Resource,
   DEFAULT_CATEGORY,
 } from '@/features/resources/types/resource';
-import { INITIAL_RESOURCES } from './initial-resources';
-
-export { INITIAL_RESOURCES };
 
 export function normalizeResourceCategories(categories: string[]): string[] {
   const filtered = categories.filter((c) => c && c.trim().length > 0);
@@ -13,82 +10,6 @@ export function normalizeResourceCategories(categories: string[]): string[] {
     return [DEFAULT_CATEGORY];
   }
   return filtered;
-}
-
-export function createFolder(
-  name: string,
-  categories: string[],
-  parentId?: string | null,
-): import('@/features/resources/types/resource').FolderResource {
-  const randomSuffix =
-    typeof crypto !== 'undefined' && crypto.randomUUID
-      ? crypto.randomUUID().split('-')[0]
-      : Date.now().toString(36);
-  return {
-    id: `folder-${randomSuffix}`,
-    name,
-    type: 'folder',
-    categories,
-    parentId,
-    childrenIds: [],
-    createdAt: new Date().toISOString(),
-    order: 0,
-  };
-}
-
-const STORAGE_KEY = 'gpt_resources_state_v1';
-
-let cachedResources: Resource[] = INITIAL_RESOURCES;
-let hasLoadedFromStorage = false;
-
-export function loadResourcesFromStorage(): Resource[] {
-  if (typeof window === 'undefined') return INITIAL_RESOURCES;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return INITIAL_RESOURCES;
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
-    }
-    return INITIAL_RESOURCES;
-  } catch {
-    return INITIAL_RESOURCES;
-  }
-}
-
-export function getCachedResources(): Resource[] {
-  if (typeof window === 'undefined') return INITIAL_RESOURCES;
-  if (!hasLoadedFromStorage) {
-    cachedResources = loadResourcesFromStorage();
-    hasLoadedFromStorage = true;
-  }
-  return cachedResources;
-}
-
-export function subscribeToResources(callback: () => void): () => void {
-  if (typeof window === 'undefined') return () => {};
-  const handler = () => {
-    cachedResources = loadResourcesFromStorage();
-    callback();
-  };
-  window.addEventListener('storage', handler);
-  window.addEventListener('gpt-resources-change', handler);
-  return () => {
-    window.removeEventListener('storage', handler);
-    window.removeEventListener('gpt-resources-change', handler);
-  };
-}
-
-export function saveResourcesToStorage(resources: Resource[]): void {
-  if (typeof window === 'undefined') return;
-  try {
-    cachedResources = resources;
-    hasLoadedFromStorage = true;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(resources));
-    window.dispatchEvent(new Event('gpt-resources-change'));
-  } catch (e) {
-    console.error('Failed to save resources to localStorage', e);
-  }
 }
 
 export function getCategoryTopLevelResources(
