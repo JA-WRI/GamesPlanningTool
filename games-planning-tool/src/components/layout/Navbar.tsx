@@ -5,9 +5,13 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePathname, useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Role } from '@/lib/types';
-import { Games, Nsos } from '@/lib/data';
-import { tabRoute, isActive } from '@/lib/routing/Navigation';
+import { GameWithNsos, Role } from '@/lib/types';
+import {
+  tabRoute,
+  isActive,
+  findGame,
+  gameHasNso,
+} from '@/lib/routing/Navigation';
 import {
   countVisibleItems,
   moveActiveIntoView,
@@ -85,30 +89,40 @@ const tabBorder = (active: boolean) =>
 export default function Navbar({
   role,
   userNsoId,
+  games,
 }: {
   role: Role;
   userNsoId?: string;
+  games: GameWithNsos[];
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { nsoId, gameId } = useParams<{ nsoId?: string; gameId?: string }>();
 
-  const game = gameId ?? Games[0].id;
-  const pickedNso = nsoId ?? searchParams.get('nso');
-  const nso =
-    role === 'nso' ? (userNsoId ?? Nsos[0].id) : (pickedNso ?? Nsos[0].id);
+  // Outside a game (e.g. /admin/*), fall back to the first available game.
+  const currentGame = findGame(games, gameId) ?? games[0];
+  const game = gameId ?? (currentGame ? String(currentGame.id) : undefined);
 
-  // Only show navigation items allowed for the current role.
+  // Only trust an NSO from the URL if it belongs to the current game.
+  const rawPicked = nsoId ?? searchParams.get('nso');
+  const pickedNso = gameHasNso(currentGame, rawPicked) ? rawPicked : null;
+  const nso =
+    role === 'nso' ? userNsoId : (pickedNso ?? currentGame?.nsos[0]?.id);
+
+  // Only show navigation items allowed for the current role, and drop any
+  // that can't be built (no game, or an NSO tab with no NSO available).
   const items = navItems
     .filter((item) => item.roles.includes(role))
-    .map(({ label, path, icon }) => {
-      const { route, href } = tabRoute(path, {
+    .flatMap(({ label, path, icon }) => {
+      const target = tabRoute(path, {
         role,
         game,
         nso,
         picked: pickedNso,
       });
-      return { label, path, icon, href, active: isActive(pathname, route) };
+      if (!target) return [];
+      const { route, href } = target;
+      return [{ label, path, icon, href, active: isActive(pathname, route) }];
     });
 
   const itemCount = items.length;
