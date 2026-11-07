@@ -11,6 +11,7 @@ const { prismaMock } = vi.hoisted(() => ({
     $transaction: vi.fn(),
     teamSizeEstimate: { upsert: vi.fn(), findUnique: vi.fn() },
     disciplineBreakdown: { upsert: vi.fn() },
+    gameNso: { findUnique: vi.fn() },
   },
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: prismaMock }));
@@ -24,6 +25,8 @@ const NSO_ID = 'b9f0193f-2e62-4141-bffb-ffa3c7f9e9d7';
 beforeEach(() => {
   vi.clearAllMocks();
   prismaMock.$transaction.mockResolvedValue([]);
+  // by default the NSO takes part in the game
+  prismaMock.gameNso.findUnique.mockResolvedValue({ id: 'link' });
 });
 
 describe('saveTeamSize', () => {
@@ -71,6 +74,23 @@ describe('saveTeamSize', () => {
         MOCK_DISCIPLINES,
       ),
     ).toEqual({ ok: false });
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('does not save when the NSO is not part of that game', async () => {
+    prismaMock.gameNso.findUnique.mockResolvedValue(null);
+
+    const result = await saveTeamSize(
+      GAME_ID,
+      NSO_ID,
+      MOCK_TEAM_SIZE,
+      MOCK_DISCIPLINES,
+    );
+
+    expect(result).toEqual({ ok: false });
+    expect(prismaMock.gameNso.findUnique).toHaveBeenCalledWith({
+      where: { gameId_nsoId: { gameId: 1, nsoId: NSO_ID } },
+    });
     expect(prismaMock.$transaction).not.toHaveBeenCalled();
   });
 });

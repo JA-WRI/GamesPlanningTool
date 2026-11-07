@@ -27,6 +27,12 @@ export async function saveTeamSize(
   )
     return { ok: false };
 
+  // the NSO must take part in this game
+  const gameNso = await prisma.gameNso.findUnique({
+    where: { gameId_nsoId: ids },
+  });
+  if (!gameNso) return { ok: false };
+
   const estimate = teamSizeToDb(teamSize, disciplines);
 
   // all or nothing, the estimate first because the disciplines point to it
