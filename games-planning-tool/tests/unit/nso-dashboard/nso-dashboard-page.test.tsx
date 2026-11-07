@@ -1,7 +1,15 @@
 // Made with AI agents (Antigravity)
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Page from '@/app/(application)/[gameId]/[nsoId]/dashboard/page';
+
+vi.mock('@/lib/prisma', () => ({
+  prisma: {
+    gameNso: { findUnique: vi.fn().mockResolvedValue(null) },
+    task: { findMany: vi.fn().mockResolvedValue([]) },
+    announcement: { findMany: vi.fn().mockResolvedValue([]) },
+  },
+}));
 
 describe('NSO Dashboard Page', () => {
   it('renders correctly', async () => {
