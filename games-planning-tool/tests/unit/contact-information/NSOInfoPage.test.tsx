@@ -39,9 +39,9 @@ describe('NSOInfoPageSection', () => {
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
-  describe('when editable (default)', () => {
+  describe('when editable', () => {
     it('shows inputs after clicking edit', () => {
-      render(<NSOInfoPageSection initialData={savedInfo} />);
+      render(<NSOInfoPageSection initialData={savedInfo} readOnly={false} />);
 
       fireEvent.click(screen.getByRole('button', { name: /edit/i }));
 
@@ -54,7 +54,6 @@ describe('NSOInfoPageSection', () => {
       ).toBeInTheDocument();
     });
   });
-
   describe('when readOnly', () => {
     it('still renders the title, labels and saved values', () => {
       render(<NSOInfoPageSection initialData={savedInfo} readOnly />);

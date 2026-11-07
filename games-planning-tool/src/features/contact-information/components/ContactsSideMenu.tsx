@@ -3,14 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  Home,
-  Users,
-  PlaneLanding,
-  LucideIcon,
-  Star,
-  FlaskConical,
-} from 'lucide-react';
+import { Home, Users, PlaneLanding, LucideIcon, Star } from 'lucide-react';
 
 interface MenuItem {
   label: string;
