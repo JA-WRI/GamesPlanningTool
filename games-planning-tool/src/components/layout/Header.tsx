@@ -2,16 +2,20 @@
 import Image from 'next/image';
 import GamesSelector from './GamesSelector';
 import NsoSelector from './NsoSelector';
-import { GameWithNsos, Role } from '@/lib/types';
+import UserSwitcher from './UserSwitcher';
+import { AppUser, GameWithNsos } from '@/lib/types';
 import { Suspense } from 'react';
 
 export default function Header({
-  role,
+  user,
+  users,
   games,
 }: {
-  role: Role;
+  user: AppUser;
+  users: AppUser[];
   games: GameWithNsos[];
 }) {
+  const { role } = user;
   const showNsos = role === 'coc' || role === 'admin';
 
   return (
@@ -41,15 +45,7 @@ export default function Header({
             )}
           </div>
         </div>
-        <div className="flex items-center gap-8">
-          <div className="text-center text-sm">
-            <div className="font-bold text-white">Alex Dunphy</div>
-            <div className="text-xs text-gray-300">COC-Department</div>
-          </div>
-          <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white font-bold">
-            AD
-          </button>
-        </div>
+        <UserSwitcher user={user} users={users} />
       </div>
     </div>
   );

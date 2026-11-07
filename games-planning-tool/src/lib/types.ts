@@ -13,3 +13,11 @@ export type Nso = {
 export type GameWithNsos = Game & {
   nsos: Nso[];
 };
+
+export type AppUser = {
+  id: string;
+  name: string;
+  role: Role;
+  nsoId?: string; // only set for NSO users
+  nsoName?: string;
+};
