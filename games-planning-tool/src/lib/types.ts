@@ -1,7 +1,7 @@
 export type Role = 'nso' | 'coc' | 'admin';
 
 export type Game = {
-  id: string;
+  id: number;
   name: string;
 };
 
