@@ -7,7 +7,7 @@
  * triggers (Add, Folder, Details), and role-based permissions (NSO view-only vs Admin edit mode).
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import React from 'react';
 import { ResourcesPageContent } from '@/features/resources/components/ResourcesPageContent';
 import * as resourceActions from '@/features/resources/actions';
@@ -731,5 +731,80 @@ describe('ResourcesPageContent', () => {
     fireEvent.click(screen.getByText('General Folder'));
     expect(screen.getByRole('dialog')).toBeDefined();
     expect(screen.queryByRole('button', { name: '+ Add Resource' })).toBeNull();
+  });
+
+  it('adds a link resource from the Add Resource modal', async () => {
+    render(<ResourcesPageContent initialResources={mockResources} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add Resource' }));
+    const dialog = screen.getByRole('dialog');
+
+    fireEvent.change(within(dialog).getByLabelText(/Resource Name/), {
+      target: { value: 'Olympic Handbook' },
+    });
+    fireEvent.change(within(dialog).getByLabelText(/Website URL/), {
+      target: { value: 'olympic.ca' },
+    });
+    await act(async () => {
+      fireEvent.click(
+        within(dialog).getByRole('button', { name: 'Add Resource' }),
+      );
+    });
+
+    expect(resourceActions.createLinkResource).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Olympic Handbook',
+        url: 'https://olympic.ca',
+        parentId: undefined,
+      }),
+    );
+    expect(screen.getByText('Resource added successfully')).toBeInTheDocument();
+  });
+
+  it('adds a file resource from the Add Resource modal', async () => {
+    render(<ResourcesPageContent initialResources={mockResources} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add Resource' }));
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: /Upload File/ }),
+    );
+
+    const file = new File(['data'], 'plan.pdf', { type: 'application/pdf' });
+    fireEvent.change(
+      document.querySelector('input[type="file"]') as HTMLInputElement,
+      { target: { files: [file] } },
+    );
+    await act(async () => {
+      fireEvent.click(
+        within(dialog).getByRole('button', { name: 'Add Resource' }),
+      );
+    });
+
+    const formData = vi.mocked(resourceActions.createFileResource).mock
+      .calls[0][0];
+    expect(formData.get('name')).toBe('Plan');
+    expect(formData.get('file')).toBe(file);
+  });
+
+  it('passes the open folder to the Add Resource modal', async () => {
+    render(<ResourcesPageContent initialResources={mockResources} />);
+    fireEvent.click(screen.getByRole('button', { name: 'General Folder' }));
+    fireEvent.click(screen.getByRole('button', { name: '+ Add Resource' }));
+
+    const addDialog = screen.getByRole('dialog', { name: 'Add New Resource' });
+    fireEvent.change(within(addDialog).getByLabelText(/Resource Name/), {
+      target: { value: 'Child Link' },
+    });
+    fireEvent.change(within(addDialog).getByLabelText(/Website URL/), {
+      target: { value: 'https://olympic.ca/child' },
+    });
+    await act(async () => {
+      fireEvent.click(
+        within(addDialog).getByRole('button', { name: 'Add Resource' }),
+      );
+    });
+
+    expect(resourceActions.createLinkResource).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Child Link', parentId: '1' }),
+    );
   });
 });

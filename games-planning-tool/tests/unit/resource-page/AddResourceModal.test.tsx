@@ -213,4 +213,31 @@ describe('AddResourceModal', () => {
       screen.getByText('Please enter a name for the resource.'),
     ).toBeInTheDocument();
   });
+
+  it('shows a fallback error when the submission fails', async () => {
+    const handleAdd = vi.fn().mockRejectedValue('failed');
+
+    render(
+      <AddResourceModal
+        isOpen={true}
+        onClose={() => {}}
+        onAddResource={handleAdd}
+      />,
+    );
+
+    fireEvent.change(
+      screen.getByPlaceholderText('e.g. LA 2028 Team Roster Guide'),
+      { target: { value: 'Portal' } },
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText('https://olympic.ca/handbook'),
+      { target: { value: 'https://example.com' } },
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Add Resource' }));
+    });
+
+    expect(screen.getByText('Unable to add the resource.')).toBeInTheDocument();
+  });
 });
