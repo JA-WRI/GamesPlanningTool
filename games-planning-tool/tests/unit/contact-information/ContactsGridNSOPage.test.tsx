@@ -1,6 +1,4 @@
 // AI contribution: over 50% AI-generated (code snippets to debug failing tests)
-
-// AI contribution: Below 50% AI-generated (adapted from the COC page test)
 'use client';
 
 import '@testing-library/jest-dom/vitest';
@@ -49,7 +47,7 @@ describe('ContactsGridNSOPage', () => {
     roles.forEach((role) => {
       expect(screen.getByText(role)).toBeInTheDocument();
     });
-    // 1 header row + 3 body rows
+
     expect(screen.getAllByRole('row')).toHaveLength(roles.length + 1);
   });
 
@@ -105,7 +103,6 @@ describe('ContactsGridNSOPage', () => {
       />,
     );
 
-    // firstName, lastName, email, countryCode, phone
     expect(screen.getAllByText('-')).toHaveLength(5);
   });
 
