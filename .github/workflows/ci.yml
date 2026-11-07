@@ -110,6 +110,9 @@ jobs:
       - name: Apply database migrations
         run: npm run db:migrate
 
+      - name: Seed database
+        run: npm run db:seed
+
       - name: Install Playwright browsers
         run: npm run e2e:install
 
