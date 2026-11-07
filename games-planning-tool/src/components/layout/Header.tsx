@@ -1,17 +1,18 @@
+//No substnatial AI generated code
 import Image from 'next/image';
 import GamesSelector from './GamesSelector';
 import NsoSelector from './NsoSelector';
-import { Role } from '@/lib/types';
+import { GameWithNsos, Role } from '@/lib/types';
 import { Suspense } from 'react';
-import { getGames } from '@/lib/queries/games';
-import { getNsos } from '@/lib/queries/nsos';
 
-export default async function Header({ role }: { role: Role }) {
+export default function Header({
+  role,
+  games,
+}: {
+  role: Role;
+  games: GameWithNsos[];
+}) {
   const showNsos = role === 'coc' || role === 'admin';
-  const [games, nsos] = await Promise.all([
-    getGames(),
-    showNsos ? getNsos() : Promise.resolve([]),
-  ]);
 
   return (
     <div className="flex items-center justify-between bg-terracotta p-3">
@@ -30,10 +31,12 @@ export default async function Header({ role }: { role: Role }) {
             </div>
           </div>
           <div className="flex gap-8">
-            <GamesSelector role={role} games={games} />
-            {(role === 'coc' || role === 'admin') && (
+            <Suspense>
+              <GamesSelector role={role} games={games} />
+            </Suspense>
+            {showNsos && (
               <Suspense>
-                <NsoSelector nsos={nsos} />
+                <NsoSelector games={games} />
               </Suspense>
             )}
           </div>

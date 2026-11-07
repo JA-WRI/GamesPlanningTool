@@ -9,3 +9,7 @@ export type Nso = {
   id: string;
   name: string;
 };
+
+export type GameWithNsos = Game & {
+  nsos: Nso[];
+};
