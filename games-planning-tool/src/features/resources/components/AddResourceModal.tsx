@@ -10,20 +10,17 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CheckIcon from '@mui/icons-material/Check';
 import {
-  Resource,
-  LinkResource,
-  FileResource,
+  NewResourceInput,
   DEFAULT_CATEGORY,
   CANADIAN_NSOS,
 } from '@/features/resources/types/resource';
-import { generateFileThumbnail } from '@/features/resources/utilities/fileThumbnailHelper';
 
 interface AddResourceModalProps {
   isOpen: boolean;
   preselectedCategory?: string;
   preselectedFolderId?: string;
   onClose: () => void;
-  onAddResource: (newResource: Resource) => void;
+  onAddResource: (input: NewResourceInput) => Promise<void>;
 }
 
 function AddResourceForm({
@@ -35,19 +32,19 @@ function AddResourceForm({
   preselectedCategory?: string;
   preselectedFolderId?: string;
   onClose: () => void;
-  onAddResource: (newResource: Resource) => void;
+  onAddResource: (input: NewResourceInput) => Promise<void>;
 }) {
   const [resourceName, setResourceName] = useState('');
   const [resourceType, setResourceType] = useState<'link' | 'file'>('link');
   const [urlInput, setUrlInput] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [filePreviewUrl, setFilePreviewUrl] = useState<string>('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     preselectedCategory ? [preselectedCategory] : [],
   );
   const [nsoSearchFilter, setNsoSearchFilter] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,17 +56,15 @@ function AddResourceForm({
     );
   };
 
-  const handleFileChange = async (file: File) => {
+  const handleFileChange = (file: File) => {
     setSelectedFile(file);
     if (!resourceName.trim()) {
       const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
       setResourceName(baseName.charAt(0).toUpperCase() + baseName.slice(1));
     }
-    const thumb = await generateFileThumbnail(file);
-    setFilePreviewUrl(thumb);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -80,9 +75,8 @@ function AddResourceForm({
 
     const finalCategories =
       selectedCategories.length > 0 ? selectedCategories : [DEFAULT_CATEGORY];
-    const newId = `res-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
-    const nowIso = new Date().toISOString();
 
+    let input: NewResourceInput;
     if (resourceType === 'link') {
       if (!urlInput.trim()) {
         setErrorMessage('Please provide a valid URL for the resource.');
@@ -94,43 +88,38 @@ function AddResourceForm({
         formattedUrl = `https://${formattedUrl}`;
       }
 
-      const newResource: LinkResource = {
-        id: newId,
-        name: resourceName.trim(),
+      input = {
         type: 'link',
-        URL: formattedUrl,
+        name: resourceName.trim(),
+        url: formattedUrl,
         categories: finalCategories,
-        previewUrl: `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(formattedUrl)}&sz=128`,
         parentId: preselectedFolderId,
-        createdAt: nowIso,
       };
-
-      onAddResource(newResource);
-      onClose();
     } else {
       if (!selectedFile) {
         setErrorMessage('Please select or drop a file to upload.');
         return;
       }
 
-      const newResource: FileResource = {
-        id: newId,
-        name: resourceName.trim(),
+      input = {
         type: 'file',
-        fileUrl: filePreviewUrl || 'https://via.placeholder.com/150',
-        file: {
-          name: selectedFile.name,
-          size: selectedFile.size,
-          type: selectedFile.type,
-        },
+        name: resourceName.trim(),
+        file: selectedFile,
         categories: finalCategories,
-        previewUrl: filePreviewUrl,
         parentId: preselectedFolderId,
-        createdAt: nowIso,
       };
+    }
 
-      onAddResource(newResource);
+    setIsSubmitting(true);
+    try {
+      await onAddResource(input);
       onClose();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Unable to add the resource.',
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -228,7 +217,7 @@ function AddResourceForm({
         </div>
 
         {resourceType === 'link' ? (
-          <div>
+          <div key="link">
             <label
               htmlFor="resource-url"
               className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1.5"
@@ -245,7 +234,7 @@ function AddResourceForm({
             />
           </div>
         ) : (
-          <div>
+          <div key="file">
             <span className="block text-xs font-bold text-neutral-800 uppercase tracking-wider mb-1.5">
               File Input <span className="text-red-600">*</span>
             </span>
@@ -255,7 +244,7 @@ function AddResourceForm({
               className="hidden"
               onChange={(e) => {
                 if (e.target.files && e.target.files[0]) {
-                  void handleFileChange(e.target.files[0]);
+                  handleFileChange(e.target.files[0]);
                 }
               }}
             />
@@ -270,7 +259,7 @@ function AddResourceForm({
                 e.preventDefault();
                 setIsDraggingFile(false);
                 if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                  void handleFileChange(e.dataTransfer.files[0]);
+                  handleFileChange(e.dataTransfer.files[0]);
                 }
               }}
               onClick={() => fileInputRef.current?.click()}
@@ -393,9 +382,10 @@ function AddResourceForm({
           </button>
           <button
             type="submit"
-            className="px-5 py-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl shadow-xs transition-all cursor-pointer flex items-center space-x-2"
+            disabled={isSubmitting}
+            className="px-5 py-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl shadow-xs transition-all cursor-pointer flex items-center space-x-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <span>Add Resource</span>
+            <span>{isSubmitting ? 'Adding...' : 'Add Resource'}</span>
           </button>
         </div>
       </form>

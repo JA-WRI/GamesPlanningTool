@@ -18,8 +18,8 @@ export interface FileResource extends BaseResource {
   type: 'file';
   file?: {
     name: string;
-    size: number;
-    type: string;
+    size?: number;
+    type?: string;
     lastModified?: number;
   };
   fileUrl?: string;
@@ -32,6 +32,22 @@ export interface FolderResource extends BaseResource {
 }
 
 export type Resource = LinkResource | FileResource | FolderResource;
+
+export type NewResourceInput =
+  | {
+      type: 'link';
+      name: string;
+      url: string;
+      categories: string[];
+      parentId?: string | null;
+    }
+  | {
+      type: 'file';
+      name: string;
+      file: File;
+      categories: string[];
+      parentId?: string | null;
+    };
 
 export const DEFAULT_CATEGORY = 'General';
 

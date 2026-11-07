@@ -1,29 +1,11 @@
 // Made with AI agents (Antigravity)
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { DashboardResourceRow } from '@/components/resources/DashboardResourceRow';
-import * as resourcesData from '@/lib/resources-data';
 import { Resource } from '@/features/resources/types/resource';
 
-vi.mock('@/lib/resources-data', async () => {
-  const actual = await vi.importActual('@/lib/resources-data');
-  return {
-    ...actual,
-    subscribeToResources: vi.fn(),
-    getCachedResources: vi.fn(),
-    getFolderChildren: vi.fn(),
-  };
-});
-
 describe('DashboardResourceRow', () => {
-  beforeEach(() => {
-    vi.mocked(resourcesData.subscribeToResources).mockImplementation(
-      () => () => {},
-    );
-    vi.clearAllMocks();
-  });
-
   it('renders resources and applies filters correctly based on viewerRole and NSO', () => {
     const mockResources: Resource[] = [
       {
@@ -62,14 +44,12 @@ describe('DashboardResourceRow', () => {
       },
     ];
 
-    vi.mocked(resourcesData.getCachedResources).mockReturnValue(mockResources);
-    vi.mocked(resourcesData.getFolderChildren).mockReturnValue([]);
-
     const { rerender } = render(
       <DashboardResourceRow
         gameId="game_id_1"
         nsoId="nso_1"
         viewerRole="nso"
+        resources={mockResources}
       />,
     );
 
@@ -86,6 +66,7 @@ describe('DashboardResourceRow', () => {
         gameId="game_id_2"
         nsoId="nso_2"
         viewerRole="admin"
+        resources={mockResources}
       />,
     );
     expect(screen.queryByText('Summer File')).not.toBeInTheDocument();
@@ -93,8 +74,7 @@ describe('DashboardResourceRow', () => {
   });
 
   it('handles empty state and renders Manage Resources for overview', () => {
-    vi.mocked(resourcesData.getCachedResources).mockReturnValue([]);
-    render(<DashboardResourceRow gameId="game_id_1" />);
+    render(<DashboardResourceRow gameId="game_id_1" resources={[]} />);
     expect(
       screen.getByText('No resources available for this dashboard.'),
     ).toBeInTheDocument();
@@ -119,10 +99,9 @@ describe('DashboardResourceRow', () => {
         categories: ['Summer Games'],
       },
     ];
-    vi.mocked(resourcesData.getCachedResources).mockReturnValue(mockResources);
-    vi.mocked(resourcesData.getFolderChildren).mockReturnValue([]);
-
-    render(<DashboardResourceRow gameId="game_id_1" />);
+    render(
+      <DashboardResourceRow gameId="game_id_1" resources={mockResources} />,
+    );
 
     const folder = screen.getByText('General Folder');
 
@@ -168,10 +147,9 @@ describe('DashboardResourceRow', () => {
       childFile,
     ];
 
-    vi.mocked(resourcesData.getCachedResources).mockReturnValue(mockResources);
-    vi.mocked(resourcesData.getFolderChildren).mockReturnValue([childFile]);
-
-    render(<DashboardResourceRow gameId="game_id_1" />);
+    render(
+      <DashboardResourceRow gameId="game_id_1" resources={mockResources} />,
+    );
 
     const windowOpenSpy = vi
       .spyOn(window, 'open')

@@ -44,6 +44,7 @@ export function ResourceDetailModal({
   if (!resource) return null;
 
   const isLink = resource.type === 'link';
+  const file = isLink ? undefined : (resource as FileResource).file;
 
   return (
     <div
@@ -61,15 +62,14 @@ export function ResourceDetailModal({
       />
       <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-neutral-200 z-10">
         <div className="relative h-48 w-full overflow-hidden bg-neutral-900 shrink-0">
-          {/* eslint-disable-next-line @next/next/no-img-element -- Dynamic external preview URL */}
-          <img
-            src={
-              resource.previewUrl ||
-              'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&fit=crop&w=600&q=80'
-            }
-            alt={resource.name}
-            className={`w-full h-full ${resource.type === 'link' ? 'object-contain p-12 bg-white' : 'object-cover'}`}
-          />
+          {resource.previewUrl && (
+            /* eslint-disable-next-line @next/next/no-img-element -- Dynamic external preview URL */
+            <img
+              src={resource.previewUrl}
+              alt={resource.name}
+              className={`w-full h-full ${resource.type === 'link' ? 'object-contain p-12 bg-white' : 'object-cover'}`}
+            />
+          )}
           <div className="absolute inset-0 bg-slate-900/75 flex items-center justify-center p-6 text-center">
             {isEditingName ? (
               <input
@@ -184,27 +184,21 @@ export function ResourceDetailModal({
                 <div>
                   File name:{' '}
                   <span className="font-mono text-neutral-600">
-                    {(resource as FileResource).file?.name || 'document'}
+                    {file?.name || 'document'}
                   </span>
                 </div>
-                {(resource as FileResource).file?.size && (
+                {file?.size !== undefined && (
                   <div>
                     Size:{' '}
                     <span className="text-neutral-600">
-                      {(
-                        (resource as FileResource).file!.size /
-                        (1024 * 1024)
-                      ).toFixed(2)}{' '}
-                      MB
+                      {(file.size / (1024 * 1024)).toFixed(2)} MB
                     </span>
                   </div>
                 )}
-                {(resource as FileResource).file?.type && (
+                {file?.type && (
                   <div>
                     Format:{' '}
-                    <span className="text-neutral-600">
-                      {(resource as FileResource).file!.type}
-                    </span>
+                    <span className="text-neutral-600">{file.type}</span>
                   </div>
                 )}
               </div>
@@ -233,7 +227,7 @@ export function ResourceDetailModal({
             ) : (
               <a
                 href={(resource as FileResource).fileUrl || '#'}
-                download={(resource as FileResource).file?.name || 'resource'}
+                download={file?.name || 'resource'}
                 className="px-5 py-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl shadow-md transition-all flex items-center space-x-2"
               >
                 <span>Download File</span>

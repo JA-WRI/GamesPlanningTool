@@ -7,28 +7,22 @@
  * triggers (Add, Folder, Details), and role-based permissions (NSO view-only vs Admin edit mode).
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import React from 'react';
 import { ResourcesPageContent } from '@/features/resources/components/ResourcesPageContent';
-import * as resourcesData from '@/lib/resources-data';
+import * as resourceActions from '@/features/resources/actions';
 import { Resource } from '@/features/resources/types/resource';
 
-vi.mock('@/lib/resources-data', async () => {
-  const actual = await vi.importActual('@/lib/resources-data');
-  return {
-    ...actual,
-    subscribeToResources: vi.fn(),
-    getCachedResources: vi.fn(),
-    saveResourcesToStorage: vi.fn(),
-    createFolder: vi.fn().mockReturnValue({
-      id: 'new-folder',
-      name: 'New Folder',
-      type: 'folder',
-      categories: [],
-    }),
-    deleteResource: vi.fn(),
-  };
-});
+vi.mock('@/features/resources/actions', () => ({
+  createFileResource: vi.fn(),
+  createFolder: vi.fn(),
+  createLinkResource: vi.fn(),
+  deleteResources: vi.fn(),
+  moveResources: vi.fn(),
+  renameResource: vi.fn(),
+  reorderResources: vi.fn(),
+  updateResourceCategories: vi.fn(),
+}));
 
 describe('ResourcesPageContent', () => {
   const mockResources: Resource[] = [
@@ -64,11 +58,23 @@ describe('ResourcesPageContent', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    vi.mocked(resourcesData.subscribeToResources).mockImplementation(
-      () => () => {},
-    );
-    vi.mocked(resourcesData.getCachedResources).mockReturnValue(mockResources);
     vi.clearAllMocks();
+    vi.mocked(resourceActions.createFileResource).mockResolvedValue(
+      mockResources,
+    );
+    vi.mocked(resourceActions.createFolder).mockResolvedValue(mockResources);
+    vi.mocked(resourceActions.createLinkResource).mockResolvedValue(
+      mockResources,
+    );
+    vi.mocked(resourceActions.deleteResources).mockResolvedValue(mockResources);
+    vi.mocked(resourceActions.moveResources).mockResolvedValue(mockResources);
+    vi.mocked(resourceActions.renameResource).mockResolvedValue(mockResources);
+    vi.mocked(resourceActions.reorderResources).mockResolvedValue(
+      mockResources,
+    );
+    vi.mocked(resourceActions.updateResourceCategories).mockResolvedValue(
+      mockResources,
+    );
   });
 
   afterEach(() => {
@@ -76,7 +82,7 @@ describe('ResourcesPageContent', () => {
   });
 
   it('renders resources page and allows searching', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     expect(screen.getByText('Resources Dashboard')).toBeInTheDocument();
 
     const searchInput = screen.getAllByPlaceholderText(
@@ -88,7 +94,7 @@ describe('ResourcesPageContent', () => {
   });
 
   it('can open add resource and create folder modals', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const addBtn = screen.getByRole('button', { name: 'Add Resource' });
     fireEvent.click(addBtn);
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -106,13 +112,13 @@ describe('ResourcesPageContent', () => {
       .find((b) => b.getAttribute('type') === 'submit');
     if (submitBtn) {
       fireEvent.click(submitBtn);
-      expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+      expect(resourceActions.createFolder).toHaveBeenCalled();
     }
   });
 
   it('handles edit mode delete confirmation and cancellation', () => {
     window.confirm = vi.fn().mockReturnValue(false);
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
 
     const editBtns = screen.getAllByRole('button', { name: 'Edit' });
     const editBtn = editBtns[editBtns.length - 1];
@@ -123,16 +129,16 @@ describe('ResourcesPageContent', () => {
 
     const deleteBtn = screen.getByText(/Delete/);
     fireEvent.click(deleteBtn);
-    expect(resourcesData.saveResourcesToStorage).not.toHaveBeenCalled();
+    expect(resourceActions.deleteResources).not.toHaveBeenCalled();
 
     // Confirm true
     window.confirm = vi.fn().mockReturnValue(true);
     fireEvent.click(deleteBtn);
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.deleteResources).toHaveBeenCalled();
   });
 
   it('handles drag and drop to reorder via HTML5 drag/drop', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const cards = document.querySelectorAll('[data-resource-id]');
 
     const dt = { setData: vi.fn(), dropEffect: 'move', effectAllowed: 'move' };
@@ -147,11 +153,11 @@ describe('ResourcesPageContent', () => {
     fireEvent.drop(cards[1]);
     fireEvent.dragEnd(cards[0]);
 
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.reorderResources).toHaveBeenCalled();
   });
 
   it('prevents drag start when items are selected', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const editBtn = screen.getByRole('button', { name: 'Edit' });
     fireEvent.click(editBtn);
 
@@ -164,7 +170,7 @@ describe('ResourcesPageContent', () => {
   });
 
   it('handles drag end without drop by resetting order', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const cards = document.querySelectorAll('[data-resource-id]');
 
     const dt = { setData: vi.fn(), dropEffect: 'move', effectAllowed: 'move' };
@@ -175,7 +181,7 @@ describe('ResourcesPageContent', () => {
   });
 
   it('handles drop into a folder and spring loading', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const cards = document.querySelectorAll('[data-resource-id]');
 
     const dt = {
@@ -201,11 +207,11 @@ describe('ResourcesPageContent', () => {
 
     fireEvent.drop(cards[0], { dataTransfer: dt });
 
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.moveResources).toHaveBeenCalled();
   });
 
   it('handles pointer hover on main page from external drag with spring load', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
 
     const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
@@ -239,7 +245,7 @@ describe('ResourcesPageContent', () => {
   });
 
   it('handles FolderDirectoryModal callbacks from within ResourcesPageContent', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
 
     const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
@@ -255,12 +261,12 @@ describe('ResourcesPageContent', () => {
     const createBtn = screen.getByRole('button', { name: 'Create' });
     fireEvent.click(createBtn);
 
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.createFolder).toHaveBeenCalled();
   });
 
   it('handles moving, reordering, and deleting resources from inside FolderDirectoryModal', () => {
     window.confirm = vi.fn().mockReturnValue(true);
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
 
     const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
@@ -281,11 +287,11 @@ describe('ResourcesPageContent', () => {
 
     const deleteBtn = screen.getByRole('button', { name: /Delete Selected/ });
     fireEvent.click(deleteBtn);
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.deleteResources).toHaveBeenCalled();
   });
 
   it('handles dropping resources onto main page from folder modal onto folder target', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
 
     const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
@@ -317,11 +323,11 @@ describe('ResourcesPageContent', () => {
       );
     });
 
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.moveResources).toHaveBeenCalled();
   });
 
   it('handles dropping resources onto main page from folder modal onto non-folder target', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
 
     const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
@@ -352,11 +358,11 @@ describe('ResourcesPageContent', () => {
       );
     });
 
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.moveResources).toHaveBeenCalled();
   });
 
   it('displays empty state when search matches nothing', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const searchInput = screen.getAllByPlaceholderText(
       'Search by name, category...',
     )[0];
@@ -367,7 +373,7 @@ describe('ResourcesPageContent', () => {
   });
 
   it('handles sweep pointer down on round button in edit mode', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const editBtn = screen.getByRole('button', { name: 'Edit' });
     fireEvent.click(editBtn);
 
@@ -395,7 +401,7 @@ describe('ResourcesPageContent', () => {
     const windowOpenSpy = vi
       .spyOn(window, 'open')
       .mockImplementation(() => null);
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
 
     // Clicking the file card opens in a new tab
     const fileCard = screen.getByRole('button', { name: 'File 1' });
@@ -417,7 +423,7 @@ describe('ResourcesPageContent', () => {
 
     const saveBtn = screen.getByRole('button', { name: 'Save Categories' });
     fireEvent.click(saveBtn);
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.updateResourceCategories).toHaveBeenCalled();
 
     // Inline rename by clicking name directly
     const file2Text = screen.getByText('File 2');
@@ -425,11 +431,11 @@ describe('ResourcesPageContent', () => {
     const input = screen.getByDisplayValue('File 2');
     fireEvent.change(input, { target: { value: 'Renamed File 2' } });
     fireEvent.keyDown(input, { key: 'Enter' });
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.renameResource).toHaveBeenCalled();
   });
 
   it('ignores empty folder name submission', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const createFolderBtn = screen.getByRole('button', {
       name: 'Create Folder',
     });
@@ -440,12 +446,12 @@ describe('ResourcesPageContent', () => {
       .find((b) => b.getAttribute('type') === 'submit');
     if (submitBtn) {
       fireEvent.click(submitBtn);
-      expect(resourcesData.saveResourcesToStorage).not.toHaveBeenCalled();
+      expect(resourceActions.createFolder).not.toHaveBeenCalled();
     }
   });
 
   it('closes create folder modal on Cancel or backdrop click', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const createFolderBtn = screen.getByRole('button', {
       name: 'Create Folder',
     });
@@ -462,17 +468,17 @@ describe('ResourcesPageContent', () => {
   });
 
   it('handles rename resource via card', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const card = screen.getByText('File 1');
     fireEvent.doubleClick(card);
     const input = screen.getByDisplayValue('File 1');
     fireEvent.change(input, { target: { value: 'Renamed File 1' } });
     fireEvent.keyDown(input, { key: 'Enter' });
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.renameResource).toHaveBeenCalled();
   });
 
   it('handles dragOver edge conditions for reordering', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const cards = document.querySelectorAll('[data-resource-id]');
     const dt = { setData: vi.fn(), dropEffect: 'move' };
 
@@ -510,7 +516,7 @@ describe('ResourcesPageContent', () => {
   });
 
   it('handles FolderDirectoryModal onDropOnMainPage with injection and append', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
 
@@ -536,11 +542,11 @@ describe('ResourcesPageContent', () => {
       );
     });
 
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.moveResources).toHaveBeenCalled();
   });
 
   it('handles dropping directly onto the wrapping grid container', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const cards = document.querySelectorAll('[data-resource-id]');
     const gridContainer = (document.querySelector('.grid') ||
       cards[0]?.parentElement) as HTMLElement;
@@ -555,11 +561,11 @@ describe('ResourcesPageContent', () => {
     fireEvent.dragStart(cards[1], { dataTransfer: dt });
     fireEvent.dragOver(gridContainer, { dataTransfer: dt });
     fireEvent.drop(gridContainer, { dataTransfer: dt });
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.reorderResources).toHaveBeenCalled();
   });
 
   it('handles dropping directly onto folder card to move item into folder', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const folderCard = document.querySelector(
       '[data-resource-id="1"]',
     ) as HTMLElement;
@@ -576,11 +582,11 @@ describe('ResourcesPageContent', () => {
     fireEvent.dragStart(fileCard, { dataTransfer: dt });
     fireEvent.drop(folderCard, { dataTransfer: dt });
 
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.moveResources).toHaveBeenCalled();
   });
 
   it('handles pointer hover on main page with empty draggedIds resetting order', () => {
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={mockResources} />);
     const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
 
@@ -600,7 +606,7 @@ describe('ResourcesPageContent', () => {
     expect(cardEl).toBeInTheDocument();
   });
 
-  it('triggers onMoveResourceToFolder and onReorderInFolder inside folder modal', () => {
+  it('triggers onMoveResourceToFolder and onReorderInFolder inside folder modal', async () => {
     const parentFolder: Resource = {
       id: '1',
       name: 'General Folder',
@@ -615,20 +621,19 @@ describe('ResourcesPageContent', () => {
       categories: ['General'],
       parentId: '1',
     };
-    const childSub: Resource = {
-      id: 'child-sub',
-      name: 'Child Sub',
-      type: 'folder',
+    const child2: Resource = {
+      id: 'child-2',
+      name: 'Child 2',
+      type: 'file',
+      fileUrl: 'test',
       categories: ['General'],
       parentId: '1',
     };
-    vi.mocked(resourcesData.getCachedResources).mockReturnValue([
-      parentFolder,
-      child1,
-      childSub,
-    ]);
-
-    render(<ResourcesPageContent />);
+    render(
+      <ResourcesPageContent
+        initialResources={[parentFolder, child1, child2]}
+      />,
+    );
     const folderCard = screen.getByRole('button', { name: 'General Folder' });
     fireEvent.click(folderCard);
 
@@ -653,7 +658,7 @@ describe('ResourcesPageContent', () => {
       }) as unknown as DOMRect;
     document.elementFromPoint = vi.fn().mockReturnValue(targetChildEl);
 
-    act(() => {
+    await act(async () => {
       window.dispatchEvent(
         new PointerEvent('pointermove', { clientX: 250, clientY: 150 }),
       );
@@ -662,7 +667,7 @@ describe('ResourcesPageContent', () => {
       );
     });
 
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.reorderResources).toHaveBeenCalled();
   });
 
   it('handles folder modal callbacks: add resource, create subfolder, and delete resources', () => {
@@ -680,12 +685,7 @@ describe('ResourcesPageContent', () => {
       categories: ['General'],
       parentId: '1',
     };
-    vi.mocked(resourcesData.getCachedResources).mockReturnValue([
-      parentFolder,
-      child1,
-    ]);
-
-    render(<ResourcesPageContent />);
+    render(<ResourcesPageContent initialResources={[parentFolder, child1]} />);
     fireEvent.click(screen.getByRole('button', { name: 'General Folder' }));
 
     // Open add resource from folder modal
@@ -699,7 +699,7 @@ describe('ResourcesPageContent', () => {
     const folderInput = screen.getByPlaceholderText('Subfolder name...');
     fireEvent.change(folderInput, { target: { value: 'Subfolder A' } });
     fireEvent.click(screen.getByRole('button', { name: 'Create' }));
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.createFolder).toHaveBeenCalled();
 
     // Delete resource from folder modal
     const editBtns = screen.getAllByRole('button', { name: 'Edit' });
@@ -708,7 +708,7 @@ describe('ResourcesPageContent', () => {
     fireEvent.click(selectBtn);
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     fireEvent.click(screen.getByRole('button', { name: /Delete Selected/ }));
-    expect(resourcesData.saveResourcesToStorage).toHaveBeenCalled();
+    expect(resourceActions.deleteResources).toHaveBeenCalled();
   });
 
   it('renders read-only mode without editing actions and passes isReadOnly to folder modal', () => {
@@ -718,9 +718,9 @@ describe('ResourcesPageContent', () => {
       type: 'folder',
       categories: ['General'],
     };
-    vi.mocked(resourcesData.getCachedResources).mockReturnValue([parentFolder]);
-
-    render(<ResourcesPageContent isReadOnly={true} />);
+    render(
+      <ResourcesPageContent initialResources={[parentFolder]} isReadOnly />,
+    );
 
     // In read-only mode, action buttons should not be rendered
     expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull();
@@ -731,5 +731,80 @@ describe('ResourcesPageContent', () => {
     fireEvent.click(screen.getByText('General Folder'));
     expect(screen.getByRole('dialog')).toBeDefined();
     expect(screen.queryByRole('button', { name: '+ Add Resource' })).toBeNull();
+  });
+
+  it('adds a link resource from the Add Resource modal', async () => {
+    render(<ResourcesPageContent initialResources={mockResources} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add Resource' }));
+    const dialog = screen.getByRole('dialog');
+
+    fireEvent.change(within(dialog).getByLabelText(/Resource Name/), {
+      target: { value: 'Olympic Handbook' },
+    });
+    fireEvent.change(within(dialog).getByLabelText(/Website URL/), {
+      target: { value: 'olympic.ca' },
+    });
+    await act(async () => {
+      fireEvent.click(
+        within(dialog).getByRole('button', { name: 'Add Resource' }),
+      );
+    });
+
+    expect(resourceActions.createLinkResource).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Olympic Handbook',
+        url: 'https://olympic.ca',
+        parentId: undefined,
+      }),
+    );
+    expect(screen.getByText('Resource added successfully')).toBeInTheDocument();
+  });
+
+  it('adds a file resource from the Add Resource modal', async () => {
+    render(<ResourcesPageContent initialResources={mockResources} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add Resource' }));
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: /Upload File/ }),
+    );
+
+    const file = new File(['data'], 'plan.pdf', { type: 'application/pdf' });
+    fireEvent.change(
+      document.querySelector('input[type="file"]') as HTMLInputElement,
+      { target: { files: [file] } },
+    );
+    await act(async () => {
+      fireEvent.click(
+        within(dialog).getByRole('button', { name: 'Add Resource' }),
+      );
+    });
+
+    const formData = vi.mocked(resourceActions.createFileResource).mock
+      .calls[0][0];
+    expect(formData.get('name')).toBe('Plan');
+    expect(formData.get('file')).toBe(file);
+  });
+
+  it('passes the open folder to the Add Resource modal', async () => {
+    render(<ResourcesPageContent initialResources={mockResources} />);
+    fireEvent.click(screen.getByRole('button', { name: 'General Folder' }));
+    fireEvent.click(screen.getByRole('button', { name: '+ Add Resource' }));
+
+    const addDialog = screen.getByRole('dialog', { name: 'Add New Resource' });
+    fireEvent.change(within(addDialog).getByLabelText(/Resource Name/), {
+      target: { value: 'Child Link' },
+    });
+    fireEvent.change(within(addDialog).getByLabelText(/Website URL/), {
+      target: { value: 'https://olympic.ca/child' },
+    });
+    await act(async () => {
+      fireEvent.click(
+        within(addDialog).getByRole('button', { name: 'Add Resource' }),
+      );
+    });
+
+    expect(resourceActions.createLinkResource).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Child Link', parentId: '1' }),
+    );
   });
 });

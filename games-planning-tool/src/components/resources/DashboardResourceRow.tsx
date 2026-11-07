@@ -1,19 +1,14 @@
 // Made with AI agents (Antigravity)
 'use client';
 
-import React, { useState, useSyncExternalStore } from 'react';
+import React, { useState } from 'react';
 import {
   Resource,
   FolderResource,
   FileResource,
   CANADIAN_NSOS,
 } from '@/features/resources/types/resource';
-import {
-  subscribeToResources,
-  getCachedResources,
-  INITIAL_RESOURCES,
-  getFolderChildren,
-} from '@/lib/resources-data';
+import { getFolderChildren } from '@/lib/resources-data';
 import { Games, Nsos } from '@/lib/data';
 import { ResourceCard } from '@/features/resources/components/ResourceCard';
 import { FolderDirectoryModal } from '@/features/resources/components/FolderDirectoryModal';
@@ -24,17 +19,13 @@ export function DashboardResourceRow({
   gameId,
   nsoId,
   viewerRole,
+  resources,
 }: {
   gameId: string;
   nsoId?: string;
   viewerRole?: string;
+  resources: Resource[];
 }) {
-  const resources = useSyncExternalStore(
-    subscribeToResources,
-    getCachedResources,
-    () => INITIAL_RESOURCES,
-  );
-
   const [activeDirectoryFolder, setActiveDirectoryFolder] =
     useState<FolderResource | null>(null);
   const [detailResource, setDetailResource] = useState<Resource | null>(null);
