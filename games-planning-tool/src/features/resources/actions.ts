@@ -10,6 +10,10 @@ import {
   updateResourceCategories as updateResourceCategoriesInDb,
 } from '@/lib/resources';
 import { uploadResourceFile } from '@/lib/supabase';
+import {
+  MAX_RESOURCE_FILE_SIZE,
+  MAX_RESOURCE_FILE_SIZE_MESSAGE,
+} from '@/features/resources/types/resource';
 
 export async function createLinkResource(input: {
   name: string;
@@ -45,6 +49,9 @@ export async function createFileResource(formData: FormData) {
 
   if (!(file instanceof File)) throw new Error('A file is required.');
   if (!name) throw new Error('A name is required.');
+  if (file.size > MAX_RESOURCE_FILE_SIZE) {
+    throw new Error(MAX_RESOURCE_FILE_SIZE_MESSAGE);
+  }
 
   const url = await uploadResourceFile(file);
 

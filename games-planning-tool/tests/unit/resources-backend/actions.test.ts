@@ -10,6 +10,10 @@ import {
   moveResources,
   reorderResources,
 } from '@/features/resources/actions';
+import {
+  MAX_RESOURCE_FILE_SIZE,
+  MAX_RESOURCE_FILE_SIZE_MESSAGE,
+} from '@/features/resources/types/resource';
 
 const mocks = vi.hoisted(() => ({
   createResource: vi.fn(),
@@ -114,6 +118,19 @@ describe('resource actions', () => {
     expect(mocks.createResource).toHaveBeenCalledWith(
       expect.objectContaining({ parentId: null }),
     );
+  });
+
+  it('rejects files over the size limit before uploading', async () => {
+    const formData = fileFormData();
+    const file = formData.get('file') as File;
+    Object.defineProperty(file, 'size', {
+      value: MAX_RESOURCE_FILE_SIZE + 1,
+    });
+
+    await expect(createFileResource(formData)).rejects.toThrow(
+      MAX_RESOURCE_FILE_SIZE_MESSAGE,
+    );
+    expect(mocks.uploadResourceFile).not.toHaveBeenCalled();
   });
 
   it('requires a file and a name', async () => {

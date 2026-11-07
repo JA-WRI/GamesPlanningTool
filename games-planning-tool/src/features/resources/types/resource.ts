@@ -51,6 +51,11 @@ export type NewResourceInput =
 
 export const DEFAULT_CATEGORY = 'General';
 
+export const MAX_RESOURCE_FILE_SIZE = 1_000_000_000;
+
+export const MAX_RESOURCE_FILE_SIZE_MESSAGE =
+  'The file is too large. The maximum size is 1 GB.';
+
 export const PRIMARY_CATEGORIES = [
   'Winter Games',
   'Summer Games',

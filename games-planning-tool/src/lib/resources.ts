@@ -214,29 +214,32 @@ export async function listResources(
 
 export async function createResource(input: NewResource): Promise<Resource[]> {
   const parentFolderId = input.parentId ?? null;
-  const siblings = await prisma.resource.findMany({
-    where: { parentFolderId },
-  });
-  const ordered = orderSiblingGroup(siblings);
-  const tail = ordered[ordered.length - 1];
 
-  const created = await prisma.resource.create({
-    data: {
-      name: input.name,
-      categories: normalizeCategories(input.categories),
-      parentFolderId,
-      fileOrWebpageURL: input.fileOrWebpageURL,
-      isWebpage: input.isWebpage ?? false,
-      previousElementId: tail?.id ?? null,
-    },
-  });
-
-  if (tail) {
-    await prisma.resource.update({
-      where: { id: tail.id },
-      data: { nextElementId: created.id },
+  await prisma.$transaction(async (tx) => {
+    const siblings = await tx.resource.findMany({
+      where: { parentFolderId },
     });
-  }
+    const ordered = orderSiblingGroup(siblings);
+    const tail = ordered[ordered.length - 1];
+
+    const created = await tx.resource.create({
+      data: {
+        name: input.name,
+        categories: normalizeCategories(input.categories),
+        parentFolderId,
+        fileOrWebpageURL: input.fileOrWebpageURL,
+        isWebpage: input.isWebpage ?? false,
+        previousElementId: tail?.id ?? null,
+      },
+    });
+
+    if (tail) {
+      await tx.resource.update({
+        where: { id: tail.id },
+        data: { nextElementId: created.id },
+      });
+    }
+  });
 
   return listResources();
 }

@@ -13,6 +13,8 @@ import {
   NewResourceInput,
   DEFAULT_CATEGORY,
   CANADIAN_NSOS,
+  MAX_RESOURCE_FILE_SIZE,
+  MAX_RESOURCE_FILE_SIZE_MESSAGE,
 } from '@/features/resources/types/resource';
 
 interface AddResourceModalProps {
@@ -99,6 +101,11 @@ function AddResourceForm({
     } else {
       if (!selectedFile) {
         setErrorMessage('Please select or drop a file to upload.');
+        return;
+      }
+
+      if (selectedFile.size > MAX_RESOURCE_FILE_SIZE) {
+        setErrorMessage(MAX_RESOURCE_FILE_SIZE_MESSAGE);
         return;
       }
 

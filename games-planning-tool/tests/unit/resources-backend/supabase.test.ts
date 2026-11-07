@@ -49,6 +49,16 @@ describe('uploadResourceFile', () => {
     expect(supabase.from).toHaveBeenCalledWith('resources');
   });
 
+  it('reports a size error when storage rejects the upload', async () => {
+    supabase.upload.mockResolvedValue({
+      error: { message: 'Payload too large', status: 413 },
+    });
+
+    await expect(
+      uploadResourceFile(new File(['data'], 'plan.pdf')),
+    ).rejects.toThrow('The file is too large to be stored.');
+  });
+
   it('returns the public URL of the uploaded file', async () => {
     const file = new File(['data'], 'plan.pdf', { type: 'application/pdf' });
     supabase.upload.mockResolvedValue({ error: null });

@@ -17,7 +17,12 @@ export async function uploadResourceFile(file: File): Promise<string> {
     contentType: file.type || 'application/octet-stream',
   });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.status === 413) {
+      throw new Error('The file is too large to be stored.');
+    }
+    throw new Error(error.message);
+  }
 
   return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
 }

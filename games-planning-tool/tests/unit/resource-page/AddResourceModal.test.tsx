@@ -3,6 +3,10 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
 import { AddResourceModal } from '@/features/resources/components/AddResourceModal';
+import {
+  MAX_RESOURCE_FILE_SIZE,
+  MAX_RESOURCE_FILE_SIZE_MESSAGE,
+} from '@/features/resources/types/resource';
 
 describe('AddResourceModal', () => {
   it('does not render when isOpen is false', () => {
@@ -154,6 +158,39 @@ describe('AddResourceModal', () => {
       }),
     );
     expect(handleClose).toHaveBeenCalled();
+  });
+
+  it('rejects files over the size limit', async () => {
+    const handleAdd = vi.fn();
+
+    render(
+      <AddResourceModal
+        isOpen={true}
+        onClose={() => {}}
+        onAddResource={handleAdd}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Upload File/i }));
+
+    const file = new File(['mock content'], 'huge.pdf', {
+      type: 'application/pdf',
+    });
+    Object.defineProperty(file, 'size', {
+      value: MAX_RESOURCE_FILE_SIZE + 1,
+    });
+    fireEvent.change(document.querySelector('input[type="file"]')!, {
+      target: { files: [file] },
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Add Resource' }));
+    });
+
+    expect(
+      screen.getByText(MAX_RESOURCE_FILE_SIZE_MESSAGE),
+    ).toBeInTheDocument();
+    expect(handleAdd).not.toHaveBeenCalled();
   });
 
   it('handles drag and drop file upload and drag states', () => {

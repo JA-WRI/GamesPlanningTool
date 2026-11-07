@@ -22,8 +22,13 @@ const db = vi.hoisted(() => ({
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     resource: db,
-    $transaction: vi.fn((operations: Promise<unknown>[]) =>
-      Promise.all(operations),
+    $transaction: vi.fn(
+      (
+        arg:
+          | Promise<unknown>[]
+          | ((tx: { resource: typeof db }) => Promise<unknown>),
+      ) =>
+        typeof arg === 'function' ? arg({ resource: db }) : Promise.all(arg),
     ),
   },
 }));
