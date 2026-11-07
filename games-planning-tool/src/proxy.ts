@@ -20,6 +20,6 @@ export function proxy(request: NextRequest) {
 export const config = {
   // Skip Next internals and static files (images, icons, etc.).
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\.(?:png|jpg|jpeg|gif|svg|webp|ico)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico)$).*)',
   ],
 };
