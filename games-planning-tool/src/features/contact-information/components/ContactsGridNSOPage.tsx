@@ -1,7 +1,7 @@
 // AI contribution: Below 50% AI-generated
 // AI Generated content for refactoring of code duplication in page.tsx files.
 'use client';
-
+import { useMemo } from 'react';
 import { ColumnDefinition } from '@/components/commons/Grid';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 
@@ -15,7 +15,14 @@ export interface ContactRow extends Record<string, unknown> {
   phone: string;
 }
 
-export const contactColumns: ColumnDefinition<ContactRow>[] = [
+export const nsoContactColumns: ColumnDefinition<ContactRow>[] = [
+  {
+    field: 'role',
+    label: 'Role',
+    placeholder: 'Enter Role',
+    align: 'left',
+    readOnly: true,
+  },
   { field: 'firstName', label: 'First Name', placeholder: 'Enter First Name' },
   { field: 'lastName', label: 'Last Name', placeholder: 'Enter Last Name' },
   {
@@ -24,7 +31,6 @@ export const contactColumns: ColumnDefinition<ContactRow>[] = [
     type: 'email',
     placeholder: 'Enter Email',
   },
-  { field: 'role', label: 'Role', placeholder: 'Enter Role', align: 'center' },
   {
     field: 'countryCode',
     label: 'Country Code',
@@ -40,35 +46,49 @@ export const contactColumns: ColumnDefinition<ContactRow>[] = [
   },
 ];
 
-interface ContactsGridPageProps {
+const createRowForRole = (role: string): ContactRow => ({
+  id: crypto.randomUUID(),
+  firstName: '',
+  lastName: '',
+  email: '',
+  role,
+  countryCode: '',
+  phone: '',
+});
+
+interface ContactsGridNSOPageProps {
   title: string;
   description: string;
+  roles: string[];
   initialData?: ContactRow[];
   readOnly?: boolean;
 }
 
-export default function ContactsGridPage({
+export default function ContactsGridNSOPage({
   title,
   description,
+  roles,
   initialData = [],
   readOnly = false,
-}: ContactsGridPageProps) {
+}: ContactsGridNSOPageProps) {
+  const rows = useMemo(
+    () =>
+      roles.map(
+        (role) =>
+          initialData.find((r) => r.role === role) ?? createRowForRole(role),
+      ),
+    [roles, initialData],
+  );
   return (
     <BaseGridPage<ContactRow>
+      key={roles.join('|')}
       title={title}
       description={description}
-      initialData={initialData}
-      columns={contactColumns}
-      createEmptyRow={() => ({
-        id: crypto.randomUUID(),
-        firstName: '',
-        lastName: '',
-        email: '',
-        role: '',
-        countryCode: '',
-        phone: '',
-      })}
-      addButtonLabel="Add Another Contact"
+      initialData={rows}
+      columns={nsoContactColumns}
+      createEmptyRow={() => createRowForRole('')}
+      allowAddRow={false}
+      allowDelete={false}
       searchPlaceholder="Search contacts by name, email, role..."
       readOnly={readOnly}
     />

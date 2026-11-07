@@ -1,5 +1,5 @@
 // No substantial AI-generated code
-import ContactsGridPage from '../../../../../../features/contact-information/components/ContactsGridPage';
+import ContactsGridPageCOC from '../../../../../../features/contact-information/components/ContactsGridCOCPage';
 
 const initialCocData = [
   {
@@ -24,7 +24,7 @@ const initialCocData = [
 
 export default function Page() {
   return (
-    <ContactsGridPage
+    <ContactsGridPageCOC
       title="COC Contacts"
       description="Canadian Olympic Committee contact details and key personnel information."
       initialData={initialCocData}
