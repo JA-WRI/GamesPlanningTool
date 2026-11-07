@@ -4,57 +4,16 @@
 import { useMemo } from 'react';
 import { ColumnDefinition } from '@/components/commons/Grid';
 import BaseGridPage from '@/components/commons/BaseGridPage';
+import {
+  ContactRow,
+  baseContactColumns,
+  createEmptyContactRow,
+} from '@/components/contact-information/ContactGrid';
 
-export interface ContactRow extends Record<string, unknown> {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  countryCode: string;
-  phone: string;
-}
-
-export const nsoContactColumns: ColumnDefinition<ContactRow>[] = [
-  {
-    field: 'role',
-    label: 'Role',
-    placeholder: 'Enter Role',
-    align: 'left',
-    readOnly: true,
-  },
-  { field: 'firstName', label: 'First Name', placeholder: 'Enter First Name' },
-  { field: 'lastName', label: 'Last Name', placeholder: 'Enter Last Name' },
-  {
-    field: 'email',
-    label: 'Email Address',
-    type: 'email',
-    placeholder: 'Enter Email',
-  },
-  {
-    field: 'countryCode',
-    label: 'Country Code',
-    placeholder: 'Enter Country Code',
-    align: 'center',
-  },
-  {
-    field: 'phone',
-    label: 'Telephone Number',
-    type: 'tel',
-    placeholder: 'Enter Phone Number',
-    align: 'center',
-  },
-];
-
-const createRowForRole = (role: string): ContactRow => ({
-  id: crypto.randomUUID(),
-  firstName: '',
-  lastName: '',
-  email: '',
-  role,
-  countryCode: '',
-  phone: '',
-});
+export const nsoContactColumns: ColumnDefinition<ContactRow>[] =
+  baseContactColumns.map((col) =>
+    col.field === 'role' ? { ...col, readOnly: true } : col,
+  );
 
 interface ContactsGridNSOPageProps {
   title: string;
@@ -75,7 +34,8 @@ export default function ContactsGridNSOPage({
     () =>
       roles.map(
         (role) =>
-          initialData.find((r) => r.role === role) ?? createRowForRole(role),
+          initialData.find((r) => r.role === role) ??
+          createEmptyContactRow(role),
       ),
     [roles, initialData],
   );
@@ -86,7 +46,7 @@ export default function ContactsGridNSOPage({
       description={description}
       initialData={rows}
       columns={nsoContactColumns}
-      createEmptyRow={() => createRowForRole('')}
+      createEmptyRow={() => createEmptyContactRow()}
       allowAddRow={false}
       allowDelete={false}
       searchPlaceholder="Search contacts by name, email, role..."
