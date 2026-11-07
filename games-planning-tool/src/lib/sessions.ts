@@ -1,25 +1,47 @@
-//no substantial AI generated code
-import { connection } from 'next/server';
-import { Role } from './types';
-import { getGames } from '@/lib/queries/games';
-import { getNsos } from '@/lib/queries/nsos';
+//Less than 50% AI generated to fix sessions to work with devSessions (temporary until auth is implemented)
+// TEMPORARY dev session: the "logged in" user is whichever DB user is picked in
+// the header's user switcher (stored in a cookie). Replace with real auth later.
+import 'server-only';
+import { cache } from 'react';
+import { cookies } from 'next/headers';
+import type { AppUser, GameWithNsos } from './types';
+import { getGamesWithNsos } from '@/lib/queries/games';
+import { getActiveUsers } from '@/lib/queries/users';
+
+export const DEV_USER_COOKIE = 'dev-user-id';
 
 export type Session = {
-  user: {
-    role: Role;
-    gameId: number;
-    nsoId?: string;
+  user: AppUser & {
+    gameId: number; // the game to land on
   };
 };
 
-export async function getSession(): Promise<Session | null> {
-  // Sessions are per-request: never run this (or the DB queries below) at build time.
-  // Real auth will read cookies(), which has the same effect.
-  await connection();
-  const [games, nsos] = await Promise.all([getGames(), getNsos()]);
-  if (!games.length) return null; // nothing seeded yet
-
-  return { user: { role: 'admin', gameId: games[0].id, nsoId: undefined } };
-  // return { user: { role: 'coc', gameId: games[0].id, nsoId: undefined } };
-  // return { user: { role: 'nso', gameId: games[0].id, nsoId: nsos[0]?.id } };
+// The game a user lands on: NSO users get the first game their NSO is part of.
+export function landingGame(user: AppUser, games: GameWithNsos[]) {
+  return user.role === 'nso'
+    ? games.find((g) => g.nsos.some((n) => n.id === user.nsoId))
+    : games[0];
 }
+
+// cache(): the layout, pages and header all call this once per request.
+export const getSession = cache(async (): Promise<Session | null> => {
+  // cookies() is request-time, so this (and the DB queries) never run at build time.
+  const cookieStore = await cookies();
+  const [users, games] = await Promise.all([
+    getActiveUsers(),
+    getGamesWithNsos(),
+  ]);
+
+  // Picked user, falling back to the first admin, then the first user.
+  const pickedId = cookieStore.get(DEV_USER_COOKIE)?.value;
+  const user =
+    users.find((u) => u.id === pickedId) ??
+    users.find((u) => u.role === 'admin') ??
+    users[0];
+  if (!user) return null; // no users seeded yet
+
+  const game = landingGame(user, games);
+  if (!game) return null; // no (matching) games seeded yet
+
+  return { user: { ...user, gameId: game.id } };
+});

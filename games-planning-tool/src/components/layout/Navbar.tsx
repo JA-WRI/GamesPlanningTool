@@ -135,10 +135,10 @@ export default function Navbar({
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   const moreBtnMeasureRef = useRef<HTMLButtonElement>(null);
 
+  // Before the first measurement (server render / before hydration) every tab is
+  // shown; the container's overflow-hidden clips any that don't fit. Once measured,
+  // the extras move into the three-dot menu. This avoids a blank navbar on load.
   const [visibleCount, setVisibleCount] = useState(itemCount);
-  // Stays false until the first measurement, so the server-rendered (unmeasured)
-  // navbar is never visible.
-  const [measured, setMeasured] = useState(false);
 
   const routeKey = `${pathname}?${searchParams.toString()}`;
   const [menuOpen, setMenuOpen] = useState(false);
@@ -173,7 +173,6 @@ export default function Navbar({
           activeIndex,
         }),
       );
-      setMeasured(true);
     };
 
     recalculate();
@@ -251,9 +250,7 @@ export default function Navbar({
       {/* Actual navbar */}
       <ul
         ref={containerRef}
-        className={`flex divide-x divide-gray-200 overflow-hidden ${
-          measured ? '' : 'invisible'
-        }`}
+        className="flex divide-x divide-gray-200 overflow-hidden"
       >
         {shownItems.map(({ label, path, href, icon, active }) => (
           <li key={path} className="flex flex-1 shrink-0">

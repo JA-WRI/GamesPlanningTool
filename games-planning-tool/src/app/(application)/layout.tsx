@@ -1,31 +1,19 @@
-import { getSession } from '@/lib/sessions';
-import Header from '@/components/layout/Header';
-import Navbar from '@/components/layout/Navbar';
 import { Suspense } from 'react';
-import { getGamesWithNsos } from '@/lib/queries/games';
+import AppChrome from '@/components/layout/AppChrome';
+import HeaderSkeleton from '@/components/layout/HeaderSkeleton';
 
-export default async function ApplicationLayout({
+// Kept synchronous on purpose: anything reading cookies/the DB here would block
+// the whole screen (loading.tsx can't cover its own layout). The header/nav data
+// loads inside <Suspense>, and pages below show loading.tsx while they load.
+export default function ApplicationLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  //TODO: replace with real sessions later
-  const session = await getSession();
-  if (!session) return null; //TODO: prompt to login again
-
-  const { role, nsoId } = session.user;
-  const allGames = await getGamesWithNsos();
-  // NSO users only see the games their NSO participates in.
-  const games =
-    role === 'nso'
-      ? allGames.filter((g) => g.nsos.some((n) => n.id === nsoId))
-      : allGames;
-
   return (
     <>
-      <Header role={role} games={games} />
-      <Suspense>
-        <Navbar role={role} userNsoId={nsoId} games={games} />
+      <Suspense fallback={<HeaderSkeleton />}>
+        <AppChrome />
       </Suspense>
       <main className="page-container p-4">{children}</main>
     </>
