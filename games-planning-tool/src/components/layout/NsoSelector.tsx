@@ -1,6 +1,4 @@
 'use client';
-import React from 'react';
-import { Nsos } from '@/lib/data';
 import {
   useRouter,
   useParams,
@@ -8,8 +6,9 @@ import {
   useSearchParams,
 } from 'next/navigation';
 import { nsoSwitchHref } from '@/lib/routing/Navigation';
+import { Nso } from '@/lib/types';
 
-export default function NsoSelector() {
+export default function NsoSelector({ nsos }: { nsos: Nso[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -42,7 +41,7 @@ export default function NsoSelector() {
           Select NSO
         </option>
       )}
-      {Nsos.map((nso) => (
+      {nsos.map((nso) => (
         <option key={nso.id} value={nso.id}>
           {nso.name}
         </option>

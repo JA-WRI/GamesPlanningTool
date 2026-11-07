@@ -1,11 +1,16 @@
 'use client';
-import React from 'react';
-import { Games } from '@/lib/data';
 import { Role } from '@/lib/types';
 import { useRouter, useParams } from 'next/navigation';
 import { gameSwitchHref } from '@/lib/routing/Navigation';
+import { Game } from '@/lib/types';
 
-export default function GamesSelector({ role }: { role: Role }) {
+export default function GamesSelector({
+  role,
+  games,
+}: {
+  role: Role;
+  games: Game[];
+}) {
   const router = useRouter();
   const params = useParams<{ gameId?: string; nsoId?: string }>();
 
@@ -25,7 +30,7 @@ export default function GamesSelector({ role }: { role: Role }) {
           Select game
         </option>
       )}
-      {Games.map((game) => (
+      {games.map((game) => (
         <option key={game.id} value={game.id}>
           {game.name}
         </option>
