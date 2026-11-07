@@ -9,3 +9,4 @@ Generative AI tools used
 List of PR With Over 50% of AI Generated Work
 (each PR has its user story linked in the comment)
 1. [PR #37](https://github.com/JA-WRI/GamesPlanningTool/pull/37)
+2. [PR #30](https://github.com/JA-WRI/GamesPlanningTool/pull/30)
