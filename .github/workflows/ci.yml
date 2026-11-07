@@ -110,10 +110,6 @@ jobs:
       - name: Apply database migrations
         run: npm run db:migrate
 
-      # The app needs users and games to render (no session otherwise).
-      - name: Seed database
-        run: npm run db:seed
-
       - name: Install Playwright browsers
         run: npm run e2e:install
 

@@ -1,16 +1,10 @@
 import Image from 'next/image';
 import GamesSelector from './GamesSelector';
 import NsoSelector from './NsoSelector';
-import { GameWithNsos, Role } from '@/lib/types';
+import { Role } from '@/lib/types';
 import { Suspense } from 'react';
 
-export default function Header({
-  role,
-  games,
-}: {
-  role: Role;
-  games: GameWithNsos[];
-}) {
+export default function Header({ role }: { role: Role }) {
   return (
     <div className="flex items-center justify-between bg-terracotta p-3">
       <div className="page-container justify-between flex items-center">
@@ -28,12 +22,10 @@ export default function Header({
             </div>
           </div>
           <div className="flex gap-8">
-            <Suspense>
-              <GamesSelector role={role} games={games} />
-            </Suspense>
+            <GamesSelector role={role} />
             {(role === 'coc' || role === 'admin') && (
               <Suspense>
-                <NsoSelector games={games} />
+                <NsoSelector />
               </Suspense>
             )}
           </div>

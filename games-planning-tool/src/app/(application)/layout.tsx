@@ -1,9 +1,7 @@
-import { getSession } from '@/lib/sessions';
+import { getSession } from '@/lib/data';
 import Header from '@/components/layout/Header';
 import Navbar from '@/components/layout/Navbar';
 import { Suspense } from 'react';
-import { getGamesWithNsos } from '@/lib/queries/games';
-import { gameHasNso } from '@/lib/routing/Navigation';
 
 export default async function ApplicationLayout({
   children,
@@ -14,17 +12,11 @@ export default async function ApplicationLayout({
   const session = await getSession();
   if (!session) return null; //TODO: prompt to login again
 
-  const { role, nsoId } = session.user;
-  const allGames = await getGamesWithNsos();
-  // NSO users only see the games their NSO participates in.
-  const games =
-    role === 'nso' ? allGames.filter((g) => gameHasNso(g, nsoId)) : allGames;
-
   return (
     <>
-      <Header role={role} games={games} />
+      <Header role={session.user.role} />
       <Suspense>
-        <Navbar role={role} userNsoId={nsoId} games={games} />
+        <Navbar role={session.user.role} />
       </Suspense>
       <main className="page-container p-4">{children}</main>
     </>

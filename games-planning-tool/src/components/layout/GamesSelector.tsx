@@ -1,46 +1,32 @@
-//No substantial AI generated code
 'use client';
-import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { findGame, gameHasNso, gameSwitchHref } from '@/lib/routing/Navigation';
-import { GameWithNsos, Role } from '@/lib/types';
+import React from 'react';
+import { Games } from '@/lib/data';
+import { Role } from '@/lib/types';
+import { useRouter, useParams } from 'next/navigation';
+import { gameSwitchHref } from '@/lib/routing/Navigation';
 
-export default function GamesSelector({
-  role,
-  games,
-}: {
-  role: Role;
-  games: GameWithNsos[];
-}) {
+export default function GamesSelector({ role }: { role: Role }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const params = useParams<{ gameId?: string; nsoId?: string }>();
 
-  const currentGame = findGame(games, params.gameId);
-
   function handleChange(newGameId: string) {
-    // NSO users: their own NSO comes from the URL (layouts guarantee it's theirs).
-    // COC/Admin: carry the picked NSO over only if it's part of the new game.
-    const picked = params.nsoId ?? searchParams.get('nso') ?? undefined;
-    const keepPicked = gameHasNso(findGame(games, newGameId), picked)
-      ? picked
-      : undefined;
-    router.push(gameSwitchHref(newGameId, role, params.nsoId, keepPicked));
+    router.push(gameSwitchHref(newGameId, role, params.nsoId));
   }
 
   return (
     <select
-      value={currentGame ? String(currentGame.id) : ''}
+      value={params.gameId ?? ''}
       onChange={(e) => handleChange(e.target.value)}
       aria-label="Select game"
       className="rounded-full bg-white px-6 p-2 pr-5 text-xs font-semibold outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-burgundy"
     >
-      {!currentGame && (
+      {!params.gameId && (
         <option value="" disabled>
           Select game
         </option>
       )}
-      {games.map((game) => (
-        <option key={game.id} value={String(game.id)}>
+      {Games.map((game) => (
+        <option key={game.id} value={game.id}>
           {game.name}
         </option>
       ))}

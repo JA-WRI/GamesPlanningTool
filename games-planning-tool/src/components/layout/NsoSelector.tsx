@@ -1,33 +1,29 @@
-//No substatial AI generated Code
 'use client';
+import React from 'react';
+import { Nsos } from '@/lib/data';
 import {
   useRouter,
   useParams,
   usePathname,
   useSearchParams,
 } from 'next/navigation';
-import { findGame, nsoSwitchHref } from '@/lib/routing/Navigation';
-import { GameWithNsos } from '@/lib/types';
+import { nsoSwitchHref } from '@/lib/routing/Navigation';
 
-export default function NsoSelector({ games }: { games: GameWithNsos[] }) {
+export default function NsoSelector() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const params = useParams<{ gameId?: string; nsoId?: string }>();
+  const params = useParams<{ gameId: string; nsoId?: string }>();
 
-  const game = findGame(games, params.gameId);
-  if (!params.gameId || !game) return null; //for the admin pages
+  if (!params.gameId) return null; //for the admin pages
 
-  const nsos = game.nsos;
-  const picked = params.nsoId ?? searchParams.get('nso');
-  // Ignore a stale/invalid ?nso= that isn't part of this game.
-  const selected = nsos.some((n) => n.id === picked) ? picked! : '';
+  const selected = params.nsoId ?? searchParams.get('nso') ?? '';
 
   function handleChange(newNsoId: string) {
     router.push(
       nsoSwitchHref({
         pathname,
-        gameId: params.gameId!,
+        gameId: params.gameId,
         nsoId: params.nsoId,
         newNso: newNsoId,
       }),
@@ -39,15 +35,14 @@ export default function NsoSelector({ games }: { games: GameWithNsos[] }) {
       value={selected}
       onChange={(e) => handleChange(e.target.value)}
       aria-label="Select Nso"
-      disabled={nsos.length === 0}
       className="rounded-full bg-white px-6 p-2 pr-5 text-xs font-semibold outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-burgundy"
     >
-      {!selected && (
+      {!params.nsoId && (
         <option value="" disabled>
-          {nsos.length ? 'Select NSO' : 'No NSOs in this game'}
+          Select NSO
         </option>
       )}
-      {nsos.map((nso) => (
+      {Nsos.map((nso) => (
         <option key={nso.id} value={nso.id}>
           {nso.name}
         </option>

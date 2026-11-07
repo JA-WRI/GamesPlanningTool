@@ -4,8 +4,6 @@ import {
   isActive,
   gameSwitchHref,
   nsoSwitchHref,
-  findGame,
-  gameHasNso,
 } from '@/lib/routing/Navigation';
 import { describe, it, expect } from 'vitest';
 
@@ -13,64 +11,51 @@ const base = { game: 'game1', nso: 'usa' };
 
 describe('tabRoute', () => {
   it('NSO dashboard includes their NSO', () => {
-    expect(tabRoute('dashboard', { ...base, role: 'nso' })!.href).toBe(
+    expect(tabRoute('dashboard', { ...base, role: 'nso' }).href).toBe(
       '/game1/usa/dashboard',
     );
   });
   it('COC dashboard is the game overview', () => {
-    expect(tabRoute('dashboard', { ...base, role: 'coc' })!.href).toBe(
+    expect(tabRoute('dashboard', { ...base, role: 'coc' }).href).toBe(
       '/game1/dashboard',
     );
   });
   it('COC dashboard keeps the picked NSO in href but not in route', () => {
-    const r = tabRoute('dashboard', { ...base, role: 'admin', picked: 'can' })!;
+    const r = tabRoute('dashboard', { ...base, role: 'admin', picked: 'can' });
     expect(r.href).toBe('/game1/dashboard?nso=can');
     expect(r.route).toBe('/game1/dashboard');
   });
   it('NSO role never gets ?nso=', () => {
     expect(
-      tabRoute('dashboard', { ...base, role: 'nso', picked: 'can' })!.href,
+      tabRoute('dashboard', { ...base, role: 'nso', picked: 'can' }).href,
     ).toBe('/game1/usa/dashboard');
   });
   it('admin paths are used as-is', () => {
     expect(
-      tabRoute('/admin/user-management', { ...base, role: 'admin' })!.href,
+      tabRoute('/admin/user-management', { ...base, role: 'admin' }).href,
     ).toBe('/admin/user-management');
   });
   it('resources tab routes to editable management for COC/Admin and view-only for NSO', () => {
-    expect(tabRoute('resources', { ...base, role: 'nso' })!.href).toBe(
+    expect(tabRoute('resources', { ...base, role: 'nso' }).href).toBe(
       '/game1/usa/resources',
     );
-    expect(tabRoute('resources', { ...base, role: 'coc' })!.href).toBe(
+    expect(tabRoute('resources', { ...base, role: 'coc' }).href).toBe(
       '/game1/usa/resources',
     );
-    expect(tabRoute('resources', { ...base, role: 'admin' })!.href).toBe(
+    expect(tabRoute('resources', { ...base, role: 'admin' }).href).toBe(
       '/admin/resource-management',
     );
   });
   it('other tabs live under the NSO', () => {
     for (const p of ['calculator', 'team-journey', 'contact-information']) {
-      expect(tabRoute(p, { ...base, role: 'coc' })!.href).toBe(
+      expect(tabRoute(p, { ...base, role: 'coc' }).href).toBe(
         `/game1/usa/${p}`,
       );
     }
   });
-  it('returns null for NSO tabs when there is no NSO', () => {
-    expect(tabRoute('calculator', { game: 'game1', role: 'coc' })).toBeNull();
-    expect(tabRoute('dashboard', { game: 'game1', role: 'nso' })).toBeNull();
-    expect(tabRoute('dashboard', { game: 'game1', role: 'coc' })!.href).toBe(
-      '/game1/dashboard',
-    );
-  });
-  it('returns null for game tabs when there is no game, but keeps admin pages', () => {
-    expect(tabRoute('dashboard', { role: 'admin' })).toBeNull();
-    expect(tabRoute('resources', { role: 'admin' })!.href).toBe(
-      '/admin/resource-management',
-    );
-  });
   it('never produces "undefined"', () => {
     for (const p of ['dashboard', 'calculator', 'resources']) {
-      expect(tabRoute(p, { ...base, role: 'coc' })!.href).not.toContain(
+      expect(tabRoute(p, { ...base, role: 'coc' }).href).not.toContain(
         'undefined',
       );
     }
@@ -105,34 +90,6 @@ describe('gameSwitchHref', () => {
   });
   it('NSO without an nsoId falls back to the game overview', () => {
     expect(gameSwitchHref('game2', 'nso')).toBe('/game2/dashboard');
-  });
-  it('COC/Admin keep a picked NSO that is valid for the new game', () => {
-    expect(gameSwitchHref('game2', 'coc', undefined, 'can')).toBe(
-      '/game2/dashboard?nso=can',
-    );
-  });
-  it('NSO role ignores pickedNso', () => {
-    expect(gameSwitchHref('game2', 'nso', 'usa', 'can')).toBe(
-      '/game2/usa/dashboard',
-    );
-  });
-});
-
-describe('findGame / gameHasNso', () => {
-  const games = [
-    { id: 1, name: 'LA 2028', nsos: [{ id: 'usa', name: 'USA' }] },
-    { id: 2, name: 'Milan 2026', nsos: [] },
-  ];
-  it('matches numeric ids against string params', () => {
-    expect(findGame(games, '1')?.name).toBe('LA 2028');
-    expect(findGame(games, '1.0')).toBeUndefined();
-    expect(findGame(games, undefined)).toBeUndefined();
-  });
-  it('checks NSO participation', () => {
-    expect(gameHasNso(findGame(games, '1'), 'usa')).toBe(true);
-    expect(gameHasNso(findGame(games, '2'), 'usa')).toBe(false);
-    expect(gameHasNso(undefined, 'usa')).toBe(false);
-    expect(gameHasNso(findGame(games, '1'), null)).toBe(false);
   });
 });
 

@@ -15,7 +15,6 @@
     "test:watch": "vitest",
     "prisma:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts",
     "e2e:install": "playwright install --with-deps",
     "e2e": "playwright test",
     "typecheck": "next typegen && tsc --noEmit"

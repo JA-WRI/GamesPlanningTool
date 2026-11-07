@@ -1,7 +1,5 @@
+import { Games } from '@/lib/data';
 import { notFound } from 'next/navigation';
-import { getGamesWithNsos } from '@/lib/queries/games';
-import { findGame } from '@/lib/routing/Navigation';
-
 export default async function GameLayout({
   children,
   params,
@@ -10,8 +8,6 @@ export default async function GameLayout({
   params: Promise<{ gameId: string }>;
 }) {
   const { gameId } = await params;
-  // The game must exist (matched against the cached list, so a bad id never reaches Prisma).
-  if (!findGame(await getGamesWithNsos(), gameId)) notFound();
-
+  if (!Games.some((g) => g.id === gameId)) notFound();
   return <>{children}</>;
 }
