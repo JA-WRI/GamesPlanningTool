@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 import React from 'react';
 import { ResourcesPageContent } from '@/features/resources/components/ResourcesPageContent';
 import { listResources } from '@/lib/resources';

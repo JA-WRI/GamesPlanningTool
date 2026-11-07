@@ -1,3 +1,4 @@
+// 50% or more AI-generated
 import { createClient } from '@supabase/supabase-js';
 
 const bucket = process.env.SUPABASE_RESOURCES_BUCKET ?? 'resources';

@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 'use client';
 
 import React, { useState, useRef } from 'react';
@@ -23,6 +23,7 @@ interface AddResourceModalProps {
   onAddResource: (input: NewResourceInput) => Promise<void>;
 }
 
+// Exceeds 50 lines: one form handles link and file input, categories, and validation.
 function AddResourceForm({
   preselectedCategory,
   preselectedFolderId,

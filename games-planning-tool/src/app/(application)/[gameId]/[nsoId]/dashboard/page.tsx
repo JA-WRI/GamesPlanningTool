@@ -1,3 +1,4 @@
+// 50% or more AI-generated
 // This page has been coded by both me and AI (50%).
 // I started coding the general structure of the page and used AI to accelerate the process and get the right placement of elements
 // Static preview data. Connect to real data when functionality is added.

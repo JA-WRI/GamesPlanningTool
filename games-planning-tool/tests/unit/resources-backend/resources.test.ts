@@ -1,3 +1,4 @@
+// 50% or more AI-generated
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ResourceModel } from '@/generated/prisma/models/Resource';
 import {

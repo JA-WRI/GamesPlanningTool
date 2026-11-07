@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
@@ -15,6 +15,7 @@ interface ResourceDetailModalProps {
   onCategoriesChange?: (id: string, newCategories: string[]) => void;
 }
 
+// Exceeds 50 lines: one dialog handles details, renaming, and category editing.
 export function ResourceDetailModal({
   resource,
   onClose,

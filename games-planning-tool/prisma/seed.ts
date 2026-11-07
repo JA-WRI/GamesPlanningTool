@@ -1,4 +1,5 @@
-// 50% or more AI-generated seed data and supporting setup code to have shared generic information accross developer databases
+// 50% or more AI-generated
+// Exceeds 500 lines: mostly seed data so all developer databases share generic content.
 import 'dotenv/config';
 import crypto from 'crypto';
 import { prisma } from '../src/lib/prisma';
@@ -898,6 +899,7 @@ async function seedResources() {
   await updateResourceLinks(allRecords);
 }
 
+// Exceeds 50 lines: seeds every record type in dependency order.
 async function main() {
   // Wipe in dependency order (children first)
   await prisma.resource.deleteMany();

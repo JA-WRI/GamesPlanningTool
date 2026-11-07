@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 'use client';
 
 import React, { useState, useMemo, useRef } from 'react';
@@ -34,6 +34,7 @@ export interface ResourcesPageContentProps {
   isReadOnly?: boolean;
 }
 
+// Exceeds 50 lines: one component wires page state, drag-and-drop, and all modals together.
 export function ResourcesPageContent({
   initialResources,
   isReadOnly = false,

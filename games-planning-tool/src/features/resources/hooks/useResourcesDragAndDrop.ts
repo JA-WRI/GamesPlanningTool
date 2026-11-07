@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -19,6 +19,7 @@ interface UseResourcesDragAndDropProps {
   setIsEditing: (isEditing: boolean) => void;
 }
 
+// Exceeds 50 lines: drag state and drop/reorder logic share one hook.
 export function useResourcesDragAndDrop({
   filteredResources,
   allResources,

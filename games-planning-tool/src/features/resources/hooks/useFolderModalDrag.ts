@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -32,6 +32,7 @@ export interface UseFolderModalDragProps {
   localOrderedRef: React.MutableRefObject<Resource[]>;
 }
 
+// Exceeds 50 lines: pointer drag, hover timers, and drop handling share one hook.
 export function useFolderModalDrag({
   isReadOnly,
   allResources,

@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
@@ -46,6 +46,7 @@ export interface FolderDirectoryModalProps {
   ) => void;
 }
 
+// Exceeds 50 lines: the modal combines navigation, drag-and-drop, and inline editing.
 export function FolderDirectoryModal({
   folder,
   allResources,

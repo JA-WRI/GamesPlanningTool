@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 'use client';
 
 import React, { useState } from 'react';
@@ -15,6 +15,7 @@ import { FolderDirectoryModal } from '@/features/resources/components/FolderDire
 import Link from 'next/link';
 import { ResourceDetailModal } from '@/features/resources/components/ResourceDetailModal';
 
+// Exceeds 50 lines: renders the category-filtered resource strip and its folder modal.
 export function DashboardResourceRow({
   gameId,
   nsoId,

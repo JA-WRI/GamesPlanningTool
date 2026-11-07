@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 /**
  * Test Suite Note: This file exceeds 500 lines due to extensive test coverage
  * required for the core ResourcesPageContent dashboard: responsive wrapping grid

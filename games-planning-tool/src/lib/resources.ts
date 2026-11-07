@@ -1,3 +1,4 @@
+// 50% or more AI-generated
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@/generated/prisma/client';
 import type { ResourceModel } from '@/generated/prisma/models/Resource';
@@ -278,6 +279,7 @@ export async function deleteResources(ids: string[]): Promise<Resource[]> {
   return listResources();
 }
 
+// Exceeds 50 lines: validates targets, links siblings, and reorders the old parent.
 export async function moveResources(
   ids: string[],
   targetParentId: string | null,

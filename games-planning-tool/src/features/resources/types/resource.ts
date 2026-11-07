@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 export interface BaseResource {
   id: string;
   name: string;
