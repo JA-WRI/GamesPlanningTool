@@ -4,12 +4,12 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import ContactsGridPageCOC from '../../../src/features/contact-information/components/ContactsGridCOCPage';
+import ContactsGridCOCPage from '../../../src/features/contact-information/components/ContactsGridCOCPage';
 
 describe('ContactsGridPage', () => {
   it('renders base grid page with correct title and initial data', () => {
     render(
-      <ContactsGridPageCOC
+      <ContactsGridCOCPage
         title="COC Contacts"
         description="Manage COC contact records."
       />,

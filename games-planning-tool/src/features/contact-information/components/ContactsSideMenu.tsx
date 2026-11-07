@@ -27,7 +27,6 @@ const navItems: MenuItem[] = [
     slug: 'pgtc-info',
     icon: PlaneLanding,
   },
-  { label: 'Test', slug: 'test', icon: FlaskConical }, // to be deleted after feature is checked
 ];
 
 export default function ContactsSideMenu() {
