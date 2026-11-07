@@ -146,13 +146,13 @@ model Resource {
   isWebpage Boolean @map("is_webpage") @default(false)
   categories String[] @default([])
 
-  previousElementId String? @map("previous_element_id") @db.Uuid
+  previousElementId String? @map("previous_element_id") @db.Uuid @unique
   previous Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
-  nextFromPrevious Resource[] @relation("PreviousElement")
+  nextFromPrevious Resource @relation("PreviousElement")
 
-  nextElementId String? @map("next_element_id") @db.Uuid
+  nextElementId String? @map("next_element_id") @db.Uuid @unique
   next Resource? @relation("NextElement", fields: [nextElementId], references: [id])
-  previousFromNext Resource[] @relation("NextElement")
+  previousFromNext Resource @relation("NextElement")
 
   @@map("resources")
 }
