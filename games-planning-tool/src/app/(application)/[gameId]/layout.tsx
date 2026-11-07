@@ -1,5 +1,7 @@
 import { Games } from '@/lib/data';
 import { notFound } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
+
 export default async function GameLayout({
   children,
   params,
@@ -8,6 +10,19 @@ export default async function GameLayout({
   params: Promise<{ gameId: string }>;
 }) {
   const { gameId } = await params;
-  if (!Games.some((g) => g.id === gameId)) notFound();
+  if (!Games.some((game) => game.id === gameId)) {
+    const dbGameId = Number(gameId);
+
+    if (!/^\d+$/.test(gameId) || dbGameId < 1 || dbGameId > 2_147_483_647) {
+      notFound();
+    }
+
+    const game = await prisma.game.findUnique({
+      where: { id: dbGameId },
+      select: { id: true },
+    });
+
+    if (!game) notFound();
+  }
   return <>{children}</>;
 }
