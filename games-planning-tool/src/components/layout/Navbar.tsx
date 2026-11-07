@@ -107,9 +107,7 @@ export default function Navbar({
   const rawPicked = nsoId ?? searchParams.get('nso');
   const pickedNso = gameHasNso(currentGame, rawPicked) ? rawPicked : null;
   const nso =
-    role === 'nso'
-      ? userNsoId
-      : (pickedNso ?? currentGame?.nsos[0]?.id ?? undefined);
+    role === 'nso' ? userNsoId : (pickedNso ?? currentGame?.nsos[0]?.id);
 
   // Only show navigation items allowed for the current role, and drop any
   // that can't be built (no game, or an NSO tab with no NSO available).

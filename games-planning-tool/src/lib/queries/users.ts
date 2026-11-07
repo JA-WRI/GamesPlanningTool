@@ -17,7 +17,6 @@ const userSelect = {
   lastName: true,
   role: true,
   nsoId: true,
-  nso: { select: { name: true } },
 } as const;
 
 type UserRow = {
@@ -26,7 +25,6 @@ type UserRow = {
   lastName: string;
   role: DbRole;
   nsoId: string | null;
-  nso: { name: string } | null;
 };
 
 function toAppUser(u: UserRow): AppUser {
@@ -35,11 +33,10 @@ function toAppUser(u: UserRow): AppUser {
     name: `${u.firstName} ${u.lastName}`,
     role: ROLE_MAP[u.role],
     nsoId: u.nsoId ?? undefined,
-    nsoName: u.nso?.name,
   };
 }
 
-// Active users, for the dev user switcher (until real auth exists).
+// Active users, for the dev session / role toggle (until real auth exists).
 export const getActiveUsers = cache(async (): Promise<AppUser[]> => {
   const rows = await prisma.user.findMany({
     where: { status: 'active' },

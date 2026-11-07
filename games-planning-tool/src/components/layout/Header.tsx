@@ -3,16 +3,16 @@ import Image from 'next/image';
 import GamesSelector from './GamesSelector';
 import NsoSelector from './NsoSelector';
 import UserSwitcher from './UserSwitcher';
-import { AppUser, GameWithNsos } from '@/lib/types';
+import { AppUser, GameWithNsos, Role } from '@/lib/types';
 import { Suspense } from 'react';
 
 export default function Header({
   user,
-  users,
+  availableRoles,
   games,
 }: {
   user: AppUser;
-  users: AppUser[];
+  availableRoles: Role[];
   games: GameWithNsos[];
 }) {
   const { role } = user;
@@ -45,7 +45,7 @@ export default function Header({
             )}
           </div>
         </div>
-        <UserSwitcher user={user} users={users} />
+        <UserSwitcher user={user} availableRoles={availableRoles} />
       </div>
     </div>
   );

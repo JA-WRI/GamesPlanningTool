@@ -19,5 +19,4 @@ export type AppUser = {
   name: string;
   role: Role;
   nsoId?: string; // only set for NSO users
-  nsoName?: string;
 };

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getSession } from '@/lib/sessions';
+import { requireSession } from '@/lib/sessions';
 import { gameSwitchHref } from '@/lib/routing/Navigation';
 
 export default async function GamePage({
@@ -7,8 +7,7 @@ export default async function GamePage({
 }: {
   params: Promise<{ gameId: string }>;
 }) {
-  const [{ gameId }, session] = await Promise.all([params, getSession()]);
-  if (!session) redirect('/');
+  const [{ gameId }, session] = await Promise.all([params, requireSession()]);
 
   const { role, nsoId } = session.user;
   redirect(gameSwitchHref(gameId, role, nsoId));

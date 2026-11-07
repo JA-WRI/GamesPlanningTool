@@ -1,6 +1,4 @@
-import { notFound } from 'next/navigation';
-import { getGamesWithNsos } from '@/lib/queries/games';
-import { findGame } from '@/lib/routing/Navigation';
+import { requireGameAccess } from '@/lib/sessions';
 
 export default async function GameLayout({
   children,
@@ -10,7 +8,8 @@ export default async function GameLayout({
   params: Promise<{ gameId: string }>;
 }) {
   const { gameId } = await params;
-  if (!findGame(await getGamesWithNsos(), gameId)) notFound();
+  // Game must exist; NSO users only see games their NSO takes part in.
+  await requireGameAccess(gameId);
 
   return <>{children}</>;
 }

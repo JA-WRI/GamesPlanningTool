@@ -2,7 +2,7 @@
 'use client';
 // TEMPORARY: lets us view the app as each role until real auth exists.
 import { useTransition } from 'react';
-import { switchUser } from '@/lib/actions/devSession';
+import { switchRole } from '@/lib/actions/devSession';
 import type { AppUser, Role } from '@/lib/types';
 
 const ROLES: { role: Role; label: string }[] = [
@@ -21,10 +21,10 @@ const initials = (name: string) =>
 
 export default function UserSwitcher({
   user,
-  users,
+  availableRoles,
 }: {
   user: AppUser;
-  users: AppUser[];
+  availableRoles: Role[]; // roles with at least one active user
 }) {
   const [pending, startTransition] = useTransition();
 
@@ -38,18 +38,17 @@ export default function UserSwitcher({
           className="flex rounded-full bg-white/20 p-0.5"
         >
           {ROLES.map(({ role, label }) => {
-            // Each role is represented by the first seeded user with that role.
-            const roleUser = users.find((u) => u.role === role);
+            const available = availableRoles.includes(role);
             const active = user.role === role;
             return (
               <button
                 key={role}
                 type="button"
                 aria-pressed={active}
-                disabled={!roleUser || pending}
+                disabled={!available || pending}
                 onClick={() => {
-                  if (roleUser && !active) {
-                    startTransition(() => switchUser(roleUser.id));
+                  if (available && !active) {
+                    startTransition(() => switchRole(role));
                   }
                 }}
                 className={`rounded-full px-3 py-0.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-50 ${

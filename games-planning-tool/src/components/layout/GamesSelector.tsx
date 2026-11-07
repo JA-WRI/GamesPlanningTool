@@ -20,9 +20,9 @@ export default function GamesSelector({
   function handleChange(newGameId: string) {
     // NSO users: their own NSO comes from the URL (layouts guarantee it's theirs).
     // COC/Admin: carry the picked NSO over only if it's part of the new game.
-    const picked = params.nsoId ?? searchParams.get('nso');
+    const picked = params.nsoId ?? searchParams.get('nso') ?? undefined;
     const keepPicked = gameHasNso(findGame(games, newGameId), picked)
-      ? (picked ?? undefined)
+      ? picked
       : undefined;
     router.push(gameSwitchHref(newGameId, role, params.nsoId, keepPicked));
   }

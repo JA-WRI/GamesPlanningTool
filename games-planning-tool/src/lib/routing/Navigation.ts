@@ -1,5 +1,5 @@
 //no substantial AI-generated code
-import type { GameWithNsos, Role } from '@/lib/types';
+import type { AppUser, GameWithNsos, Role } from '@/lib/types';
 
 type Ctx = {
   role: Role;
@@ -18,6 +18,37 @@ export function gameHasNso(
   nsoId?: string | null,
 ) {
   return !!nsoId && !!game?.nsos.some((n) => n.id === nsoId);
+}
+
+// --- Permission rules (pure; enforced server-side by the require* helpers in sessions.ts) ---
+type Viewer = Pick<AppUser, 'role' | 'nsoId'>;
+
+// The game exists, and NSO users can only see games their NSO takes part in.
+export function canAccessGame(user: Viewer, game: GameWithNsos | undefined) {
+  if (!game) return false;
+  return user.role !== 'nso' || gameHasNso(game, user.nsoId);
+}
+
+// The NSO takes part in the game, and NSO users can only see their own NSO.
+export function canAccessNso(
+  user: Viewer,
+  game: GameWithNsos | undefined,
+  nsoId: string,
+) {
+  if (!canAccessGame(user, game) || !gameHasNso(game, nsoId)) return false;
+  return user.role !== 'nso' || user.nsoId === nsoId;
+}
+
+// Route-level role rule, used by proxy.ts BEFORE anything renders (layout
+// checks alone can't stop a page's content from being sent). Path only, no DB:
+// whether the game/NSO exist is still checked by the route layouts.
+export function isRouteAllowed(pathname: string, user: Viewer) {
+  const [first, second] = pathname.split('/').filter(Boolean);
+  if (first === 'admin') return user.role === 'admin';
+  if (!first || !second) return true; // '/', '/login', '/{game}'
+  if (second === 'dashboard') return user.role !== 'nso'; // COC/Admin game dashboard
+  // '/{game}/{nso}/...': NSO users only their own NSO
+  return user.role !== 'nso' || second === user.nsoId;
 }
 
 // Returns null when the tab needs a game/NSO but none is available.

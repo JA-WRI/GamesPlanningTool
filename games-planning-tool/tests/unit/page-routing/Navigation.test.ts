@@ -6,8 +6,12 @@ import {
   nsoSwitchHref,
   findGame,
   gameHasNso,
+  canAccessGame,
+  canAccessNso,
+  isRouteAllowed,
 } from '@/lib/routing/Navigation';
 import { describe, it, expect } from 'vitest';
+import { parseDevCookie, serializeDevCookie } from '@/lib/devSessionCookie';
 
 const base = { game: 'game1', nso: 'usa' };
 
@@ -182,5 +186,92 @@ describe('nsoSwitchHref', () => {
   it('never produces "undefined"', () => {
     const result = nsoSwitchHref({ ...base, pathname: '/game1/dashboard' });
     expect(result).not.toContain('undefined');
+  });
+});
+
+describe('canAccessGame / canAccessNso', () => {
+  const games = [
+    {
+      id: 1,
+      name: 'LA 2028',
+      nsos: [
+        { id: 'swim', name: 'Swimming' },
+        { id: 'track', name: 'Athletics' },
+      ],
+    },
+    { id: 2, name: 'Milan 2026', nsos: [{ id: 'ski', name: 'Skiing' }] },
+  ];
+  const la = games[0];
+  const milan = games[1];
+  const admin = { role: 'admin' as const };
+  const coc = { role: 'coc' as const };
+  const swimmer = { role: 'nso' as const, nsoId: 'swim' };
+
+  it('admin and coc can access any existing game', () => {
+    for (const user of [admin, coc]) {
+      expect(canAccessGame(user, la)).toBe(true);
+      expect(canAccessGame(user, milan)).toBe(true);
+      expect(canAccessGame(user, undefined)).toBe(false);
+    }
+  });
+  it('NSO users only access games their NSO is in', () => {
+    expect(canAccessGame(swimmer, la)).toBe(true);
+    expect(canAccessGame(swimmer, milan)).toBe(false);
+    expect(canAccessGame({ role: 'nso' }, la)).toBe(false);
+  });
+  it('admin and coc can access any NSO that is in the game', () => {
+    for (const user of [admin, coc]) {
+      expect(canAccessNso(user, la, 'swim')).toBe(true);
+      expect(canAccessNso(user, la, 'track')).toBe(true);
+      expect(canAccessNso(user, la, 'ski')).toBe(false);
+      expect(canAccessNso(user, undefined, 'swim')).toBe(false);
+    }
+  });
+  it('NSO users only access their own NSO', () => {
+    expect(canAccessNso(swimmer, la, 'swim')).toBe(true);
+    expect(canAccessNso(swimmer, la, 'track')).toBe(false);
+    expect(canAccessNso(swimmer, milan, 'ski')).toBe(false);
+  });
+});
+
+describe('isRouteAllowed', () => {
+  const admin = { role: 'admin' as const };
+  const coc = { role: 'coc' as const };
+  const swimmer = { role: 'nso' as const, nsoId: 'swim' };
+
+  it('admin pages are admin only', () => {
+    expect(isRouteAllowed('/admin/user-management', admin)).toBe(true);
+    expect(isRouteAllowed('/admin', coc)).toBe(false);
+    expect(isRouteAllowed('/admin/system-settings', swimmer)).toBe(false);
+  });
+  it('the game dashboard is for COC/Admin only', () => {
+    expect(isRouteAllowed('/1/dashboard', admin)).toBe(true);
+    expect(isRouteAllowed('/1/dashboard', coc)).toBe(true);
+    expect(isRouteAllowed('/1/dashboard', swimmer)).toBe(false);
+  });
+  it('NSO users only reach their own NSO pages', () => {
+    expect(isRouteAllowed('/1/swim/calculator', swimmer)).toBe(true);
+    expect(isRouteAllowed('/1/track/calculator', swimmer)).toBe(false);
+    expect(isRouteAllowed('/1/track/calculator', coc)).toBe(true);
+  });
+  it('root, login and game index pages are always allowed', () => {
+    for (const p of ['/', '/login', '/1']) {
+      expect(isRouteAllowed(p, swimmer)).toBe(true);
+    }
+  });
+});
+
+describe('dev session cookie', () => {
+  it('round-trips id, role and NSO', () => {
+    const c = { id: 'u1', role: 'nso' as const, nsoId: 'swim' };
+    expect(parseDevCookie(serializeDevCookie(c))).toEqual(c);
+    expect(
+      parseDevCookie(serializeDevCookie({ id: 'u2', role: 'coc' })),
+    ).toEqual({ id: 'u2', role: 'coc', nsoId: undefined });
+  });
+  it('rejects missing or malformed values', () => {
+    expect(parseDevCookie(undefined)).toBeUndefined();
+    expect(parseDevCookie('just-an-id')).toBeUndefined();
+    expect(parseDevCookie('u1|superuser|')).toBeUndefined();
   });
 });
