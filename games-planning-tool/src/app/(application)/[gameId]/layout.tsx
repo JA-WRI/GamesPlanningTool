@@ -1,5 +1,6 @@
-import { Games } from '@/lib/data';
 import { notFound } from 'next/navigation';
+import { getGamesWithNsos } from '@/queries/games';
+
 export default async function GameLayout({
   children,
   params,
@@ -7,7 +8,7 @@ export default async function GameLayout({
   children: React.ReactNode;
   params: Promise<{ gameId: string }>;
 }) {
-  const { gameId } = await params;
-  if (!Games.some((g) => g.id === gameId)) notFound();
+  const [{ gameId }, games] = await Promise.all([params, getGamesWithNsos()]);
+  if (!games.some((g) => String(g.id) === gameId)) notFound();
   return <>{children}</>;
 }
