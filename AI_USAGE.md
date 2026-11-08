@@ -11,3 +11,5 @@ List of PR With Over 50% of AI Generated Work
 1. [PR #37](https://github.com/JA-WRI/GamesPlanningTool/pull/37)
 2. [PR #30](https://github.com/JA-WRI/GamesPlanningTool/pull/30)
 3. [PR #29](https://github.com/JA-WRI/GamesPlanningTool/pull/29)
+4. [PR #38](https://github.com/JA-WRI/GamesPlanningTool/pull/38)
+5. [PR #76](https://github.com/JA-WRI/GamesPlanningTool/pull/76)
