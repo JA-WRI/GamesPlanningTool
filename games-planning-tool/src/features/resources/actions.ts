@@ -9,7 +9,7 @@ import {
   reorderResources as reorderResourcesInDb,
   updateResourceCategories as updateResourceCategoriesInDb,
 } from '@/lib/resources';
-import { uploadResourceFile } from '@/lib/supabase';
+import { uploadResourceFile } from '@/lib/storage';
 import { getSession } from '@/lib/data';
 import {
   MAX_RESOURCE_FILE_SIZE,

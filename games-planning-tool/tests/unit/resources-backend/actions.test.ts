@@ -39,7 +39,7 @@ vi.mock('@/lib/resources', () => ({
   reorderResources: mocks.reorderResources,
 }));
 
-vi.mock('@/lib/supabase', () => ({
+vi.mock('@/lib/storage', () => ({
   uploadResourceFile: mocks.uploadResourceFile,
 }));
 
