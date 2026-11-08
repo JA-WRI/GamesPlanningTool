@@ -850,7 +850,7 @@ async function updateResourceLinks(records: ResourceRecord[]) {
       r.nextElementId !== null,
   );
 
-  await Promise.all(
+  await prisma.$transaction(
     linked.map((r) =>
       prisma.resource.update({
         where: { id: r.id },
