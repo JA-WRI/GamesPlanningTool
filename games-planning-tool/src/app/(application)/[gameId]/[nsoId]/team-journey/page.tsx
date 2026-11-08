@@ -1,4 +1,5 @@
 // AI contribution: 50% or more AI-generated
+import { notFound } from 'next/navigation';
 import TeamJourneyClient from './_components/TeamJourneyClient';
 import { getTeamSize } from '@/features/team-size/lib/teamSizeDb';
 
@@ -12,6 +13,8 @@ export default async function TeamJourneyPage({
 }: TeamJourneyPageProps) {
   const { gameId, nsoId } = await params;
   const saved = await getTeamSize(gameId, nsoId);
+  // the layouts already check the ids, this is just in case
+  if (!saved) notFound();
 
   return <TeamJourneyClient gameId={gameId} nsoId={nsoId} saved={saved} />;
 }
