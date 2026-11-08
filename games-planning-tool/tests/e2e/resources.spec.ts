@@ -4,7 +4,7 @@ import {
   createTestGameWithNso,
   deleteTestGameWithNso,
   type TestGameWithNso,
-} from './helpers/testData';
+} from './helpers/test-data';
 
 test.describe('Resources Page E2E', () => {
   test.describe('NSO resources page', () => {

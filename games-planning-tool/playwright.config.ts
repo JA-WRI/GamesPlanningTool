@@ -1,6 +1,6 @@
 import 'dotenv/config'; // test helpers use the same DATABASE_URL as the dev server
 import { defineConfig, devices } from '@playwright/test';
-import { requireLocalDatabaseUrl } from './tests/e2e/helpers/localDatabase';
+import { requireLocalDatabaseUrl } from './tests/e2e/helpers/local-database';
 
 // Never run E2E tests (or start the dev server for them) against Supabase.
 requireLocalDatabaseUrl();

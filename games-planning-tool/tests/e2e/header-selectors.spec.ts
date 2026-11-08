@@ -6,7 +6,7 @@ import {
   deleteTestGameWithNso,
   withClient,
   type TestGameWithNso,
-} from './helpers/testData';
+} from './helpers/test-data';
 
 // The navbar stays invisible until it has measured itself after hydration,
 // so once it's visible the selectors' onChange handlers are attached.
@@ -104,7 +104,7 @@ test.describe('Header selectors', () => {
     await page.goto(`/${main.gameId}/dashboard`);
     await waitForApp(page);
 
-    const nsoSelect = page.getByLabel('Select Nso');
+    const nsoSelect = page.getByLabel('Select NSO');
     await expect(optionFor(nsoSelect, main.nsoId)).toHaveCount(1);
     await expect(optionFor(nsoSelect, secondNsoId)).toHaveCount(1);
     await expect(optionFor(nsoSelect, inactiveNsoId)).toHaveCount(0); // inactive

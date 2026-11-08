@@ -14,7 +14,7 @@ export function requireLocalDatabaseUrl(): string {
   const { hostname } = new URL(url);
   if (!LOCAL_HOSTS.includes(hostname)) {
     throw new Error(
-      `Refusing to run E2E tests against non-local database host "${hostname}. Point DATABASE_URL at a local Postgres.`,
+      `Refusing to run E2E tests against non-local database host "${hostname}". Point DATABASE_URL at a local Postgres.`,
     );
   }
   return url;

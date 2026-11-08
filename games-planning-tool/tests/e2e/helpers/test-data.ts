@@ -3,7 +3,7 @@
 // generated (ESM) Prisma client.
 import crypto from 'crypto';
 import { Client } from 'pg';
-import { requireLocalDatabaseUrl } from './localDatabase';
+import { requireLocalDatabaseUrl } from './local-database';
 
 export type TestGameWithNso = { gameId: string; nsoId: string };
 

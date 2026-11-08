@@ -1,4 +1,4 @@
-//Less thsn 50% AI generated Code to create resolveSessionNsoId functiion
+//Less than 50% AI generated Code to create resolveSessionNsoId functiion
 import type { Game, GameWithNsos, Role } from '@/lib/types';
 
 type Ctx = {
