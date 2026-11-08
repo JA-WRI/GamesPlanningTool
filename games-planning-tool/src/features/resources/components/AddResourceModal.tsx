@@ -9,6 +9,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CheckIcon from '@mui/icons-material/Check';
+import LinearProgress from '@mui/material/LinearProgress';
 import {
   NewResourceInput,
   DEFAULT_CATEGORY,
@@ -310,7 +311,15 @@ function AddResourceForm({
                   Uploading {selectedFile?.name}...
                 </p>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
-                  <div className="h-full w-full animate-pulse rounded-full bg-burgundy" />
+                  <LinearProgress
+                    sx={{
+                      height: '100%',
+                      backgroundColor: 'transparent',
+                      '& .MuiLinearProgress-bar': {
+                        backgroundColor: 'var(--color-burgundy)',
+                      },
+                    }}
+                  />
                 </div>
               </div>
             )}
