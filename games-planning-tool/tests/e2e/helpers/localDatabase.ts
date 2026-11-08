@@ -1,4 +1,4 @@
-// Moren than 50% AI generated
+// More than 50% AI generated
 
 //guard so E2E tests only ever run against a local / CI Postgres
 const LOCAL_HOSTS = ['localhost', '127.0.0.1'];
@@ -14,7 +14,7 @@ export function requireLocalDatabaseUrl(): string {
   const { hostname } = new URL(url);
   if (!LOCAL_HOSTS.includes(hostname)) {
     throw new Error(
-      `Refusing to run E2E tests against DATABASE_URL. Point DATABASE_URL at a local Postgres.`,
+      `Refusing to run E2E tests against non-local database host "${hostname}. Point DATABASE_URL at a local Postgres.`,
     );
   }
   return url;

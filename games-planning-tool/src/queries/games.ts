@@ -1,4 +1,4 @@
-//no substatial AI generated code
+//no substantial AI generated code
 import 'server-only';
 import { cache } from 'react';
 import { connection } from 'next/server';
