@@ -5,6 +5,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 // The real package throws outside Next's server environment.
 vi.mock('server-only', () => ({}));
 
+// connection() needs a real Next.js request scope.
+vi.mock('next/server', () => ({ connection: vi.fn(async () => {}) }));
+
 // No database connection in unit tests.
 vi.mock('@/lib/prisma', () => ({
   prisma: { game: { findMany: vi.fn() } },
