@@ -134,7 +134,9 @@ describe('AnnouncementsCard', () => {
     const [withBody, withoutBody] = within(section).getAllByRole('listitem');
 
     expect(
-      within(withBody).getByRole('heading', { name: 'Training schedule released' }),
+      within(withBody).getByRole('heading', {
+        name: 'Training schedule released',
+      }),
     ).toBeInTheDocument();
     expect(
       within(withBody).getByText('Check your assigned practice time.'),
@@ -151,7 +153,9 @@ describe('AnnouncementsCard', () => {
       'datetime',
       '2026-11-06',
     );
-    expect(within(withoutBody).queryByRole('paragraph')).not.toBeInTheDocument();
+    expect(
+      within(withoutBody).queryByRole('paragraph'),
+    ).not.toBeInTheDocument();
   });
 });
 
