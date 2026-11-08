@@ -1,15 +1,15 @@
+//no substantial AI generated code
 'use client';
-import React from 'react';
-import { Nsos } from '@/lib/data';
+import type { GameWithNsos } from '@/lib/types';
 import {
   useRouter,
   useParams,
   usePathname,
   useSearchParams,
 } from 'next/navigation';
-import { nsoSwitchHref } from '@/lib/routing/Navigation';
+import { findGame, nsoSwitchHref } from '@/lib/routing/Navigation';
 
-export default function NsoSelector() {
+export default function NsoSelector({ games }: { games: GameWithNsos[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -17,6 +17,7 @@ export default function NsoSelector() {
 
   if (!params.gameId) return null; //for the admin pages
 
+  const gameNsos = findGame(games, params.gameId)?.nsos ?? [];
   const selected = params.nsoId ?? searchParams.get('nso') ?? '';
 
   function handleChange(newNsoId: string) {
@@ -34,7 +35,7 @@ export default function NsoSelector() {
     <select
       value={selected}
       onChange={(e) => handleChange(e.target.value)}
-      aria-label="Select Nso"
+      aria-label="Select NSO"
       className="rounded-full bg-white px-6 p-2 pr-5 text-xs font-semibold outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-burgundy"
     >
       {!params.nsoId && (
@@ -42,7 +43,7 @@ export default function NsoSelector() {
           Select NSO
         </option>
       )}
-      {Nsos.map((nso) => (
+      {gameNsos.map((nso) => (
         <option key={nso.id} value={nso.id}>
           {nso.name}
         </option>
