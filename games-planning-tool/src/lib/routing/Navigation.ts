@@ -66,20 +66,27 @@ export function nsoSwitchHref({
 
 // picks which NSO to put in the redirect URL when someone opens / or /[gameId]
 // COC/admin: returns undefined, since their dashboard URL has no nsoId.
-// NSO: returns the session's nsoId if that NSO is in this game. If not,
-//   returns the game's first NSO, so the redirect never goes to a URL that
-//   404s. Returns undefined if the game has no NSOs.
-// TODO: remove the fallback once sessions come from the database. The mock
-// session's nsoId ('nso_1') doesn't exist in the real data, but a real NSO
-// user's NSO will always be in their game.
+// NSO: returns the session's nsoId only if that NSO is in this game, otherwise
+//   undefined. Callers must treat undefined for an NSO user as notFound(), so
+//   an NSO user is never sent to another team's pages.
 export function resolveSessionNsoId(
   game: GameWithNsos,
   role: Role,
   sessionNsoId?: string,
 ): string | undefined {
   if (role !== 'nso') return undefined;
-  const match = game.nsos.find((n) => n.id === sessionNsoId);
-  return match?.id ?? game.nsos[0]?.id;
+  return game.nsos.find((n) => n.id === sessionNsoId)?.id;
+}
+
+// The games a user may see. COC/admin see every game; an NSO user only sees
+// the games their NSO takes part in.
+export function gamesForUser<T extends GameWithNsos>(
+  games: T[],
+  role: Role,
+  sessionNsoId?: string,
+): T[] {
+  if (role !== 'nso') return games;
+  return games.filter((g) => g.nsos.some((n) => n.id === sessionNsoId));
 }
 
 // Finds the game whose id matches a URL param. Game ids are numbers in the

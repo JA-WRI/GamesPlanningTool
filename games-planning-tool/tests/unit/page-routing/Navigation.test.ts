@@ -5,6 +5,7 @@ import {
   gameSwitchHref,
   nsoSwitchHref,
   resolveSessionNsoId,
+  gamesForUser,
   findGame,
 } from '@/lib/routing/Navigation';
 import { describe, it, expect } from 'vitest';
@@ -163,15 +164,47 @@ describe('resolveSessionNsoId', () => {
     expect(resolveSessionNsoId(game, 'nso', 'nso-b')).toBe('nso-b');
   });
 
-  it("falls back to the game's first NSO when the session NSO isn't in the game", () => {
-    expect(resolveSessionNsoId(game, 'nso', 'nso_1')).toBe('nso-a');
-    expect(resolveSessionNsoId(game, 'nso', undefined)).toBe('nso-a');
+  it("never falls back to another team's NSO when the session NSO isn't in the game", () => {
+    expect(resolveSessionNsoId(game, 'nso', 'nso_1')).toBeUndefined();
+    expect(resolveSessionNsoId(game, 'nso', undefined)).toBeUndefined();
   });
 
   it('returns undefined when the game has no NSOs', () => {
     expect(
       resolveSessionNsoId({ ...game, nsos: [] }, 'nso', 'nso-a'),
     ).toBeUndefined();
+  });
+});
+
+describe('gamesForUser', () => {
+  const games = [
+    { id: 1, name: 'Summer Games 2028', nsos: [{ id: 'nso-a', name: 'A' }] },
+    {
+      id: 2,
+      name: 'Winter Games 2030',
+      nsos: [
+        { id: 'nso-a', name: 'A' },
+        { id: 'nso-b', name: 'B' },
+      ],
+    },
+    { id: 3, name: 'Youth Games 2029', nsos: [] },
+  ];
+
+  it('returns every game for COC and admin users', () => {
+    expect(gamesForUser(games, 'coc')).toEqual(games);
+    expect(gamesForUser(games, 'admin')).toEqual(games);
+  });
+
+  it("returns only the games the NSO user's NSO is in", () => {
+    expect(gamesForUser(games, 'nso', 'nso-a').map((g) => g.id)).toEqual([
+      1, 2,
+    ]);
+    expect(gamesForUser(games, 'nso', 'nso-b').map((g) => g.id)).toEqual([2]);
+  });
+
+  it('returns no games for an NSO user with no or unknown NSO', () => {
+    expect(gamesForUser(games, 'nso', 'nso_1')).toEqual([]);
+    expect(gamesForUser(games, 'nso', undefined)).toEqual([]);
   });
 });
 

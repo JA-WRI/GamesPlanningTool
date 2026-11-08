@@ -23,7 +23,11 @@ export default async function GamePage({
   if (!game) notFound();
 
   const { role, nsoId } = session.user;
-  redirect(
-    gameSwitchHref(gameId, role, resolveSessionNsoId(game, role, nsoId)),
-  );
+
+  // An NSO user whose NSO isn't in this game must not be sent to another
+  // team's dashboard
+  const sessionNsoId = resolveSessionNsoId(game, role, nsoId);
+  if (role === 'nso' && !sessionNsoId) notFound();
+
+  redirect(gameSwitchHref(gameId, role, sessionNsoId));
 }

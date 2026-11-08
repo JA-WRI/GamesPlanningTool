@@ -95,11 +95,11 @@ export default function Navbar({
   const { nsoId, gameId } = useParams<{ nsoId?: string; gameId?: string }>();
 
   const game = gameId ?? String(games[0]?.id ?? '');
-  // Fall back to the first NSO taking part in the current game.
+  // COC/Admin fall back to the first NSO taking part in the current game.
+  // NSO users always use their own NSO, never another team's.
   const defaultNso = findGame(games, game)?.nsos[0]?.id ?? '';
   const pickedNso = nsoId ?? searchParams.get('nso');
-  const nso =
-    role === 'nso' ? (userNsoId ?? defaultNso) : (pickedNso ?? defaultNso);
+  const nso = role === 'nso' ? (userNsoId ?? '') : (pickedNso ?? defaultNso);
 
   // Only show navigation items allowed for the current role.
   const items = navItems
