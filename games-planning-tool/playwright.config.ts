@@ -83,7 +83,9 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3000',
+    // Readiness check: /login doesn't depend on DB data. `/` returns 404 when
+    // there are no games (CI's database is empty), so Playwright would never start.
+    url: 'http://localhost:3000/login',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
