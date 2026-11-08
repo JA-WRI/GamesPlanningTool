@@ -42,7 +42,7 @@ import { useTeamJourneyState } from './useTeamJourneyState';
 type TeamJourneyClientProps = {
   gameId: string;
   nsoId: string;
-  saved?: SavedTeamSize | null;
+  saved: SavedTeamSize;
 };
 
 export default function TeamJourneyClient({
@@ -60,12 +60,11 @@ export default function TeamJourneyClient({
   } = useTeamJourneyState(saved);
   const [saveFailed, setSaveFailed] = useState(false);
 
-  // saves to the db, only with real ids (the fake menu ids keep the mock data)
+  // saves to the db and shows an error if it fails
   const saveToDb = (
     nextTeamSize: TeamSize,
     nextDisciplines: DisciplineBreakdown,
   ) => {
-    if (!saved) return;
     saveTeamSize(gameId, nsoId, nextTeamSize, nextDisciplines)
       .then((result) => setSaveFailed(!result.ok))
       .catch(() => setSaveFailed(true));
