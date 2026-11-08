@@ -1,4 +1,5 @@
-import type { Role } from '@/lib/types';
+//Less thsn 50% AI generated Code to create resolveSessionNsoId functiion
+import type { GameWithNsos, Role } from '@/lib/types';
 
 type Ctx = {
   role: Role;
@@ -61,4 +62,22 @@ export function nsoSwitchHref({
       : `/${gameId}/${newNso}/${section}`; //if on an NSO page, stay on the same section, but for the chosen NSO
   }
   return `${pathname}?nso=${newNso}`;
+}
+
+// picks which NSO to put in the redirect URL when someone opens / or /[gameId]
+// COC/admin: returns undefined, since their dashboard URL has no nsoId.
+// NSO: returns the session's nsoId if that NSO is in this game. If not,
+//   returns the game's first NSO, so the redirect never goes to a URL that
+//   404s. Returns undefined if the game has no NSOs.
+// TODO: remove the fallback once sessions come from the database. The mock
+// session's nsoId ('nso_1') doesn't exist in the real data, but a real NSO
+// user's NSO will always be in their game.
+export function resolveSessionNsoId(
+  game: GameWithNsos,
+  role: Role,
+  sessionNsoId?: string,
+): string | undefined {
+  if (role !== 'nso') return undefined;
+  const match = game.nsos.find((n) => n.id === sessionNsoId);
+  return match?.id ?? game.nsos[0]?.id;
 }

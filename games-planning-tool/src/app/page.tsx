@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { getSession } from '@/lib/data';
-import { gameSwitchHref } from '@/lib/routing/Navigation';
+import { gameSwitchHref, resolveSessionNsoId } from '@/lib/routing/Navigation';
 import { getGamesWithNsos } from '@/queries/games';
 
 export default async function RootPage() {
@@ -13,7 +13,12 @@ export default async function RootPage() {
   const game = games[0];
   if (!game) notFound();
 
+  const { role, nsoId } = session.user;
   redirect(
-    gameSwitchHref(String(game.id), session.user.role, session.user.nsoId),
+    gameSwitchHref(
+      String(game.id),
+      role,
+      resolveSessionNsoId(game, role, nsoId),
+    ),
   );
 }

@@ -4,6 +4,7 @@ import {
   isActive,
   gameSwitchHref,
   nsoSwitchHref,
+  resolveSessionNsoId,
 } from '@/lib/routing/Navigation';
 import { describe, it, expect } from 'vitest';
 
@@ -139,5 +140,36 @@ describe('nsoSwitchHref', () => {
   it('never produces "undefined"', () => {
     const result = nsoSwitchHref({ ...base, pathname: '/game1/dashboard' });
     expect(result).not.toContain('undefined');
+  });
+});
+
+describe('resolveSessionNsoId', () => {
+  const game = {
+    id: 1,
+    name: 'Summer Games 2028',
+    nsos: [
+      { id: 'nso-a', name: 'Athletics Canada' },
+      { id: 'nso-b', name: 'Swimming Canada' },
+    ],
+  };
+
+  it('returns undefined for COC and admin users', () => {
+    expect(resolveSessionNsoId(game, 'coc', 'nso-a')).toBeUndefined();
+    expect(resolveSessionNsoId(game, 'admin', 'nso-a')).toBeUndefined();
+  });
+
+  it("keeps the NSO user's session NSO when it belongs to the game", () => {
+    expect(resolveSessionNsoId(game, 'nso', 'nso-b')).toBe('nso-b');
+  });
+
+  it("falls back to the game's first NSO when the session NSO isn't in the game", () => {
+    expect(resolveSessionNsoId(game, 'nso', 'nso_1')).toBe('nso-a');
+    expect(resolveSessionNsoId(game, 'nso', undefined)).toBe('nso-a');
+  });
+
+  it('returns undefined when the game has no NSOs', () => {
+    expect(
+      resolveSessionNsoId({ ...game, nsos: [] }, 'nso', 'nso-a'),
+    ).toBeUndefined();
   });
 });
