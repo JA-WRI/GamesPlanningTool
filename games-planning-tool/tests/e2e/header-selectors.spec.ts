@@ -121,6 +121,27 @@ test.describe('Header selectors', () => {
     await expect(page).toHaveURL(new RegExp(`/${main.gameId}/dashboard$`));
   });
 
+  test('switching the game updates the NSO dropdown to the new game’s NSOs', async ({
+    page,
+  }) => {
+    await page.goto(`/${main.gameId}/dashboard`);
+    await waitForApp(page);
+
+    const nsoSelect = page.getByLabel('Select NSO');
+    // Before: only the main game's NSOs are listed
+    await expect(optionFor(nsoSelect, main.nsoId)).toHaveCount(1);
+    await expect(optionFor(nsoSelect, secondNsoId)).toHaveCount(1);
+    await expect(optionFor(nsoSelect, other.nsoId)).toHaveCount(0);
+
+    await page.getByLabel('Select game').selectOption(other.gameId);
+    await expect(page).toHaveURL(new RegExp(`/${other.gameId}/dashboard$`));
+
+    // After: only the other game's NSO is listed
+    await expect(optionFor(nsoSelect, other.nsoId)).toHaveCount(1);
+    await expect(optionFor(nsoSelect, main.nsoId)).toHaveCount(0);
+    await expect(optionFor(nsoSelect, secondNsoId)).toHaveCount(0);
+  });
+
   test('choosing an NSO on an NSO page keeps the same section', async ({
     page,
   }) => {
