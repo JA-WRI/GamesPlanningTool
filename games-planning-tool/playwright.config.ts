@@ -1,4 +1,9 @@
+import 'dotenv/config'; // test helpers use the same DATABASE_URL as the dev server
 import { defineConfig, devices } from '@playwright/test';
+import { requireLocalDatabaseUrl } from './tests/e2e/helpers/localDatabase';
+
+// Never run E2E tests (or start the dev server for them) against Supabase.
+requireLocalDatabaseUrl();
 
 /**
  * Read environment variables from file.
@@ -39,15 +44,20 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+    // Firefox and WebKit only run in CI, so local runs only need Chromium
+    // (`npx playwright install chromium`). Set CI=true to run all three locally.
+    ...(process.env.CI
+      ? [
+          {
+            name: 'firefox',
+            use: { ...devices['Desktop Firefox'] },
+          },
+          {
+            name: 'webkit',
+            use: { ...devices['Desktop Safari'] },
+          },
+        ]
+      : []),
 
     /* Test against mobile viewports. */
     // {
