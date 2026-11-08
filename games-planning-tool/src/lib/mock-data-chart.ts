@@ -77,7 +77,7 @@ const teamSeeds: TeamSeed[] = [
   {
     name: 'Badminton Canada',
     altNames: [''],
-    logo: '/Badminton_Canada_logo.png',
+    logo: '/logos/Badminton_Canada_logo.png',
     statuses: [
       'Requires Update',
       'Submitted',
@@ -90,7 +90,7 @@ const teamSeeds: TeamSeed[] = [
     // Logo is not transparent it doesn't look good on gray background -- either find transparent logo or remove background
     name: 'Basketball Canada',
     altNames: [''],
-    logo: '/Basketball_Canada_logo.png',
+    logo: '/logos/Basketball_Canada_logo.png',
     statuses: [
       'Not Started',
       'Submitted',
@@ -102,7 +102,7 @@ const teamSeeds: TeamSeed[] = [
   {
     name: 'Archery Canada',
     altNames: ["Tir à l'Arc Canada"],
-    logo: '/Archery_Canada_logo.png',
+    logo: '/logos/Archery_Canada_logo.png',
     statuses: [
       'Not Started',
       'Not Started',
