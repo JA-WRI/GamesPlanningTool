@@ -304,6 +304,16 @@ function AddResourceForm({
                 </div>
               )}
             </button>
+            {isSubmitting && (
+              <div role="status" aria-live="polite" className="mt-3 space-y-2">
+                <p className="truncate text-xs font-semibold text-neutral-600">
+                  Uploading {selectedFile?.name}...
+                </p>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
+                  <div className="h-full w-full animate-pulse rounded-full bg-burgundy" />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -393,7 +403,13 @@ function AddResourceForm({
             disabled={isSubmitting}
             className="px-5 py-2 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl shadow-xs transition-all cursor-pointer flex items-center space-x-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <span>{isSubmitting ? 'Adding...' : 'Add Resource'}</span>
+            <span>
+              {isSubmitting
+                ? resourceType === 'file'
+                  ? 'Uploading...'
+                  : 'Adding...'
+                : 'Add Resource'}
+            </span>
           </button>
         </div>
       </form>

@@ -160,6 +160,45 @@ describe('AddResourceModal', () => {
     expect(handleClose).toHaveBeenCalled();
   });
 
+  it('shows an upload progress indicator while a file is submitting', async () => {
+    let resolveAdd: () => void = () => {};
+    const handleAdd = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveAdd = resolve;
+        }),
+    );
+
+    render(
+      <AddResourceModal
+        isOpen={true}
+        onClose={() => {}}
+        onAddResource={handleAdd}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Upload File/i }));
+    const file = new File(['mock content'], 'team_roster.pdf', {
+      type: 'application/pdf',
+    });
+    fireEvent.change(document.querySelector('input[type="file"]')!, {
+      target: { files: [file] },
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Add Resource' }));
+    });
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Uploading team_roster.pdf...',
+    );
+    expect(screen.getByRole('button', { name: 'Uploading...' })).toBeDisabled();
+
+    await act(async () => {
+      resolveAdd();
+    });
+  });
+
   it('rejects files over the size limit', async () => {
     const handleAdd = vi.fn();
 
