@@ -8,11 +8,11 @@ import { DisciplineBreakdown, MedalRow } from '../lib/teamSizeGridLogic';
 
 type TeamSizeStepProps = {
   teamSize: TeamSize;
-  onChange: (teamSize: TeamSize) => void;
+  onTeamSizeSave: (teamSize: TeamSize) => void;
   disciplines: DisciplineBreakdown;
-  onDisciplinesChange: (disciplines: DisciplineBreakdown) => void;
+  onDisciplinesSave: (disciplines: DisciplineBreakdown) => void;
   medalRows: MedalRow[];
-  onMedalRowsChange: (rows: MedalRow[]) => void;
+  onMedalRowsSave: (rows: MedalRow[]) => void;
 };
 
 // staff stays in teamSize for the Review step, it is just not shown here
@@ -24,20 +24,20 @@ export default function TeamSizeStep(props: TeamSizeStepProps) {
       <div className="grid gap-3 lg:grid-cols-2 *:min-w-0">
         <TeamSizeEstimateTable
           teamSize={props.teamSize}
-          onChange={props.onChange}
+          onSave={props.onTeamSizeSave}
         />
         <DisciplineTable
           disciplines={props.disciplines}
-          onChange={props.onDisciplinesChange}
+          onSave={props.onDisciplinesSave}
         />
       </div>
       <PerformanceObjectivesTable
         teamSize={props.teamSize}
-        onChange={props.onChange}
+        onSave={props.onTeamSizeSave}
       />
       <MedalPotentialTable
         rows={props.medalRows}
-        onChange={props.onMedalRowsChange}
+        onSave={props.onMedalRowsSave}
       />
     </div>
   );
