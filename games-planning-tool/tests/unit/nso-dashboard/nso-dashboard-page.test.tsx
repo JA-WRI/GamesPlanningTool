@@ -5,6 +5,10 @@ import Page from '@/app/(application)/[gameId]/[nsoId]/dashboard/page';
 
 vi.mock('@/lib/resources', () => ({
   listResources: vi.fn().mockResolvedValue([]),
+  resourceVisibilityFor: vi.fn().mockReturnValue({
+    gameCategory: 'Summer Games',
+    nsoCategory: 'Badminton',
+  }),
 }));
 
 describe('NSO Dashboard Page', () => {

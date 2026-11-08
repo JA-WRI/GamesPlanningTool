@@ -23,6 +23,11 @@ const mocks = vi.hoisted(() => ({
   moveResources: vi.fn(),
   reorderResources: vi.fn(),
   uploadResourceFile: vi.fn(),
+  getSession: vi.fn(),
+}));
+
+vi.mock('@/lib/data', () => ({
+  getSession: mocks.getSession,
 }));
 
 vi.mock('@/lib/resources', () => ({
@@ -56,6 +61,9 @@ function fileFormData(overrides: Record<string, string> = {}): FormData {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.getSession.mockResolvedValue({
+    user: { role: 'admin', gameId: 'game_id_1' },
+  });
   mocks.createResource.mockResolvedValue([]);
   mocks.uploadResourceFile.mockResolvedValue('https://cdn/plan.pdf');
 });
@@ -145,6 +153,44 @@ describe('resource actions', () => {
     await expect(createFileResource(withoutName)).rejects.toThrow(
       'A name is required.',
     );
+  });
+
+  it('rejects mutations from non-admin sessions', async () => {
+    mocks.getSession.mockResolvedValue({
+      user: { role: 'nso', gameId: 'game_id_1', nsoId: 'nso_1' },
+    });
+
+    await expect(createFolder({ name: 'Folder' })).rejects.toThrow(
+      'You do not have permission to modify resources.',
+    );
+    expect(mocks.createResource).not.toHaveBeenCalled();
+  });
+
+  it('rejects link URLs that are not http or https', async () => {
+    await expect(
+      createLinkResource({
+        name: 'Bad',
+        url: 'javascript:alert(1)',
+        categories: ['General'],
+      }),
+    ).rejects.toThrow('Please provide a valid URL for the resource.');
+    expect(mocks.createResource).not.toHaveBeenCalled();
+  });
+
+  it('rejects malformed categories before uploading', async () => {
+    const formData = fileFormData();
+    formData.set('categories', '"not-an-array"');
+
+    await expect(createFileResource(formData)).rejects.toThrow(
+      'Invalid categories.',
+    );
+
+    formData.set('categories', 'not-json');
+
+    await expect(createFileResource(formData)).rejects.toThrow(
+      'Invalid categories.',
+    );
+    expect(mocks.uploadResourceFile).not.toHaveBeenCalled();
   });
 
   it('delegates rename, categories, delete, move, and reorder', async () => {

@@ -9,9 +9,7 @@ import PlanningProgressCard from '../../../../../components/nso-dashboard/Planni
 import DashboardPanel from '../../../../../components/nso-dashboard/DashboardPanel';
 import { DashboardResourceRow } from '../../../../../components/resources/DashboardResourceRow';
 import { actions, deadlines, announcements } from './mock-data';
-import { listResources } from '@/lib/resources';
-import { Games, Nsos } from '@/lib/data';
-import { CANADIAN_NSOS } from '@/features/resources/types/resource';
+import { listResources, resourceVisibilityFor } from '@/lib/resources';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,18 +23,7 @@ type DashboardPageProps = {
 export default async function Page({ params }: DashboardPageProps) {
   const { gameId, nsoId } = await params;
 
-  const game = Games.find((g) => g.id === gameId);
-  const nso = Nsos.find((n) => n.id === nsoId);
-  const resources = await listResources({
-    gameCategory: game?.name.toLowerCase().includes('la 2028')
-      ? 'Summer Games'
-      : 'Winter Games',
-    nsoCategory: nso
-      ? (CANADIAN_NSOS.find(
-          (category) => category.toLowerCase() === nso.name.toLowerCase(),
-        ) ?? nso.name)
-      : undefined,
-  });
+  const resources = await listResources(resourceVisibilityFor(gameId, nsoId));
   return (
     // Shared application layout supplies the header and navigation.
     <div className="w-full bg-white px-2 py-6 text-foreground sm:px-4">

@@ -6,11 +6,19 @@ import ResourceManagementPage from '@/app/(application)/admin/resource-managemen
 
 vi.mock('@/lib/resources', () => ({
   listResources: vi.fn().mockResolvedValue([]),
+  resourceVisibilityFor: vi.fn().mockReturnValue({
+    gameCategory: 'Summer Games',
+    nsoCategory: 'Badminton',
+  }),
 }));
 
 describe('Resource Page Wrappers', () => {
   it('renders NSO ResourcesPage', async () => {
-    render(await ResourcesPage());
+    render(
+      await ResourcesPage({
+        params: Promise.resolve({ gameId: 'game_id_1', nsoId: 'nso_1' }),
+      }),
+    );
     expect(screen.getByText('Resources Dashboard')).toBeInTheDocument();
   });
 

@@ -9,6 +9,7 @@ import {
   deleteResources,
   moveResources,
   reorderResources,
+  resourceVisibilityFor,
 } from '@/lib/resources';
 import { CANADIAN_NSOS } from '@/features/resources/types/resource';
 
@@ -181,6 +182,26 @@ describe('listResources', () => {
   });
 });
 
+describe('resourceVisibilityFor', () => {
+  it('maps known games and NSOs to their categories', () => {
+    expect(resourceVisibilityFor('game_id_1', 'nso_1')).toEqual({
+      gameCategory: 'Summer Games',
+      nsoCategory: 'Badminton',
+    });
+    expect(resourceVisibilityFor('game_id_2', 'nso_2')).toEqual({
+      gameCategory: 'Winter Games',
+      nsoCategory: 'Cross Country Skiing',
+    });
+  });
+
+  it('falls back when the game or NSO is unknown', () => {
+    expect(resourceVisibilityFor('missing', 'missing')).toEqual({
+      gameCategory: 'Winter Games',
+      nsoCategory: undefined,
+    });
+  });
+});
+
 describe('createResource', () => {
   it('creates a root resource with the default category', async () => {
     const created = row({
@@ -208,6 +229,32 @@ describe('createResource', () => {
     });
     expect(db.update).not.toHaveBeenCalled();
     expect(result[0]).toMatchObject({ id: 'new', type: 'file' });
+  });
+
+  it('rejects empty names', async () => {
+    await expect(
+      createResource({ name: '  ', fileOrWebpageURL: null }),
+    ).rejects.toThrow('A name is required.');
+    await expect(renameResource('1', '  ')).rejects.toThrow(
+      'A name is required.',
+    );
+  });
+
+  it('falls back to General when categories are not an array', async () => {
+    db.create.mockResolvedValueOnce(row({ id: 'new', name: 'Doc' }));
+    db.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+    await createResource({
+      name: 'Doc',
+      fileOrWebpageURL: null,
+      categories: 'Summer Games' as unknown as string[],
+    });
+
+    expect(db.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ categories: ['General'] }),
+      }),
+    );
   });
 
   it('appends after the last sibling and links the previous tail', async () => {
@@ -312,11 +359,13 @@ describe('deleteResources', () => {
 
     await deleteResources(['b']);
 
-    expect(db.update).toHaveBeenCalledTimes(1);
     expect(db.update).toHaveBeenCalledWith({
       where: { id: 'd' },
       data: { previousElementId: null, nextElementId: null },
     });
+    expect(db.update.mock.calls.every(([arg]) => arg.where.id === 'd')).toBe(
+      true,
+    );
   });
 
   it('skips reordering when the parent has no remaining siblings', async () => {
@@ -342,7 +391,6 @@ describe('moveResources', () => {
         row({ id: 'p', name: 'P' }),
         row({ id: 'b', name: 'B', parentFolderId: 'p' }),
       ])
-      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([]);
 
     await moveResources(['b'], null);
@@ -351,13 +399,22 @@ describe('moveResources', () => {
       where: { id: 'b' },
       data: {
         parentFolderId: null,
-        previousElementId: 'p',
+        previousElementId: null,
         nextElementId: null,
       },
     });
-    expect(db.update).toHaveBeenCalledWith({
+
+    const calls = db.update.mock.calls.map(([arg]) => arg);
+    const lastUpdate = (id: string) =>
+      calls.filter((call) => call.where.id === id).at(-1);
+
+    expect(lastUpdate('b')).toEqual({
+      where: { id: 'b' },
+      data: { previousElementId: 'p', nextElementId: null },
+    });
+    expect(lastUpdate('p')).toEqual({
       where: { id: 'p' },
-      data: { nextElementId: 'b' },
+      data: { previousElementId: 'a', nextElementId: 'b' },
     });
   });
 
@@ -368,7 +425,6 @@ describe('moveResources', () => {
         row({ id: 'p', name: 'P' }),
         row({ id: 'c', name: 'C', parentFolderId: 'p' }),
       ])
-      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([]);
 
     await moveResources(['a'], 'p');
@@ -377,13 +433,22 @@ describe('moveResources', () => {
       where: { id: 'a' },
       data: {
         parentFolderId: 'p',
-        previousElementId: 'c',
+        previousElementId: null,
         nextElementId: null,
       },
     });
-    expect(db.update).toHaveBeenCalledWith({
+
+    const calls = db.update.mock.calls.map(([arg]) => arg);
+    const lastUpdate = (id: string) =>
+      calls.filter((call) => call.where.id === id).at(-1);
+
+    expect(lastUpdate('a')).toEqual({
+      where: { id: 'a' },
+      data: { previousElementId: 'c', nextElementId: null },
+    });
+    expect(lastUpdate('c')).toEqual({
       where: { id: 'c' },
-      data: { nextElementId: 'a' },
+      data: { previousElementId: null, nextElementId: 'a' },
     });
   });
 
@@ -439,15 +504,15 @@ describe('reorderResources', () => {
 
     await reorderResources(null, ['unknown', 'c', 'a']);
 
-    expect(db.update).toHaveBeenNthCalledWith(1, {
+    expect(db.update).toHaveBeenNthCalledWith(4, {
       where: { id: 'c' },
       data: { previousElementId: null, nextElementId: 'b' },
     });
-    expect(db.update).toHaveBeenNthCalledWith(2, {
+    expect(db.update).toHaveBeenNthCalledWith(5, {
       where: { id: 'b' },
       data: { previousElementId: 'c', nextElementId: 'a' },
     });
-    expect(db.update).toHaveBeenNthCalledWith(3, {
+    expect(db.update).toHaveBeenNthCalledWith(6, {
       where: { id: 'a' },
       data: { previousElementId: 'b', nextElementId: null },
     });

@@ -1,7 +1,7 @@
 // 50% or more AI-generated
 import React from 'react';
 import { ResourcesPageContent } from '@/features/resources/components/ResourcesPageContent';
-import { listResources } from '@/lib/resources';
+import { listResources, resourceVisibilityFor } from '@/lib/resources';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,8 +11,16 @@ export const metadata = {
     'Manage and view games planning resources, documents, policies, and guidelines.',
 };
 
-export default async function ResourcesPage() {
-  const resources = await listResources();
+type ResourcesPageProps = {
+  params: Promise<{
+    gameId: string;
+    nsoId: string;
+  }>;
+};
+
+export default async function ResourcesPage({ params }: ResourcesPageProps) {
+  const { gameId, nsoId } = await params;
+  const resources = await listResources(resourceVisibilityFor(gameId, nsoId));
 
   return (
     <div className="min-h-screen flex flex-col bg-white">

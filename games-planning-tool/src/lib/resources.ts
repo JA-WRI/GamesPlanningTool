@@ -1,5 +1,6 @@
 // 50% or more AI-generated
 import { prisma } from '@/lib/prisma';
+import { Games, Nsos } from '@/lib/data';
 import type { Prisma } from '@/generated/prisma/client';
 import type { ResourceModel } from '@/generated/prisma/models/Resource';
 import {
@@ -24,8 +25,13 @@ export type NewResource = {
   isWebpage?: boolean;
 };
 
-function normalizeCategories(categories: string[] = []): string[] {
-  const filtered = categories.filter((category) => category.trim());
+function normalizeCategories(categories: unknown): string[] {
+  const filtered = Array.isArray(categories)
+    ? categories.filter(
+        (category): category is string =>
+          typeof category === 'string' && category.trim() !== '',
+      )
+    : [];
   return filtered.length > 0 ? filtered : [DEFAULT_CATEGORY];
 }
 
@@ -107,11 +113,15 @@ function orderResources(rows: ResourceModel[]): ResourceModel[] {
     .flatMap((parentId) => orderSiblingGroup(groups.get(parentId)!));
 }
 
-async function writeSiblingOrder(orderedIds: string[]): Promise<void> {
-  if (orderedIds.length === 0) return;
-
-  await prisma.$transaction(
-    orderedIds.map((id, index) =>
+function siblingOrderOps(orderedIds: string[]) {
+  return [
+    ...orderedIds.map((id) =>
+      prisma.resource.update({
+        where: { id },
+        data: { previousElementId: null, nextElementId: null },
+      }),
+    ),
+    ...orderedIds.map((id, index) =>
       prisma.resource.update({
         where: { id },
         data: {
@@ -120,7 +130,13 @@ async function writeSiblingOrder(orderedIds: string[]): Promise<void> {
         },
       }),
     ),
-  );
+  ];
+}
+
+async function writeSiblingOrder(orderedIds: string[]): Promise<void> {
+  if (orderedIds.length === 0) return;
+
+  await prisma.$transaction(siblingOrderOps(orderedIds));
 }
 
 async function rechainSiblings(parentFolderId: string | null): Promise<void> {
@@ -203,6 +219,25 @@ function visibilityWhere({
   };
 }
 
+export function resourceVisibilityFor(
+  gameId: string,
+  nsoId: string,
+): ResourceVisibility {
+  const game = Games.find((item) => item.id === gameId);
+  const nso = Nsos.find((item) => item.id === nsoId);
+
+  return {
+    gameCategory: game?.name.toLowerCase().includes('la 2028')
+      ? 'Summer Games'
+      : 'Winter Games',
+    nsoCategory: nso
+      ? (CANADIAN_NSOS.find(
+          (category) => category.toLowerCase() === nso.name.toLowerCase(),
+        ) ?? nso.name)
+      : undefined,
+  };
+}
+
 export async function listResources(
   visibility?: ResourceVisibility,
 ): Promise<Resource[]> {
@@ -213,6 +248,8 @@ export async function listResources(
 }
 
 export async function createResource(input: NewResource): Promise<Resource[]> {
+  if (!input.name.trim()) throw new Error('A name is required.');
+
   const parentFolderId = input.parentId ?? null;
 
   await prisma.$transaction(async (tx) => {
@@ -248,6 +285,8 @@ export async function renameResource(
   id: string,
   name: string,
 ): Promise<Resource[]> {
+  if (!name.trim()) throw new Error('A name is required.');
+
   await prisma.resource.update({ where: { id }, data: { name } });
   return listResources();
 }
@@ -299,43 +338,51 @@ export async function moveResources(
   }
 
   const movedIds = ids.filter((id) => byId.has(id));
+  if (movedIds.length === 0) return listResources();
+
   const oldParents = new Set(
     movedIds
       .map((id) => byId.get(id)!.parentFolderId)
       .filter((parentId) => parentId !== targetParentId),
   );
 
-  const remainingTargetSiblings = rows.filter(
-    (row) =>
-      row.parentFolderId === targetParentId && !movedIds.includes(row.id),
-  );
-  const targetTail = orderSiblingGroup(remainingTargetSiblings).at(-1);
+  const targetOrder = [
+    ...orderSiblingGroup(
+      rows.filter(
+        (row) =>
+          row.parentFolderId === targetParentId && !movedIds.includes(row.id),
+      ),
+    ).map((row) => row.id),
+    ...movedIds,
+  ];
 
-  let previousId = targetTail?.id ?? null;
-
-  for (const id of movedIds) {
-    await prisma.resource.update({
+  const detachOps = movedIds.map((id) =>
+    prisma.resource.update({
       where: { id },
       data: {
         parentFolderId: targetParentId,
-        previousElementId: previousId,
+        previousElementId: null,
         nextElementId: null,
       },
-    });
+    }),
+  );
 
-    if (previousId) {
-      await prisma.resource.update({
-        where: { id: previousId },
-        data: { nextElementId: id },
-      });
-    }
+  const rechainOps = [...oldParents].flatMap((parentId) =>
+    siblingOrderOps(
+      orderSiblingGroup(
+        rows.filter(
+          (row) =>
+            row.parentFolderId === parentId && !movedIds.includes(row.id),
+        ),
+      ).map((row) => row.id),
+    ),
+  );
 
-    previousId = id;
-  }
-
-  for (const parentId of oldParents) {
-    await rechainSiblings(parentId);
-  }
+  await prisma.$transaction([
+    ...detachOps,
+    ...rechainOps,
+    ...siblingOrderOps(targetOrder),
+  ]);
 
   return listResources();
 }
