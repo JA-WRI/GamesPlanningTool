@@ -24,6 +24,11 @@ enum UserStatus {
   inactive
 }
 
+enum ContactType {
+  COC
+  NSO
+}
+
 model Game {
   id                  Int      @id @default(autoincrement())
   name                String
@@ -34,11 +39,12 @@ model Game {
   planningPeriodStart DateTime @map("planning_period_start")
   planningPeriodEnd   DateTime @map("planning_period_end")
   isActive            Boolean  @default(true) @map("is_active")
-  createdAt           DateTime @default(now())
+  createdAt           DateTime @default(now()) @map("created_at")
 
   gameNsos    GameNso[]
   gameMembers GameMember[]
-  
+  contacts    Contact[]
+
   @@map("games")
 }
 
@@ -52,6 +58,8 @@ model Nso {
   users    User[]
   members  Member[]
   gameNsos GameNso[]
+  pgtcs    PGTC[]
+  contacts Contacts[]
 
   @@map("nsos")
 }
@@ -104,9 +112,9 @@ model Member {
 
 // A member's participation in one game
 model GameMember {
-  id               String    @id @default(uuid()) @db.Uuid
-  gameId           Int       @map("game_id")
-  memberId         String    @map("member_id") @db.Uuid
+  id       String @id @default(uuid()) @db.Uuid
+  gameId   Int    @map("game_id")
+  memberId String @map("member_id") @db.Uuid
 
   // Shared by staff and athletes
   fundedBy         String?   @map("funded_by")
@@ -117,13 +125,13 @@ model GameMember {
   gameDeparture    DateTime? @map("game_departure") @db.Date
 
   // Staff only
-  gamesRole        String?   @map("games_role")
-  rank             String?
+  gamesRole String? @map("games_role")
+  rank      String?
 
   // Athletes only
-  event            String?
-  medal            String?
-  medalNotes       String?   @map("medal_notes")
+  event      String?
+  medal      String?
+  medalNotes String? @map("medal_notes")
 
   game   Game   @relation(fields: [gameId], references: [id])
   member Member @relation(fields: [memberId], references: [id])
@@ -132,7 +140,6 @@ model GameMember {
   @@index([memberId])
   @@map("game_members")
 }
-
 
 model Resource {
   id String @id @default(uuid()) @db.Uuid
@@ -146,13 +153,60 @@ model Resource {
   isWebpage Boolean @map("is_webpage") @default(false)
   categories String[] @default([])
 
-  previousElementId String? @map("previous_element_id") @db.Uuid
+  previousElementId String? @map("previous_element_id") @db.Uuid @unique
   previous Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
-  nextFromPrevious Resource[] @relation("PreviousElement")
+  nextFromPrevious Resource @relation("PreviousElement")
 
-  nextElementId String? @map("next_element_id") @db.Uuid
+  nextElementId String? @map("next_element_id") @db.Uuid @unique
   next Resource? @relation("NextElement", fields: [nextElementId], references: [id])
-  previousFromNext Resource[] @relation("NextElement")
+  previousFromNext Resource @relation("NextElement")
 
   @@map("resources")
+}
+
+model Contact {
+  id          String      @id @default(uuid()) @db.Uuid
+  gameId      Int         @map("game_id")
+  nsoId       String?     @map("nso_id") @db.Uuid       // null for COC contacts
+  type        ContactType
+  isPrimary   Boolean     @default(false) @map("is_primary")
+  firstName   String      @map("first_name")
+  lastName    String      @map("last_name")
+  role        String
+  email       String
+  countryCode String      @map("country_code")
+  phone       String
+
+  game Game @relation(fields: [gameId], references: [id])
+  nso  Nso? @relation(fields: [nsoId], references: [id])
+
+
+  @@index([gameId])
+  @@index([nsoId])
+  @@map("contacts")
+}
+
+model PGTC {
+  id                String   @id @default(uuid()) @db.Uuid
+  nsoId             String   @map("nso_id")  @db.Uuid       // not sure if this should be GameNso instead
+  disciplineName    String   @map("discipline_name")
+  arrivalDate       DateTime @map("arrival_date") @db.Date
+  arrivalTime       DateTime @map("arrival_time") @db.Time(0)
+  departureDate     DateTime @map("departure_date") @db.Date
+  departureTime     DateTime @map("departure_time") @db.Time(0)
+  accommodationName String   @map("accommodation_name")
+  streetName        String   @map("street_name")
+  streetNumber      String   @map("street_number")
+  zipCode           String   @map("zip_code")
+  city              String
+  stateOrProvince   String   @map("state_or_province")
+  country           String
+  travelMethod      String   @map("travel_method")
+  poe               String
+  additionalNotes   String?  @map("additional_notes")
+
+  nso Nso @relation(fields: [nsoId], references: [id])
+
+  @@index([nsoId])
+  @@map("pgtcs")
 }
