@@ -22,7 +22,7 @@ import {
 
 type DisciplineTableProps = {
   disciplines: DisciplineBreakdown;
-  onChange: (disciplines: DisciplineBreakdown) => void;
+  onSave: (disciplines: DisciplineBreakdown) => void;
 };
 
 const numberColumn = (
@@ -76,7 +76,7 @@ function DisciplineWarnings({ rows }: { rows: DisciplineGridRow[] }) {
 
 export default function DisciplineTable({
   disciplines,
-  onChange,
+  onSave,
 }: DisciplineTableProps) {
   // the rows as the user types, so the warnings update live
   const [liveRows, setLiveRows] = useState(() =>
@@ -96,7 +96,7 @@ export default function DisciplineTable({
           brokenDisciplines(rows).length === 0
         }
         onSave={(rows) =>
-          onChange({ ...disciplines, rows: gridRowsToDisciplines(rows) })
+          onSave({ ...disciplines, rows: gridRowsToDisciplines(rows) })
         }
         onRowsChange={setLiveRows}
         showSearch={false}
@@ -108,7 +108,7 @@ export default function DisciplineTable({
       <NotesBox
         id="discipline-notes"
         value={disciplines.notes}
-        onSave={(notes) => onChange({ ...disciplines, notes })}
+        onSave={(notes) => onSave({ ...disciplines, notes })}
       />
     </div>
   );

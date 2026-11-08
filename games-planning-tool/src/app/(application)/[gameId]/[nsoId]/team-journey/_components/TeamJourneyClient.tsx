@@ -80,17 +80,17 @@ export default function TeamJourneyClient({
       )}
       <TeamSizeStep
         teamSize={teamSize}
-        onChange={(next) => {
+        onTeamSizeSave={(next) => {
           setTeamSize(next);
           saveToDb(next, disciplines);
         }}
         disciplines={disciplines}
-        onDisciplinesChange={(next) => {
+        onDisciplinesSave={(next) => {
           setDisciplines(next);
           saveToDb(teamSize, next);
         }}
         medalRows={medalRows}
-        onMedalRowsChange={setMedalRows}
+        onMedalRowsSave={setMedalRows}
       />
     </div>
   );
