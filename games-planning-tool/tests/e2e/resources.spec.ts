@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// More than 50% AI generated with Antigravity
 import { test, expect } from '@playwright/test';
 import {
   createTestGameWithNso,
