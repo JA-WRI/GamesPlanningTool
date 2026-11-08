@@ -9,9 +9,12 @@ import {
   MOCK_TEAM_SIZE,
 } from '@/features/team-size/lib/mockData';
 
+// what the page gets from the db
+const SAVED = { teamSize: MOCK_TEAM_SIZE, disciplines: MOCK_DISCIPLINES };
+
 describe('useTeamJourneyState', () => {
-  it('starts on step 1 with the mock team size data', () => {
-    const { result } = renderHook(() => useTeamJourneyState());
+  it('starts on step 1 with the saved team size data', () => {
+    const { result } = renderHook(() => useTeamJourneyState(SAVED));
 
     expect(result.current.activeStep).toBe(1);
     expect(result.current.teamSize).toEqual(MOCK_TEAM_SIZE);
@@ -19,19 +22,19 @@ describe('useTeamJourneyState', () => {
     expect(result.current.medalRows).toEqual(MOCK_MEDAL_ROWS);
   });
 
-  it('starts with the saved data from the db when there is some', () => {
+  it('starts empty when nothing is saved yet', () => {
     const saved = {
       teamSize: INITIAL_TEAM_SIZE,
-      disciplines: { rows: [], notes: 'saved note' },
+      disciplines: { rows: [], notes: '' },
     };
     const { result } = renderHook(() => useTeamJourneyState(saved));
 
     expect(result.current.teamSize).toEqual(INITIAL_TEAM_SIZE);
-    expect(result.current.disciplines.notes).toBe('saved note');
+    expect(result.current.disciplines.notes).toBe('');
   });
 
   it('keeps an update to the team size', () => {
-    const { result } = renderHook(() => useTeamJourneyState());
+    const { result } = renderHook(() => useTeamJourneyState(SAVED));
 
     act(() => {
       result.current.setTeamSize({ ...MOCK_TEAM_SIZE, notes: 'new note' });
@@ -41,7 +44,7 @@ describe('useTeamJourneyState', () => {
   });
 
   it('keeps the data when the step changes', () => {
-    const { result } = renderHook(() => useTeamJourneyState());
+    const { result } = renderHook(() => useTeamJourneyState(SAVED));
     act(() => result.current.setMedalRows([]));
 
     act(() => result.current.setActiveStep(5));
