@@ -1,13 +1,13 @@
-// No substantial AI-generated code
 'use client';
 
-import NSOGeneralInfoSection, { NSOInfoPage } from './_components/NSOInfoPage';
+import NSOGeneralInfoSection, {
+  NSOInfoPage,
+} from '../../../../../features/contact-information/components/NSOInfoPage';
 
 // mock data
 const initialNSOData: NSOInfoPage = {
   name: 'Badminton Canada',
   sport: 'Badminton',
-  information: 'National governing body for badmintonin Canada.',
   primaryContactEmail: 'info@badmintoncanada.org',
 };
 

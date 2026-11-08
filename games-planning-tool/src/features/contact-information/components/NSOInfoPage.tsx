@@ -1,4 +1,3 @@
-//  No substantial AI-generated code
 'use client';
 
 import { useState } from 'react';
@@ -7,7 +6,6 @@ import GridHeaderPage from '@/components/commons/GridHeader';
 export interface NSOInfoPage {
   name: string;
   sport: string;
-  information: string;
   primaryContactEmail: string;
 }
 
@@ -20,7 +18,6 @@ interface NSOInfoPageSectionProps {
 const defaultInfo: NSOInfoPage = {
   name: '',
   sport: '',
-  information: '',
   primaryContactEmail: '',
 };
 
@@ -115,33 +112,6 @@ export default function NSOInfoPageSection({
             <div className="w-full p-2.5 text-sm bg-white border border-gray-200 rounded-lg text-gray-800 min-h-[42px] flex items-center shadow-sm">
               {formData.sport || (
                 <span className="text-gray-400 italic">Not provided</span>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <label
-            htmlFor="nso-information"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Information
-          </label>
-          {showInputs ? (
-            <textarea
-              id="nso-information"
-              rows={4}
-              value={formData.information}
-              onChange={(e) => handleChange('information', e.target.value)}
-              placeholder="Enter information"
-              className="w-full p-3 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-burgundy focus:border-burgundy shadow-sm resize-y"
-            />
-          ) : (
-            <div className="w-full min-h-[100px] p-3 text-sm bg-white border border-gray-200 rounded-lg text-gray-800 whitespace-pre-wrap shadow-sm">
-              {formData.information || (
-                <span className="text-gray-400 italic">
-                  No information provided
-                </span>
               )}
             </div>
           )}

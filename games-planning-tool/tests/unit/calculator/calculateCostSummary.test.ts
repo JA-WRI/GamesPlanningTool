@@ -1,6 +1,7 @@
+// AI contributed to these tests; reviewed for calculator requirements.
 import { describe, expect, it } from 'vitest';
-import { calculateCostSummary } from '@/app/(application)/[gameId]/[nsoId]/calculator/_components/calculateCostSummary';
-import { INITIAL_COST_ROWS } from '@/app/(application)/[gameId]/[nsoId]/calculator/_components/EstimatedCosts';
+import { calculateCostSummary } from '@/features/nso-calculator/components/calculateCostSummary';
+import { INITIAL_COST_ROWS } from '@/features/nso-calculator/components/EstimatedCosts';
 
 describe('calculateCostSummary', () => {
   it('aggregates saved budgets by team size and daily cell costs by traveler-days', () => {

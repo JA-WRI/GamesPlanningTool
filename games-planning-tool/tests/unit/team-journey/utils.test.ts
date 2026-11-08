@@ -1,6 +1,6 @@
 // 100% AI generated to create unit tests
 import { describe, it, expect } from 'vitest';
-import { onlyDigits } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/utils';
+import { onlyDigits } from '@/features/team-size/lib/utils';
 
 describe('onlyDigits', () => {
   it('keeps a number as it is', () => {

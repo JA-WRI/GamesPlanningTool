@@ -1,5 +1,4 @@
-//  No substantial AI-generated code
-import ContactsSideMenu from './_components/ContactsSideMenu';
+import ContactsSideMenu from '../../../../../features/contact-information/components/ContactsSideMenu';
 
 export default function ContactInfoLayout({
   children,

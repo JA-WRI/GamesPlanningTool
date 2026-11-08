@@ -3,15 +3,15 @@ import { describe, it, expect } from 'vitest';
 import {
   MOCK_DISCIPLINES,
   MOCK_TEAM_SIZE,
-} from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/mockData';
+} from '@/features/team-size/lib/mockData';
 import {
   DISCIPLINE_TOTAL_COLUMN,
   DisciplineGridRow,
   disciplineTotal,
   disciplinesToGridRows,
   gridRowsToDisciplines,
-} from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/disciplineGridLogic';
-import { GridNumber } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/teamSizeGridLogic';
+} from '@/features/team-size/lib/disciplineGridLogic';
+import { GridNumber } from '@/features/team-size/lib/teamSizeGridLogic';
 
 // one "Best F" row with HP, SS/BA, AE, MO counts
 function row(

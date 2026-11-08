@@ -27,7 +27,10 @@ const counts = (
 
 const team = (name: string, ...statuses: Status[]) => ({
   name,
-  columns: statuses.map((status) => ({ status })),
+  columns: statuses.map((status, i) => ({
+    title: `Step ${i + 1}`,
+    status,
+  })),
 });
 
 const teams = [

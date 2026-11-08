@@ -6,7 +6,7 @@ import { Alert } from '@mui/material';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
 import NotesBox from '@/components/commons/NotesBox';
-import { TeamSize } from '../../_lib/teamSizeLogic';
+import { TeamSize } from '../lib/teamSizeLogic';
 import {
   TeamSizeRow,
   athletesToRows,
@@ -14,7 +14,7 @@ import {
   rowsToAthletes,
   MAX_COUNT,
   allWholeCounts,
-} from '../../_lib/teamSizeGridLogic';
+} from '../lib/teamSizeGridLogic';
 
 type TeamSizeEstimateTableProps = {
   teamSize: TeamSize;

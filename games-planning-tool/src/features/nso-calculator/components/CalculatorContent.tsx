@@ -1,5 +1,4 @@
-// 60% AI generated code:
-// The following was AI generated:
+// AI contributed to the calculator layout, component organization, and temporary state:
 // - Original calculator layout, and component organization
 // - Temporary calculator-specific state used beforedb is connected
 // - css converted to tailwind
@@ -14,10 +13,8 @@ import { Games } from '@/lib/data';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
 import { type Currency, CONVERSION_RATES } from './ConversionRates';
-import EstimatedCosts, { type EstimatedCostRow } from './EstimatedCosts';
+import EstimatedCosts from './EstimatedCosts';
 import HotelPricingTable from './HotelPricingTable';
-import CostSummary from './CostSummary';
-import { calculateCostSummary } from './calculateCostSummary';
 
 // these categories are now hard-coded values until we connect to the db
 const TRAVEL_CATEGORIES = [
@@ -181,8 +178,6 @@ export default function CalculatorContent({
 }: {
   readonly calculatorId: number;
 }) {
-  const [summaryRows, setSummaryRows] = useState<CalculatorRow[]>(INITIAL_ROWS);
-  const [estimatedCosts, setEstimatedCosts] = useState<EstimatedCostRow[]>([]);
   const params = useParams<{ gameId?: string }>();
   const selectedGame = Games.find((game) => game.id === params.gameId);
   const [currency, setCurrency] = useState<Currency>('CAD');
@@ -272,7 +267,6 @@ export default function CalculatorContent({
             });
             savedCAD.current = rowsCAD;
             draftCAD.current = rowsCAD;
-            setSummaryRows(rowsCAD);
           }}
         />
       </Box>
@@ -280,13 +274,8 @@ export default function CalculatorContent({
       <EstimatedCosts
         currency={currency}
         onCurrencyChange={handleCurrencyChange}
-        onSavedRowsChange={setEstimatedCosts}
       />
       <HotelPricingTable />
-      <CostSummary
-        data={calculateCostSummary(summaryRows, estimatedCosts)}
-        currency={currency}
-      />
     </Box>
   );
 }

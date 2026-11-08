@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Alert } from '@mui/material';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
-import { TeamSize } from '../../_lib/teamSizeLogic';
+import { TeamSize } from '../lib/teamSizeLogic';
 import {
   MAX_COUNT,
   MedalObjectiveRow,
@@ -13,7 +13,7 @@ import {
   medalRowHasError,
   medalsToRows,
   rowsToMedals,
-} from '../../_lib/teamSizeGridLogic';
+} from '../lib/teamSizeGridLogic';
 
 type PerformanceObjectivesTableProps = {
   teamSize: TeamSize;

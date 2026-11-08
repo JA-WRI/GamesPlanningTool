@@ -1,6 +1,6 @@
 // 100% AI generated to create unit tests
 import { describe, it, expect } from 'vitest';
-import { ALLOWED_YEAR_RANGE } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/constants';
+import { ALLOWED_YEAR_RANGE } from '@/features/team-size/lib/constants';
 import {
   allInvalidParts,
   emptyDate,
@@ -11,7 +11,7 @@ import {
   isInRange,
   noInvalidParts,
   toDate,
-} from '@/app/(application)/[gameId]/[nsoId]/team-journey/_lib/dateLogic';
+} from '@/features/team-size/lib/dateLogic';
 
 // years come from constants.ts so the tests still pass next year
 const minYear = String(ALLOWED_YEAR_RANGE.min);

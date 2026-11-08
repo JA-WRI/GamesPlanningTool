@@ -7,10 +7,152 @@ datasource db {
   provider = "postgresql"
 }
 
-model Games {
-  id        Int      @id @default(autoincrement())
+enum Role {
+  Admin
+  COC
+  NSO
+}
+
+enum MemberType {
+  Athlete
+  Staff
+}
+
+enum UserStatus {
+  invited
+  active
+  inactive
+}
+
+model Game {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  country             String
+  city                String
+  startDate           DateTime @map("start_date") @db.Date
+  endDate             DateTime @map("end_date") @db.Date
+  planningPeriodStart DateTime @map("planning_period_start")
+  planningPeriodEnd   DateTime @map("planning_period_end")
+  isActive            Boolean  @default(true) @map("is_active")
+  createdAt           DateTime @default(now())
+
+  gameNsos    GameNso[]
+  gameMembers GameMember[]
+  
+  @@map("games")
+}
+
+model Nso {
+  id        String   @id @default(uuid()) @db.Uuid
   name      String
-  startDate String
-  endDate   String
-  createdAt DateTime @default(now())
+  sport     String
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  users    User[]
+  members  Member[]
+  gameNsos GameNso[]
+
+  @@map("nsos")
+}
+
+model GameNso {
+  id     String @id @default(uuid()) @db.Uuid
+  gameId Int    @map("game_id")
+  nsoId  String @map("nso_id") @db.Uuid
+
+  game Game @relation(fields: [gameId], references: [id])
+  nso  Nso  @relation(fields: [nsoId], references: [id])
+
+  @@unique([gameId, nsoId])
+  @@index([nsoId])
+  @@map("game_nsos")
+}
+
+model User {
+  id        String     @id @default(uuid()) @db.Uuid
+  email     String     @unique
+  firstName String     @map("first_name")
+  lastName  String     @map("last_name")
+  nsoId     String?    @map("nso_id") @db.Uuid
+  role      Role
+  status    UserStatus @default(invited)
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  nso Nso? @relation(fields: [nsoId], references: [id])
+
+  @@index([nsoId])
+  @@map("users")
+}
+
+// Staff and athletes (one row per person, across all games)
+model Member {
+  id         String     @id @default(uuid()) @db.Uuid
+  firstName  String     @map("first_name")
+  lastName   String     @map("last_name")
+  gender     String
+  type       MemberType
+  discipline String?
+  nsoId      String     @map("nso_id") @db.Uuid
+
+  nso         Nso          @relation(fields: [nsoId], references: [id])
+  gameMembers GameMember[]
+
+  @@index([nsoId])
+  @@map("members")
+}
+
+// A member's participation in one game
+model GameMember {
+  id               String    @id @default(uuid()) @db.Uuid
+  gameId           Int       @map("game_id")
+  memberId         String    @map("member_id") @db.Uuid
+
+  // Shared by staff and athletes
+  fundedBy         String?   @map("funded_by")
+  clothing         String?
+  outfittingBag    String?   @map("outfitting_bag")
+  requestRoomNotes String?   @map("request_room_notes")
+  gameArrival      DateTime? @map("game_arrival") @db.Date
+  gameDeparture    DateTime? @map("game_departure") @db.Date
+
+  // Staff only
+  gamesRole        String?   @map("games_role")
+  rank             String?
+
+  // Athletes only
+  event            String?
+  medal            String?
+  medalNotes       String?   @map("medal_notes")
+
+  game   Game   @relation(fields: [gameId], references: [id])
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@unique([gameId, memberId])
+  @@index([memberId])
+  @@map("game_members")
+}
+
+
+model Resource {
+  id String @id @default(uuid()) @db.Uuid
+
+  parentFolderId String? @map("parent_folder_id") @db.Uuid
+  parent Resource? @relation("ParentElement", fields: [parentFolderId], references: [id])
+  children Resource[] @relation("ParentElement")
+
+  name String
+  fileOrWebpageURL String? @map("file_or_webpage_URL") // null: folder
+  isWebpage Boolean @map("is_webpage") @default(false)
+  categories String[] @default([])
+
+  previousElementId String? @map("previous_element_id") @db.Uuid
+  previous Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
+  nextFromPrevious Resource[] @relation("PreviousElement")
+
+  nextElementId String? @map("next_element_id") @db.Uuid
+  next Resource? @relation("NextElement", fields: [nextElementId], references: [id])
+  previousFromNext Resource[] @relation("NextElement")
+
+  @@map("resources")
 }

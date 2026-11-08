@@ -1,5 +1,5 @@
 // 55% AI generated to write the accreditation validation logic
-import { ALLOWED_YEAR_RANGE } from './constants';
+import { ALLOWED_YEAR_RANGE } from '../lib/constants';
 import {
   DateValue,
   InvalidParts,
@@ -9,7 +9,7 @@ import {
   getInvalidParts,
   isEndBeforeStart,
   noInvalidParts,
-} from './dateLogic';
+} from '../lib/dateLogic';
 
 export type AccreditationRow = {
   id: number; // each row is stored as one object with its own id

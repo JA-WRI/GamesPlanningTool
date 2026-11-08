@@ -10,7 +10,7 @@ import {
   MedalRow,
   createEmptyMedalRow,
   rowsMissingName,
-} from '../../_lib/teamSizeGridLogic';
+} from '../lib/teamSizeGridLogic';
 
 type MedalPotentialTableProps = {
   rows: MedalRow[];

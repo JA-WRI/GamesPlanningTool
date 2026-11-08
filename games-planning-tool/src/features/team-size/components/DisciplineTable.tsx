@@ -11,14 +11,14 @@ import {
   MAX_COUNT,
   allWholeCounts,
   disciplineHasLowAboveBest,
-} from '../../_lib/teamSizeGridLogic';
+} from '../lib/teamSizeGridLogic';
 import {
   DISCIPLINE_IDS,
   DISCIPLINE_TOTAL_COLUMN,
   DisciplineGridRow,
   disciplinesToGridRows,
   gridRowsToDisciplines,
-} from '../../_lib/disciplineGridLogic';
+} from '../lib/disciplineGridLogic';
 
 type DisciplineTableProps = {
   disciplines: DisciplineBreakdown;

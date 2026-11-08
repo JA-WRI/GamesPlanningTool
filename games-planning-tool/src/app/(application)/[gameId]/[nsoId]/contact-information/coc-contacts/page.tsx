@@ -1,5 +1,4 @@
-// No substantial AI-generated code
-import ContactsGridPage from '../_components/ContactsGridPage';
+import ContactsGridPage from '../../../../../../features/contact-information/components/ContactsGridPage';
 
 const initialCocData = [
   {
@@ -28,6 +27,7 @@ export default function Page() {
       title="COC Contacts"
       description="Canadian Olympic Committee contact details and key personnel information."
       initialData={initialCocData}
+      readOnly={true}
     />
   );
 }

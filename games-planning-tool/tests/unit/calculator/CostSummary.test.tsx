@@ -1,8 +1,9 @@
+// AI contributed to these tests; reviewed for calculator requirements.
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import CostSummary, {
   type CostSummaryData,
-} from '@/app/(application)/[gameId]/[nsoId]/calculator/_components/CostSummary';
+} from '@/features/nso-calculator/components/CostSummary';
 
 const data: CostSummaryData = {
   accommodation: 34850,

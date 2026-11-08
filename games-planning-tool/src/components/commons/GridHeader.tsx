@@ -1,4 +1,3 @@
-//  No substantial AI-generated code
 'use client';
 
 interface GridHeaderProps {

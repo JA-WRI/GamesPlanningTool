@@ -230,4 +230,25 @@ describe('BaseGridPage', () => {
     const addButton = screen.getByRole('button', { name: /add row/i });
     expect(addButton).toBeInTheDocument();
   });
+
+  it('hides the Edit button and shows rows as plain text when readOnly is true', () => {
+    render(
+      <BaseGridPage
+        title="Inventory"
+        initialData={initialData}
+        columns={columns}
+        createEmptyRow={createEmptyRow}
+        readOnly
+      />,
+    );
+
+    // no way to enter edit mode
+    expect(
+      screen.queryByRole('button', { name: /edit/i }),
+    ).not.toBeInTheDocument();
+
+    // data is still displayed, as text rather than inputs
+    expect(screen.getByText('Laptop')).toBeInTheDocument();
+    expect(screen.queryByDisplayValue('Laptop')).not.toBeInTheDocument();
+  });
 });
