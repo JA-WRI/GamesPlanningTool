@@ -6,7 +6,7 @@ import { usePathname, useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { GameWithNsos, Role } from '@/lib/types';
-import { tabRoute, isActive } from '@/lib/routing/Navigation';
+import { findGame, tabRoute, isActive } from '@/lib/routing/Navigation';
 import {
   countVisibleItems,
   moveActiveIntoView,
@@ -96,8 +96,7 @@ export default function Navbar({
 
   const game = gameId ?? String(games[0]?.id ?? '');
   // Fall back to the first NSO taking part in the current game.
-  const defaultNso =
-    games.find((g) => String(g.id) === game)?.nsos[0]?.id ?? '';
+  const defaultNso = findGame(games, game)?.nsos[0]?.id ?? '';
   const pickedNso = nsoId ?? searchParams.get('nso');
   const nso =
     role === 'nso' ? (userNsoId ?? defaultNso) : (pickedNso ?? defaultNso);

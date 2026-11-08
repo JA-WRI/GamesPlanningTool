@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { getSession } from '@/lib/data';
 import { gameSwitchHref, resolveSessionNsoId } from '@/lib/routing/Navigation';
-import { getGamesWithNsos } from '@/queries/games';
+import { getGamesWithNsos } from '@/server/queries/games';
 
 export default async function RootPage() {
   const [session, games] = await Promise.all([

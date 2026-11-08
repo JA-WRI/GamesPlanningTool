@@ -7,7 +7,7 @@ import {
   usePathname,
   useSearchParams,
 } from 'next/navigation';
-import { nsoSwitchHref } from '@/lib/routing/Navigation';
+import { findGame, nsoSwitchHref } from '@/lib/routing/Navigation';
 
 export default function NsoSelector({ games }: { games: GameWithNsos[] }) {
   const router = useRouter();
@@ -17,8 +17,7 @@ export default function NsoSelector({ games }: { games: GameWithNsos[] }) {
 
   if (!params.gameId) return null; //for the admin pages
 
-  const gameNsos =
-    games.find((g) => String(g.id) === params.gameId)?.nsos ?? [];
+  const gameNsos = findGame(games, params.gameId)?.nsos ?? [];
   const selected = params.nsoId ?? searchParams.get('nso') ?? '';
 
   function handleChange(newNsoId: string) {

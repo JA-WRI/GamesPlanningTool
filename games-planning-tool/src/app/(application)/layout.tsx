@@ -2,7 +2,7 @@ import { getSession } from '@/lib/data';
 import Header from '@/components/layout/Header';
 import Navbar from '@/components/layout/Navbar';
 import { Suspense } from 'react';
-import { getGamesWithNsos } from '@/queries/games';
+import { getGamesWithNsos } from '@/server/queries/games';
 
 export default async function ApplicationLayout({
   children,

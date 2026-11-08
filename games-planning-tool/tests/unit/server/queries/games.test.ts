@@ -14,7 +14,7 @@ vi.mock('@/lib/prisma', () => ({
 }));
 
 import { prisma } from '@/lib/prisma';
-import { getGamesWithNsos } from '@/queries/games';
+import { getGamesWithNsos } from '@/server/queries/games';
 
 const findMany = vi.mocked(prisma.game.findMany);
 

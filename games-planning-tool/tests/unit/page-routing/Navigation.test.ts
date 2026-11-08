@@ -5,6 +5,7 @@ import {
   gameSwitchHref,
   nsoSwitchHref,
   resolveSessionNsoId,
+  findGame,
 } from '@/lib/routing/Navigation';
 import { describe, it, expect } from 'vitest';
 
@@ -171,5 +172,28 @@ describe('resolveSessionNsoId', () => {
     expect(
       resolveSessionNsoId({ ...game, nsos: [] }, 'nso', 'nso-a'),
     ).toBeUndefined();
+  });
+});
+
+describe('findGame', () => {
+  const games = [
+    { id: 1, name: 'Summer Games 2028', nsos: [{ id: 'nso-a', name: 'A' }] },
+    { id: 12, name: 'Winter Games 2030', nsos: [] },
+  ];
+
+  it('matches a numeric game id against a URL string param', () => {
+    expect(findGame(games, '12')).toBe(games[1]);
+  });
+
+  it('keeps the extra fields of the game type passed in', () => {
+    expect(findGame(games, '1')?.nsos).toEqual([{ id: 'nso-a', name: 'A' }]);
+  });
+
+  it('returns undefined for unknown, malformed, empty or missing ids', () => {
+    expect(findGame(games, '999')).toBeUndefined();
+    expect(findGame(games, 'game_id_1')).toBeUndefined();
+    expect(findGame(games, '01')).toBeUndefined();
+    expect(findGame(games, '')).toBeUndefined();
+    expect(findGame(games, undefined)).toBeUndefined();
   });
 });

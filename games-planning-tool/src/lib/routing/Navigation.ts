@@ -1,5 +1,5 @@
 //Less thsn 50% AI generated Code to create resolveSessionNsoId functiion
-import type { GameWithNsos, Role } from '@/lib/types';
+import type { Game, GameWithNsos, Role } from '@/lib/types';
 
 type Ctx = {
   role: Role;
@@ -80,4 +80,14 @@ export function resolveSessionNsoId(
   if (role !== 'nso') return undefined;
   const match = game.nsos.find((n) => n.id === sessionNsoId);
   return match?.id ?? game.nsos[0]?.id;
+}
+
+// Finds the game whose id matches a URL param. Game ids are numbers in the
+// database but strings in the URL, so the conversion happens here only.
+export function findGame<T extends Game>(
+  games: T[],
+  gameId: string | undefined,
+): T | undefined {
+  if (!gameId) return undefined;
+  return games.find((g) => String(g.id) === gameId);
 }

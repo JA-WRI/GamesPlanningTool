@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
-import { getGamesWithNsos } from '@/queries/games';
+import { getGamesWithNsos } from '@/server/queries/games';
+import { findGame } from '@/lib/routing/Navigation';
 
 export default async function GameLayout({
   children,
@@ -9,6 +10,6 @@ export default async function GameLayout({
   params: Promise<{ gameId: string }>;
 }) {
   const [{ gameId }, games] = await Promise.all([params, getGamesWithNsos()]);
-  if (!games.some((g) => String(g.id) === gameId)) notFound();
+  if (!findGame(games, gameId)) notFound();
   return <>{children}</>;
 }

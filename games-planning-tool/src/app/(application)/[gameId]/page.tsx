@@ -1,7 +1,11 @@
 import { notFound, redirect } from 'next/navigation';
 import { getSession } from '@/lib/data';
-import { gameSwitchHref, resolveSessionNsoId } from '@/lib/routing/Navigation';
-import { getGamesWithNsos } from '@/queries/games';
+import {
+  findGame,
+  gameSwitchHref,
+  resolveSessionNsoId,
+} from '@/lib/routing/Navigation';
+import { getGamesWithNsos } from '@/server/queries/games';
 
 export default async function GamePage({
   params,
@@ -15,7 +19,7 @@ export default async function GamePage({
   ]);
 
   // gameId has already been validated by the [gameId] layout
-  const game = games.find((g) => String(g.id) === gameId);
+  const game = findGame(games, gameId);
   if (!game) notFound();
 
   const { role, nsoId } = session.user;

@@ -1,6 +1,7 @@
 //no substantial AI generated code
 import { notFound } from 'next/navigation';
-import { getGamesWithNsos } from '@/queries/games';
+import { getGamesWithNsos } from '@/server/queries/games';
+import { findGame } from '@/lib/routing/Navigation';
 
 export default async function NsoLayout({
   children,
@@ -13,7 +14,7 @@ export default async function NsoLayout({
     params,
     getGamesWithNsos(),
   ]);
-  const game = games.find((g) => String(g.id) === gameId);
+  const game = findGame(games, gameId);
   if (!game?.nsos.some((n) => n.id === nsoId)) notFound();
   return <>{children}</>;
 }
