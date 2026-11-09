@@ -18,7 +18,7 @@ import {
 
 type TeamSizeEstimateTableProps = {
   teamSize: TeamSize;
-  onChange: (teamSize: TeamSize) => void;
+  onSave: (teamSize: TeamSize) => void;
 };
 
 const numberColumn = (
@@ -78,7 +78,7 @@ function TeamSizeWarnings({ rows }: { rows: TeamSizeRow[] }) {
 
 export default function TeamSizeEstimateTable({
   teamSize,
-  onChange,
+  onSave,
 }: TeamSizeEstimateTableProps) {
   // the rows as the user types, so the warnings update live
   const [liveRows, setLiveRows] = useState(() =>
@@ -95,7 +95,7 @@ export default function TeamSizeEstimateTable({
         createEmptyRow={() => athletesToRows(teamSize.athletes)[0]}
         isValid={isTeamSizeValid}
         onSave={(rows) =>
-          onChange({ ...teamSize, athletes: rowsToAthletes(rows) })
+          onSave({ ...teamSize, athletes: rowsToAthletes(rows) })
         }
         onRowsChange={setLiveRows}
         showSearch={false}
@@ -107,7 +107,7 @@ export default function TeamSizeEstimateTable({
       <NotesBox
         id="team-size-notes"
         value={teamSize.notes}
-        onSave={(notes) => onChange({ ...teamSize, notes })}
+        onSave={(notes) => onSave({ ...teamSize, notes })}
       />
     </div>
   );

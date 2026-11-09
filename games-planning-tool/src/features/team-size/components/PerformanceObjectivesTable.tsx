@@ -17,7 +17,7 @@ import {
 
 type PerformanceObjectivesTableProps = {
   teamSize: TeamSize;
-  onChange: (teamSize: TeamSize) => void;
+  onSave: (teamSize: TeamSize) => void;
 };
 
 const COUNT_FIELDS: (keyof MedalObjectiveRow)[] = ['low', 'high'];
@@ -62,7 +62,7 @@ function MedalWarnings({ rows }: { rows: MedalObjectiveRow[] }) {
 // projected medals Low and High, in the shared grid like the other tables
 export default function PerformanceObjectivesTable({
   teamSize,
-  onChange,
+  onSave,
 }: PerformanceObjectivesTableProps) {
   // the rows as the user types, so the warnings update live
   const [liveRows, setLiveRows] = useState(() => medalsToRows(teamSize));
@@ -78,7 +78,7 @@ export default function PerformanceObjectivesTable({
         isValid={(rows) =>
           allWholeCounts(rows, COUNT_FIELDS) && !rows.some(medalRowHasError)
         }
-        onSave={(rows) => onChange(rowsToMedals(rows, teamSize))}
+        onSave={(rows) => onSave(rowsToMedals(rows, teamSize))}
         onRowsChange={setLiveRows}
         showSearch={false}
         allowAddRow={false}
