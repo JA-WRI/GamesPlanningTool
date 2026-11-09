@@ -41,7 +41,7 @@ model Game {
   planningPeriodStart DateTime @map("planning_period_start")
   planningPeriodEnd   DateTime @map("planning_period_end")
   isActive            Boolean  @default(true) @map("is_active")
-  createdAt           DateTime @default(now())
+  createdAt           DateTime @default(now()) @map("created_at")
 
   gameNsos    GameNso[]
   gameMembers GameMember[]
