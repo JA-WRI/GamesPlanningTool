@@ -15,9 +15,7 @@ import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
 import { type Currency, CONVERSION_RATES } from './ConversionRates';
 import EstimatedCosts from './EstimatedCosts';
-// these will be added later
-//import CostSummary from './costsummary';
-//import HotelDetails from './hoteldetails';
+import type { CalculatorData } from './CalculatorClient';
 
 // these categories are now hard-coded values until we connect to the db
 const TRAVEL_CATEGORIES = [
@@ -178,21 +176,49 @@ function convertRows(
 
 export default function CalculatorContent({
   calculatorId,
+  initialData,
 }: {
   readonly calculatorId: number;
+  readonly initialData?: CalculatorData;
 }) {
   const params = useParams<{ gameId?: string }>();
   const selectedGame = Games.find((game) => game.id === params.gameId);
+
+  
+const initialTravelerRows: CalculatorRow[] = initialData
+  ? initialData.travelers.map((traveler) => ({
+      id: String(traveler.id),
+      category: traveler.travelerCategory.name,
+      numberOfTeamMembers: traveler.numberOfTeamMembers,
+      days: traveler.days,
+      travelBudget: traveler.travelCostInCents / 100,
+      checkIn: traveler.checkInDate
+        ? new Date(traveler.checkInDate).toISOString().slice(0, 10)
+        : '',
+      checkOut: traveler.checkOutDate
+        ? new Date(traveler.checkOutDate).toISOString().slice(0, 10)
+        : '',
+      accommodationBudget:
+        traveler.accommodationCostInCents / 100,
+      mealsBudget: traveler.mealsCostInCents / 100,
+      insuranceBudget: traveler.insuranceCostInCents / 100,
+      totalCostPerTeamMember: 0,
+    }))
+  : INITIAL_ROWS.map((row) => ({ ...row }));
+
+
   const [currency, setCurrency] = useState<Currency>('CAD');
   const [gridVersion, setGridVersion] = useState(0);
-  const [renderRowsCAD, setRenderRowsCAD] = useState<CalculatorRow[]>(() =>
-    INITIAL_ROWS.map((row) => ({ ...row })),
+  const [renderRowsCAD, setRenderRowsCAD] = useState<CalculatorRow[]>(
+    () => initialTravelerRows.map((row) => ({ ...row })),
   );
+  
   const savedCAD = useRef<CalculatorRow[]>(
-    INITIAL_ROWS.map((row) => ({ ...row })),
+    initialTravelerRows.map((row) => ({ ...row })),
   );
+  
   const draftCAD = useRef<CalculatorRow[]>(
-    INITIAL_ROWS.map((row) => ({ ...row })),
+    initialTravelerRows.map((row) => ({ ...row })),
   );
 
   // keeping budget values in CAD when switching currencies
@@ -232,15 +258,6 @@ export default function CalculatorContent({
     setGridVersion((version) => version + 1);
   };
 
-  // Totals remain placeholders until the calculator's business calculations are connected
-  // const summary = [
-  //   { label: 'Accommodation:', value: 0 },
-  //   { label: 'Travel:', value: 0 },
-  //   { label: 'Food:', value: 0 },
-  //   { label: 'Insurance:', value: 0 },
-  //   { label: 'SIM card:', value: 0 },
-  // ];
-
   return (
     <Box className="w-full min-w-0" data-calculator-id={calculatorId}>
       {/* Keep column widths stable between Edit and Preview */}
@@ -276,11 +293,15 @@ export default function CalculatorContent({
       <EstimatedCosts
         currency={currency}
         onCurrencyChange={handleCurrencyChange}
+        initialRows={initialData?.estimatedCosts.map((cost) => ({
+          id: String(cost.id),
+          category: cost.name,
+          amount: cost.costInCents / 100,
+          unitOfMeasure: cost.unitOfMeasure,
+          notes: cost.notes ?? '',
+        }))}
       />
-      {/* will be implemented later 
-      <HotelDetails />
-      <CostSummary summary={summary} estimatedTotal={0} />
-      */}
+      
     </Box>
   );
 }

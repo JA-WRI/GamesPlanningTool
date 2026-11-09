@@ -38,6 +38,7 @@ model Game {
 
   gameNsos    GameNso[]
   gameMembers GameMember[]
+  travelers   Traveler[]
   
   @@map("games")
 }
@@ -52,6 +53,7 @@ model Nso {
   users    User[]
   members  Member[]
   gameNsos GameNso[]
+  travelers Traveler[]
 
   @@map("nsos")
 }
@@ -155,4 +157,66 @@ model Resource {
   previousFromNext Resource[] @relation("NextElement")
 
   @@map("resources")
+}
+
+// Calculator tables 
+model Traveler {
+  id                 Int       @id @default(autoincrement())
+  travelerCategoryId Int       @map("traveler_category_id")
+  gameId             Int       @map("games_id")
+  nsoId              String    @map("nso_id") @db.Uuid
+
+  numberOfTeamMembers Int       @default(0) @map("number_of_team_members")
+  days                Int       @default(0)
+  checkInDate         DateTime? @map("check_in_date") @db.Date
+  checkOutDate        DateTime? @map("check_out_date") @db.Date
+
+  travelCostInCents        Int @default(0) @map("travel_cost_in_cents")
+  accommodationCostInCents Int @default(0) @map("accommodation_cost_in_cents")
+  mealsCostInCents         Int @default(0) @map("meals_cost_in_cents")
+  insuranceCostInCents     Int @default(0) @map("insurance_cost_in_cents")
+  extraCostsInCents        Int @default(0) @map("extra_costs_in_cents")
+
+  travelerCategory TravelerCategory @relation(fields: [travelerCategoryId], references: [id])
+  game             Game             @relation(fields: [gameId], references: [id])
+  nso              Nso              @relation(fields: [nsoId], references: [id])
+
+  @@index([gameId, nsoId])
+  @@index([travelerCategoryId])
+  @@map("traveler")
+}
+  
+
+model TravelerCategory {
+  id Int @id @default(autoincrement())
+  name String @unique
+  travelers Traveler[]
+  estimatesCostItems EstimatedCostItem[]
+  @@map("traveler_category")
+}
+
+model EstimatedCostItem {
+  id                 Int     @id @default(autoincrement())
+  name               String
+  costInCents        Int     @default(0) @map("cost_in_cents")
+  unitOfMeasure      String  @map("unit_of_measure")
+  notes              String?
+  isCoveredByCOC     Boolean @default(false) @map("is_covered_by_COC")
+  travelerCategoryId Int?    @map("traveler_category_id")
+
+  travelerCategory TravelerCategory? @relation(fields: [travelerCategoryId], references: [id])
+
+  @@index([travelerCategoryId])
+  @@map("estimated_cost_items")
+}
+
+model ConversionRate {
+  id           Int      @id @default(autoincrement())
+  fromCurrency String   @map("from_currency")
+  toCurrency   String   @map("to_currency")
+  rate         Decimal  @db.Decimal(18, 8)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([fromCurrency, toCurrency])
+  @@map("conversion_rates")
 }

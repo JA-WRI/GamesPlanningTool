@@ -39,6 +39,7 @@ type EstimatedCostRow = Record<string, unknown> & {
 type EstimatedCostsProps = {
   readonly currency: Currency;
   readonly onCurrencyChange: (currency: Currency) => void;
+  readonly initialRows?: EstimatedCostRow[];
 };
 
 const INITIAL_COST_ROWS: EstimatedCostRow[] = [
@@ -115,10 +116,11 @@ function displayCosts(
 export default function EstimatedCosts({
   currency,
   onCurrencyChange,
+  initialRows,
 }: Readonly<EstimatedCostsProps>) {
   // Keep saved amounts in CAD, even while another currency is displayed.
-  const [savedCAD, setSavedCAD] = useState(() =>
-    INITIAL_COST_ROWS.map((row) => ({ ...row })),
+  const [savedCAD, setSavedCAD] = useState<EstimatedCostRow[]>(() =>
+    (initialRows ?? INITIAL_COST_ROWS).map((row) => ({ ...row })),
   );
 
   const columns: ColumnDefinition<EstimatedCostRow>[] = [
