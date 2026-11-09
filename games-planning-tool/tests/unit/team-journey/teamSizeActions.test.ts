@@ -1,3 +1,4 @@
+// @vitest-environment node
 // AI contribution: 50% or more AI-generated
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MOCK_DISCIPLINES, MOCK_TEAM_SIZE } from './fixtures';
@@ -12,9 +13,11 @@ const { prismaMock } = vi.hoisted(() => ({
   },
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: prismaMock }));
+// server-only throws outside the server, so the tests turn it off
+vi.mock('server-only', () => ({}));
 
 import { saveTeamSize } from '@/features/team-size/actions/teamSizeActions';
-import { getTeamSize } from '@/features/team-size/lib/teamSizeDb';
+import { getTeamSize } from '@/server/queries/teamSizeDb';
 
 const GAME_ID = '1';
 const NSO_ID = 'b9f0193f-2e62-4141-bffb-ffa3c7f9e9d7';

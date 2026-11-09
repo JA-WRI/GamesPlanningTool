@@ -1,7 +1,7 @@
 // AI contribution: 50% or more AI-generated
 import { notFound } from 'next/navigation';
 import TeamJourneyClient from './_components/TeamJourneyClient';
-import { getTeamSize } from '@/features/team-size/lib/teamSizeDb';
+import { getTeamSize } from '@/server/queries/teamSizeDb';
 
 type TeamJourneyPageProps = {
   params: Promise<{ gameId: string; nsoId: string }>;
