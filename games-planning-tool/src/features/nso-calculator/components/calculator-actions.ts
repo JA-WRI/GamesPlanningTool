@@ -68,26 +68,33 @@ export async function saveEstimatedCostItems(
   rows: any[],
 ) {
   const safeRows = Array.isArray(rows) ? rows : [];
+  const keepIds = safeRows.map((row) => row.id).filter(Boolean);
 
-  for (const row of safeRows) {
-    await prisma.calculatorEstimatedCostItem.upsert({
-      where: { id: row.id || '' },
-      update: {
-        category: row.category ?? '',
-        amount: Number(row.amount) || 0,
-        unitOfMeasure: row.unitOfMeasure ?? 'CAD',
-        notes: row.notes || null,
-      },
-      create: {
-        id: row.id || undefined,
-        calculatorId,
-        category: row.category ?? '',
-        amount: Number(row.amount) || 0,
-        unitOfMeasure: row.unitOfMeasure ?? 'CAD',
-        notes: row.notes || null,
-      },
-    });
-  }
+  await prisma.$transaction([
+    // removing rows
+    prisma.calculatorEstimatedCostItem.deleteMany({
+      where: { calculatorId, id: { notIn: keepIds } },
+    }),
+    ...safeRows.map((row) =>
+      prisma.calculatorEstimatedCostItem.upsert({
+        where: { id: row.id || '' },
+        update: {
+          category: row.category ?? '',
+          amount: Number(row.amount) || 0,
+          unitOfMeasure: row.unitOfMeasure ?? 'CAD',
+          notes: row.notes || null,
+        },
+        create: {
+          id: row.id || undefined,
+          calculatorId,
+          category: row.category ?? '',
+          amount: Number(row.amount) || 0,
+          unitOfMeasure: row.unitOfMeasure ?? 'CAD',
+          notes: row.notes || null,
+        },
+      }),
+    ),
+  ]);
 
   return getEstimatedCostItems(calculatorId);
 }
