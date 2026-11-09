@@ -1,9 +1,6 @@
 // AI contribution: 50% or more AI-generated
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import {
-  MOCK_DISCIPLINES,
-  MOCK_TEAM_SIZE,
-} from '@/features/team-size/lib/mockData';
+import { MOCK_DISCIPLINES, MOCK_TEAM_SIZE } from './fixtures';
 
 // fake prisma objct the tests never touch a real database
 const { prismaMock } = vi.hoisted(() => ({
