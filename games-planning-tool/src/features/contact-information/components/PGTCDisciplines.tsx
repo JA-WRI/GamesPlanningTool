@@ -20,6 +20,7 @@
 import { useState } from 'react';
 import GridHeaderPage from '@/components/commons/GridHeader';
 import TextBox from '@/components/commons/GridTextBox';
+import { Trash2 } from 'lucide-react';
 
 export interface DisciplineData {
   id: string;
@@ -77,6 +78,10 @@ export default function DisciplinesSection({
     setDisciplines((prev) => [...prev, emptyDiscipline()]);
   };
 
+  const handleDeleteDiscipline = (id: string) => {
+    setDisciplines((prev) => prev.filter((item) => item.id !== id));
+  };
+
   const handleFieldChange = (
     id: string,
     field: keyof DisciplineData,
@@ -101,7 +106,7 @@ export default function DisciplinesSection({
   const handleCancel = () => {
     setIsEditing(false);
     setIsPreview(false);
-    setDisciplines(initialDisciplines);
+    setDisciplines(initialDisciplines); // Reverts unsaved draft changes
   };
 
   // edit vs preview
@@ -542,6 +547,20 @@ export default function DisciplinesSection({
                 </div>
               </div>
             </div>
+
+            {/* delete button */}
+            {showInputs && (
+              <div className="pt-4 border-t border-gray-100 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => handleDeleteDiscipline(discipline.id)}
+                  title="Delete Discipline"
+                  className="p-2 text-white bg-burgundy hover:bg-burgundy/90 rounded-md transition-colors cursor-pointer shadow-sm"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
         ))}
 
