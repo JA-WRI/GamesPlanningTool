@@ -2,12 +2,9 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTeamJourneyState } from '@/app/(application)/[gameId]/[nsoId]/team-journey/_components/useTeamJourneyState';
-import {
-  INITIAL_TEAM_SIZE,
-  MOCK_DISCIPLINES,
-  MOCK_MEDAL_ROWS,
-  MOCK_TEAM_SIZE,
-} from '@/features/team-size/lib/mockData';
+import { INITIAL_TEAM_SIZE } from '@/features/team-size/lib/constants';
+import { MOCK_MEDAL_ROWS } from '@/features/team-size/lib/mockData';
+import { MOCK_DISCIPLINES, MOCK_TEAM_SIZE } from './fixtures';
 
 // what the page gets from the db
 const SAVED = { teamSize: MOCK_TEAM_SIZE, disciplines: MOCK_DISCIPLINES };
