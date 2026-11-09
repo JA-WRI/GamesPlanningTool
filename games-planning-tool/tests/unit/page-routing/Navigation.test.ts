@@ -4,6 +4,9 @@ import {
   isActive,
   gameSwitchHref,
   nsoSwitchHref,
+  resolveSessionNsoId,
+  gamesForUser,
+  findGame,
 } from '@/lib/routing/Navigation';
 import { describe, it, expect } from 'vitest';
 
@@ -139,5 +142,91 @@ describe('nsoSwitchHref', () => {
   it('never produces "undefined"', () => {
     const result = nsoSwitchHref({ ...base, pathname: '/game1/dashboard' });
     expect(result).not.toContain('undefined');
+  });
+});
+
+describe('resolveSessionNsoId', () => {
+  const game = {
+    id: 1,
+    name: 'Summer Games 2028',
+    nsos: [
+      { id: 'nso-a', name: 'Athletics Canada' },
+      { id: 'nso-b', name: 'Swimming Canada' },
+    ],
+  };
+
+  it('returns undefined for COC and admin users', () => {
+    expect(resolveSessionNsoId(game, 'coc', 'nso-a')).toBeUndefined();
+    expect(resolveSessionNsoId(game, 'admin', 'nso-a')).toBeUndefined();
+  });
+
+  it("keeps the NSO user's session NSO when it belongs to the game", () => {
+    expect(resolveSessionNsoId(game, 'nso', 'nso-b')).toBe('nso-b');
+  });
+
+  it("never falls back to another team's NSO when the session NSO isn't in the game", () => {
+    expect(resolveSessionNsoId(game, 'nso', 'nso_1')).toBeUndefined();
+    expect(resolveSessionNsoId(game, 'nso', undefined)).toBeUndefined();
+  });
+
+  it('returns undefined when the game has no NSOs', () => {
+    expect(
+      resolveSessionNsoId({ ...game, nsos: [] }, 'nso', 'nso-a'),
+    ).toBeUndefined();
+  });
+});
+
+describe('gamesForUser', () => {
+  const games = [
+    { id: 1, name: 'Summer Games 2028', nsos: [{ id: 'nso-a', name: 'A' }] },
+    {
+      id: 2,
+      name: 'Winter Games 2030',
+      nsos: [
+        { id: 'nso-a', name: 'A' },
+        { id: 'nso-b', name: 'B' },
+      ],
+    },
+    { id: 3, name: 'Youth Games 2029', nsos: [] },
+  ];
+
+  it('returns every game for COC and admin users', () => {
+    expect(gamesForUser(games, 'coc')).toEqual(games);
+    expect(gamesForUser(games, 'admin')).toEqual(games);
+  });
+
+  it("returns only the games the NSO user's NSO is in", () => {
+    expect(gamesForUser(games, 'nso', 'nso-a').map((g) => g.id)).toEqual([
+      1, 2,
+    ]);
+    expect(gamesForUser(games, 'nso', 'nso-b').map((g) => g.id)).toEqual([2]);
+  });
+
+  it('returns no games for an NSO user with no or unknown NSO', () => {
+    expect(gamesForUser(games, 'nso', 'nso_1')).toEqual([]);
+    expect(gamesForUser(games, 'nso', undefined)).toEqual([]);
+  });
+});
+
+describe('findGame', () => {
+  const games = [
+    { id: 1, name: 'Summer Games 2028', nsos: [{ id: 'nso-a', name: 'A' }] },
+    { id: 12, name: 'Winter Games 2030', nsos: [] },
+  ];
+
+  it('matches a numeric game id against a URL string param', () => {
+    expect(findGame(games, '12')).toBe(games[1]);
+  });
+
+  it('keeps the extra fields of the game type passed in', () => {
+    expect(findGame(games, '1')?.nsos).toEqual([{ id: 'nso-a', name: 'A' }]);
+  });
+
+  it('returns undefined for unknown, malformed, empty or missing ids', () => {
+    expect(findGame(games, '999')).toBeUndefined();
+    expect(findGame(games, 'game_id_1')).toBeUndefined();
+    expect(findGame(games, '01')).toBeUndefined();
+    expect(findGame(games, '')).toBeUndefined();
+    expect(findGame(games, undefined)).toBeUndefined();
   });
 });

@@ -5,9 +5,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePathname, useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Role } from '@/lib/types';
-import { Games, Nsos } from '@/lib/data';
-import { tabRoute, isActive } from '@/lib/routing/Navigation';
+import type { GameWithNsos, Role } from '@/lib/types';
+import { findGame, tabRoute, isActive } from '@/lib/routing/Navigation';
 import {
   countVisibleItems,
   moveActiveIntoView,
@@ -85,18 +84,22 @@ const tabBorder = (active: boolean) =>
 export default function Navbar({
   role,
   userNsoId,
+  games,
 }: {
   role: Role;
   userNsoId?: string;
+  games: GameWithNsos[];
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { nsoId, gameId } = useParams<{ nsoId?: string; gameId?: string }>();
 
-  const game = gameId ?? Games[0].id;
+  const game = gameId ?? String(games[0]?.id ?? '');
+  // COC/Admin fall back to the first NSO taking part in the current game.
+  // NSO users always use their own NSO, never another team's.
+  const defaultNso = findGame(games, game)?.nsos[0]?.id ?? '';
   const pickedNso = nsoId ?? searchParams.get('nso');
-  const nso =
-    role === 'nso' ? (userNsoId ?? Nsos[0].id) : (pickedNso ?? Nsos[0].id);
+  const nso = role === 'nso' ? (userNsoId ?? '') : (pickedNso ?? defaultNso);
 
   // Only show navigation items allowed for the current role.
   const items = navItems
