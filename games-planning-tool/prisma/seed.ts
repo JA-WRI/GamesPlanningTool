@@ -410,6 +410,8 @@ async function seedResources() {
 async function main() {
   // Wipe in dependency order (children first)
   await prisma.resource.deleteMany();
+  await prisma.disciplineBreakdown.deleteMany();
+  await prisma.teamSizeEstimate.deleteMany();
   await prisma.gameMember.deleteMany();
   await prisma.gameNso.deleteMany();
   await prisma.member.deleteMany();
