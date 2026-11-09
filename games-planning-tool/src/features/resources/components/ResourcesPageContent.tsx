@@ -1,20 +1,24 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 'use client';
 
-import React, { useState, useMemo, useSyncExternalStore, useRef } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   Resource,
   FolderResource,
   FileResource,
+  NewResourceInput,
 } from '@/features/resources/types/resource';
+import { getDescendantResourceIds } from '@/lib/resources-data';
 import {
-  INITIAL_RESOURCES,
-  subscribeToResources,
-  getCachedResources,
-  saveResourcesToStorage,
+  createFileResource,
   createFolder,
-  getDescendantResourceIds,
-} from '@/lib/resources-data';
+  createLinkResource,
+  deleteResources,
+  moveResources,
+  renameResource,
+  reorderResources,
+  updateResourceCategories,
+} from '../actions';
 import { AddResourceModal } from './AddResourceModal';
 import { ResourceDetailModal } from './ResourceDetailModal';
 import { FolderDirectoryModal } from './FolderDirectoryModal';
@@ -26,17 +30,16 @@ import { ResourcesToolbar } from './ResourcesToolbar';
 import { CreateFolderModal } from './CreateFolderModal';
 
 export interface ResourcesPageContentProps {
+  initialResources: Resource[];
   isReadOnly?: boolean;
 }
 
+// Exceeds 50 lines: one component wires page state, drag-and-drop, and all modals together.
 export function ResourcesPageContent({
+  initialResources,
   isReadOnly = false,
-}: ResourcesPageContentProps = {}) {
-  const resources = useSyncExternalStore(
-    subscribeToResources,
-    getCachedResources,
-    () => INITIAL_RESOURCES,
-  );
+}: ResourcesPageContentProps) {
+  const [resources, setResources] = useState(initialResources);
 
   const [globalSearch, setGlobalSearch] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -44,6 +47,7 @@ export function ResourcesPageContent({
 
   // Modal states...
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addResourceFolderId, setAddResourceFolderId] = useState<string>();
   const [detailResource, setDetailResource] = useState<Resource | null>(null);
   const [categoryEditResource, setCategoryEditResource] =
     useState<Resource | null>(null);
@@ -67,8 +71,6 @@ export function ResourcesPageContent({
     });
   }, [resources, globalSearch]);
 
-  const updateResources = (newResources: Resource[]) =>
-    saveResourcesToStorage(newResources);
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
@@ -94,7 +96,17 @@ export function ResourcesPageContent({
     allResources: resources,
     isReadOnly,
     selectedIds,
-    updateResources,
+    onMoveResourceToFolder: async (id, folderId) => {
+      setResources(await moveResources([id], folderId));
+    },
+    onReorderResources: async (ordered) => {
+      setResources(
+        await reorderResources(
+          null,
+          ordered.map((r) => r.id),
+        ),
+      );
+    },
     showToast,
     setActiveDirectoryFolder,
     setIsEditing,
@@ -123,52 +135,61 @@ export function ResourcesPageContent({
     scrollContainerRef,
   );
 
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = async () => {
     if (selectedIds.size === 0) return;
+    const count = selectedIds.size;
     if (
       typeof window !== 'undefined' &&
-      !window.confirm(
-        `Delete ${selectedIds.size} resource${selectedIds.size === 1 ? '' : 's'}?`,
-      )
+      !window.confirm(`Delete ${count} resource${count === 1 ? '' : 's'}?`)
     )
       return;
-    const updated = resources.filter((r) => !selectedIds.has(r.id));
-    updateResources(updated);
+    setResources(await deleteResources([...selectedIds]));
     setSelectedIds(new Set());
     setIsEditing(false);
-    showToast(
-      `Deleted ${selectedIds.size} resource${selectedIds.size === 1 ? '' : 's'}`,
-    );
+    showToast(`Deleted ${count} resource${count === 1 ? '' : 's'}`);
   };
 
-  const handleAddResource = (newRes: Resource) => {
-    updateResources([...resources, newRes]);
+  const handleAddResource = async (input: NewResourceInput) => {
+    if (input.type === 'link') {
+      setResources(
+        await createLinkResource({
+          name: input.name,
+          url: input.url,
+          categories: input.categories,
+          parentId: input.parentId,
+        }),
+      );
+    } else {
+      const formData = new FormData();
+      formData.set('name', input.name);
+      formData.set('categories', JSON.stringify(input.categories));
+      if (input.parentId) formData.set('parentId', input.parentId);
+      formData.set('file', input.file);
+      setResources(await createFileResource(formData));
+    }
+
     setIsAddModalOpen(false);
     showToast('Resource added successfully');
   };
 
-  const handleRenameResource = (id: string, newName: string) => {
-    updateResources(
-      resources.map((r) => (r.id === id ? { ...r, name: newName } : r)),
-    );
+  const handleRenameResource = async (id: string, newName: string) => {
+    setResources(await renameResource(id, newName));
     showToast('Renamed successfully');
   };
 
-  const handleCategoriesChange = (id: string, newCategories: string[]) => {
-    updateResources(
-      resources.map((r) =>
-        r.id === id ? { ...r, categories: newCategories } : r,
-      ),
-    );
+  const handleCategoriesChange = async (
+    id: string,
+    newCategories: string[],
+  ) => {
+    setResources(await updateResourceCategories(id, newCategories));
     showToast('Categories updated');
   };
 
-  const handleCreateFolderSubmit = (e: React.FormEvent) => {
+  const handleCreateFolderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = newFolderNameInput.trim();
     if (trimmed) {
-      const folder = createFolder(trimmed, []);
-      updateResources([...resources, folder]);
+      setResources(await createFolder({ name: trimmed }));
       showToast('Folder created');
     }
     setNewFolderNameInput('');
@@ -278,7 +299,11 @@ export function ResourcesPageContent({
 
       <AddResourceModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        preselectedFolderId={addResourceFolderId}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setAddResourceFolderId(undefined);
+        }}
         onAddResource={handleAddResource}
       />
 
@@ -317,45 +342,47 @@ export function ResourcesPageContent({
           isReadOnly={isReadOnly}
           onClose={() => setActiveDirectoryFolder(null)}
           onSelectResourceDetail={setDetailResource}
-          onCreateSubfolder={(name, _parentId) => {
-            const folder = createFolder(name, []);
-            updateResources([...resources, { ...folder, parentId: _parentId }]);
+          onCreateSubfolder={async (name, parentId) => {
+            setResources(await createFolder({ name, parentId }));
           }}
-          onAddResourceToFolder={() => {
+          onAddResourceToFolder={(folderId) => {
+            setAddResourceFolderId(folderId);
             setIsAddModalOpen(true);
           }}
-          onMoveResourceToFolder={(ids, targetFolderId) => {
+          onMoveResourceToFolder={async (ids, targetFolderId) => {
             droppedInFolderRef.current = true;
             dragDroppedSuccessfullyRef.current = true;
             setDraggedCardId(null);
             draggedCardIdRef.current = null;
             setIsEditing(false);
-            const updated = resources.map((r) =>
-              ids.includes(r.id)
-                ? { ...r, parentId: targetFolderId || undefined }
-                : r,
-            );
-            updateResources(updated);
+            setResources(await moveResources(ids, targetFolderId));
             showToast(`Moved ${ids.length} item(s)`);
           }}
-          onReorderInFolder={(orderedChildren) => {
+          onReorderInFolder={async (parentId, orderedChildren) => {
             droppedInFolderRef.current = true;
-            const orderedIds = new Set(orderedChildren.map((r) => r.id));
-            const otherResources = resources.filter(
-              (r) => !orderedIds.has(r.id),
+            setResources(
+              await reorderResources(
+                parentId,
+                orderedChildren.map((r) => r.id),
+              ),
             );
-            updateResources([...otherResources, ...orderedChildren]);
           }}
           onRenameResource={handleRenameResource}
-          onDeleteResources={(ids) => {
-            const idsToDelete = new Set(ids);
-            const updated = resources.filter((r) => !idsToDelete.has(r.id));
-            updateResources(updated);
+          onDeleteResources={async (ids) => {
+            setResources(await deleteResources(ids));
             showToast(
               `Deleted ${ids.length} item${ids.length === 1 ? '' : 's'}`,
             );
           }}
-          onDropOnMainPage={(ids, targetId) => {
+          onDropOnMainPage={async (ids, targetId) => {
+            const target = resources.find((r) => r.id === targetId);
+
+            if (target?.type === 'folder') {
+              setResources(await moveResources(ids, target.id));
+              showToast(`Moved ${ids.length} item(s) to folder`);
+              return;
+            }
+
             let updated = resources.map((r) =>
               ids.includes(r.id) ? { ...r, parentId: null } : r,
             );
@@ -375,22 +402,6 @@ export function ResourcesPageContent({
                 .filter(Boolean) as Resource[];
               updated = [...otherResources, ...finalOrdered];
             } else if (targetId) {
-              const targetResource = resources.find((r) => r.id === targetId);
-              if (targetResource?.type === 'folder') {
-                updated = [
-                  ...resources.filter((r) => !ids.includes(r.id)),
-                  ...(ids
-                    .map((id) => {
-                      const r = resources.find((x) => x.id === id);
-                      return r ? { ...r, parentId: targetId } : null;
-                    })
-                    .filter(Boolean) as Resource[]),
-                ];
-                updateResources(updated);
-                showToast(`Moved ${ids.length} item(s) to folder`);
-                return;
-              }
-
               const reorderedIds = new Set(
                 localOrderedRef.current.map((r) => r.id),
               );
@@ -404,16 +415,22 @@ export function ResourcesPageContent({
               const targetIndex = newLocalOrdered.findIndex(
                 (r) => r.id === targetId,
               );
+              const itemsToInsert = updated.filter((r) => ids.includes(r.id));
               if (targetIndex !== -1) {
-                const itemsToInsert = updated.filter((r) => ids.includes(r.id));
                 newLocalOrdered.splice(targetIndex, 0, ...itemsToInsert);
               } else {
-                const itemsToInsert = updated.filter((r) => ids.includes(r.id));
                 newLocalOrdered.push(...itemsToInsert);
               }
               updated = [...otherResources, ...newLocalOrdered];
             }
-            updateResources(updated);
+
+            await moveResources(ids, null);
+            setResources(
+              await reorderResources(
+                null,
+                updated.filter((r) => !r.parentId).map((r) => r.id),
+              ),
+            );
             showToast(`Moved ${ids.length} item(s) to main dashboard`);
           }}
           onCategoriesChange={handleCategoriesChange}

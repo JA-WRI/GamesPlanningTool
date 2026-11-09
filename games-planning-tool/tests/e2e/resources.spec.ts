@@ -2,7 +2,10 @@
 import { test, expect } from '@playwright/test';
 import {
   createTestGameWithNso,
+  createTestResources,
   deleteTestGameWithNso,
+  deleteTestResources,
+  withClient,
   type TestGameWithNso,
 } from './helpers/test-data';
 
@@ -11,14 +14,17 @@ test.describe('Resources Page E2E', () => {
     // The [gameId]/[nsoId] routes are validated against the database,
     // so create a real game + NSO for these tests.
     let testData: TestGameWithNso;
+    let resourceIds: string[];
     let nsoResourcesUrl: string;
 
     test.beforeAll(async () => {
       testData = await createTestGameWithNso();
+      resourceIds = await createTestResources();
       nsoResourcesUrl = `/${testData.gameId}/${testData.nsoId}/resources`;
     });
 
     test.afterAll(async () => {
+      if (resourceIds) await deleteTestResources(resourceIds);
       if (testData) await deleteTestGameWithNso(testData);
     });
 
@@ -88,36 +94,53 @@ test.describe('Resources Page E2E', () => {
     });
   });
 
-  test('admin resource-management page toggles edit mode and enables selection', async ({
-    page,
-  }) => {
-    await page.goto('/admin/resource-management');
-    const editBtn = page.getByRole('button', { name: 'Edit' }).first();
-    await editBtn.click();
-    await expect(page.getByRole('button', { name: 'Done' })).toBeVisible();
+  test.describe('Admin resource management', () => {
+    let resourceIds: string[];
 
-    const firstCardSelectBtn = page
-      .locator('[data-resource-id]')
-      .first()
-      .getByRole('button', { name: 'Select resource' });
-    await expect(firstCardSelectBtn).toBeVisible();
-  });
-
-  test('admin resource-management page allows adding resource with automatic General category', async ({
-    page,
-  }) => {
-    await page.goto('/admin/resource-management');
-    await page.getByRole('button', { name: 'Add Resource' }).click();
-    const modal = page.locator('[role="dialog"]', {
-      hasText: 'Add New Resource',
+    test.beforeAll(async () => {
+      resourceIds = await createTestResources();
     });
-    await expect(modal).toBeVisible();
 
-    await modal.getByLabel('Resource Name').fill('A brand new test file');
-    await modal.getByRole('button', { name: /Website Link/i }).click();
-    await modal.getByLabel(/Website URL/i).fill('https://example.com');
-    await modal.getByRole('button', { name: 'Add Resource' }).click();
+    test.afterAll(async () => {
+      if (resourceIds) await deleteTestResources(resourceIds);
+      await withClient((client) =>
+        client.query(`DELETE FROM resources WHERE name = $1`, [
+          'A brand new test file',
+        ]),
+      );
+    });
 
-    await expect(page.getByText('Resource added successfully')).toBeVisible();
+    test('admin resource-management page toggles edit mode and enables selection', async ({
+      page,
+    }) => {
+      await page.goto('/admin/resource-management');
+      const editBtn = page.getByRole('button', { name: 'Edit' }).first();
+      await editBtn.click();
+      await expect(page.getByRole('button', { name: 'Done' })).toBeVisible();
+
+      const firstCardSelectBtn = page
+        .locator('[data-resource-id]')
+        .first()
+        .getByRole('button', { name: 'Select resource' });
+      await expect(firstCardSelectBtn).toBeVisible();
+    });
+
+    test('admin resource-management page allows adding resource with automatic General category', async ({
+      page,
+    }) => {
+      await page.goto('/admin/resource-management');
+      await page.getByRole('button', { name: 'Add Resource' }).click();
+      const modal = page.locator('[role="dialog"]', {
+        hasText: 'Add New Resource',
+      });
+      await expect(modal).toBeVisible();
+
+      await modal.getByLabel('Resource Name').fill('A brand new test file');
+      await modal.getByRole('button', { name: /Website Link/i }).click();
+      await modal.getByLabel(/Website URL/i).fill('https://example.com');
+      await modal.getByRole('button', { name: 'Add Resource' }).click();
+
+      await expect(page.getByText('Resource added successfully')).toBeVisible();
+    });
   });
 });
