@@ -41,7 +41,7 @@ export interface DisciplineData {
 }
 
 const emptyDiscipline = (): DisciplineData => ({
-  id: Date.now().toString(),
+  id: crypto.randomUUID(),
   name: '',
   arrivalDate: '',
   arrivalTime: '',
@@ -61,10 +61,12 @@ const emptyDiscipline = (): DisciplineData => ({
 
 interface DisciplinesSectionProps {
   initialDisciplines?: DisciplineData[];
+  onSaveAction?: (rows: DisciplineData[]) => Promise<DisciplineData[]>;
 }
 
 export default function DisciplinesSection({
   initialDisciplines = [],
+  onSaveAction,
 }: DisciplinesSectionProps) {
   const [isPreview, setIsPreview] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -85,13 +87,21 @@ export default function DisciplinesSection({
     );
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (onSaveAction) {
+      const updated = await onSaveAction(disciplines);
+      setDisciplines(updated);
+    } else {
+      console.log('Saved Disciplines:', disciplines);
+    }
     setIsEditing(false);
-    console.log('Saved Disciplines:', disciplines);
+    setIsPreview(false);
   };
 
   const handleCancel = () => {
     setIsEditing(false);
+    setIsPreview(false);
+    setDisciplines(initialDisciplines);
   };
 
   // edit vs preview

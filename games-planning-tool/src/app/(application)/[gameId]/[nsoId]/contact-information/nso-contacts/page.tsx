@@ -1,5 +1,9 @@
 // No substantial AI-generated code
-import ContactsGridNSOPage from '../../../../../../features/contact-information/components/ContactsGridNSOPage';
+import {
+  getNsoContacts,
+  saveNsoContacts,
+} from '@/features/contact-information/components/nso-actions';
+import ContactsGridNSOPage from '@/features/contact-information/components/ContactsGridNSOPage';
 
 const NSO_ROLES = [
   'HPD',
@@ -16,25 +20,18 @@ const NSO_ROLES = [
   'Security Contact #2',
   'Period of Stay (POS) Contact',
 ];
-const initialNsoData = [
-  {
-    id: '1',
-    firstName: 'Janiyah',
-    lastName: 'Conner',
-    email: 'jconner@olympic.ca',
-    role: 'HPD',
-    countryCode: '1',
-    phone: '514-555-0188',
-  },
-];
 
-export default function Page() {
+export default async function Page() {
+  const contacts = await getNsoContacts();
+
   return (
     <ContactsGridNSOPage
       title="NSO Contacts"
       description="National Sport Organization contact details and representative information."
       roles={NSO_ROLES}
-      initialData={initialNsoData}
+      initialData={contacts}
+      onSaveAction={saveNsoContacts}
+      readOnly={false}
     />
   );
 }

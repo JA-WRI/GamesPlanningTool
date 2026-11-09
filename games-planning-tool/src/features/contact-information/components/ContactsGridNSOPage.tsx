@@ -20,6 +20,7 @@ interface ContactsGridNSOPageProps {
   description: string;
   roles: string[];
   initialData?: ContactRow[];
+  onSaveAction?: (rows: ContactRow[]) => Promise<ContactRow[]>;
   readOnly?: boolean;
 }
 
@@ -28,6 +29,7 @@ export default function ContactsGridNSOPage({
   description,
   roles,
   initialData = [],
+  onSaveAction,
   readOnly = false,
 }: ContactsGridNSOPageProps) {
   const rows = useMemo(
@@ -39,6 +41,13 @@ export default function ContactsGridNSOPage({
       ),
     [roles, initialData],
   );
+
+  const handleSave = async (savedRows: ContactRow[]) => {
+    if (onSaveAction) {
+      await onSaveAction(savedRows);
+    }
+  };
+
   return (
     <BaseGridPage<ContactRow>
       key={roles.join('|')}
@@ -51,6 +60,7 @@ export default function ContactsGridNSOPage({
       allowDelete={false}
       searchPlaceholder="Search contacts by name, email, role..."
       readOnly={readOnly}
+      onSave={handleSave}
     />
   );
 }

@@ -156,3 +156,40 @@ model Resource {
 
   @@map("resources")
 }
+
+model NsoContact {
+  id           String   @id @default(uuid())
+  role         String   @unique // Unique per role for NSO structure
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  email        String
+  countryCode  String   @map("country_code")
+  phone        String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("nso_contacts")
+}
+
+model PgtcDiscipline {
+  id               String   @id @default(uuid())
+  name             String
+  arrivalDate      String?  @map("arrival_date")
+  arrivalTime      String?  @map("arrival_time")
+  departureDate    String?  @map("departure_date")
+  departureTime    String?  @map("departure_time")
+  accommodationName String? @map("accommodation_name")
+  streetName       String?  @map("street_name")
+  streetNumber     String?  @map("street_number")
+  zipCode          String?  @map("zip_code")
+  city             String?
+  state            String?
+  country          String?
+  travelMethod     String?  @map("travel_method")
+  pointOfEntry     String?  @map("point_of_entry")
+  additionalNotes  String?  @map("additional_notes")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("pgtc_disciplines")
+}
