@@ -1,5 +1,5 @@
 // AI contribution: 50% or more AI-generated
-import { INITIAL_TEAM_SIZE } from './mockData';
+import { INITIAL_TEAM_SIZE } from './constants';
 import type { TeamSize } from './teamSizeLogic';
 import { getAthleteRangeErrors, getMedalsMessage } from './teamSizeLogic';
 import {
