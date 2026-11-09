@@ -16,20 +16,7 @@ import type { ColumnDefinition } from '@/components/commons/Grid';
 import { type Currency, CONVERSION_RATES } from './ConversionRates';
 import EstimatedCosts from './EstimatedCosts';
 import type { CalculatorData } from './CalculatorClient';
-
-// these categories are now hard-coded values until we connect to the db
-const TRAVEL_CATEGORIES = [
-  {
-    id: 1,
-    title: 'Travelling Accredited Alternate Athletes @ partial NSO cost (Ap)',
-  },
-  {
-    id: 2,
-    title: 'Travelling Non-accredited Alternate Athletes @ full NSO cost',
-  },
-  { id: 3, title: 'Support staff @ partial NSO cost (e.g., partial Ao)' },
-  { id: 4, title: 'Support staff @ full NSO cost (incl. non-accredited)' },
-] as const;
+import {saveTravelers} from '../action';
 
 type CalculatorRow = Record<string, unknown> & {
   id: string;
@@ -47,7 +34,7 @@ type CalculatorRow = Record<string, unknown> & {
 
 function createTraveler(
   id: string,
-  category: string = TRAVEL_CATEGORIES[0].title,
+  category: string,
 ): CalculatorRow {
   return {
     id,
@@ -64,16 +51,37 @@ function createTraveler(
   };
 }
 
+// gets data from db and converts it to a row for the grid
+function dbTravelerToRow(
+  traveler: CalculatorData['travelers'][number],
+): CalculatorRow {
+  return {
+    id: String(traveler.id),
+    category: traveler.travelerCategory.name,
+    numberOfTeamMembers: traveler.numberOfTeamMembers,
+    days: traveler.days,
+    travelBudget: traveler.travelCostInCents / 100,
+    checkIn: traveler.checkInDate
+      ? new Date(traveler.checkInDate).toISOString().slice(0, 10)
+      : '',
+    checkOut: traveler.checkOutDate
+      ? new Date(traveler.checkOutDate).toISOString().slice(0, 10)
+      : '',
+    accommodationBudget: traveler.accommodationCostInCents / 100,
+    mealsBudget: traveler.mealsCostInCents / 100,
+    insuranceBudget: traveler.insuranceCostInCents / 100,
+    totalCostPerTeamMember: 0,
+  };
+}
+
+
 const columns: ColumnDefinition<CalculatorRow>[] = [
   {
     field: 'category',
     label: 'Access and Priviledges',
     type: 'select',
     width: 430,
-    options: TRAVEL_CATEGORIES.map(({ title }) => ({
-      label: title,
-      value: title,
-    })),
+    options: [],
   },
   {
     field: 'numberOfTeamMembers',
@@ -157,9 +165,7 @@ const BUDGET_FIELDS = [
   'insuranceBudget',
   'totalCostPerTeamMember',
 ] as const;
-const INITIAL_ROWS = TRAVEL_CATEGORIES.map(({ id, title }) =>
-  createTraveler(String(id), title),
-);
+
 function convertRows(
   rows: CalculatorRow[],
   currency: Currency,
@@ -183,32 +189,29 @@ export default function CalculatorContent({
 }) {
   const params = useParams<{ gameId?: string }>();
   const selectedGame = Games.find((game) => game.id === params.gameId);
-
   
-const initialTravelerRows: CalculatorRow[] = initialData
-  ? initialData.travelers.map((traveler) => ({
-      id: String(traveler.id),
-      category: traveler.travelerCategory.name,
-      numberOfTeamMembers: traveler.numberOfTeamMembers,
-      days: traveler.days,
-      travelBudget: traveler.travelCostInCents / 100,
-      checkIn: traveler.checkInDate
-        ? new Date(traveler.checkInDate).toISOString().slice(0, 10)
-        : '',
-      checkOut: traveler.checkOutDate
-        ? new Date(traveler.checkOutDate).toISOString().slice(0, 10)
-        : '',
-      accommodationBudget:
-        traveler.accommodationCostInCents / 100,
-      mealsBudget: traveler.mealsCostInCents / 100,
-      insuranceBudget: traveler.insuranceCostInCents / 100,
-      totalCostPerTeamMember: 0,
-    }))
-  : INITIAL_ROWS.map((row) => ({ ...row }));
+  // Get traveler categories from the database
+  const categoryOptions = (initialData?.categories ?? []).map(
+    (category) => ({
+      label: category.name,
+      value: category.name,
+    }),
+  );
 
+  // Use database categories in the dropdown
+  const calculatorColumns: ColumnDefinition<CalculatorRow>[] =
+    columns.map((column) =>
+      column.field === 'category'
+        ? { ...column, options: categoryOptions }
+        : column,
+    );
+
+
+  const initialTravelerRows: CalculatorRow[] = initialData?.travelers.map(dbTravelerToRow) ?? [];
 
   const [currency, setCurrency] = useState<Currency>('CAD');
   const [gridVersion, setGridVersion] = useState(0);
+
   const [renderRowsCAD, setRenderRowsCAD] = useState<CalculatorRow[]>(
     () => initialTravelerRows.map((row) => ({ ...row })),
   );
@@ -241,15 +244,47 @@ const initialTravelerRows: CalculatorRow[] = initialData
     };
   };
 
-  const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
-    const button = (event.target as HTMLElement).closest('button');
-    if (!button) return;
-    const action = button.textContent?.trim();
-    if (action === 'Save')
-      savedCAD.current = draftCAD.current.map((row) => ({ ...row }));
-    else if (action === 'Cancel')
-      draftCAD.current = savedCAD.current.map((row) => ({ ...row }));
-  };
+  
+const [saveError, setSaveError] = useState<string | null>(null);
+
+const handleSave = async (rows: CalculatorRow[]) => {
+  setSaveError(null);
+
+  // Convert displayed amounts back to CAD before saving
+  const toCAD = (value: number) =>
+    Number((value * CONVERSION_RATES[currency]).toFixed(2));
+
+  const rowsCAD = rows.map((row) => ({
+    ...row,
+    travelBudget: toCAD(row.travelBudget),
+    accommodationBudget: toCAD(row.accommodationBudget),
+    mealsBudget: toCAD(row.mealsBudget),
+    insuranceBudget: toCAD(row.insuranceBudget),
+    totalCostPerTeamMember: toCAD(row.totalCostPerTeamMember),
+  }));
+
+  try {
+    const updatedRows = initialData
+      ? (
+          await saveTravelers(
+            initialData.gameId,
+            initialData.nsoId,
+            rowsCAD,
+          )
+        ).map(dbTravelerToRow)
+      : rowsCAD;
+
+    savedCAD.current = updatedRows.map((row) => ({ ...row }));
+    draftCAD.current = updatedRows.map((row) => ({ ...row }));
+
+    setRenderRowsCAD(updatedRows);
+    setGridVersion((version) => version + 1);
+  } catch (error) {
+    console.error('Failed to save calculator', error);
+    setSaveError('Could not save calculator changes');
+  }
+};
+
 
   const handleCurrencyChange = (nextCurrency: Currency) => {
     if (nextCurrency === currency) return;
@@ -264,7 +299,6 @@ const initialTravelerRows: CalculatorRow[] = initialData
       <Box
         onInputCapture={handleInputCapture}
         onChangeCapture={handleInputCapture}
-        onClickCapture={handleClickCapture}
         className="
           relative min-w-0 p-2
           [&_.MuiTable-root]:table-fixed
@@ -281,13 +315,25 @@ const initialTravelerRows: CalculatorRow[] = initialData
       >
         <BaseGridPage<CalculatorRow>
           key={gridVersion}
-          title={selectedGame?.title ?? 'SELECT A GAME'}
+          title={initialData?.gameName ?? selectedGame?.title ?? 'SELECT A GAME'}
           initialData={convertRows(renderRowsCAD, currency)}
-          columns={columns}
-          createEmptyRow={() => createTraveler(crypto.randomUUID())}
+          columns={calculatorColumns}
+          createEmptyRow={() =>
+            createTraveler(
+              crypto.randomUUID(),
+              initialData?.categories[0]?.name ?? '',
+            )
+          }
           addButtonLabel="Add New Traveler"
           showSearch={false}
+          onSave={handleSave}
         />
+        {/* to display the save error message, if any */}
+        {saveError && (
+  <Box role="alert" className="px-2 text-red-600">
+    {saveError}
+  </Box>
+)}
       </Box>
 
       <EstimatedCosts

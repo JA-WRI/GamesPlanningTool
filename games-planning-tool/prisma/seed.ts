@@ -449,13 +449,13 @@ async function seedCalculator(gameId: number, nsoIds: string[]) {
     data: [
       {
         name: 'Travel Economy Fare',
-        costInCents: 240000,
+        costInCents: 230000,
         unitOfMeasure: 'CAD',
         notes: 'To be Confirmed',
       },
       {
         name: 'Athlete Insurance',
-        costInCents: 5000,
+        costInCents: 6000,
         unitOfMeasure: 'CAD',
       },
       {
@@ -513,17 +513,18 @@ async function seedCalculator(gameId: number, nsoIds: string[]) {
 async function main() {
   // Wipe in dependency order (children first)
   await prisma.resource.deleteMany();
+  // Calculator data
+  await prisma.traveler.deleteMany();
+  await prisma.estimatedCostItem.deleteMany();
+  await prisma.conversionRate.deleteMany();
+  await prisma.travelerCategory.deleteMany();
+  // Existing data
   await prisma.gameMember.deleteMany();
   await prisma.gameNso.deleteMany();
   await prisma.member.deleteMany();
   await prisma.user.deleteMany();
   await prisma.nso.deleteMany();
   await prisma.game.deleteMany();
-  // Calculator data
-  await prisma.traveler.deleteMany();
-  await prisma.estimatedCostItem.deleteMany();
-  await prisma.conversionRate.deleteMany();
-  await prisma.travelerCategory.deleteMany();
 
   // Games
   const game = await prisma.game.create({

@@ -10,6 +10,13 @@ export async function getCalculatorData(gameId: number, nsoId: string) {
         nsoId,
       },
     },
+    include: {
+        game: {
+            select: {
+                name: true,
+            },
+        },
+    },
   });
 
   if (!gameNso) {
@@ -37,6 +44,9 @@ export async function getCalculatorData(gameId: number, nsoId: string) {
     ]);
 
   return {
+    gameId,
+    nsoId,
+    gameName: gameNso.game.name,
     categories,
     travelers,
     estimatedCosts,
