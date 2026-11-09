@@ -43,9 +43,8 @@ model Game {
   isActive            Boolean  @default(true) @map("is_active")
   createdAt           DateTime @default(now())
 
-  gameNsos          GameNso[]
-  gameMembers       GameMember[]
-  teamSizeEstimates TeamSizeEstimate[]
+  gameNsos    GameNso[]
+  gameMembers GameMember[]
   
   @@map("games")
 }
@@ -57,10 +56,9 @@ model Nso {
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
 
-  users             User[]
-  members           Member[]
-  gameNsos          GameNso[]
-  teamSizeEstimates TeamSizeEstimate[]
+  users    User[]
+  members  Member[]
+  gameNsos GameNso[]
 
   @@map("nsos")
 }
@@ -70,8 +68,9 @@ model GameNso {
   gameId Int    @map("game_id")
   nsoId  String @map("nso_id") @db.Uuid
 
-  game Game @relation(fields: [gameId], references: [id])
-  nso  Nso  @relation(fields: [nsoId], references: [id])
+  game             Game              @relation(fields: [gameId], references: [id])
+  nso              Nso               @relation(fields: [nsoId], references: [id])
+  teamSizeEstimate TeamSizeEstimate?
 
   @@unique([gameId, nsoId])
   @@index([nsoId])
@@ -158,8 +157,8 @@ model TeamSizeEstimate {
   lowMedals                Int?   @map("low_medals")
   highMedals               Int?   @map("high_medals")
 
-  nso                  Nso                   @relation(fields: [nsoId], references: [id])
-  game                 Game                  @relation(fields: [gameId], references: [id])
+  // only NSOs taking part in the game can have a team size
+  gameNso              GameNso               @relation(fields: [nsoId, gameId], references: [nsoId, gameId])
   disciplineBreakdowns DisciplineBreakdown[]
 
   @@id([nsoId, gameId])
@@ -179,7 +178,7 @@ model DisciplineBreakdown {
   lowFemale  Int? @map("low_female")
   lowMale    Int? @map("low_male")
 
-  teamSizeEstimate TeamSizeEstimate @relation(fields: [nsoId, gameId], references: [nsoId, gameId])
+  teamSizeEstimate TeamSizeEstimate @relation(fields: [nsoId, gameId], references: [nsoId, gameId], onDelete: Cascade)
 
   @@unique([nsoId, gameId, discipline])
   @@map("discipline_breakdowns")
