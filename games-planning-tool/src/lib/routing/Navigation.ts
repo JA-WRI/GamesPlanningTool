@@ -1,4 +1,5 @@
-import type { Role } from '@/lib/types';
+//Less than 50% AI generated Code to create resolveSessionNsoId functiion
+import type { Game, GameWithNsos, Role } from '@/lib/types';
 
 type Ctx = {
   role: Role;
@@ -61,4 +62,39 @@ export function nsoSwitchHref({
       : `/${gameId}/${newNso}/${section}`; //if on an NSO page, stay on the same section, but for the chosen NSO
   }
   return `${pathname}?nso=${newNso}`;
+}
+
+// picks which NSO to put in the redirect URL when someone opens / or /[gameId]
+// COC/admin: returns undefined, since their dashboard URL has no nsoId.
+// NSO: returns the session's nsoId only if that NSO is in this game, otherwise
+//   undefined. Callers must treat undefined for an NSO user as notFound(), so
+//   an NSO user is never sent to another team's pages.
+export function resolveSessionNsoId(
+  game: GameWithNsos,
+  role: Role,
+  sessionNsoId?: string,
+): string | undefined {
+  if (role !== 'nso') return undefined;
+  return game.nsos.find((n) => n.id === sessionNsoId)?.id;
+}
+
+// The games a user may see. COC/admin see every game; an NSO user only sees
+// the games their NSO takes part in.
+export function gamesForUser<T extends GameWithNsos>(
+  games: T[],
+  role: Role,
+  sessionNsoId?: string,
+): T[] {
+  if (role !== 'nso') return games;
+  return games.filter((g) => g.nsos.some((n) => n.id === sessionNsoId));
+}
+
+// Finds the game whose id matches a URL param. Game ids are numbers in the
+// database but strings in the URL, so the conversion happens here only.
+export function findGame<T extends Game>(
+  games: T[],
+  gameId: string | undefined,
+): T | undefined {
+  if (!gameId) return undefined;
+  return games.find((g) => String(g.id) === gameId);
 }
