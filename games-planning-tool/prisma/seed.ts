@@ -416,6 +416,8 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.nso.deleteMany();
   await prisma.game.deleteMany();
+  await prisma.calculatorEstimatedCostItem.deleteMany();
+  await prisma.calculatorTravelerItem.deleteMany();
 
   // Games
   const game = await prisma.game.create({
@@ -512,6 +514,120 @@ async function main() {
         role: Role.NSO,
         status: UserStatus.active,
         nsoId: nsos.aquatics.id,
+      },
+    ],
+  });
+
+  // Calculator - Estimated Costs
+  await prisma.calculatorEstimatedCostItem.createMany({
+    data: [
+      {
+        calculatorId: 1,
+        category: 'Travel Economy Fare',
+        amount: 2400,
+        unitOfMeasure: 'CAD',
+        notes: 'To be Confirmed',
+      },
+      {
+        calculatorId: 1,
+        category: 'Athlete Insurance',
+        amount: 50,
+        unitOfMeasure: 'CAD',
+        notes: '',
+      },
+      {
+        calculatorId: 1,
+        category: 'Support Staff Insurance',
+        amount: 28,
+        unitOfMeasure: 'CAD',
+        notes: '',
+      },
+      {
+        calculatorId: 1,
+        category: 'Cellphone (local plan)',
+        amount: 108,
+        unitOfMeasure: 'CAD/day',
+        notes: '',
+      },
+      {
+        calculatorId: 1,
+        category: 'Meals',
+        amount: 118,
+        unitOfMeasure: 'CAD/meal',
+        notes: '(outside of Village, breakfast incl at most accommodation)',
+      },
+      {
+        calculatorId: 1,
+        category: 'Village Meal Voucher',
+        amount: 57,
+        unitOfMeasure: 'CAD',
+        notes: '',
+      },
+      {
+        calculatorId: 1,
+        category: 'Knife & Fork for Ap',
+        amount: 2279,
+        unitOfMeasure: 'CAD',
+        notes: '',
+      },
+      {
+        calculatorId: 1,
+        category: 'Clothing Package',
+        amount: 3200,
+        unitOfMeasure: 'CAD',
+        notes: '',
+      },
+    ],
+  });
+
+  // Calculator - Travelers
+  await prisma.calculatorTravelerItem.createMany({
+    data: [
+      {
+        calculatorId: 1,
+        category:
+          'Travelling Accredited Alternate Athletes @ partial NSO cost (Ap)',
+        numberOfTeamMembers: 0,
+        days: 0,
+        travelBudget: 0,
+        accommodationBudget: 0,
+        mealsBudget: 0,
+        insuranceBudget: 0,
+        totalCostPerTeamMember: 0,
+      },
+      {
+        calculatorId: 1,
+        category:
+          'Travelling Non-accredited Alternate Athletes @ full NSO cost',
+        numberOfTeamMembers: 0,
+        days: 0,
+        travelBudget: 0,
+        accommodationBudget: 0,
+        mealsBudget: 0,
+        insuranceBudget: 0,
+        totalCostPerTeamMember: 0,
+      },
+      {
+        calculatorId: 1,
+        category: 'Support staff @ partial NSO cost (e.g., partial Ao)',
+        numberOfTeamMembers: 0,
+        days: 0,
+        travelBudget: 0,
+        accommodationBudget: 0,
+        mealsBudget: 0,
+        insuranceBudget: 0,
+        totalCostPerTeamMember: 0,
+      },
+      {
+        calculatorId: 1,
+        category: 'Support staff @ full NSO cost (incl. non-accredited)',
+        numberOfTeamMembers: 0,
+        days: 0,
+        travelBudget: 0,
+        accommodationBudget: 0,
+        mealsBudget: 0,
+        insuranceBudget: 0,
+        totalCostPerTeamMember: 0,
       },
     ],
   });

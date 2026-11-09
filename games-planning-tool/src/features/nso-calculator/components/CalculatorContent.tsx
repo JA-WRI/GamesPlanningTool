@@ -7,7 +7,7 @@
 // The grid component was implemented manually
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import { useParams } from 'next/navigation';
 import { Games } from '@/lib/data';
@@ -46,25 +46,6 @@ type CalculatorRow = Record<string, unknown> & {
   insuranceBudget: number;
   totalCostPerTeamMember: number;
 };
-
-function createTraveler(
-  id: string,
-  category: string = TRAVEL_CATEGORIES[0].title,
-): CalculatorRow {
-  return {
-    id,
-    category,
-    numberOfTeamMembers: 0,
-    days: 0,
-    travelBudget: 0,
-    checkIn: '',
-    checkOut: '',
-    accommodationBudget: 0,
-    mealsBudget: 0,
-    insuranceBudget: 0,
-    totalCostPerTeamMember: 0,
-  };
-}
 
 const columns: ColumnDefinition<CalculatorRow>[] = [
   {
@@ -152,86 +133,43 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
     align: 'center',
   },
 ];
-const BUDGET_FIELDS = [
-  'travelBudget',
-  'accommodationBudget',
-  'mealsBudget',
-  'insuranceBudget',
-  'totalCostPerTeamMember',
-] as const;
-const INITIAL_ROWS = TRAVEL_CATEGORIES.map(({ id, title }) =>
-  createTraveler(String(id), title),
-);
-function convertRows(
-  rows: CalculatorRow[],
-  currency: Currency,
-): CalculatorRow[] {
-  return rows.map((row) => {
-    const result = { ...row };
-    for (const field of BUDGET_FIELDS)
-      result[field] = Number(
-        (row[field] / CONVERSION_RATES[currency]).toFixed(2),
-      );
-    return result;
-  });
-}
 
 export default function CalculatorContent({
   calculatorId,
+  initialItems = [],
+  onSaveAction,
+  currency,
 }: {
   readonly calculatorId: number;
+  readonly initialItems?: CalculatorRow[];
+  readonly onSaveAction?: (
+    calculatorId: number,
+    rows: CalculatorRow[],
+  ) => Promise<CalculatorRow[]>;
+  readonly currency: Currency;
+  readonly onCurrencyChange: (currency: Currency) => void;
 }) {
   const params = useParams<{ gameId?: string }>();
   const selectedGame = Games.find((game) => game.id === params.gameId);
-  const [currency, setCurrency] = useState<Currency>('CAD');
-  const [gridVersion, setGridVersion] = useState(0);
-  const [renderRowsCAD, setRenderRowsCAD] = useState<CalculatorRow[]>(() =>
-    INITIAL_ROWS.map((row) => ({ ...row })),
-  );
-  const savedCAD = useRef<CalculatorRow[]>(
-    INITIAL_ROWS.map((row) => ({ ...row })),
-  );
-  const draftCAD = useRef<CalculatorRow[]>(
-    INITIAL_ROWS.map((row) => ({ ...row })),
-  );
 
-  // keeping budget values in CAD when switching currencies
-  const handleInputCapture = (event: React.FormEvent<HTMLDivElement>) => {
-    const input = event.target;
-    if (!(input instanceof HTMLInputElement)) return;
-    const cell = input.closest('td');
-    const row = input.closest('tr');
-    if (!cell || !row) return;
-    const field = columns[cell.cellIndex]?.field;
-    if (!field || !BUDGET_FIELDS.some((budgetField) => budgetField === field))
-      return;
-    const index = Array.from(row.parentElement?.children ?? []).indexOf(row);
-    if (index < 0 || !draftCAD.current[index]) return;
-    const amount = Number(input.value);
-    if (!Number.isFinite(amount) || amount < 0) return;
-    draftCAD.current[index] = {
-      ...draftCAD.current[index],
-      [field]: amount * CONVERSION_RATES[currency],
-    };
+  // Directly initialize state from DB-seeded initialItems without hardcoded fallback arrays
+  const [rows, setRows] = useState<CalculatorRow[]>(initialItems);
+
+  useEffect(() => {
+    if (Array.isArray(initialItems) && initialItems.length > 0) {
+      setRows(initialItems);
+    }
+  }, [initialItems]);
+
+  const handleSave = async (updatedRows: CalculatorRow[]) => {
+    setRows(updatedRows);
+    if (onSaveAction) {
+      const saved = await onSaveAction(calculatorId, updatedRows);
+      if (Array.isArray(saved) && saved.length > 0) {
+        setRows(saved);
+      }
+    }
   };
-
-  const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
-    const button = (event.target as HTMLElement).closest('button');
-    if (!button) return;
-    const action = button.textContent?.trim();
-    if (action === 'Save')
-      savedCAD.current = draftCAD.current.map((row) => ({ ...row }));
-    else if (action === 'Cancel')
-      draftCAD.current = savedCAD.current.map((row) => ({ ...row }));
-  };
-
-  const handleCurrencyChange = (nextCurrency: Currency) => {
-    if (nextCurrency === currency) return;
-    setRenderRowsCAD(draftCAD.current.map((row) => ({ ...row })));
-    setCurrency(nextCurrency);
-    setGridVersion((version) => version + 1);
-  };
-
   // Totals remain placeholders until the calculator's business calculations are connected
   // const summary = [
   //   { label: 'Accommodation:', value: 0 },
@@ -245,9 +183,6 @@ export default function CalculatorContent({
     <Box className="w-full min-w-0" data-calculator-id={calculatorId}>
       {/* Keep column widths stable between Edit and Preview */}
       <Box
-        onInputCapture={handleInputCapture}
-        onChangeCapture={handleInputCapture}
-        onClickCapture={handleClickCapture}
         className="
           relative min-w-0 p-2
           [&_.MuiTable-root]:table-fixed
@@ -263,20 +198,33 @@ export default function CalculatorContent({
         "
       >
         <BaseGridPage<CalculatorRow>
-          key={gridVersion}
           title={selectedGame?.title ?? 'SELECT A GAME'}
-          initialData={convertRows(renderRowsCAD, currency)}
+          initialData={rows}
           columns={columns}
-          createEmptyRow={() => createTraveler(crypto.randomUUID())}
+          createEmptyRow={() => ({
+            id: crypto.randomUUID(),
+            category: TRAVEL_CATEGORIES[0].title,
+            numberOfTeamMembers: 0,
+            days: 0,
+            travelBudget: 0,
+            checkIn: '',
+            checkOut: '',
+            accommodationBudget: 0,
+            mealsBudget: 0,
+            insuranceBudget: 0,
+            totalCostPerTeamMember: 0,
+          })}
           addButtonLabel="Add New Traveler"
           showSearch={false}
+          allowAddRow={true}
+          allowDelete={true}
+          onSave={handleSave}
         />
       </Box>
-
-      <EstimatedCosts
+      {/* <EstimatedCosts
         currency={currency}
         onCurrencyChange={handleCurrencyChange}
-      />
+      /> */}
       {/* will be implemented later 
       <HotelDetails />
       <CostSummary summary={summary} estimatedTotal={0} />

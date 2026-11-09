@@ -9,7 +9,7 @@
 'use client';
 
 import { Box } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
 import ConversionRates, {
@@ -37,6 +37,12 @@ type EstimatedCostRow = Record<string, unknown> & {
 };
 
 type EstimatedCostsProps = {
+  readonly calculatorId?: number;
+  readonly initialItems?: EstimatedCostRow[];
+  readonly onSaveAction?: (
+    calculatorId: number,
+    rows: EstimatedCostRow[],
+  ) => Promise<EstimatedCostRow[]>;
   readonly currency: Currency;
   readonly onCurrencyChange: (currency: Currency) => void;
 };
@@ -107,19 +113,32 @@ function displayCosts(
 ): EstimatedCostRow[] {
   return rows.map((row) => ({
     ...row,
-    amount: Number((row.amount / CONVERSION_RATES[currency]).toFixed(2)),
+    amount: Number(
+      (Number(row.amount) / CONVERSION_RATES[currency]).toFixed(2),
+    ),
     unitOfMeasure: row.unitOfMeasure.replace(/^(CAD|USD|EUR)/, currency),
   }));
 }
 
 export default function EstimatedCosts({
+  calculatorId = 1,
+  initialItems,
+  onSaveAction,
   currency,
   onCurrencyChange,
 }: Readonly<EstimatedCostsProps>) {
   // Keep saved amounts in CAD, even while another currency is displayed.
-  const [savedCAD, setSavedCAD] = useState(() =>
-    INITIAL_COST_ROWS.map((row) => ({ ...row })),
+  const [savedCAD, setSavedCAD] = useState<EstimatedCostRow[]>(() =>
+    initialItems && initialItems.length > 0
+      ? initialItems.map((row) => ({ ...row }))
+      : INITIAL_COST_ROWS.map((row) => ({ ...row })),
   );
+
+  useEffect(() => {
+    if (Array.isArray(initialItems) && initialItems.length > 0) {
+      setSavedCAD(initialItems.map((row) => ({ ...row })));
+    }
+  }, [initialItems]);
 
   const columns: ColumnDefinition<EstimatedCostRow>[] = [
     { field: 'category', label: 'Cost Item', type: 'text', width: '30%' },
@@ -140,14 +159,21 @@ export default function EstimatedCosts({
     { field: 'notes', label: 'Notes', type: 'text', width: '39%' },
   ];
 
-  const handleSave = (rows: EstimatedCostRow[]) => {
-    setSavedCAD(
-      rows.map((row) => ({
-        ...row,
-        amount: Number(row.amount) * CONVERSION_RATES[currency],
-        unitOfMeasure: row.unitOfMeasure.replace(/^(CAD|USD|EUR)/, 'CAD'),
-      })),
-    );
+  const handleSave = async (rows: EstimatedCostRow[]) => {
+    const cadRows = rows.map((row) => ({
+      ...row,
+      amount: Number(row.amount) * CONVERSION_RATES[currency],
+      unitOfMeasure: row.unitOfMeasure.replace(/^(CAD|USD|EUR)/, 'CAD'),
+    }));
+
+    setSavedCAD(cadRows);
+
+    if (onSaveAction) {
+      const dbSaved = await onSaveAction(calculatorId, cadRows);
+      if (Array.isArray(dbSaved) && dbSaved.length > 0) {
+        setSavedCAD(dbSaved.map((row) => ({ ...row })));
+      }
+    }
   };
 
   return (

@@ -193,3 +193,35 @@ model PgtcDiscipline {
 
   @@map("pgtc_disciplines")
 }
+
+model CalculatorTravelerItem {
+  id                    String   @id @default(uuid())
+  calculatorId          Int      @map("calculator_id")
+  category              String
+  numberOfTeamMembers   Int      @default(0) @map("number_of_team_members")
+  days                  Int      @default(0)
+  travelBudget          Float    @default(0) @map("travel_budget")
+  checkIn               String?  @map("check_in")
+  checkOut              String?  @map("check_out")
+  accommodationBudget   Float    @default(0) @map("accommodation_budget")
+  mealsBudget           Float    @default(0) @map("meals_budget")
+  insuranceBudget       Float    @default(0) @map("insurance_budget")
+  totalCostPerTeamMember Float   @default(0) @map("total_cost_per_team_member")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("calculator_traveler_items")
+}
+
+model CalculatorEstimatedCostItem {
+  id             String   @id @default(uuid())
+  calculatorId   Int      @map("calculator_id")
+  category       String
+  amount         Float    @default(0)
+  unitOfMeasure  String   @map("unit_of_measure")
+  notes          String?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("calculator_estimated_cost_items")
+}
