@@ -3,6 +3,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@/generated/prisma/client';
 import {
   hasUniqueRowIds,
   replaceCollection,
@@ -44,7 +45,7 @@ export async function saveDisciplines(
     persist: async (mappedRows) => {
       await replaceCollection(
         (operation) => prisma.$transaction(operation),
-        (tx: any) => tx.pgtcDiscipline,
+        (tx: Prisma.TransactionClient) => tx.pgtcDiscipline,
         {},
         mappedRows,
       );

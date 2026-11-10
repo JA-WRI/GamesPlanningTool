@@ -36,17 +36,32 @@ export async function runDraftSave<Input, Mapped, Result>(
   return { ok: true, value: await steps.persist(steps.map(input), input) };
 }
 
-type CollectionDelegate = {
-  findMany: (args: any) => Promise<{ id: string }[]>;
-  deleteMany: (args: any) => Promise<unknown>;
-  update: (args: any) => Promise<unknown>;
-  create: (args: any) => Promise<unknown>;
+type CollectionDelegate<
+  Row extends { id: string },
+  Scope extends Record<string, unknown>,
+> = {
+  findMany: (args: {
+    where: Scope;
+    select: { id: true };
+  }) => Promise<Pick<Row, 'id'>[]>;
+  deleteMany: (args: {
+    where: Scope & { id: { notIn: string[] } };
+  }) => Promise<unknown>;
+  update: (args: {
+    where: { id: string };
+    data: Omit<Row, 'id'>;
+  }) => Promise<unknown>;
+  create: (args: { data: Row }) => Promise<unknown>;
 };
 
-export async function replaceCollection<Tx, Row extends { id: string }>(
+export async function replaceCollection<
+  Tx,
+  Row extends { id: string },
+  Scope extends Record<string, unknown>,
+>(
   transaction: (operation: (tx: Tx) => Promise<void>) => Promise<unknown>,
-  getDelegate: (tx: Tx) => CollectionDelegate,
-  scope: Record<string, unknown>,
+  getDelegate: (tx: Tx) => CollectionDelegate<Row, Scope>,
+  scope: Scope,
   rows: Row[],
 ): Promise<void> {
   const ids = rows.map((row) => row.id);

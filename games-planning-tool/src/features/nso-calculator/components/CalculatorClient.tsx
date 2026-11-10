@@ -4,6 +4,8 @@
 import { Box } from '@mui/material';
 import CalculatorContent from './CalculatorContent';
 import EstimatedCosts from './EstimatedCosts';
+import type { CalculatorRow } from './CalculatorContent';
+import type { EstimatedCostRow } from './EstimatedCosts';
 import { useState } from 'react';
 import { type Currency } from './ConversionRates';
 
@@ -15,16 +17,16 @@ export default function CalculatorClient({
   onSaveEstimatedCosts,
 }: {
   readonly calculatorId: number;
-  readonly initialTravelers?: any[];
-  readonly initialEstimatedCosts?: any[];
+  readonly initialTravelers?: CalculatorRow[];
+  readonly initialEstimatedCosts?: EstimatedCostRow[];
   readonly onSaveTravelers?: (
     calculatorId: number,
-    rows: any[],
-  ) => Promise<any[]>;
+    rows: CalculatorRow[],
+  ) => Promise<CalculatorRow[]>;
   readonly onSaveEstimatedCosts?: (
     calculatorId: number,
-    rows: any[],
-  ) => Promise<any[]>;
+    rows: EstimatedCostRow[],
+  ) => Promise<EstimatedCostRow[]>;
 }) {
   const [currency, setCurrency] = useState<Currency>('CAD');
 
@@ -36,8 +38,6 @@ export default function CalculatorClient({
         onSaveAction={(id, rows) =>
           onSaveTravelers ? onSaveTravelers(id, rows) : Promise.resolve(rows)
         }
-        currency={currency}
-        onCurrencyChange={setCurrency}
       />
       <EstimatedCosts
         calculatorId={calculatorId}

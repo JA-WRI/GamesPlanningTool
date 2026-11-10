@@ -3,6 +3,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@/generated/prisma/client';
 import {
   hasUniqueRowIds,
   replaceCollection,
@@ -35,7 +36,7 @@ export async function saveNsoContacts(
     persist: async (mappedRows) => {
       await replaceCollection(
         (operation) => prisma.$transaction(operation),
-        (tx: any) => tx.nsoContact,
+        (tx: Prisma.TransactionClient) => tx.nsoContact,
         {},
         mappedRows,
       );

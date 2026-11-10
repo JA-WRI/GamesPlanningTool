@@ -9,7 +9,7 @@
 'use client';
 
 import { Box } from '@mui/material';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
 import ConversionRates, {
@@ -28,7 +28,7 @@ export type EstimatedCostsData = {
   knifeAndFork: number;
 };
 
-type EstimatedCostRow = Record<string, unknown> & {
+export type EstimatedCostRow = Record<string, unknown> & {
   id: string;
   category: string;
   amount: number;
@@ -134,12 +134,6 @@ export default function EstimatedCosts({
       : INITIAL_COST_ROWS.map((row) => ({ ...row })),
   );
 
-  useEffect(() => {
-    if (Array.isArray(initialItems) && initialItems.length > 0) {
-      setSavedCAD(initialItems.map((row) => ({ ...row })));
-    }
-  }, [initialItems]);
-
   const columns: ColumnDefinition<EstimatedCostRow>[] = [
     { field: 'category', label: 'Cost Item', type: 'text', width: '30%' },
     {
@@ -166,13 +160,11 @@ export default function EstimatedCosts({
       unitOfMeasure: row.unitOfMeasure.replace(/^(CAD|USD|EUR)/, 'CAD'),
     }));
 
-    setSavedCAD(cadRows);
-
     if (onSaveAction) {
       const dbSaved = await onSaveAction(calculatorId, cadRows);
-      if (Array.isArray(dbSaved) && dbSaved.length > 0) {
-        setSavedCAD(dbSaved.map((row) => ({ ...row })));
-      }
+      setSavedCAD(dbSaved.map((row) => ({ ...row })));
+    } else {
+      setSavedCAD(cadRows);
     }
   };
 

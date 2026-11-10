@@ -74,7 +74,8 @@ describe('replaceCollection', () => {
 
     await replaceCollection<
       typeof tx,
-      { id: string; calculatorId: number; label: string }
+      { id: string; calculatorId: number; label: string },
+      { calculatorId: number }
     >(transaction, (client) => client.items, { calculatorId: 7 }, [
       { id: 'keep', calculatorId: 7, label: 'Updated' },
       { id: 'new', calculatorId: 7, label: 'Added' },

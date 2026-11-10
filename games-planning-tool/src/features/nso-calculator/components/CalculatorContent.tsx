@@ -7,14 +7,11 @@
 // The grid component was implemented manually
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import { useParams } from 'next/navigation';
 import { Games } from '@/lib/data';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
-import { type Currency, CONVERSION_RATES } from './ConversionRates';
-import EstimatedCosts from './EstimatedCosts';
 // these will be added later
 //import CostSummary from './costsummary';
 //import HotelDetails from './hoteldetails';
@@ -33,7 +30,7 @@ const TRAVEL_CATEGORIES = [
   { id: 4, title: 'Support staff @ full NSO cost (incl. non-accredited)' },
 ] as const;
 
-type CalculatorRow = Record<string, unknown> & {
+export type CalculatorRow = Record<string, unknown> & {
   id: string;
   category: string;
   numberOfTeamMembers: number;
@@ -138,7 +135,6 @@ export default function CalculatorContent({
   calculatorId,
   initialItems = [],
   onSaveAction,
-  currency,
 }: {
   readonly calculatorId: number;
   readonly initialItems?: CalculatorRow[];
@@ -146,28 +142,13 @@ export default function CalculatorContent({
     calculatorId: number,
     rows: CalculatorRow[],
   ) => Promise<CalculatorRow[]>;
-  readonly currency: Currency;
-  readonly onCurrencyChange: (currency: Currency) => void;
 }) {
   const params = useParams<{ gameId?: string }>();
   const selectedGame = Games.find((game) => game.id === params.gameId);
 
-  // Directly initialize state from DB-seeded initialItems without hardcoded fallback arrays
-  const [rows, setRows] = useState<CalculatorRow[]>(initialItems);
-
-  useEffect(() => {
-    if (Array.isArray(initialItems) && initialItems.length > 0) {
-      setRows(initialItems);
-    }
-  }, [initialItems]);
-
   const handleSave = async (updatedRows: CalculatorRow[]) => {
-    setRows(updatedRows);
     if (onSaveAction) {
-      const saved = await onSaveAction(calculatorId, updatedRows);
-      if (Array.isArray(saved) && saved.length > 0) {
-        setRows(saved);
-      }
+      await onSaveAction(calculatorId, updatedRows);
     }
   };
   // Totals remain placeholders until the calculator's business calculations are connected
@@ -199,7 +180,7 @@ export default function CalculatorContent({
       >
         <BaseGridPage<CalculatorRow>
           title={selectedGame?.title ?? 'SELECT A GAME'}
-          initialData={rows}
+          initialData={initialItems}
           columns={columns}
           createEmptyRow={() => ({
             id: crypto.randomUUID(),

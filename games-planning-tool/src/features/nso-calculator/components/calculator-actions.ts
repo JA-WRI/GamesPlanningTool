@@ -2,6 +2,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@/generated/prisma/client';
 import {
   hasUniqueRowIds,
   replaceCollection,
@@ -41,7 +42,7 @@ export async function saveTravelerItems(calculatorId: number, rows: unknown[]) {
     persist: async (mappedRows) => {
       await replaceCollection(
         (operation) => prisma.$transaction(operation),
-        (tx: any) => tx.calculatorTravelerItem,
+        (tx: Prisma.TransactionClient) => tx.calculatorTravelerItem,
         { calculatorId },
         mappedRows,
       );
@@ -79,7 +80,7 @@ export async function saveEstimatedCostItems(
     persist: async (mappedRows) => {
       await replaceCollection(
         (operation) => prisma.$transaction(operation),
-        (tx: any) => tx.calculatorEstimatedCostItem,
+        (tx: Prisma.TransactionClient) => tx.calculatorEstimatedCostItem,
         { calculatorId },
         mappedRows,
       );
