@@ -45,6 +45,7 @@ model Game {
 
   gameNsos    GameNso[]
   gameMembers GameMember[]
+  hotels      GameHotel[]
   
   @@map("games")
 }
@@ -206,4 +207,34 @@ model Resource {
   previousFromNext Resource? @relation("NextElement")
 
   @@map("resources")
+}
+
+// Reference prices per room, per night, shared by all NSOs for a game.
+model GameHotel {
+  id           String   @id @default(uuid()) @db.Uuid
+  gameId       Int      @map("game_id")
+  name         String   @db.VarChar(255)
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  game  Game        @relation(fields: [gameId], references: [id], onDelete: Restrict)
+  rates HotelRate[]
+
+  @@index([gameId])
+  @@map("game_hotels")
+}
+
+model HotelRate {
+  id          String   @id @default(uuid()) @db.Uuid
+  gameHotelId String   @map("game_hotel_id") @db.Uuid
+  occupancy   String   @db.VarChar(50)
+  amount      Decimal  @db.Decimal(12, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  gameHotel GameHotel @relation(fields: [gameHotelId], references: [id], onDelete: Restrict)
+
+  @@unique([gameHotelId, occupancy])
+  @@map("hotel_rates")
 }
