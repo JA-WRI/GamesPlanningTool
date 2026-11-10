@@ -3,7 +3,11 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { genericSave } from '@/lib/db-helpers';
+import {
+  hasUniqueRowIds,
+  replaceCollection,
+  runDraftSave,
+} from '@/lib/db-helpers';
 import { DisciplineData } from '@/features/contact-information/components/PGTCDisciplines';
 
 export async function getDisciplines(): Promise<DisciplineData[]> {
@@ -34,7 +38,20 @@ export async function getDisciplines(): Promise<DisciplineData[]> {
 export async function saveDisciplines(
   rows: DisciplineData[],
 ): Promise<DisciplineData[]> {
-  await genericSave(prisma.pgtcDiscipline, rows);
+  const outcome = await runDraftSave(rows, {
+    validate: hasUniqueRowIds,
+    map: (draft) => draft,
+    persist: async (mappedRows) => {
+      await replaceCollection(
+        (operation) => prisma.$transaction(operation),
+        (tx: any) => tx.pgtcDiscipline,
+        {},
+        mappedRows,
+      );
+      return getDisciplines();
+    },
+  });
 
-  return getDisciplines();
+  if (!outcome.ok) throw new Error('Invalid PGTC discipline draft.');
+  return outcome.value;
 }

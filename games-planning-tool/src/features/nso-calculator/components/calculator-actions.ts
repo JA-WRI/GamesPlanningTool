@@ -2,7 +2,15 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { genericSave } from '@/lib/db-helpers';
+import {
+  hasUniqueRowIds,
+  replaceCollection,
+  runDraftSave,
+} from '@/lib/db-helpers';
+import {
+  estimatedCostItemsToDb,
+  travelerItemsToDb,
+} from '../lib/calculatorDbMapping';
 
 export async function getTravelerItems(calculatorId: number) {
   const records = await prisma.calculatorTravelerItem.findMany({
@@ -26,25 +34,23 @@ export async function getTravelerItems(calculatorId: number) {
   }));
 }
 
-export async function saveTravelerItems(calculatorId: number, rows: any[]) {
-  const safeRows = Array.isArray(rows) ? rows : [];
-  const payload = safeRows.map((row) => ({
-    id: row.id,
-    calculatorId,
-    category: row.category ?? '',
-    numberOfTeamMembers: Number(row.numberOfTeamMembers) || 0,
-    days: Number(row.days) || 0,
-    travelBudget: Number(row.travelBudget) || 0,
-    checkIn: row.checkIn || null,
-    checkOut: row.checkOut || null,
-    accommodationBudget: Number(row.accommodationBudget) || 0,
-    mealsBudget: Number(row.mealsBudget) || 0,
-    insuranceBudget: Number(row.insuranceBudget) || 0,
-    totalCostPerTeamMember: Number(row.totalCostPerTeamMember) || 0,
-  }));
+export async function saveTravelerItems(calculatorId: number, rows: unknown[]) {
+  const outcome = await runDraftSave(rows, {
+    validate: hasUniqueRowIds,
+    map: (draft) => travelerItemsToDb(calculatorId, draft),
+    persist: async (mappedRows) => {
+      await replaceCollection(
+        (operation) => prisma.$transaction(operation),
+        (tx: any) => tx.calculatorTravelerItem,
+        { calculatorId },
+        mappedRows,
+      );
+      return getTravelerItems(calculatorId);
+    },
+  });
 
-  await genericSave(prisma.calculatorTravelerItem, payload);
-  return getTravelerItems(calculatorId);
+  if (!outcome.ok) throw new Error('Invalid traveler-item draft.');
+  return outcome.value;
 }
 
 export async function getEstimatedCostItems(calculatorId: number) {
@@ -65,36 +71,22 @@ export async function getEstimatedCostItems(calculatorId: number) {
 
 export async function saveEstimatedCostItems(
   calculatorId: number,
-  rows: any[],
+  rows: unknown[],
 ) {
-  const safeRows = Array.isArray(rows) ? rows : [];
-  const keepIds = safeRows.map((row) => row.id).filter(Boolean);
+  const outcome = await runDraftSave(rows, {
+    validate: hasUniqueRowIds,
+    map: (draft) => estimatedCostItemsToDb(calculatorId, draft),
+    persist: async (mappedRows) => {
+      await replaceCollection(
+        (operation) => prisma.$transaction(operation),
+        (tx: any) => tx.calculatorEstimatedCostItem,
+        { calculatorId },
+        mappedRows,
+      );
+      return getEstimatedCostItems(calculatorId);
+    },
+  });
 
-  await prisma.$transaction([
-    // removing rows
-    prisma.calculatorEstimatedCostItem.deleteMany({
-      where: { calculatorId, id: { notIn: keepIds } },
-    }),
-    ...safeRows.map((row) =>
-      prisma.calculatorEstimatedCostItem.upsert({
-        where: { id: row.id || '' },
-        update: {
-          category: row.category ?? '',
-          amount: Number(row.amount) || 0,
-          unitOfMeasure: row.unitOfMeasure ?? 'CAD',
-          notes: row.notes || null,
-        },
-        create: {
-          id: row.id || undefined,
-          calculatorId,
-          category: row.category ?? '',
-          amount: Number(row.amount) || 0,
-          unitOfMeasure: row.unitOfMeasure ?? 'CAD',
-          notes: row.notes || null,
-        },
-      }),
-    ),
-  ]);
-
-  return getEstimatedCostItems(calculatorId);
+  if (!outcome.ok) throw new Error('Invalid estimated-cost draft.');
+  return outcome.value;
 }

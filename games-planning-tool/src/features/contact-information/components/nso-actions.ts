@@ -3,7 +3,11 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { genericSave } from '@/lib/db-helpers';
+import {
+  hasUniqueRowIds,
+  replaceCollection,
+  runDraftSave,
+} from '@/lib/db-helpers';
 import { ContactRow } from '@/components/contact-information/ContactGrid';
 
 export async function getNsoContacts(): Promise<ContactRow[]> {
@@ -25,7 +29,20 @@ export async function getNsoContacts(): Promise<ContactRow[]> {
 export async function saveNsoContacts(
   rows: ContactRow[],
 ): Promise<ContactRow[]> {
-  await genericSave(prisma.nsoContact, rows);
+  const outcome = await runDraftSave(rows, {
+    validate: hasUniqueRowIds,
+    map: (draft) => draft,
+    persist: async (mappedRows) => {
+      await replaceCollection(
+        (operation) => prisma.$transaction(operation),
+        (tx: any) => tx.nsoContact,
+        {},
+        mappedRows,
+      );
+      return getNsoContacts();
+    },
+  });
 
-  return getNsoContacts();
+  if (!outcome.ok) throw new Error('Invalid NSO contact.');
+  return outcome.value;
 }

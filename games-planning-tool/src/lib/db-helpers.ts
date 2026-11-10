@@ -1,32 +1,78 @@
 // AI contribution: Below 50% AI-generated
 
-import { prisma } from '@/lib/prisma';
+export type SaveOutcome<Result> = { ok: false } | { ok: true; value: Result };
 
-export async function genericSave<T extends { id: string }>(
-  modelDelegate: {
-    findMany: (args?: any) => Promise<{ id: string }[]>;
-    deleteMany: (args: any) => Promise<any>;
-    upsert: (args: any) => Promise<any>;
+export function hasUniqueRowIds(value: unknown): value is { id: string }[] {
+  if (
+    !Array.isArray(value) ||
+    !value.every(
+      (row) =>
+        typeof row === 'object' &&
+        row !== null &&
+        'id' in row &&
+        typeof row.id === 'string' &&
+        row.id.length > 0,
+    )
+  ) {
+    return false;
+  }
+
+  const ids = value.map((row) => row.id);
+  return new Set(ids).size === ids.length;
+}
+
+export async function runDraftSave<Input, Mapped, Result>(
+  input: Input,
+  steps: {
+    authorize?: (input: Input) => boolean | Promise<boolean>;
+    validate: (input: Input) => boolean | Promise<boolean>;
+    map: (input: Input) => Mapped;
+    persist: (mapped: Mapped, input: Input) => Promise<Result>;
   },
-  rows: T[],
+): Promise<SaveOutcome<Result>> {
+  if (steps.authorize && !(await steps.authorize(input))) return { ok: false };
+  if (!(await steps.validate(input))) return { ok: false };
+
+  return { ok: true, value: await steps.persist(steps.map(input), input) };
+}
+
+type CollectionDelegate = {
+  findMany: (args: any) => Promise<{ id: string }[]>;
+  deleteMany: (args: any) => Promise<unknown>;
+  update: (args: any) => Promise<unknown>;
+  create: (args: any) => Promise<unknown>;
+};
+
+export async function replaceCollection<Tx, Row extends { id: string }>(
+  transaction: (operation: (tx: Tx) => Promise<void>) => Promise<unknown>,
+  getDelegate: (tx: Tx) => CollectionDelegate,
+  scope: Record<string, unknown>,
+  rows: Row[],
 ): Promise<void> {
-  const existing = await modelDelegate.findMany({ select: { id: true } });
-  const existingIds = new Set(existing.map((e) => e.id));
-  const incomingIds = new Set(rows.map((r) => r.id));
-
-  // deleting rows
-  const idsToDelete = [...existingIds].filter((id) => !incomingIds.has(id));
-  if (idsToDelete.length > 0) {
-    await modelDelegate.deleteMany({
-      where: { id: { in: idsToDelete } },
-    });
+  const ids = rows.map((row) => row.id);
+  if (new Set(ids).size !== ids.length) {
+    throw new Error('A saved collection cannot contain duplicate row IDs.');
   }
 
-  for (const row of rows) {
-    await modelDelegate.upsert({
-      where: { id: row.id },
-      update: row,
-      create: row,
+  await transaction(async (tx) => {
+    const delegate = getDelegate(tx);
+    const existing = await delegate.findMany({
+      where: scope,
+      select: { id: true },
     });
-  }
+    const existingIds = new Set(existing.map((row) => row.id));
+
+    await delegate.deleteMany({
+      where: { ...scope, id: { notIn: ids } },
+    });
+
+    for (const row of rows) {
+      const { id, ...data } = row;
+      if (existingIds.has(id)) {
+        await delegate.update({ where: { id }, data });
+      } else {
+        await delegate.create({ data: row });
+      }
+    }
+  });
 }
