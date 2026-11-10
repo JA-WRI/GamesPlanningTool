@@ -7,9 +7,10 @@ interface GridHeaderProps {
   readOnly?: boolean;
   isEditing: boolean;
   isPreview: boolean;
+  isSaving?: boolean;
   onEditToggle: () => void;
   onPreviewToggle: (preview: boolean) => void;
-  onSave: () => void;
+  onSave: () => void | Promise<void>;
   onCancel?: () => void;
 }
 
@@ -19,6 +20,7 @@ export default function GridHeaderPage({
   readOnly = false,
   isEditing,
   isPreview,
+  isSaving = false,
   onEditToggle,
   onPreviewToggle,
   onSave,
@@ -41,6 +43,7 @@ export default function GridHeaderPage({
               <button
                 type="button"
                 onClick={onCancel || onEditToggle}
+                disabled={isSaving}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 Cancel
@@ -50,6 +53,7 @@ export default function GridHeaderPage({
                 <button
                   type="button"
                   onClick={() => onPreviewToggle(false)}
+                  disabled={isSaving}
                   className={`px-3.5 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer ${
                     !isPreview
                       ? 'bg-burgundy text-white shadow-sm'
@@ -61,6 +65,7 @@ export default function GridHeaderPage({
                 <button
                   type="button"
                   onClick={() => onPreviewToggle(true)}
+                  disabled={isSaving}
                   className={`px-3.5 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer ${
                     isPreview
                       ? 'bg-burgundy text-white shadow-sm'
@@ -74,9 +79,11 @@ export default function GridHeaderPage({
               <button
                 type="button"
                 onClick={onSave}
-                className="px-5 py-2 text-sm font-medium text-white bg-burgundy hover:bg-burgundy/90 rounded-md transition-colors shadow-sm cursor-pointer"
+                disabled={isSaving}
+                aria-busy={isSaving}
+                className="px-5 py-2 text-sm font-medium text-white bg-burgundy hover:bg-burgundy/90 rounded-md transition-colors shadow-sm cursor-pointer disabled:cursor-wait disabled:opacity-70"
               >
-                Save
+                {isSaving ? 'Saving...' : 'Save'}
               </button>
             </>
           ) : (

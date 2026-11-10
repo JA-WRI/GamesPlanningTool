@@ -2,7 +2,7 @@
 // AI Generated content for refactoring of code duplication in ContactsGridPage.tsx and TestGridPage.tsx files.
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 import GridHeaderPage from '@/components/commons/GridHeader';
 import SearchBar from '@/components/commons/SearchBar';
@@ -20,7 +20,7 @@ interface BaseGridPageProps<T extends Record<string, unknown>> {
   allowDelete?: boolean;
   allowAddRow?: boolean;
   readOnly?: boolean;
-  onSave?: (savedRows: (T & { id: string })[]) => void;
+  onSave?: (savedRows: (T & { id: string })[]) => void | Promise<unknown>;
   isValid?: (rows: (T & { id: string })[]) => boolean;
   minWidth?: number | string;
   fitWidth?: boolean;
@@ -49,6 +49,9 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
   const [isPreview, setIsPreview] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [hasValidationError, setHasValidationError] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  const savingRef = useRef(false);
   const {
     rows,
     setRows,
@@ -60,9 +63,9 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
   } = useGrid<T & { id: string }>(
     initialData as (T & { id: string })[],
     createEmptyRow as () => T & { id: string },
-    (savedRows) => {
+    async (savedRows) => {
       if (onSave) {
-        onSave(savedRows);
+        await onSave(savedRows);
       } else {
         console.log(`Saved ${title} to API:`, savedRows);
       }
@@ -109,9 +112,11 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
         title={title}
         description={description}
         readOnly={readOnly}
+        isSaving={isSaving}
         isEditing={isEditing && !readOnly}
         isPreview={isPreview}
         onEditToggle={() => {
+          setSaveError(false);
           setIsEditing(!isEditing);
           setIsPreview(false);
         }}
@@ -124,19 +129,37 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
           }
           setIsPreview(previewState);
         }}
-        onSave={() => {
+        onSave={async () => {
           if (isInvalid) {
             alert('Please fix the invalid range inputs before saving.');
             return;
           }
-          handleSave();
-          setIsPreview(false);
+          if (savingRef.current) return;
+
+          savingRef.current = true;
+          setIsSaving(true);
+          setSaveError(false);
+          try {
+            await handleSave();
+            setIsPreview(false);
+          } catch {
+            setSaveError(true);
+          } finally {
+            savingRef.current = false;
+            setIsSaving(false);
+          }
         }}
         onCancel={() => {
           handleCancel();
           setIsPreview(false);
         }}
       />
+
+      {saveError && (
+        <p role="alert" className="text-sm text-red-700">
+          Save failed. Your changes are still here; please try again.
+        </p>
+      )}
 
       {showSearch && (
         <div className="max-w-md">
@@ -151,7 +174,7 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
       <Grid
         columns={columns}
         rows={filteredRows} // fix for row filtering correctly
-        isEditing={isEditing && !readOnly}
+        isEditing={isEditing && !readOnly && !isSaving}
         isPreview={isPreview}
         onRowsChange={handleRowsChange}
         onAddRow={handleAddRow}
