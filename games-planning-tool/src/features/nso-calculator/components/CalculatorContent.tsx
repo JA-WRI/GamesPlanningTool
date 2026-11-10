@@ -7,7 +7,7 @@
 // The grid component was implemented manually
 'use client';
 
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Box } from '@mui/material';
 import { useParams } from 'next/navigation';
 import { Games } from '@/lib/data';
@@ -17,6 +17,7 @@ import type { Currency, CurrencyRates } from './ConversionRates';
 import EstimatedCosts from './EstimatedCosts';
 import type { CalculatorData } from './CalculatorClient';
 import { saveTravelers } from '../action';
+import { calculateDaysOnSite, calculateTotalCostPerMember } from '../utils/calculations';
 
 type CalculatorRow = Record<string, unknown> & {
   id: string;
@@ -52,7 +53,7 @@ function createTraveler(id: string, category: string): CalculatorRow {
 function dbTravelerToRow(
   traveler: CalculatorData['travelers'][number],
 ): CalculatorRow {
-  return {
+  return calculateTravelerRow({
     id: String(traveler.id),
     category: traveler.travelerCategory.name,
     numberOfTeamMembers: traveler.numberOfTeamMembers,
@@ -68,8 +69,71 @@ function dbTravelerToRow(
     mealsBudget: traveler.mealsCostInCents / 100,
     insuranceBudget: traveler.insuranceCostInCents / 100,
     totalCostPerTeamMember: 0,
+  });
+}
+
+
+function calculateTravelerRow(row: CalculatorRow): CalculatorRow {
+  const days = calculateDaysOnSite(row.checkIn, row.checkOut);
+
+  return {
+    ...row,
+    days,
+    totalCostPerTeamMember: calculateTotalCostPerMember(
+      row.travelBudget,
+      row.accommodationBudget,
+      days,
+      row.mealsBudget,
+      row.insuranceBudget,
+    ),
   };
 }
+
+
+function displayDaysOnSite(checkIn: string, checkOut: string): number {
+  if (!checkIn || !checkOut) return 0;
+
+  try {
+    return calculateDaysOnSite(checkIn, checkOut);
+  } catch {
+    return 0;
+  }
+}
+
+
+
+function displayTotalCostPerMember(row: CalculatorRow): number {
+  const travel = Number(row.travelBudget);
+  const accommodation = Number(row.accommodationBudget);
+  const meals = Number(row.mealsBudget);
+  const insurance = Number(row.insuranceBudget);
+
+  const values = [travel, accommodation, meals, insurance];
+
+  // Keep the grid from crashing while editing
+  if (values.some((value) => !Number.isFinite(value) || value < 0)) {
+    return 0;
+  }
+
+  return calculateTotalCostPerMember(
+    travel,
+    accommodation,
+    displayDaysOnSite(row.checkIn, row.checkOut),
+    meals,
+    insurance,
+  );
+}
+
+function getLocalToday(): string {
+  const today = new Date();
+
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
 
 const columns: ColumnDefinition<CalculatorRow>[] = [
   {
@@ -86,15 +150,6 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
     min: 0,
     step: 1,
     width: 150,
-    align: 'center',
-  },
-  {
-    field: 'days',
-    label: 'Days on Site',
-    type: 'number',
-    min: 0,
-    step: 1,
-    width: 125,
     align: 'center',
   },
   {
@@ -122,8 +177,18 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
     align: 'center',
   },
   {
+    field: 'days',
+    label: 'Days on Site',
+    type: 'calculated',
+    width: 125,
+    align: 'center',
+    formula: {
+      evaluate: (row) => displayDaysOnSite(row.checkIn, row.checkOut),
+    },
+  },
+  {
     field: 'accommodationBudget',
-    label: 'Accommodation Budget',
+    label: 'Accommodation Budget / Day on Site',
     type: 'number',
     min: 0,
     width: 175,
@@ -148,10 +213,14 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
   {
     field: 'totalCostPerTeamMember',
     label: 'Total Cost / Member',
-    type: 'number',
+    type: 'calculated',
     min: 0,
     width: 175,
     align: 'center',
+    formula: {
+      evaluate: (row) =>
+        displayTotalCostPerMember(row),
+    },
   },
 ];
 const BUDGET_FIELDS = [
@@ -217,30 +286,96 @@ export default function CalculatorContent({
   const draftCAD = useRef<CalculatorRow[]>(
     initialTravelerRows.map((row) => ({ ...row })),
   );
-
-  // keeping budget values in CAD when switching currencies
-  const handleInputCapture = (event: React.FormEvent<HTMLDivElement>) => {
-    const input = event.target;
-    if (!rates) return;
-    if (!(input instanceof HTMLInputElement)) return;
-    const cell = input.closest('td');
-    const row = input.closest('tr');
-    if (!cell || !row) return;
-    const field = columns[cell.cellIndex]?.field;
-    if (!field || !BUDGET_FIELDS.some((budgetField) => budgetField === field))
-      return;
-    const index = Array.from(row.parentElement?.children ?? []).indexOf(row);
-    if (index < 0 || !draftCAD.current[index]) return;
-    const amount = Number(input.value);
-    if (!Number.isFinite(amount) || amount < 0) return;
-    draftCAD.current[index] = {
-      ...draftCAD.current[index],
-      [field]: amount * rates[currency],
-    };
-  };
-
+  
+  
+  const handleRowsChange = useCallback(
+    (rows: CalculatorRow[]) => {
+      if (!rates) return;
+  
+      // the Grid currently contains values in the selected currency
+      // store a complete copy of every row in cad
+      draftCAD.current = rows.map((row) => ({
+        ...row,
+        travelBudget: Number(row.travelBudget) * rates[currency],
+        accommodationBudget:
+          Number(row.accommodationBudget) * rates[currency],
+        mealsBudget: Number(row.mealsBudget) * rates[currency],
+        insuranceBudget:
+          Number(row.insuranceBudget) * rates[currency],
+      }));
+    },
+    [currency, rates],
+  );
+  
+  
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  
+  
+const validateTravelerDates = (rows: CalculatorRow[]) => {
+  const today = getLocalToday();
+
+  rows.forEach((row, index) => {
+    const rowNumber = index + 1;
+
+    // Both empty is allowed
+    if (!row.checkIn && !row.checkOut) return;
+
+    // Give specific error messages
+    if (!row.checkIn) {
+      throw new Error(
+        `Row ${rowNumber}: Please select a check-in date.`,
+      );
+    }
+
+    if (!row.checkOut) {
+      throw new Error(
+        `Row ${rowNumber}: Please select a check-out date.`,
+      );
+    }
+
+    const previous = savedCAD.current.find(
+      (savedRow) => savedRow.id === row.id,
+    );
+
+    const datesChanged =
+      !previous ||
+      previous.checkIn !== row.checkIn ||
+      previous.checkOut !== row.checkOut;
+
+    try {
+      calculateDaysOnSite(
+        row.checkIn,
+        row.checkOut,
+        datesChanged ? today : undefined,
+      );
+    } catch (error) {
+      const reason =
+        error instanceof Error
+          ? error.message
+          : 'Invalid date range';
+
+      throw new Error(`Row ${rowNumber}: ${reason}`);
+    }
+  });
+};
+
+const getDateValidationError = (
+  rows: CalculatorRow[],
+): string | null => {
+  try {
+    validateTravelerDates(rows);
+    return null;
+  } catch (error) {
+    return error instanceof Error
+      ? error.message
+      : 'Please correct the dates.';
+  }
+};
+
+  
+
+  
   const handleSave = async (rows: CalculatorRow[]) => {
     setSaveError(null);
 
@@ -249,32 +384,51 @@ export default function CalculatorContent({
         throw new Error('Conversion rates unavailable');
       }
 
+      // validate the dates before saving to db
+      validateTravelerDates(rows);
+
+      //convert displayed currency back to CAD
       const toCAD = (value: number) =>
         Number((value * rates[currency]).toFixed(2));
 
-      const rowsCAD = rows.map((row) => ({
-        ...row,
-        travelBudget: toCAD(row.travelBudget),
-        accommodationBudget: toCAD(row.accommodationBudget),
-        mealsBudget: toCAD(row.mealsBudget),
-        insuranceBudget: toCAD(row.insuranceBudget),
-        totalCostPerTeamMember: toCAD(row.totalCostPerTeamMember),
-      }));
+      // calculate days and total cost for every traveler
+      const rowsCAD = rows.map((row) =>
+        calculateTravelerRow({
+          ...row,
+          travelBudget: toCAD(row.travelBudget),
+          accommodationBudget: toCAD(row.accommodationBudget),
+          mealsBudget: toCAD(row.mealsBudget),
+          insuranceBudget: toCAD(row.insuranceBudget),
+        }),
+      );
 
+      // save to PostgreSQL
       const updatedRows = initialData
         ? (
-            await saveTravelers(initialData.gameId, initialData.nsoId, rowsCAD)
+            await saveTravelers(
+              initialData.gameId,
+              initialData.nsoId,
+              rowsCAD,
+            )
           ).map(dbTravelerToRow)
         : rowsCAD;
 
+      // update the saved and draft data
       savedCAD.current = updatedRows.map((row) => ({ ...row }));
       draftCAD.current = updatedRows.map((row) => ({ ...row }));
 
+      // refresh the grid
       setRenderRowsCAD(updatedRows);
       setGridVersion((version) => version + 1);
+
     } catch (error) {
-      console.error('Failed to save calculator', error);
-      setSaveError('Could not save calculator changes');
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Could not save calculator changes';
+    
+      setSaveError(message);
+    
     }
   };
 
@@ -287,12 +441,36 @@ export default function CalculatorContent({
     setGridVersion((version) => version + 1);
   };
 
+  
+  const handleSaveClickCapture = (
+    event: React.MouseEvent<HTMLDivElement>,
+  ) => {
+    const target = event.target;
+  
+    if (!(target instanceof HTMLElement)) return;
+  
+    const button = target.closest('button');
+  
+    // only intercept the main calculator's save button
+    if (button?.textContent?.trim().toLowerCase() !== 'save') {
+      return;
+    }
+  
+    const error = getDateValidationError(draftCAD.current);
+  
+    if (error) {
+      event.preventDefault();
+      event.stopPropagation();
+  
+      setSaveError(error);
+    }
+  };
+  
+
   return (
-    <Box className="w-full min-w-0" data-calculator-id={calculatorId}>
+    <Box onClickCapture={handleSaveClickCapture} className="w-full min-w-0" data-calculator-id={calculatorId}>
       {/* Keep column widths stable between Edit and Preview */}
       <Box
-        onInputCapture={handleInputCapture}
-        onChangeCapture={handleInputCapture}
         className="
           relative min-w-0 p-2
           [&_.MuiTable-root]:table-fixed
@@ -324,12 +502,16 @@ export default function CalculatorContent({
           }
           addButtonLabel="Add New Traveler"
           showSearch={false}
+          onRowsChange={handleRowsChange}
           onSave={handleSave}
+          isValid={(rows) => getDateValidationError(rows) === null}
         />
         {/* to display the save error message, if any */}
         {saveError && (
-          <Box role="alert" className="px-2 text-red-600">
-            {saveError}
+          <Box role="alert" 
+          className="mt-2 inline-flex max-w-md items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 shadow-sm">
+            <span>⚠</span>
+            <span>{saveError}</span>
           </Box>
         )}
       </Box>

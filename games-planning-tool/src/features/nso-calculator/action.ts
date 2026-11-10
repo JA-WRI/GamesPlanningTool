@@ -2,6 +2,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
+import { calculateDaysOnSite } from './utils/calculations';
 
 export type TravelerInput = {
   id: string;
@@ -104,10 +105,12 @@ export async function saveTravelers(
         throw new Error('Check-out cannot be before check-in');
       }
 
+      const days = calculateDaysOnSite(row.checkIn, row.checkOut);
+
       const data = {
         travelerCategoryId,
         numberOfTeamMembers: toNonNegativeInteger(row.numberOfTeamMembers),
-        days: toNonNegativeInteger(row.days),
+        days,
         checkInDate,
         checkOutDate,
         travelCostInCents: toCents(row.travelBudget),
