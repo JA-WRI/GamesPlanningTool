@@ -39,7 +39,7 @@ model Game {
   gameNsos    GameNso[]
   gameMembers GameMember[]
   travelers   Traveler[]
-  
+
   @@map("games")
 }
 
@@ -50,18 +50,19 @@ model Nso {
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
 
-  users    User[]
-  members  Member[]
-  gameNsos GameNso[]
+  users     User[]
+  members   Member[]
+  gameNsos  GameNso[]
   travelers Traveler[]
 
   @@map("nsos")
 }
 
 model GameNso {
-  id     String @id @default(uuid()) @db.Uuid
-  gameId Int    @map("game_id")
-  nsoId  String @map("nso_id") @db.Uuid
+  id                 String              @id @default(uuid()) @db.Uuid
+  gameId             Int                 @map("game_id")
+  nsoId              String              @map("nso_id") @db.Uuid
+  estimatedCostItems EstimatedCostItem[]
 
   game Game @relation(fields: [gameId], references: [id])
   nso  Nso  @relation(fields: [nsoId], references: [id])
@@ -106,9 +107,9 @@ model Member {
 
 // A member's participation in one game
 model GameMember {
-  id               String    @id @default(uuid()) @db.Uuid
-  gameId           Int       @map("game_id")
-  memberId         String    @map("member_id") @db.Uuid
+  id       String @id @default(uuid()) @db.Uuid
+  gameId   Int    @map("game_id")
+  memberId String @map("member_id") @db.Uuid
 
   // Shared by staff and athletes
   fundedBy         String?   @map("funded_by")
@@ -119,13 +120,13 @@ model GameMember {
   gameDeparture    DateTime? @map("game_departure") @db.Date
 
   // Staff only
-  gamesRole        String?   @map("games_role")
-  rank             String?
+  gamesRole String? @map("games_role")
+  rank      String?
 
   // Athletes only
-  event            String?
-  medal            String?
-  medalNotes       String?   @map("medal_notes")
+  event      String?
+  medal      String?
+  medalNotes String? @map("medal_notes")
 
   game   Game   @relation(fields: [gameId], references: [id])
   member Member @relation(fields: [memberId], references: [id])
@@ -135,25 +136,24 @@ model GameMember {
   @@map("game_members")
 }
 
-
 model Resource {
   id String @id @default(uuid()) @db.Uuid
 
-  parentFolderId String? @map("parent_folder_id") @db.Uuid
-  parent Resource? @relation("ParentElement", fields: [parentFolderId], references: [id])
-  children Resource[] @relation("ParentElement")
+  parentFolderId String?    @map("parent_folder_id") @db.Uuid
+  parent         Resource?  @relation("ParentElement", fields: [parentFolderId], references: [id])
+  children       Resource[] @relation("ParentElement")
 
-  name String
-  fileOrWebpageURL String? @map("file_or_webpage_URL") // null: folder
-  isWebpage Boolean @map("is_webpage") @default(false)
-  categories String[] @default([])
+  name             String
+  fileOrWebpageURL String?  @map("file_or_webpage_URL") // null: folder
+  isWebpage        Boolean  @default(false) @map("is_webpage")
+  categories       String[] @default([])
 
-  previousElementId String? @map("previous_element_id") @db.Uuid
-  previous Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
-  nextFromPrevious Resource[] @relation("PreviousElement")
+  previousElementId String?    @map("previous_element_id") @db.Uuid
+  previous          Resource?  @relation("PreviousElement", fields: [previousElementId], references: [id])
+  nextFromPrevious  Resource[] @relation("PreviousElement")
 
-  nextElementId String? @map("next_element_id") @db.Uuid
-  next Resource? @relation("NextElement", fields: [nextElementId], references: [id])
+  nextElementId    String?    @map("next_element_id") @db.Uuid
+  next             Resource?  @relation("NextElement", fields: [nextElementId], references: [id])
   previousFromNext Resource[] @relation("NextElement")
 
   @@map("resources")
@@ -161,10 +161,10 @@ model Resource {
 
 // Calculator tables 
 model Traveler {
-  id                 Int       @id @default(autoincrement())
-  travelerCategoryId Int       @map("traveler_category_id")
-  gameId             Int       @map("games_id")
-  nsoId              String    @map("nso_id") @db.Uuid
+  id                 Int    @id @default(autoincrement())
+  travelerCategoryId Int    @map("traveler_category_id")
+  gameId             Int    @map("games_id")
+  nsoId              String @map("nso_id") @db.Uuid
 
   numberOfTeamMembers Int       @default(0) @map("number_of_team_members")
   days                Int       @default(0)
@@ -185,13 +185,13 @@ model Traveler {
   @@index([travelerCategoryId])
   @@map("traveler")
 }
-  
 
 model TravelerCategory {
-  id Int @id @default(autoincrement())
-  name String @unique
-  travelers Traveler[]
+  id                 Int                 @id @default(autoincrement())
+  name               String              @unique
+  travelers          Traveler[]
   estimatesCostItems EstimatedCostItem[]
+
   @@map("traveler_category")
 }
 
@@ -203,10 +203,13 @@ model EstimatedCostItem {
   notes              String?
   isCoveredByCOC     Boolean @default(false) @map("is_covered_by_COC")
   travelerCategoryId Int?    @map("traveler_category_id")
+  gameNsoId          String  @map("game_nso_id") @db.Uuid
 
   travelerCategory TravelerCategory? @relation(fields: [travelerCategoryId], references: [id])
+  gameNso          GameNso           @relation(fields: [gameNsoId], references: [id])
 
   @@index([travelerCategoryId])
+  @@index([gameNsoId])
   @@map("estimated_cost_items")
 }
 

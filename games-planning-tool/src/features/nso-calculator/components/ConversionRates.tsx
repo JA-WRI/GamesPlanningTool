@@ -10,22 +10,18 @@
 import { Box, Button, Typography } from '@mui/material';
 
 export type Currency = 'CAD' | 'USD' | 'EUR';
-
-// TO DELETE: will be connected to db to update teh conversion rates
-export const CONVERSION_RATES: Record<Currency, number> = {
-  CAD: 1,
-  USD: 1.38,
-  EUR: 1.48,
-};
+export type CurrencyRates = Record<Currency, number>;
 
 type ConversionRatesProps = {
   readonly currency: Currency;
   readonly onCurrencyChange: (currency: Currency) => void;
+  readonly rates: CurrencyRates;
 };
 
 export default function ConversionRates({
   currency,
   onCurrencyChange,
+  rates,
 }: Readonly<ConversionRatesProps>) {
   return (
     <Box className="flex flex-wrap items-center justify-between gap-4 border-t px-4 py-3">
@@ -38,7 +34,7 @@ export default function ConversionRates({
           <Typography className="text-[12px]!">
             USD → CAD{' '}
             <span className="font-semibold">
-              {CONVERSION_RATES.USD.toFixed(2)}
+              {rates.USD.toFixed(2)}
             </span>
           </Typography>
         </Box>
@@ -47,7 +43,7 @@ export default function ConversionRates({
           <Typography className="text-[12px]!">
             EUR → CAD{' '}
             <span className="font-semibold">
-              {CONVERSION_RATES.EUR.toFixed(2)}
+              {rates.EUR.toFixed(2)}
             </span>
           </Typography>
         </Box>

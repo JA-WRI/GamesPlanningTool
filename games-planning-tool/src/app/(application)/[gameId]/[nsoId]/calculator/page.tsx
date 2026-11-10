@@ -1,4 +1,4 @@
-// No AI usage
+// 10% ai generated code
 import { notFound } from 'next/navigation';
 import CalculatorClient from '@/features/nso-calculator/components/CalculatorClient';
 import { getCalculatorData } from '@/lib/calculator';

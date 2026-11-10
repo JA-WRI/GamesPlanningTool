@@ -37,11 +37,38 @@ export async function getCalculatorData(gameId: number, nsoId: string) {
       }),
 
       prisma.estimatedCostItem.findMany({
+        where: {
+            gameNsoId: gameNso.id,
+        },
         orderBy: { id: 'asc' },
       }),
 
       prisma.conversionRate.findMany(),
     ]);
+
+    
+const usdRate = conversionRates.find(
+  (item) => item.fromCurrency === 'USD' && item.toCurrency === 'CAD',
+);
+
+const eurRate = conversionRates.find(
+  (item) => item.fromCurrency === 'EUR' && item.toCurrency === 'CAD',
+);
+
+if (!usdRate || !eurRate) {
+  throw new Error('Required conversion rates are missing from the database');
+}
+
+const rates = {
+  CAD: 1,
+  USD: Number(usdRate.rate),
+  EUR: Number(eurRate.rate),
+};
+
+if (Object.values(rates).some((rate) => !Number.isFinite(rate) || rate <= 0)) {
+  throw new Error('Invalid conversion rates in the database');
+}
+
 
   return {
     gameId,
@@ -50,9 +77,6 @@ export async function getCalculatorData(gameId: number, nsoId: string) {
     categories,
     travelers,
     estimatedCosts,
-    conversionRates: conversionRates.map((conversion) => ({
-      ...conversion,
-      rate: Number(conversion.rate),
-    })),
+    rates,
   };
 }

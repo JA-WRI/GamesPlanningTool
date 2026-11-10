@@ -14,8 +14,9 @@ import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
 import ConversionRates, {
   type Currency,
-  CONVERSION_RATES,
+  type CurrencyRates,
 } from './ConversionRates';
+import { saveEstimatedCosts } from '../action';
 
 export type EstimatedCostsData = {
   clothingPackage: number;
@@ -39,76 +40,21 @@ type EstimatedCostRow = Record<string, unknown> & {
 type EstimatedCostsProps = {
   readonly currency: Currency;
   readonly onCurrencyChange: (currency: Currency) => void;
+  readonly rates: CurrencyRates;
   readonly initialRows?: EstimatedCostRow[];
+  readonly gameId?: number;
+  readonly nsoId?: string;
 };
-
-const INITIAL_COST_ROWS: EstimatedCostRow[] = [
-  {
-    id: 'travelEconomyFare',
-    category: 'Travel Economy Fare',
-    amount: 2400,
-    unitOfMeasure: 'CAD',
-    notes: 'To be Confirmed',
-  },
-  {
-    id: 'athleteInsurance',
-    category: 'Athlete Insurance',
-    amount: 50,
-    unitOfMeasure: 'CAD',
-    notes: '',
-  },
-  {
-    id: 'supportStaffInsurance',
-    category: 'Support Staff Insurance',
-    amount: 28,
-    unitOfMeasure: 'CAD',
-    notes: '',
-  },
-  {
-    id: 'cellphone',
-    category: 'Cellphone (local plan)',
-    amount: 108,
-    unitOfMeasure: 'CAD/day',
-    notes: '',
-  },
-  {
-    id: 'mealsPerDay',
-    category: 'Meals',
-    amount: 118,
-    unitOfMeasure: 'CAD/meal',
-    notes: '(outside of Village, breakfast incl at most accommodation)',
-  },
-  {
-    id: 'villageMealVoucher',
-    category: 'Village Meal Voucher',
-    amount: 57,
-    unitOfMeasure: 'CAD',
-    notes: '',
-  },
-  {
-    id: 'knifeAndFork',
-    category: 'Knife & Fork for Ap',
-    amount: 2279,
-    unitOfMeasure: 'CAD',
-    notes: '',
-  },
-  {
-    id: 'clothingPackage',
-    category: 'Clothing Package',
-    amount: 3200,
-    unitOfMeasure: 'CAD',
-    notes: '',
-  },
-];
 
 // keep the amounts in CAD and only convert the values shown in the table
 function displayCosts(
   rows: EstimatedCostRow[],
   currency: Currency,
+  rates: CurrencyRates,
 ): EstimatedCostRow[] {
   return rows.map((row) => ({
     ...row,
-    amount: Number((row.amount / CONVERSION_RATES[currency]).toFixed(2)),
+    amount: Number((row.amount / rates[currency]).toFixed(2)),
     unitOfMeasure: row.unitOfMeasure.replace(/^(CAD|USD|EUR)/, currency),
   }));
 }
@@ -117,11 +63,16 @@ export default function EstimatedCosts({
   currency,
   onCurrencyChange,
   initialRows,
+  gameId,
+  nsoId,
+  rates,
 }: Readonly<EstimatedCostsProps>) {
-  // Keep saved amounts in CAD, even while another currency is displayed.
-  const [savedCAD, setSavedCAD] = useState<EstimatedCostRow[]>(() =>
-    (initialRows ?? INITIAL_COST_ROWS).map((row) => ({ ...row })),
+  const [savedCAD, setSavedCAD] = useState<EstimatedCostRow[]>(
+    () => (initialRows ?? []).map((row) => ({ ...row })),
   );
+
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [gridVersion, setGridVersion] = useState(0);
 
   const columns: ColumnDefinition<EstimatedCostRow>[] = [
     { field: 'category', label: 'Cost Item', type: 'text', width: '30%' },
@@ -142,23 +93,56 @@ export default function EstimatedCosts({
     { field: 'notes', label: 'Notes', type: 'text', width: '39%' },
   ];
 
-  const handleSave = (rows: EstimatedCostRow[]) => {
+  
+const handleSave = async (rows: EstimatedCostRow[]) => {
+  setSaveError(null);
+
+  const rowsCAD = rows.map((row) => ({
+    ...row,
+    amount: Number(row.amount) * rates[currency],
+    unitOfMeasure: row.unitOfMeasure.replace(
+      /^(CAD|USD|EUR)/,
+      'CAD',
+    ),
+  }));
+
+  try {
+    if (!gameId || !nsoId) {
+      setSaveError('A valid game and NSO are required to save');
+      return;
+    }
+
+    const saved = await saveEstimatedCosts(
+      gameId,
+      nsoId,
+      rowsCAD,
+    );
+
     setSavedCAD(
-      rows.map((row) => ({
-        ...row,
-        amount: Number(row.amount) * CONVERSION_RATES[currency],
-        unitOfMeasure: row.unitOfMeasure.replace(/^(CAD|USD|EUR)/, 'CAD'),
+      saved.map((cost) => ({
+        id: String(cost.id),
+        category: cost.name,
+        amount: cost.costInCents / 100,
+        unitOfMeasure: cost.unitOfMeasure,
+        notes: cost.notes ?? '',
       })),
     );
-  };
+
+    setGridVersion((version) => version + 1);
+  } catch (error) {
+    console.error('Failed to save estimated costs', error);
+    setSaveError('Could not save estimated costs');
+  }
+};
+
 
   return (
     <Box className="mt-10 min-w-0 [&>div>div:first-child]:rounded-b-none! [&>div>div:first-child]:border-b-0!">
       <Box className="rounded-lg shadow-sm">
         <BaseGridPage<EstimatedCostRow>
-          key={currency}
+          key={`${currency}-${gridVersion}`}
           title="ESTIMATED COSTS"
-          initialData={displayCosts(savedCAD, currency)}
+          initialData={displayCosts(savedCAD, currency, rates)}
           columns={columns}
           createEmptyRow={() => ({
             id: crypto.randomUUID(),
@@ -174,11 +158,18 @@ export default function EstimatedCosts({
           fitWidth={true}
           onSave={handleSave}
         />
+        {/* display error message*/}
+        {saveError && (
+  <Box role="alert" className="px-4 py-2 text-red-600">
+    {saveError}
+  </Box>
+)}
 
         <Box className="border-x border-b border-gray-200 rounded-b-lg bg-white px-6 py-3">
           <ConversionRates
             currency={currency}
             onCurrencyChange={onCurrencyChange}
+            rates={rates}
           />
         </Box>
       </Box>

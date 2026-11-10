@@ -417,6 +417,14 @@ async function seedCalculator(gameId: number, nsoIds: string[]) {
     'Support staff @ full NSO cost (incl. non-accredited)',
   ];
 
+  const gameNsos = await prisma.gameNso.findMany({
+    where: {
+      gameId,
+      nsoId: { in: nsoIds },
+    },
+    select: { id: true },
+  });
+
   const categories: { id: number; name: string }[] = [];
 
   for (const name of categoryNames) {
@@ -445,52 +453,61 @@ async function seedCalculator(gameId: number, nsoIds: string[]) {
   });
 
   // Default values from the Estimated Costs table
-  await prisma.estimatedCostItem.createMany({
-    data: [
-      {
-        name: 'Travel Economy Fare',
-        costInCents: 230000,
-        unitOfMeasure: 'CAD',
-        notes: 'To be Confirmed',
-      },
-      {
-        name: 'Athlete Insurance',
-        costInCents: 6000,
-        unitOfMeasure: 'CAD',
-      },
-      {
-        name: 'Support Staff Insurance',
-        costInCents: 2800,
-        unitOfMeasure: 'CAD',
-      },
-      {
-        name: 'Cellphone (local plan)',
-        costInCents: 10800,
-        unitOfMeasure: 'CAD/day',
-      },
-      {
-        name: 'Meals',
-        costInCents: 11800,
-        unitOfMeasure: 'CAD/meal',
-        notes: '(outside of Village, breakfast incl at most accommodation)',
-      },
-      {
-        name: 'Village Meal Voucher',
-        costInCents: 5700,
-        unitOfMeasure: 'CAD',
-      },
-      {
-        name: 'Knife & Fork for Ap',
-        costInCents: 227900,
-        unitOfMeasure: 'CAD',
-      },
-      {
-        name: 'Clothing Package',
-        costInCents: 320000,
-        unitOfMeasure: 'CAD',
-      },
-    ],
-  });
+  
+const estimatedCosts = [
+  {
+    name: 'Travel Economy Fare',
+    costInCents: 240000,
+    unitOfMeasure: 'CAD',
+    notes: 'To be Confirmed',
+  },
+  {
+    name: 'Athlete Insurance',
+    costInCents: 5000,
+    unitOfMeasure: 'CAD',
+  },
+  {
+    name: 'Support Staff Insurance',
+    costInCents: 2800,
+    unitOfMeasure: 'CAD',
+  },
+  {
+    name: 'Cellphone (local plan)',
+    costInCents: 10800,
+    unitOfMeasure: 'CAD/day',
+  },
+  {
+    name: 'Meals',
+    costInCents: 11800,
+    unitOfMeasure: 'CAD/meal',
+    notes: '(outside of Village, breakfast incl at most accommodation)',
+  },
+  {
+    name: 'Village Meal Voucher',
+    costInCents: 5700,
+    unitOfMeasure: 'CAD',
+  },
+  {
+    name: 'Knife & Fork for Ap',
+    costInCents: 227900,
+    unitOfMeasure: 'CAD',
+  },
+  {
+    name: 'Clothing Package',
+    costInCents: 320000,
+    unitOfMeasure: 'CAD',
+  },
+];
+
+await prisma.estimatedCostItem.createMany({
+  data: gameNsos.flatMap((gameNso) =>
+    estimatedCosts.map((cost) => ({
+      ...cost,
+      gameNsoId: gameNso.id,
+    })),
+  ),
+});
+
 
   // Temporary conversion rates until API integration
   await prisma.conversionRate.createMany({

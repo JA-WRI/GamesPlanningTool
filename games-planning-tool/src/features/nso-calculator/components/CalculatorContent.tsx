@@ -13,10 +13,10 @@ import { useParams } from 'next/navigation';
 import { Games } from '@/lib/data';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
-import { type Currency, CONVERSION_RATES } from './ConversionRates';
+import type { Currency, CurrencyRates } from './ConversionRates';
 import EstimatedCosts from './EstimatedCosts';
 import type { CalculatorData } from './CalculatorClient';
-import {saveTravelers} from '../action';
+import { saveTravelers } from '../action';
 
 type CalculatorRow = Record<string, unknown> & {
   id: string;
@@ -32,10 +32,7 @@ type CalculatorRow = Record<string, unknown> & {
   totalCostPerTeamMember: number;
 };
 
-function createTraveler(
-  id: string,
-  category: string,
-): CalculatorRow {
+function createTraveler(id: string, category: string): CalculatorRow {
   return {
     id,
     category,
@@ -73,7 +70,6 @@ function dbTravelerToRow(
     totalCostPerTeamMember: 0,
   };
 }
-
 
 const columns: ColumnDefinition<CalculatorRow>[] = [
   {
@@ -169,13 +165,12 @@ const BUDGET_FIELDS = [
 function convertRows(
   rows: CalculatorRow[],
   currency: Currency,
+  rates: CurrencyRates,
 ): CalculatorRow[] {
   return rows.map((row) => {
     const result = { ...row };
     for (const field of BUDGET_FIELDS)
-      result[field] = Number(
-        (row[field] / CONVERSION_RATES[currency]).toFixed(2),
-      );
+      result[field] = Number((row[field] / rates[currency]).toFixed(2));
     return result;
   });
 }
@@ -189,37 +184,36 @@ export default function CalculatorContent({
 }) {
   const params = useParams<{ gameId?: string }>();
   const selectedGame = Games.find((game) => game.id === params.gameId);
-  
+  const rates = initialData?.rates;
+
   // Get traveler categories from the database
-  const categoryOptions = (initialData?.categories ?? []).map(
-    (category) => ({
-      label: category.name,
-      value: category.name,
-    }),
-  );
+  const categoryOptions = (initialData?.categories ?? []).map((category) => ({
+    label: category.name,
+    value: category.name,
+  }));
 
   // Use database categories in the dropdown
-  const calculatorColumns: ColumnDefinition<CalculatorRow>[] =
-    columns.map((column) =>
+  const calculatorColumns: ColumnDefinition<CalculatorRow>[] = columns.map(
+    (column) =>
       column.field === 'category'
         ? { ...column, options: categoryOptions }
         : column,
-    );
+  );
 
-
-  const initialTravelerRows: CalculatorRow[] = initialData?.travelers.map(dbTravelerToRow) ?? [];
+  const initialTravelerRows: CalculatorRow[] =
+    initialData?.travelers.map(dbTravelerToRow) ?? [];
 
   const [currency, setCurrency] = useState<Currency>('CAD');
   const [gridVersion, setGridVersion] = useState(0);
 
-  const [renderRowsCAD, setRenderRowsCAD] = useState<CalculatorRow[]>(
-    () => initialTravelerRows.map((row) => ({ ...row })),
+  const [renderRowsCAD, setRenderRowsCAD] = useState<CalculatorRow[]>(() =>
+    initialTravelerRows.map((row) => ({ ...row })),
   );
-  
+
   const savedCAD = useRef<CalculatorRow[]>(
     initialTravelerRows.map((row) => ({ ...row })),
   );
-  
+
   const draftCAD = useRef<CalculatorRow[]>(
     initialTravelerRows.map((row) => ({ ...row })),
   );
@@ -227,6 +221,7 @@ export default function CalculatorContent({
   // keeping budget values in CAD when switching currencies
   const handleInputCapture = (event: React.FormEvent<HTMLDivElement>) => {
     const input = event.target;
+    if (!rates) return;
     if (!(input instanceof HTMLInputElement)) return;
     const cell = input.closest('td');
     const row = input.closest('tr');
@@ -240,54 +235,53 @@ export default function CalculatorContent({
     if (!Number.isFinite(amount) || amount < 0) return;
     draftCAD.current[index] = {
       ...draftCAD.current[index],
-      [field]: amount * CONVERSION_RATES[currency],
+      [field]: amount * rates[currency],
     };
   };
 
-  
-const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-const handleSave = async (rows: CalculatorRow[]) => {
-  setSaveError(null);
+  const handleSave = async (rows: CalculatorRow[]) => {
+    setSaveError(null);
 
-  // Convert displayed amounts back to CAD before saving
-  const toCAD = (value: number) =>
-    Number((value * CONVERSION_RATES[currency]).toFixed(2));
+    try {
+      if (!rates) {
+        throw new Error('Conversion rates unavailable');
+      }
 
-  const rowsCAD = rows.map((row) => ({
-    ...row,
-    travelBudget: toCAD(row.travelBudget),
-    accommodationBudget: toCAD(row.accommodationBudget),
-    mealsBudget: toCAD(row.mealsBudget),
-    insuranceBudget: toCAD(row.insuranceBudget),
-    totalCostPerTeamMember: toCAD(row.totalCostPerTeamMember),
-  }));
+      const toCAD = (value: number) =>
+        Number((value * rates[currency]).toFixed(2));
 
-  try {
-    const updatedRows = initialData
-      ? (
-          await saveTravelers(
-            initialData.gameId,
-            initialData.nsoId,
-            rowsCAD,
-          )
-        ).map(dbTravelerToRow)
-      : rowsCAD;
+      const rowsCAD = rows.map((row) => ({
+        ...row,
+        travelBudget: toCAD(row.travelBudget),
+        accommodationBudget: toCAD(row.accommodationBudget),
+        mealsBudget: toCAD(row.mealsBudget),
+        insuranceBudget: toCAD(row.insuranceBudget),
+        totalCostPerTeamMember: toCAD(row.totalCostPerTeamMember),
+      }));
 
-    savedCAD.current = updatedRows.map((row) => ({ ...row }));
-    draftCAD.current = updatedRows.map((row) => ({ ...row }));
+      const updatedRows = initialData
+        ? (
+            await saveTravelers(initialData.gameId, initialData.nsoId, rowsCAD)
+          ).map(dbTravelerToRow)
+        : rowsCAD;
 
-    setRenderRowsCAD(updatedRows);
-    setGridVersion((version) => version + 1);
-  } catch (error) {
-    console.error('Failed to save calculator', error);
-    setSaveError('Could not save calculator changes');
-  }
-};
+      savedCAD.current = updatedRows.map((row) => ({ ...row }));
+      draftCAD.current = updatedRows.map((row) => ({ ...row }));
 
+      setRenderRowsCAD(updatedRows);
+      setGridVersion((version) => version + 1);
+    } catch (error) {
+      console.error('Failed to save calculator', error);
+      setSaveError('Could not save calculator changes');
+    }
+  };
 
   const handleCurrencyChange = (nextCurrency: Currency) => {
     if (nextCurrency === currency) return;
+    if (!rates?.[nextCurrency]) return;
+
     setRenderRowsCAD(draftCAD.current.map((row) => ({ ...row })));
     setCurrency(nextCurrency);
     setGridVersion((version) => version + 1);
@@ -315,8 +309,12 @@ const handleSave = async (rows: CalculatorRow[]) => {
       >
         <BaseGridPage<CalculatorRow>
           key={gridVersion}
-          title={initialData?.gameName ?? selectedGame?.title ?? 'SELECT A GAME'}
-          initialData={convertRows(renderRowsCAD, currency)}
+          title={
+            initialData?.gameName ?? selectedGame?.title ?? 'SELECT A GAME'
+          }
+          initialData={
+            rates ? convertRows(renderRowsCAD, currency, rates) : renderRowsCAD
+          }
           columns={calculatorColumns}
           createEmptyRow={() =>
             createTraveler(
@@ -330,24 +328,32 @@ const handleSave = async (rows: CalculatorRow[]) => {
         />
         {/* to display the save error message, if any */}
         {saveError && (
-  <Box role="alert" className="px-2 text-red-600">
-    {saveError}
-  </Box>
-)}
+          <Box role="alert" className="px-2 text-red-600">
+            {saveError}
+          </Box>
+        )}
       </Box>
 
-      <EstimatedCosts
-        currency={currency}
-        onCurrencyChange={handleCurrencyChange}
-        initialRows={initialData?.estimatedCosts.map((cost) => ({
-          id: String(cost.id),
-          category: cost.name,
-          amount: cost.costInCents / 100,
-          unitOfMeasure: cost.unitOfMeasure,
-          notes: cost.notes ?? '',
-        }))}
-      />
-      
+      {rates ? (
+        <EstimatedCosts
+          currency={currency}
+          onCurrencyChange={handleCurrencyChange}
+          rates={rates}
+          gameId={initialData?.gameId}
+          nsoId={initialData?.nsoId}
+          initialRows={initialData?.estimatedCosts.map((cost) => ({
+            id: String(cost.id),
+            category: cost.name,
+            amount: cost.costInCents / 100,
+            unitOfMeasure: cost.unitOfMeasure,
+            notes: cost.notes ?? '',
+          }))}
+        />
+      ) : (
+        <Box role="alert" className="px-2 text-red-600">
+          Conversion rates not available
+        </Box>
+      )}
     </Box>
   );
 }
