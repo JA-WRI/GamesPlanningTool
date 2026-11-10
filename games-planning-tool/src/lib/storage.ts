@@ -46,5 +46,11 @@ export async function uploadResourceFile(file: File): Promise<string> {
     throw error;
   }
 
-  return `${publicUrl.replace(/\/+$/, '')}/${path}`;
+  function trimTrailingSlashes(value: string): string {
+    let end = value.length;
+    while (end > 0 && value[end - 1] === '/') end--;
+    return value.slice(0, end);
+  }
+
+  return `${trimTrailingSlashes(publicUrl)}/${path}`;
 }

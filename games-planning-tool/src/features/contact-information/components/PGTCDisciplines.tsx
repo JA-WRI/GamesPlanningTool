@@ -123,8 +123,8 @@ export default function DisciplinesSection({
           setIsPreview(false);
         }}
         onPreviewToggle={(previewState) => setIsPreview(previewState)}
-        onSave={() => {
-          handleSave();
+        onSave={async () => {
+          await handleSave();
         }}
         onCancel={() => {
           handleCancel();
