@@ -9,9 +9,11 @@
 'use client';
 
 import { Box } from '@mui/material';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
+import { asDraftRows } from '@/lib/draft-keys';
+import { flushActiveDrafts } from '@/lib/draft-navigation';
 import ConversionRates, {
   type Currency,
   CONVERSION_RATES,
@@ -39,6 +41,8 @@ export type EstimatedCostRow = Record<string, unknown> & {
 type EstimatedCostsProps = {
   readonly calculatorId?: number;
   readonly initialItems?: EstimatedCostRow[];
+  readonly initialDraft?: unknown;
+  readonly draftKey: string;
   readonly onSaveAction?: (
     calculatorId: number,
     rows: EstimatedCostRow[],
@@ -120,9 +124,22 @@ function displayCosts(
   }));
 }
 
+function costsToCAD(
+  rows: EstimatedCostRow[],
+  currency: Currency,
+): EstimatedCostRow[] {
+  return rows.map((row) => ({
+    ...row,
+    amount: Number(row.amount) * CONVERSION_RATES[currency],
+    unitOfMeasure: row.unitOfMeasure.replace(/^(CAD|USD|EUR)/, 'CAD'),
+  }));
+}
+
 export default function EstimatedCosts({
   calculatorId = 1,
   initialItems,
+  initialDraft,
+  draftKey,
   onSaveAction,
   currency,
   onCurrencyChange,
@@ -133,6 +150,21 @@ export default function EstimatedCosts({
       ? initialItems.map((row) => ({ ...row }))
       : INITIAL_COST_ROWS.map((row) => ({ ...row })),
   );
+  const [draftPayload, setDraftPayload] = useState(initialDraft);
+  const [isGridEditing, setIsGridEditing] = useState(false);
+
+  const restoreDraft = (value: unknown) => {
+    if (typeof value !== 'object' || value === null || !('rows' in value)) {
+      return undefined;
+    }
+    const cadRows = asDraftRows<EstimatedCostRow>(value.rows);
+    if (!cadRows) return undefined;
+    return displayCosts(cadRows, currency);
+  };
+
+  const startingRows =
+    restoreDraft(draftPayload) ?? displayCosts(savedCAD, currency);
+  const latestRowsRef = useRef(startingRows);
 
   const columns: ColumnDefinition<EstimatedCostRow>[] = [
     { field: 'category', label: 'Cost Item', type: 'text', width: '30%' },
@@ -154,18 +186,38 @@ export default function EstimatedCosts({
   ];
 
   const handleSave = async (rows: EstimatedCostRow[]) => {
-    const cadRows = rows.map((row) => ({
-      ...row,
-      amount: Number(row.amount) * CONVERSION_RATES[currency],
-      unitOfMeasure: row.unitOfMeasure.replace(/^(CAD|USD|EUR)/, 'CAD'),
-    }));
+    const cadRows = costsToCAD(rows, currency);
 
     if (onSaveAction) {
       const dbSaved = await onSaveAction(calculatorId, cadRows);
       setSavedCAD(dbSaved.map((row) => ({ ...row })));
+      setDraftPayload(undefined);
     } else {
       setSavedCAD(cadRows);
+      setDraftPayload(undefined);
     }
+  };
+
+  const serializeDraft = (rows: EstimatedCostRow[]) => ({
+    rows: costsToCAD(rows, currency),
+  });
+
+  const handleCurrencyChange = async (nextCurrency: Currency) => {
+    if (isGridEditing) {
+      const currentRows = latestRowsRef.current;
+      const canonicalRows = displayCosts(savedCAD, currency);
+      const hasEdits =
+        JSON.stringify(currentRows) !== JSON.stringify(canonicalRows);
+
+      if (draftPayload !== undefined || hasEdits) {
+        await flushActiveDrafts();
+        setDraftPayload({ rows: costsToCAD(currentRows, currency) });
+      } else {
+        setDraftPayload(undefined);
+      }
+    }
+    setIsGridEditing(false);
+    onCurrencyChange(nextCurrency);
   };
 
   return (
@@ -175,6 +227,10 @@ export default function EstimatedCosts({
           key={currency}
           title="ESTIMATED COSTS"
           initialData={displayCosts(savedCAD, currency)}
+          initialDraft={draftPayload}
+          restoreDraft={restoreDraft}
+          serializeDraft={serializeDraft}
+          draftKey={draftKey}
           columns={columns}
           createEmptyRow={() => ({
             id: crypto.randomUUID(),
@@ -189,12 +245,17 @@ export default function EstimatedCosts({
           allowDelete={true}
           fitWidth={true}
           onSave={handleSave}
+          onRowsChange={(rows) => {
+            latestRowsRef.current = rows;
+          }}
+          onEditingChange={setIsGridEditing}
+          onDraftCleared={() => setDraftPayload(undefined)}
         />
 
         <Box className="border-x border-b border-gray-200 rounded-b-lg bg-white px-6 py-3">
           <ConversionRates
             currency={currency}
-            onCurrencyChange={onCurrencyChange}
+            onCurrencyChange={handleCurrencyChange}
           />
         </Box>
       </Box>

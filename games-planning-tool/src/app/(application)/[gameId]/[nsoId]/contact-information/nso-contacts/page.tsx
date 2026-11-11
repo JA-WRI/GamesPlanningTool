@@ -4,6 +4,9 @@ import {
   saveNsoContacts,
 } from '@/features/contact-information/components/nso-actions';
 import ContactsGridNSOPage from '@/features/contact-information/components/ContactsGridNSOPage';
+import { getDraftDocument } from '@/lib/draft-actions';
+import { asDraftRows, DRAFT_SCHEMA_VERSION, draftKeys } from '@/lib/draft-keys';
+import type { ContactRow } from '@/components/contact-information/ContactGrid';
 
 const NSO_ROLES = [
   'HPD',
@@ -22,7 +25,11 @@ const NSO_ROLES = [
 ];
 
 export default async function Page() {
-  const contacts = await getNsoContacts();
+  const [contacts, rawDraft] = await Promise.all([
+    getNsoContacts(),
+    getDraftDocument(draftKeys.nsoContacts, DRAFT_SCHEMA_VERSION),
+  ]);
+  const initialDraft = asDraftRows<ContactRow>(rawDraft);
 
   return (
     <ContactsGridNSOPage
@@ -30,6 +37,8 @@ export default async function Page() {
       description="National Sport Organization contact details and representative information."
       roles={NSO_ROLES}
       initialData={contacts}
+      initialDraft={initialDraft}
+      draftKey={draftKeys.nsoContacts}
       onSaveAction={saveNsoContacts}
       readOnly={false}
     />

@@ -276,3 +276,15 @@ model CalculatorEstimatedCostItem {
 
   @@map("calculator_estimated_cost_items")
 }
+
+model Draft {
+  scopeKey     String   @id @map("scope_key")
+  payload      Json
+  schemaVersion Int     @default(1) @map("schema_version")
+  revision     Int      @default(1)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([updatedAt])
+  @@map("drafts")
+}

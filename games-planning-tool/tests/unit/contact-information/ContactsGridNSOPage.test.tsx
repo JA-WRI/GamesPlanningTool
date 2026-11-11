@@ -80,6 +80,33 @@ describe('ContactsGridNSOPage', () => {
     expect(screen.getByText('514-555-0188')).toBeInTheDocument();
   });
 
+  it('displays a refreshed persisted draft when the page receives it again', () => {
+    const { rerender } = render(
+      <ContactsGridNSOPage
+        title="NSO Contacts"
+        description="Manage NSO contact records."
+        roles={roles}
+        initialData={[savedContact]}
+        draftKey="contacts:nso"
+      />,
+    );
+
+    rerender(
+      <ContactsGridNSOPage
+        title="NSO Contacts"
+        description="Manage NSO contact records."
+        roles={roles}
+        initialData={[savedContact]}
+        initialDraft={[{ ...savedContact, firstName: 'Draft name' }]}
+        draftKey="contacts:nso"
+      />,
+    );
+
+    expect(screen.getByText('Draft restored')).toBeInTheDocument();
+    expect(screen.getByText('Draft name')).toBeInTheDocument();
+    expect(screen.getByText('Team Leader')).toBeInTheDocument();
+  });
+
   it('does not show saved contacts whose role is not in the roles list', () => {
     render(
       <ContactsGridNSOPage

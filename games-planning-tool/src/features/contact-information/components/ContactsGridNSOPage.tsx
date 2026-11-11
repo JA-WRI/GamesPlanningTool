@@ -20,6 +20,8 @@ interface ContactsGridNSOPageProps {
   description: string;
   roles: string[];
   initialData?: ContactRow[];
+  initialDraft?: ContactRow[];
+  draftKey?: string;
   onSaveAction?: (rows: ContactRow[]) => Promise<ContactRow[]>;
   readOnly?: boolean;
 }
@@ -29,6 +31,8 @@ export default function ContactsGridNSOPage({
   description,
   roles,
   initialData = [],
+  initialDraft,
+  draftKey,
   onSaveAction,
   readOnly = false,
 }: ContactsGridNSOPageProps) {
@@ -36,10 +40,11 @@ export default function ContactsGridNSOPage({
     () =>
       roles.map(
         (role) =>
+          initialDraft?.find((r) => r.role === role) ??
           initialData.find((r) => r.role === role) ??
           createEmptyContactRow(role),
       ),
-    [roles, initialData],
+    [roles, initialData, initialDraft],
   );
 
   const handleSave = async (savedRows: ContactRow[]) => {
@@ -50,10 +55,12 @@ export default function ContactsGridNSOPage({
 
   return (
     <BaseGridPage<ContactRow>
-      key={roles.join('|')}
+      key={`${roles.join('|')}:${JSON.stringify(initialDraft ?? null)}`}
       title={title}
       description={description}
       initialData={rows}
+      initiallyRestoredDraft={initialDraft !== undefined}
+      draftKey={draftKey}
       columns={nsoContactColumns}
       createEmptyRow={() => createEmptyContactRow()}
       allowAddRow={false}

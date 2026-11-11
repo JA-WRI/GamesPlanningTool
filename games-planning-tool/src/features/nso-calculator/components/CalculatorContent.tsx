@@ -134,10 +134,14 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
 export default function CalculatorContent({
   calculatorId,
   initialItems = [],
+  initialDraft,
+  draftKey,
   onSaveAction,
 }: {
   readonly calculatorId: number;
   readonly initialItems?: CalculatorRow[];
+  readonly initialDraft?: unknown;
+  readonly draftKey: string;
   readonly onSaveAction?: (
     calculatorId: number,
     rows: CalculatorRow[],
@@ -181,6 +185,8 @@ export default function CalculatorContent({
         <BaseGridPage<CalculatorRow>
           title={selectedGame?.title ?? 'SELECT A GAME'}
           initialData={initialItems}
+          initialDraft={initialDraft}
+          draftKey={draftKey}
           columns={columns}
           createEmptyRow={() => ({
             id: crypto.randomUUID(),

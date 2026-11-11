@@ -3,7 +3,7 @@
 
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import DisciplinesSection, {
   DisciplineData,
 } from '../../../src/features/contact-information/components/PGTCDisciplines';
@@ -43,7 +43,7 @@ describe('DisciplinesSection', () => {
     expect(screen.getByText('Flight')).toBeInTheDocument();
   });
 
-  it('allows editing discipline fields and adding a new discipline when in edit mode', () => {
+  it('allows editing discipline fields and adding a new discipline when in edit mode', async () => {
     render(<DisciplinesSection initialDisciplines={initialDisciplines} />);
 
     const editButton = screen.getByRole('button', { name: /edit/i });
@@ -65,6 +65,8 @@ describe('DisciplinesSection', () => {
     const saveButton = screen.getByRole('button', { name: /save/i });
     fireEvent.click(saveButton);
 
-    expect(screen.getByText('Swimming')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText('Swimming')).toBeInTheDocument(),
+    );
   });
 });

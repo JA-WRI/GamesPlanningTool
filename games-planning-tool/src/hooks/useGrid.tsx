@@ -21,6 +21,16 @@ export function useGrid<T extends { id: string }>(
     setRows(savedRows);
   };
 
+  const resetTo = (canonicalRows: T[]) => {
+    setRows(canonicalRows);
+    setSavedRows(canonicalRows);
+    setIsEditing(false);
+  };
+
+  const markRowsSaved = (saved: T[]) => {
+    setSavedRows(saved);
+  };
+
   const handleAddRow = () => {
     setRows((prev) => [...prev, createEmptyRow()]);
   };
@@ -30,6 +40,8 @@ export function useGrid<T extends { id: string }>(
     setRows,
     isEditing,
     setIsEditing,
+    markRowsSaved,
+    resetTo,
     handleSave,
     handleCancel,
     handleAddRow,

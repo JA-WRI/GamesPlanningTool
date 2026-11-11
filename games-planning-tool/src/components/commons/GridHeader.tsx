@@ -1,6 +1,8 @@
 //  No substantial AI-generated code
 'use client';
 
+import { Trash2 } from 'lucide-react';
+
 interface GridHeaderProps {
   title: string;
   description?: string;
@@ -8,6 +10,10 @@ interface GridHeaderProps {
   isEditing: boolean;
   isPreview: boolean;
   isSaving?: boolean;
+  hasDraft?: boolean;
+  statusMessage?: string;
+  discardLabel?: string;
+  saveLabel?: string;
   onEditToggle: () => void;
   onPreviewToggle: (preview: boolean) => void;
   onSave: () => void | Promise<void>;
@@ -21,6 +27,10 @@ export default function GridHeaderPage({
   isEditing,
   isPreview,
   isSaving = false,
+  hasDraft = false,
+  statusMessage,
+  discardLabel = 'Cancel',
+  saveLabel = 'Save changes',
   onEditToggle,
   onPreviewToggle,
   onSave,
@@ -37,16 +47,26 @@ export default function GridHeaderPage({
       </div>
       {/*Edit, cancel, and save buttons*/}
       {!readOnly && (
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-wrap items-center justify-end gap-3 shrink-0">
+          {statusMessage && (
+            <span
+              role="status"
+              aria-live="polite"
+              className="text-sm text-gray-600"
+            >
+              {statusMessage}
+            </span>
+          )}
           {isEditing ? (
             <>
               <button
                 type="button"
                 onClick={onCancel || onEditToggle}
                 disabled={isSaving}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer disabled:cursor-wait disabled:opacity-70"
               >
-                Cancel
+                {discardLabel === 'Discard draft' && <Trash2 size={16} />}
+                {discardLabel}
               </button>
               {/* pill toggle for edit view and preview */}
               <div className="flex items-center bg-gray-100 p-1 rounded-full border border-gray-200 shadow-inner">
@@ -83,17 +103,30 @@ export default function GridHeaderPage({
                 aria-busy={isSaving}
                 className="px-5 py-2 text-sm font-medium text-white bg-burgundy hover:bg-burgundy/90 rounded-md transition-colors shadow-sm cursor-pointer disabled:cursor-wait disabled:opacity-70"
               >
-                {isSaving ? 'Saving...' : 'Save'}
+                {isSaving ? 'Saving...' : saveLabel}
               </button>
             </>
           ) : (
-            <button
-              type="button"
-              onClick={onEditToggle}
-              className="px-5 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors cursor-pointer"
-            >
-              Edit
-            </button>
+            <>
+              {hasDraft && (
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  disabled={isSaving}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-200 rounded-md hover:bg-red-50 transition-colors cursor-pointer disabled:cursor-wait disabled:opacity-70"
+                >
+                  <Trash2 size={16} />
+                  Discard draft
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onEditToggle}
+                className="px-5 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors cursor-pointer"
+              >
+                Edit
+              </button>
+            </>
           )}
         </div>
       )}

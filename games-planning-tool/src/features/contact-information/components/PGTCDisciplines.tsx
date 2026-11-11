@@ -21,6 +21,10 @@ import { useState } from 'react';
 import GridHeaderPage from '@/components/commons/GridHeader';
 import TextBox from '@/components/commons/GridTextBox';
 import { Trash2 } from 'lucide-react';
+import {
+  getDraftStatusMessage,
+  useDraftAutosave,
+} from '@/hooks/useDraftAutosave';
 
 export interface DisciplineData {
   id: string;
@@ -62,17 +66,31 @@ const emptyDiscipline = (): DisciplineData => ({
 
 interface DisciplinesSectionProps {
   initialDisciplines?: DisciplineData[];
+  initialDraft?: DisciplineData[];
+  draftKey?: string;
   onSaveAction?: (rows: DisciplineData[]) => Promise<DisciplineData[]>;
 }
 
 export default function DisciplinesSection({
   initialDisciplines = [],
+  initialDraft,
+  draftKey,
   onSaveAction,
 }: DisciplinesSectionProps) {
+  const initialRows = initialDraft ?? initialDisciplines;
   const [isPreview, setIsPreview] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [disciplines, setDisciplines] =
-    useState<DisciplineData[]>(initialDisciplines);
+  const [disciplines, setDisciplines] = useState<DisciplineData[]>(initialRows);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDiscardingDraft, setIsDiscardingDraft] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  const [cleanupError, setCleanupError] = useState(false);
+  const draft = useDraftAutosave({
+    draftKey,
+    value: disciplines,
+    enabled: isEditing,
+    initiallyRestored: initialDraft !== undefined,
+  });
 
   const handleAddDiscipline = () => {
     setDisciplines((prev) => [...prev, emptyDiscipline()]);
@@ -93,21 +111,70 @@ export default function DisciplinesSection({
   };
 
   const handleSave = async () => {
-    if (onSaveAction) {
-      const updated = await onSaveAction(disciplines);
-      setDisciplines(updated);
-    } else {
-      console.log('Saved Disciplines:', disciplines);
+    setIsSaving(true);
+    setSaveError(false);
+    setCleanupError(false);
+    try {
+      await draft.flush(disciplines);
+      if (onSaveAction) {
+        const updated = await onSaveAction(disciplines);
+        setDisciplines(updated);
+        if (draftKey) {
+          try {
+            await draft.clear('committed');
+          } catch {
+            setCleanupError(true);
+          }
+        }
+      } else {
+        console.log('Saved Disciplines:', disciplines);
+      }
+      setIsEditing(false);
+      setIsPreview(false);
+    } catch {
+      setSaveError(true);
+    } finally {
+      setIsSaving(false);
     }
-    setIsEditing(false);
-    setIsPreview(false);
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-    setIsPreview(false);
-    setDisciplines(initialDisciplines); // Reverts unsaved draft changes
+  const handleDiscardDraft = async () => {
+    if (isSaving || isDiscardingDraft) return;
+    const hasLocalChanges =
+      JSON.stringify(disciplines) !== JSON.stringify(initialDisciplines);
+    if (
+      (draft.hasPersistedDraft || hasLocalChanges) &&
+      !window.confirm(
+        'Discard this draft and restore the last saved database values? This cannot be undone.',
+      )
+    ) {
+      return;
+    }
+
+    setIsDiscardingDraft(true);
+    draft.cancelPending();
+    setCleanupError(false);
+    try {
+      await draft.clear('discarded', initialDisciplines);
+      setDisciplines(initialDisciplines);
+      setIsEditing(false);
+      setIsPreview(false);
+    } catch {
+      setCleanupError(true);
+    } finally {
+      setIsDiscardingDraft(false);
+    }
   };
+
+  const statusMessage = getDraftStatusMessage({
+    status: draft.status,
+    isDraftSaving: draft.isSaving,
+    isPending: draft.isPending,
+    isSavingChanges: isSaving,
+    isDiscarding: isDiscardingDraft,
+    saveError,
+    cleanupError,
+  });
 
   // edit vs preview
   const showInputs = isEditing && !isPreview;
@@ -118,18 +185,25 @@ export default function DisciplinesSection({
         title="Pre-Games Training Camp (PGTC) Information and Arrivals"
         isEditing={isEditing}
         isPreview={isPreview}
+        isSaving={isSaving || isDiscardingDraft || draft.isSaving}
+        hasDraft={draft.hasPersistedDraft}
+        statusMessage={statusMessage}
+        discardLabel="Discard draft"
         onEditToggle={() => {
           setIsEditing(!isEditing);
           setIsPreview(false);
+          setSaveError(false);
         }}
         onPreviewToggle={(previewState) => setIsPreview(previewState)}
-        onSave={async () => {
-          await handleSave();
-        }}
-        onCancel={() => {
-          handleCancel();
-        }}
+        onSave={handleSave}
+        onCancel={handleDiscardDraft}
       />
+
+      {cleanupError && (
+        <p role="alert" className="text-sm text-amber-700">
+          Draft deletion failed; your data was not discarded.
+        </p>
+      )}
 
       <div className="space-y-8">
         {disciplines.map((discipline, index) => (
