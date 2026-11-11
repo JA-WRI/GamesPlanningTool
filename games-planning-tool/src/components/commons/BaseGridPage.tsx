@@ -1,4 +1,4 @@
-// AI contribution: Below 50% AI-generated
+// AI contribution: 50% AI-generated
 // AI Generated content for refactoring of code duplication in ContactsGridPage.tsx and TestGridPage.tsx files.
 'use client';
 

@@ -2,8 +2,16 @@
 'use client';
 
 import '@testing-library/jest-dom/vitest';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+
+const draftActions = vi.hoisted(() => ({
+  saveDraftDocument: vi.fn().mockResolvedValue(undefined),
+  deleteDraftDocument: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/lib/draft-actions', () => draftActions);
+
 import ContactsGridNSOPage from '../../../src/features/contact-information/components/ContactsGridNSOPage';
 
 const roles = ['Media Attaché', 'Team Leader', 'Chef de Mission'];

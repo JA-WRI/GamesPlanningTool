@@ -1,3 +1,4 @@
+// AI contribution: Above50% AI-generated
 'use client';
 
 import { useEffect, useRef } from 'react';
