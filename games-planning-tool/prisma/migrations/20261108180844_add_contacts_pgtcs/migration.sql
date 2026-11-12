@@ -1,15 +1,6 @@
-/*
-  Warnings:
 
-  - You are about to drop the column `createdAt` on the `games` table. All the data in the column will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "ContactType" AS ENUM ('COC', 'NSO');
-
--- AlterTable
-ALTER TABLE "games" DROP COLUMN "createdAt",
-ADD COLUMN     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 -- CreateTable
 CREATE TABLE "contacts" (
