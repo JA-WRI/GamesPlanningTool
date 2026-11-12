@@ -38,6 +38,22 @@ describe('HotelPricingTable', () => {
     );
     expect(screen.getAllByRole('row')).toHaveLength(1);
   });
+  it('keeps missing rates as dashes and supplied triple rates visible', () => {
+    render(
+      <HotelPricingTable
+        hotels={[
+          { id: 'a', hotel: 'Approved Hotel', prices: { triple: '900.00' } },
+        ]}
+      />,
+    );
+    expect(
+      within(screen.getAllByRole('row')[1])
+        .getAllByRole('cell')
+        .map((cell) => cell.textContent),
+    ).toEqual(['Approved Hotel', '-', '-', '900.00']);
+    expect(screen.queryByText('CONVERSIONS')).not.toBeInTheDocument();
+  });
+
   it('shows only the new game data when remounted with a game key', () => {
     const { rerender } = render(
       <HotelPricingTable

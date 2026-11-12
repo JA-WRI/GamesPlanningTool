@@ -3,7 +3,16 @@
 `Game` has many `GameHotel` records (`game_hotels`), each with many
 `HotelRate` records (`hotel_rates`). Prices are per room, per night, shared
 across NSOs in the same game. This reference table does not change Cost Summary.
-There is no currency conversion or currency selector.
+The hotel table has no currency conversion or currency selector.
+
+The calculator renders Estimated Costs, the database-backed Hotel Pricing table,
+and Cost Summary in that order. Cost Summary uses saved per-person calculator
+budgets multiplied by team size, plus saved cellphone costs multiplied by
+traveler-days. Clothing is shown separately and excluded from the estimated
+total. Calculator and Estimated Costs amounts are kept in CAD and converted for
+display using the existing currency selector. Hotel reference rates do not feed
+these totals. Calculator and Estimated Costs saves remain local UI state; the
+summary action buttons remain disabled until their workflows are implemented.
 
 Hotel names are VARCHAR(255); occupancy is VARCHAR(50). Rates use DECIMAL(12,2).
 The migration enforces nonnegative amounts, single/double/triple occupancy,

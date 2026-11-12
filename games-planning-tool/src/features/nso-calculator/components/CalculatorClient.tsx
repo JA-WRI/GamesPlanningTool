@@ -11,8 +11,7 @@ export default function CalculatorClient({
 }) {
   return (
     <Box component="main" className="min-h-full px-4 py-5">
-      <CalculatorContent calculatorId={1} />
-      {children}
+      <CalculatorContent calculatorId={1}>{children}</CalculatorContent>
     </Box>
   );
 }
