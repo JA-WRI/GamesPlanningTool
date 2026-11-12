@@ -8,22 +8,21 @@ import {
   createEmptyAccreditationRow,
   FinishedDateBoxes,
 } from '../../../../../../features/team-size/lib/accreditationLogic';
-import {
-  MOCK_DISCIPLINES,
-  MOCK_MEDAL_ROWS,
-  MOCK_TEAM_SIZE,
-} from '../../../../../../features/team-size/lib/mockData';
+import { MOCK_MEDAL_ROWS } from '../../../../../../features/team-size/lib/mockData';
 import {
   DisciplineBreakdown,
   MedalRow,
 } from '../../../../../../features/team-size/lib/teamSizeGridLogic';
+import type { SavedTeamSize } from '../../../../../../features/team-size/lib/teamSizeDbMapping';
 
 // all the team journey data, kept here so nothing is lost when switching tabs
-export function useTeamJourneyState() {
+// saved = the team size and disciplines loaded from the db
+export function useTeamJourneyState(saved: SavedTeamSize) {
   const [activeStep, setActiveStep] = useState(1);
-  const [teamSize, setTeamSize] = useState<TeamSize>(MOCK_TEAM_SIZE);
-  const [disciplines, setDisciplines] =
-    useState<DisciplineBreakdown>(MOCK_DISCIPLINES);
+  const [teamSize, setTeamSize] = useState<TeamSize>(saved.teamSize);
+  const [disciplines, setDisciplines] = useState<DisciplineBreakdown>(
+    saved.disciplines,
+  );
   const [medalRows, setMedalRows] = useState<MedalRow[]>(MOCK_MEDAL_ROWS);
   // 4 empty rows to start
   const [accreditations, setAccreditations] = useState<AccreditationRow[]>(() =>

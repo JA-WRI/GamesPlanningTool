@@ -1,6 +1,6 @@
 // AI contribution: 50% or more AI-generated
 import { describe, it, expect } from 'vitest';
-import { INITIAL_TEAM_SIZE } from '@/features/team-size/lib/mockData';
+import { INITIAL_TEAM_SIZE } from '@/features/team-size/lib/constants';
 import {
   AthleteEstimate,
   TeamSize,

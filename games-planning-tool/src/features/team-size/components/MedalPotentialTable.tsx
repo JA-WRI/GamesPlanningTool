@@ -14,7 +14,7 @@ import {
 
 type MedalPotentialTableProps = {
   rows: MedalRow[];
-  onChange: (rows: MedalRow[]) => void;
+  onSave: (rows: MedalRow[]) => void;
 };
 
 const columns: ColumnDefinition<MedalRow>[] = [
@@ -41,7 +41,7 @@ const columns: ColumnDefinition<MedalRow>[] = [
 
 export default function MedalPotentialTable({
   rows,
-  onChange,
+  onSave,
 }: MedalPotentialTableProps) {
   // the rows as the user types, so the messages update live
   const [liveRows, setLiveRows] = useState(rows);
@@ -55,7 +55,7 @@ export default function MedalPotentialTable({
         createEmptyRow={createEmptyMedalRow}
         addButtonLabel="Add athlete"
         isValid={(rows) => rowsMissingName(rows).length === 0}
-        onSave={onChange}
+        onSave={onSave}
         onRowsChange={setLiveRows}
         showSearch={false}
       />
