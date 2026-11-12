@@ -1,7 +1,26 @@
 // AI contribution: 100% AI-generated
-
 import { describe, expect, it, vi } from 'vitest';
-import { replaceCollection, runDraftSave } from '@/lib/db-helpers';
+import {
+  hasUniqueRowIds,
+  replaceCollection,
+  runDraftSave,
+} from '@/lib/db-helpers';
+
+describe('hasUniqueRowIds', () => {
+  it('accepts rows with distinct non-empty string IDs', () => {
+    expect(hasUniqueRowIds([{ id: 'one' }, { id: 'two' }])).toBe(true);
+  });
+
+  it.each([
+    null,
+    {},
+    [{ id: '' }],
+    [{ id: 2 }],
+    [{ id: 'same' }, { id: 'same' }],
+  ])('rejects malformed or duplicate row IDs: %j', (value) => {
+    expect(hasUniqueRowIds(value)).toBe(false);
+  });
+});
 
 describe('runDraftSave', () => {
   it('authorizes and validates before mapping and persisting', async () => {
@@ -57,6 +76,43 @@ describe('runDraftSave', () => {
     expect(map).not.toHaveBeenCalled();
     expect(persist).not.toHaveBeenCalled();
   });
+
+  it('awaits asynchronous authorization before validating', async () => {
+    const calls: string[] = [];
+    const result = await runDraftSave('draft', {
+      authorize: async () => {
+        await Promise.resolve();
+        calls.push('authorize');
+        return true;
+      },
+      validate: () => {
+        calls.push('validate');
+        return true;
+      },
+      map: (input) => input,
+      persist: async (mapped) => {
+        calls.push('persist');
+        return mapped;
+      },
+    });
+
+    expect(result).toEqual({ ok: true, value: 'draft' });
+    expect(calls).toEqual(['authorize', 'validate', 'persist']);
+  });
+
+  it('propagates persistence failures to the caller', async () => {
+    const persist = vi
+      .fn()
+      .mockRejectedValue(new Error('database unavailable'));
+
+    await expect(
+      runDraftSave('draft', {
+        validate: () => true,
+        map: (input) => input,
+        persist,
+      }),
+    ).rejects.toThrow('database unavailable');
+  });
 });
 
 describe('replaceCollection', () => {
@@ -108,5 +164,54 @@ describe('replaceCollection', () => {
       ]),
     ).rejects.toThrow('duplicate row IDs');
     expect(transaction).not.toHaveBeenCalled();
+  });
+
+  it('deletes every row in scope when the submitted collection is empty', async () => {
+    const delegate = {
+      findMany: vi.fn().mockResolvedValue([{ id: 'existing' }]),
+      deleteMany: vi.fn(),
+      update: vi.fn(),
+      create: vi.fn(),
+    };
+    const tx = { items: delegate };
+    const transaction = vi.fn(
+      async (operation: (client: typeof tx) => Promise<void>) => operation(tx),
+    );
+
+    await replaceCollection<
+      typeof tx,
+      { id: string; calculatorId: number },
+      { calculatorId: number }
+    >(transaction, (client) => client.items, { calculatorId: 7 }, []);
+
+    expect(delegate.deleteMany).toHaveBeenCalledWith({
+      where: { calculatorId: 7, id: { notIn: [] } },
+    });
+    expect(delegate.update).not.toHaveBeenCalled();
+    expect(delegate.create).not.toHaveBeenCalled();
+  });
+
+  it('propagates delegate failures so the transaction can roll back', async () => {
+    const delegate = {
+      findMany: vi.fn().mockResolvedValue([]),
+      deleteMany: vi.fn().mockResolvedValue(undefined),
+      update: vi.fn(),
+      create: vi.fn().mockRejectedValue(new Error('insert failed')),
+    };
+    const tx = { items: delegate };
+    const transaction = vi.fn(
+      async (operation: (client: typeof tx) => Promise<void>) => operation(tx),
+    );
+
+    await expect(
+      replaceCollection<
+        typeof tx,
+        { id: string; calculatorId: number },
+        { calculatorId: number }
+      >(transaction, (client) => client.items, { calculatorId: 7 }, [
+        { id: 'new', calculatorId: 7 },
+      ]),
+    ).rejects.toThrow('insert failed');
+    expect(transaction).toHaveBeenCalledOnce();
   });
 });
