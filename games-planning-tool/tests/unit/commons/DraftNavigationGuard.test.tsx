@@ -17,6 +17,13 @@ vi.mock('@/lib/draft-navigation', () => ({
 
 import DraftNavigationGuard from '@/components/commons/DraftNavigationGuard';
 
+function appendAnchor(container: HTMLElement, href: string): HTMLAnchorElement {
+  const anchor = document.createElement('a');
+  anchor.href = href;
+  container.append(anchor);
+  return anchor;
+}
+
 describe('DraftNavigationGuard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -24,13 +31,8 @@ describe('DraftNavigationGuard', () => {
   });
 
   it('flushes active drafts before navigating to an internal link', async () => {
-    render(
-      <>
-        <DraftNavigationGuard />
-        <a href="/10/resources?tab=files">Resources</a>
-      </>,
-    );
-    const link = document.querySelector('a')!;
+    const { container } = render(<DraftNavigationGuard />);
+    const link = appendAnchor(container, '/10/resources?tab=files');
     const event = new MouseEvent('click', { bubbles: true, cancelable: true });
 
     link.dispatchEvent(event);
@@ -43,29 +45,16 @@ describe('DraftNavigationGuard', () => {
   });
 
   it('does not intercept modified clicks or external links', () => {
-    render(
-      <>
-        <DraftNavigationGuard />
-        <a href="https://example.com">External</a>
-        <a href="/10/other">Modified</a>
-      </>,
-    );
-    document.addEventListener('click', (event) => event.preventDefault());
+    const { container } = render(<DraftNavigationGuard />);
+    const externalLink = appendAnchor(container, 'https://example.com');
+    const internalLink = appendAnchor(container, '/10/other');
+    const preventDefault = (event: Event) => event.preventDefault();
+    document.addEventListener('click', preventDefault);
 
-    const externalEvent = new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-    });
-    document
-      .querySelector('a[href="https://example.com"]')!
-      .dispatchEvent(externalEvent);
-    const modifiedEvent = new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-      ctrlKey: true,
-    });
-    document.querySelector('a[href="/10/other"]')!.dispatchEvent(modifiedEvent);
+    fireEvent.click(externalLink);
+    fireEvent.click(internalLink, { ctrlKey: true });
 
+    document.removeEventListener('click', preventDefault);
     expect(mocks.flushActiveDrafts).not.toHaveBeenCalled();
     expect(mocks.push).not.toHaveBeenCalled();
   });
@@ -73,14 +62,10 @@ describe('DraftNavigationGuard', () => {
   it('asks before leaving when a draft flush fails', async () => {
     mocks.flushActiveDrafts.mockRejectedValue(new Error('offline'));
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
-    render(
-      <>
-        <DraftNavigationGuard />
-        <a href="/10/resources">Resources</a>
-      </>,
-    );
+    const { container } = render(<DraftNavigationGuard />);
+    const link = appendAnchor(container, '/10/resources');
 
-    fireEvent.click(document.querySelector('a')!);
+    fireEvent.click(link);
 
     await waitFor(() => expect(confirmSpy).toHaveBeenCalled());
     expect(mocks.push).not.toHaveBeenCalled();
