@@ -10,9 +10,14 @@ import {
   runDraftSave,
 } from '@/lib/db-helpers';
 import { ContactRow } from '@/components/contact-information/ContactGrid';
+import { nsoContactsToDb } from '../lib/contactDbMapping';
 
-export async function getNsoContacts(): Promise<ContactRow[]> {
+export async function getNsoContacts(
+  nsoId: string,
+  gameId: string,
+): Promise<ContactRow[]> {
   const contacts = await prisma.nsoContact.findMany({
+    where: { nsoId, gameId },
     orderBy: { role: 'asc' },
   });
 
@@ -28,19 +33,21 @@ export async function getNsoContacts(): Promise<ContactRow[]> {
 }
 
 export async function saveNsoContacts(
+  nsoId: string,
+  gameId: string,
   rows: ContactRow[],
 ): Promise<ContactRow[]> {
   const outcome = await runDraftSave(rows, {
     validate: hasUniqueRowIds,
-    map: (draft) => draft,
+    map: (draft) => nsoContactsToDb(nsoId, gameId, draft),
     persist: async (mappedRows) => {
       await replaceCollection(
         (operation) => prisma.$transaction(operation),
         (tx: Prisma.TransactionClient) => tx.nsoContact,
-        {},
+        { nsoId, gameId },
         mappedRows,
       );
-      return getNsoContacts();
+      return getNsoContacts(nsoId, gameId);
     },
   });
 

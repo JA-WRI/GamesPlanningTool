@@ -210,6 +210,8 @@ model Resource {
 
 model NsoContact {
   id           String   @id @default(uuid())
+  nsoId        String
+  gameId       String
   role         String   @unique // Unique per role for NSO structure
   firstName    String   @map("first_name")
   lastName     String   @map("last_name")
@@ -219,11 +221,14 @@ model NsoContact {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
+  @@index([nsoId, gameId])
   @@map("nso_contacts")
 }
 
 model PgtcDiscipline {
   id               String   @id @default(uuid())
+  nsoId            String
+  gameId           String
   name             String
   arrivalDate      String?  @map("arrival_date")
   arrivalTime      String?  @map("arrival_time")
@@ -242,6 +247,7 @@ model PgtcDiscipline {
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
+  @@index([nsoId, gameId])
   @@map("pgtc_disciplines")
 }
 

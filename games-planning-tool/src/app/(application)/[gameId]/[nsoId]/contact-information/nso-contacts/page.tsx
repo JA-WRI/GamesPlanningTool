@@ -24,9 +24,14 @@ const NSO_ROLES = [
   'Period of Stay (POS) Contact',
 ];
 
-export default async function Page() {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ gameId: string; nsoId: string }>;
+}) {
+  const { gameId, nsoId } = await params;
   const [contacts, rawDraft] = await Promise.all([
-    getNsoContacts(),
+    getNsoContacts(nsoId, gameId),
     getDraftDocument(draftKeys.nsoContacts, DRAFT_SCHEMA_VERSION),
   ]);
   const initialDraft = asDraftRows<ContactRow>(rawDraft);
@@ -39,7 +44,7 @@ export default async function Page() {
       initialData={contacts}
       initialDraft={initialDraft}
       draftKey={draftKeys.nsoContacts}
-      onSaveAction={saveNsoContacts}
+      onSaveAction={saveNsoContacts.bind(null, nsoId, gameId)}
       readOnly={false}
     />
   );

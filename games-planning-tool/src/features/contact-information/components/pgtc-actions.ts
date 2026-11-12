@@ -10,9 +10,14 @@ import {
   runDraftSave,
 } from '@/lib/db-helpers';
 import { DisciplineData } from '@/features/contact-information/components/PGTCDisciplines';
+import { pgtcDisciplinesToDb } from '../lib/contactDbMapping';
 
-export async function getDisciplines(): Promise<DisciplineData[]> {
+export async function getDisciplines(
+  nsoId: string,
+  gameId: string,
+): Promise<DisciplineData[]> {
   const records = await prisma.pgtcDiscipline.findMany({
+    where: { nsoId, gameId },
     orderBy: { name: 'asc' },
   });
 
@@ -37,19 +42,21 @@ export async function getDisciplines(): Promise<DisciplineData[]> {
 }
 
 export async function saveDisciplines(
+  nsoId: string,
+  gameId: string,
   rows: DisciplineData[],
 ): Promise<DisciplineData[]> {
   const outcome = await runDraftSave(rows, {
     validate: hasUniqueRowIds,
-    map: (draft) => draft,
+    map: (draft) => pgtcDisciplinesToDb(nsoId, gameId, draft),
     persist: async (mappedRows) => {
       await replaceCollection(
         (operation) => prisma.$transaction(operation),
         (tx: Prisma.TransactionClient) => tx.pgtcDiscipline,
-        {},
+        { nsoId, gameId },
         mappedRows,
       );
-      return getDisciplines();
+      return getDisciplines(nsoId, gameId);
     },
   });
 

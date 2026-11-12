@@ -33,11 +33,38 @@ const toNumber = (value: unknown): number => {
   return Number.isFinite(number) ? number : 0;
 };
 
-const toText = (value: unknown): string =>
-  typeof value === 'string' ? value : '';
+const toText = (value: unknown): string => {
+  if (typeof value !== 'string') {
+    throw new Error('Invalid or missing text field.');
+  }
+  return value;
+};
 
-const toNullableText = (value: unknown): string | null =>
-  typeof value === 'string' && value.length > 0 ? value : null;
+const toNullableText = (value: unknown): string | null => {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value !== 'string') {
+    throw new Error('Invalid text field format.');
+  }
+  return value;
+};
+
+// Ensures whole numbers only
+const toPositiveInt = (value: unknown): number => {
+  const number = Number(value);
+  if (!Number.isInteger(number) || number < 0 || !Number.isFinite(number)) {
+    throw new Error('Value must be a valid positive whole number.');
+  }
+  return number;
+};
+
+// Ensures valid numbers
+const toPositiveNumber = (value: unknown): number => {
+  const number = Number(value);
+  if (isNaN(number) || number < 0 || !Number.isFinite(number)) {
+    throw new Error('Value must be a valid positive number.');
+  }
+  return number;
+};
 
 export function travelerItemsToDb(
   calculatorId: number,
@@ -49,15 +76,15 @@ export function travelerItemsToDb(
       id: toText(row.id),
       calculatorId,
       category: toText(row.category),
-      numberOfTeamMembers: toNumber(row.numberOfTeamMembers),
-      days: toNumber(row.days),
-      travelBudget: toNumber(row.travelBudget),
+      numberOfTeamMembers: toPositiveInt(row.numberOfTeamMembers),
+      days: toPositiveInt(row.days),
+      travelBudget: toPositiveNumber(row.travelBudget),
       checkIn: toNullableText(row.checkIn),
       checkOut: toNullableText(row.checkOut),
-      accommodationBudget: toNumber(row.accommodationBudget),
-      mealsBudget: toNumber(row.mealsBudget),
-      insuranceBudget: toNumber(row.insuranceBudget),
-      totalCostPerTeamMember: toNumber(row.totalCostPerTeamMember),
+      accommodationBudget: toPositiveNumber(row.accommodationBudget),
+      mealsBudget: toPositiveNumber(row.mealsBudget),
+      insuranceBudget: toPositiveNumber(row.insuranceBudget),
+      totalCostPerTeamMember: toPositiveNumber(row.totalCostPerTeamMember),
     };
   });
 }
@@ -72,7 +99,7 @@ export function estimatedCostItemsToDb(
       id: toText(row.id),
       calculatorId,
       category: toText(row.category),
-      amount: toNumber(row.amount),
+      amount: toPositiveNumber(row.amount),
       unitOfMeasure: toText(row.unitOfMeasure) || 'CAD',
       notes: toNullableText(row.notes),
     };
