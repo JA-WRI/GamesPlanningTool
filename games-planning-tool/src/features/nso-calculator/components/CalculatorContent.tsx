@@ -14,12 +14,7 @@ import { Games } from '@/lib/data';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
 import { type Currency, CONVERSION_RATES } from './ConversionRates';
-import EstimatedCosts, {
-  INITIAL_COST_ROWS,
-  type EstimatedCostRow,
-} from './EstimatedCosts';
-import CostSummary from './CostSummary';
-import { calculateCostSummary } from './calculateCostSummary';
+import EstimatedCosts from './EstimatedCosts';
 
 // these categories are now hard-coded values until we connect to the db
 const TRAVEL_CATEGORIES = [
@@ -192,12 +187,6 @@ export default function CalculatorContent({
   const [renderRowsCAD, setRenderRowsCAD] = useState<CalculatorRow[]>(() =>
     INITIAL_ROWS.map((row) => ({ ...row })),
   );
-  const [savedRowsCAD, setSavedRowsCAD] = useState<CalculatorRow[]>(() =>
-    INITIAL_ROWS.map((row) => ({ ...row })),
-  );
-  const [estimatedCostsCAD, setEstimatedCostsCAD] = useState<
-    EstimatedCostRow[]
-  >(() => INITIAL_COST_ROWS.map((row) => ({ ...row })));
   const draftCAD = useRef<CalculatorRow[]>(
     INITIAL_ROWS.map((row) => ({ ...row })),
   );
@@ -220,7 +209,6 @@ export default function CalculatorContent({
   const handleSave = (rows: CalculatorRow[]) => {
     const rowsCAD = toCAD(rows);
     draftCAD.current = rowsCAD;
-    setSavedRowsCAD(rowsCAD);
   };
 
   const handleCurrencyChange = (nextCurrency: Currency) => {
@@ -264,13 +252,8 @@ export default function CalculatorContent({
       <EstimatedCosts
         currency={currency}
         onCurrencyChange={handleCurrencyChange}
-        onSavedRowsChange={setEstimatedCostsCAD}
       />
       {children}
-      <CostSummary
-        data={calculateCostSummary(savedRowsCAD, estimatedCostsCAD)}
-        currency={currency}
-      />
     </Box>
   );
 }

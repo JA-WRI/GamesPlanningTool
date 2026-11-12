@@ -1,16 +1,26 @@
+// AI-assisted tests; reviewed for calculator and hotel pricing requirements.
 import { render, screen } from '@testing-library/react';
-import { beforeEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 vi.mock('@/server/queries/hotel-pricing', () => ({ getHotelPricing: vi.fn() }));
 import { getHotelPricing } from '@/server/queries/hotel-pricing';
 import HotelPricingSection from '@/features/nso-calculator/components/HotelPricingSection';
+afterEach(() => vi.restoreAllMocks());
 beforeEach(() => {
   vi.mocked(getHotelPricing).mockReset();
 });
 it('renders a safe error without leaking database details', async () => {
+  const log = vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.mocked(getHotelPricing).mockRejectedValue(
-    new Error('sensitive database detail'),
+    Object.assign(new Error('sensitive database detail'), { code: 'P2021' }),
   );
   render(await HotelPricingSection({ gameId: 1 }));
+  expect(log).toHaveBeenCalledExactlyOnceWith('Failed to load hotel pricing', {
+    gameId: 1,
+    code: 'P2021',
+  });
+  expect(JSON.stringify(log.mock.calls)).not.toContain(
+    'sensitive database detail',
+  );
   expect(screen.getByRole('alert')).toHaveTextContent(
     'Hotel pricing is temporarily unavailable',
   );

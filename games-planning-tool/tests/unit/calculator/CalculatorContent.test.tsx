@@ -1,3 +1,4 @@
+// AI-assisted tests; reviewed for calculator and hotel pricing requirements.
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { expect, it, vi } from 'vitest';
 import CalculatorClient from '@/features/nso-calculator/components/CalculatorClient';
@@ -5,7 +6,7 @@ import HotelPricingTable from '@/features/nso-calculator/components/HotelPricing
 
 vi.mock('next/navigation', () => ({ useParams: () => ({ gameId: '7' }) }));
 
-it('combines saved calculator and estimated costs with database hotel pricing', () => {
+it('preserves calculator and estimated costs with database hotels while Cost Summary is deferred', () => {
   render(
     <CalculatorClient>
       <HotelPricingTable
@@ -30,9 +31,10 @@ it('combines saved calculator and estimated costs with database hotel pricing', 
   expect(headings.indexOf('ESTIMATED COSTS')).toBeLessThan(
     headings.indexOf('HOTEL PRICING'),
   );
-  expect(headings.indexOf('HOTEL PRICING')).toBeLessThan(
-    headings.indexOf('COST SUMMARY'),
-  );
+  expect(
+    screen.queryByRole('region', { name: 'Cost summary' }),
+  ).not.toBeInTheDocument();
+  expect(screen.queryByLabelText('Estimated total')).not.toBeInTheDocument();
 
   fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
   const row = screen.getAllByRole('table')[0].querySelectorAll('tbody tr')[0];
@@ -48,11 +50,10 @@ it('combines saved calculator and estimated costs with database hotel pricing', 
   ]) {
     fireEvent.change(inputs[index], { target: { value: String(value) } });
   }
-  expect(screen.getByLabelText('Estimated total')).toHaveTextContent('$0.00');
   fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-  expect(screen.getByLabelText('Estimated total')).toHaveTextContent(
-    '$7,240.00',
-  );
+  expect(
+    within(screen.getAllByRole('table')[0]).getByText('2400'),
+  ).toBeInTheDocument();
 
   fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[1]);
   const costsTable = screen.getAllByRole('table')[1];
@@ -60,21 +61,25 @@ it('combines saved calculator and estimated costs with database hotel pricing', 
   fireEvent.change(within(cellphoneRow).getByRole('spinbutton'), {
     target: { value: '10' },
   });
-  expect(screen.getByLabelText('Estimated total')).toHaveTextContent(
-    '$7,240.00',
-  );
   fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-  expect(screen.getByLabelText('Estimated total')).toHaveTextContent(
-    '$6,652.00',
-  );
+  expect(
+    within(screen.getAllByRole('table')[1]).getByText('10'),
+  ).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole('button', { name: 'USD' }));
-  expect(screen.getByLabelText('Estimated total')).toHaveTextContent(
-    'US$4,820.29',
-  );
+  expect(
+    within(screen.getAllByRole('table')[0]).getByText('1739.13'),
+  ).toBeInTheDocument();
+  expect(
+    within(screen.getAllByRole('table')[1]).getByText('7.25'),
+  ).toBeInTheDocument();
   expect(screen.getByText('125.50')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'CAD' }));
-  expect(screen.getByLabelText('Estimated total')).toHaveTextContent(
-    '$6,652.00',
-  );
+  expect(
+    within(screen.getAllByRole('table')[0]).getByText('2400'),
+  ).toBeInTheDocument();
+  expect(
+    within(screen.getAllByRole('table')[1]).getByText('10'),
+  ).toBeInTheDocument();
+  expect(screen.queryByLabelText('Estimated total')).not.toBeInTheDocument();
 });

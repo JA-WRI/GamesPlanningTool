@@ -1,3 +1,4 @@
+// AI-assisted tests; reviewed for calculator and hotel pricing requirements.
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('server-only', () => ({}));

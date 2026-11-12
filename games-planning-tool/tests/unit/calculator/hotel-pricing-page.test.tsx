@@ -1,3 +1,4 @@
+// AI-assisted tests; reviewed for calculator and hotel pricing requirements.
 import { beforeEach, expect, it, vi } from 'vitest';
 vi.mock('@/server/queries/games', () => ({ getGamesWithNsos: vi.fn() }));
 vi.mock('@/lib/data', () => ({ getSession: vi.fn() }));

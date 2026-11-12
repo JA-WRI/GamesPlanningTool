@@ -9,7 +9,17 @@ export default async function HotelPricingSection({
   let hotels;
   try {
     hotels = await getHotelPricing(gameId);
-  } catch {
+  } catch (error) {
+    // Log a diagnostic code without logging credentials from database messages.
+    const code =
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      typeof error.code === 'string' &&
+      /^P\d{4}$/.test(error.code)
+        ? error.code
+        : undefined;
+    console.error('Failed to load hotel pricing', { gameId, code });
     // Do not expose connection strings or database error details to the browser.
     return (
       <section
