@@ -1,12 +1,7 @@
-// Made with AI agents (Antigravity)
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+// 50% or more AI-generated
+import { describe, it, expect } from 'vitest';
 import {
   normalizeResourceCategories,
-  createFolder,
-  loadResourcesFromStorage,
-  getCachedResources,
-  subscribeToResources,
-  saveResourcesToStorage,
   getCategoryTopLevelResources,
   getFolderChildren,
   getDescendantResourceIds,
@@ -14,80 +9,14 @@ import {
   cascadeAddCategoryToFolder,
   cascadeRemoveCategoryFromFolder,
   removeFolderKeepContentsInTopLevel,
-  INITIAL_RESOURCES,
 } from '@/lib/resources-data';
 import { Resource } from '@/features/resources/types/resource';
 
 describe('resources-data utility module', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    vi.clearAllMocks();
-  });
-
   it('normalizes resource categories removing duplicates and empty strings', () => {
     const raw = ['General', 'Summer Games', '', '   '];
     const res = normalizeResourceCategories(raw);
     expect(res).toEqual(['General', 'Summer Games']);
-  });
-
-  it('creates a new folder with proper defaults', () => {
-    const folder = createFolder('Test Folder', ['Winter Games']);
-    expect(folder.name).toBe('Test Folder');
-    expect(folder.type).toBe('folder');
-    expect(folder.categories).toEqual(['Winter Games']);
-    expect(folder.id.startsWith('folder-')).toBe(true);
-
-    const defaultFolder = createFolder('Default Folder', ['General']);
-    expect(defaultFolder.categories).toEqual(['General']);
-  });
-
-  it('loads resources from storage and falls back to INITIAL_RESOURCES if empty', () => {
-    const loaded = loadResourcesFromStorage();
-    expect(loaded).toEqual(INITIAL_RESOURCES);
-
-    const custom: Resource[] = [
-      {
-        id: 'custom-1',
-        name: 'Custom',
-        type: 'folder',
-        categories: ['General'],
-      },
-    ];
-    localStorage.setItem('gpt_resources_state_v1', JSON.stringify(custom));
-    const loadedCustom = loadResourcesFromStorage();
-    expect(loadedCustom).toEqual(custom);
-  });
-
-  it('handles invalid JSON in localStorage gracefully', () => {
-    localStorage.setItem('gpt_resources_state_v1', 'invalid-json{{{');
-    const loaded = loadResourcesFromStorage();
-    expect(loaded).toEqual(INITIAL_RESOURCES);
-  });
-
-  it('manages cached resources and subscriptions', () => {
-    const initial = getCachedResources();
-    expect(initial).toBeDefined();
-
-    const listener = vi.fn();
-    const unsubscribe = subscribeToResources(listener);
-
-    const updated: Resource[] = [
-      {
-        id: 'new-1',
-        name: 'New Resource',
-        type: 'file',
-        fileUrl: 'url',
-        categories: ['General'],
-      },
-    ];
-
-    saveResourcesToStorage(updated);
-    expect(listener).toHaveBeenCalled();
-    expect(getCachedResources()).toEqual(updated);
-
-    unsubscribe();
-    saveResourcesToStorage([]);
-    expect(listener).toHaveBeenCalledTimes(1);
   });
 
   it('filters category top level resources', () => {

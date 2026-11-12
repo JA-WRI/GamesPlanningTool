@@ -1,5 +1,8 @@
-import { Games } from '@/lib/data';
 import { notFound } from 'next/navigation';
+import { getSession } from '@/lib/data';
+import { getGamesWithNsos } from '@/server/queries/games';
+import { findGame, gamesForUser } from '@/lib/routing/Navigation';
+
 export default async function GameLayout({
   children,
   params,
@@ -7,7 +10,15 @@ export default async function GameLayout({
   children: React.ReactNode;
   params: Promise<{ gameId: string }>;
 }) {
-  const { gameId } = await params;
-  if (!Games.some((g) => g.id === gameId)) notFound();
+  const [session, { gameId }, games] = await Promise.all([
+    getSession(),
+    params,
+    getGamesWithNsos(),
+  ]);
+
+  // NSO users can only open games their NSO takes part in
+  const { role, nsoId } = session.user;
+  if (!findGame(gamesForUser(games, role, nsoId), gameId)) notFound();
+
   return <>{children}</>;
 }

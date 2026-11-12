@@ -14,6 +14,7 @@ interface NSOInfoPageSectionProps {
   title?: string;
   description?: string;
   initialData?: NSOInfoPage;
+  readOnly?: boolean;
 }
 
 const defaultInfo: NSOInfoPage = {
@@ -26,6 +27,7 @@ export default function NSOInfoPageSection({
   title = 'NSO General Information',
   description = 'National Sport Organization Information',
   initialData = defaultInfo,
+  readOnly = true,
 }: NSOInfoPageSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
@@ -49,14 +51,15 @@ export default function NSOInfoPageSection({
     setIsPreview(false);
   };
 
-  const showInputs = isEditing && !isPreview;
+  const showInputs = isEditing && !isPreview && !readOnly;
 
   return (
     <div className="space-y-6">
       <GridHeaderPage
         title={title}
         description={description}
-        isEditing={isEditing}
+        readOnly={readOnly}
+        isEditing={isEditing && !readOnly}
         isPreview={isPreview}
         onEditToggle={() => {
           setIsEditing(!isEditing);
