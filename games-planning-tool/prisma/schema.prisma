@@ -253,6 +253,8 @@ model PgtcDiscipline {
 
 model CalculatorTravelerItem {
   id                    String   @id @default(uuid())
+  nsoId                 String
+  gameId                String
   calculatorId          Int      @map("calculator_id")
   category              String
   numberOfTeamMembers   Int      @default(0) @map("number_of_team_members")
@@ -267,11 +269,14 @@ model CalculatorTravelerItem {
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 
+  @@index([nsoId, gameId])
   @@map("calculator_traveler_items")
 }
 
 model CalculatorEstimatedCostItem {
   id             String   @id @default(uuid())
+  nsoId          String
+  gameId         String
   calculatorId   Int      @map("calculator_id")
   category       String
   amount         Float    @default(0)
@@ -280,6 +285,7 @@ model CalculatorEstimatedCostItem {
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
+  @@index([nsoId, gameId])
   @@map("calculator_estimated_cost_items")
 }
 

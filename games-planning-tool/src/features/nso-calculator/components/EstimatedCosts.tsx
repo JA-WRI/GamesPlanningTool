@@ -148,7 +148,7 @@ export default function EstimatedCosts({
   const [savedCAD, setSavedCAD] = useState<EstimatedCostRow[]>(() =>
     initialItems && initialItems.length > 0
       ? initialItems.map((row) => ({ ...row }))
-      : INITIAL_COST_ROWS.map((row) => ({ ...row })),
+      : INITIAL_COST_ROWS.map((row) => ({ ...row, id: crypto.randomUUID() })),
   );
   const [draftPayload, setDraftPayload] = useState(initialDraft);
   const [isGridEditing, setIsGridEditing] = useState(false);

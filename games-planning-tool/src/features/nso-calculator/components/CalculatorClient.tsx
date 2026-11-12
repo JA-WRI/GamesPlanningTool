@@ -11,6 +11,8 @@ import { type Currency } from './ConversionRates';
 
 export default function CalculatorClient({
   calculatorId,
+  travelerDraftKey,
+  estimatedCostsDraftKey,
   initialTravelers,
   initialTravelerDraft,
   initialEstimatedCosts,
@@ -19,6 +21,8 @@ export default function CalculatorClient({
   onSaveEstimatedCosts,
 }: {
   readonly calculatorId: number;
+  readonly travelerDraftKey: string;
+  readonly estimatedCostsDraftKey: string;
   readonly initialTravelers?: CalculatorRow[];
   readonly initialTravelerDraft?: unknown;
   readonly initialEstimatedCosts?: EstimatedCostRow[];
@@ -40,7 +44,7 @@ export default function CalculatorClient({
         calculatorId={calculatorId}
         initialItems={initialTravelers}
         initialDraft={initialTravelerDraft}
-        draftKey={`calculator:${calculatorId}:travelers`}
+        draftKey={travelerDraftKey}
         onSaveAction={(id, rows) =>
           onSaveTravelers ? onSaveTravelers(id, rows) : Promise.resolve(rows)
         }
@@ -49,7 +53,7 @@ export default function CalculatorClient({
         calculatorId={calculatorId}
         initialItems={initialEstimatedCosts}
         initialDraft={initialEstimatedCostsDraft}
-        draftKey={`calculator:${calculatorId}:estimated-costs`}
+        draftKey={estimatedCostsDraftKey}
         onSaveAction={(id, rows) =>
           onSaveEstimatedCosts
             ? onSaveEstimatedCosts(id, rows)

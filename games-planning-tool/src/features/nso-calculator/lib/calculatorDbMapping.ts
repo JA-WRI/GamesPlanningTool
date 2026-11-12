@@ -1,6 +1,8 @@
 // AI contribution: 100% AI-generated
 export type TravelerItemDbRow = {
   id: string;
+  nsoId: string;
+  gameId: string;
   calculatorId: number;
   category: string;
   numberOfTeamMembers: number;
@@ -16,6 +18,8 @@ export type TravelerItemDbRow = {
 
 export type EstimatedCostItemDbRow = {
   id: string;
+  nsoId: string;
+  gameId: string;
   calculatorId: number;
   category: string;
   amount: number;
@@ -67,6 +71,8 @@ const toPositiveNumber = (value: unknown): number => {
 };
 
 export function travelerItemsToDb(
+  nsoId: string,
+  gameId: string,
   calculatorId: number,
   rows: unknown[],
 ): TravelerItemDbRow[] {
@@ -74,6 +80,8 @@ export function travelerItemsToDb(
     const row = asRecord(value);
     return {
       id: toText(row.id),
+      nsoId,
+      gameId,
       calculatorId,
       category: toText(row.category),
       numberOfTeamMembers: toPositiveInt(row.numberOfTeamMembers),
@@ -90,6 +98,8 @@ export function travelerItemsToDb(
 }
 
 export function estimatedCostItemsToDb(
+  nsoId: string,
+  gameId: string,
   calculatorId: number,
   rows: unknown[],
 ): EstimatedCostItemDbRow[] {
@@ -97,6 +107,8 @@ export function estimatedCostItemsToDb(
     const row = asRecord(value);
     return {
       id: toText(row.id),
+      nsoId,
+      gameId,
       calculatorId,
       category: toText(row.category),
       amount: toPositiveNumber(row.amount),

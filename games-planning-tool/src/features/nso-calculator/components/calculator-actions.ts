@@ -13,9 +13,13 @@ import {
   travelerItemsToDb,
 } from '../lib/calculatorDbMapping';
 
-export async function getTravelerItems(calculatorId: number) {
+export async function getTravelerItems(
+  nsoId: string,
+  gameId: string,
+  calculatorId: number,
+) {
   const records = await prisma.calculatorTravelerItem.findMany({
-    where: { calculatorId },
+    where: { nsoId, gameId, calculatorId },
     orderBy: { createdAt: 'asc' },
   });
 
@@ -35,18 +39,23 @@ export async function getTravelerItems(calculatorId: number) {
   }));
 }
 
-export async function saveTravelerItems(calculatorId: number, rows: unknown[]) {
+export async function saveTravelerItems(
+  nsoId: string,
+  gameId: string,
+  calculatorId: number,
+  rows: unknown[],
+) {
   const outcome = await runDraftSave(rows, {
     validate: hasUniqueRowIds,
-    map: (draft) => travelerItemsToDb(calculatorId, draft),
+    map: (draft) => travelerItemsToDb(nsoId, gameId, calculatorId, draft),
     persist: async (mappedRows) => {
       await replaceCollection(
         (operation) => prisma.$transaction(operation),
         (tx: Prisma.TransactionClient) => tx.calculatorTravelerItem,
-        { calculatorId },
+        { nsoId, gameId, calculatorId },
         mappedRows,
       );
-      return getTravelerItems(calculatorId);
+      return getTravelerItems(nsoId, gameId, calculatorId);
     },
   });
 
@@ -54,9 +63,13 @@ export async function saveTravelerItems(calculatorId: number, rows: unknown[]) {
   return outcome.value;
 }
 
-export async function getEstimatedCostItems(calculatorId: number) {
+export async function getEstimatedCostItems(
+  nsoId: string,
+  gameId: string,
+  calculatorId: number,
+) {
   const records = await prisma.calculatorEstimatedCostItem.findMany({
-    where: { calculatorId },
+    where: { nsoId, gameId, calculatorId },
     orderBy: { createdAt: 'asc' },
   });
 
@@ -71,20 +84,22 @@ export async function getEstimatedCostItems(calculatorId: number) {
 }
 
 export async function saveEstimatedCostItems(
+  nsoId: string,
+  gameId: string,
   calculatorId: number,
   rows: unknown[],
 ) {
   const outcome = await runDraftSave(rows, {
     validate: hasUniqueRowIds,
-    map: (draft) => estimatedCostItemsToDb(calculatorId, draft),
+    map: (draft) => estimatedCostItemsToDb(nsoId, gameId, calculatorId, draft),
     persist: async (mappedRows) => {
       await replaceCollection(
         (operation) => prisma.$transaction(operation),
         (tx: Prisma.TransactionClient) => tx.calculatorEstimatedCostItem,
-        { calculatorId },
+        { nsoId, gameId, calculatorId },
         mappedRows,
       );
-      return getEstimatedCostItems(calculatorId);
+      return getEstimatedCostItems(nsoId, gameId, calculatorId);
     },
   });
 

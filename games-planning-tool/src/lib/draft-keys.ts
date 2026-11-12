@@ -5,10 +5,13 @@ export const DRAFT_SCHEMA_VERSION = 1;
 export const draftKeys = {
   nsoContacts: 'contacts:nso',
   pgtcDisciplines: 'contacts:pgtc-disciplines',
-  calculatorTravelers: (calculatorId: number) =>
-    `calculator:${calculatorId}:travelers`,
-  calculatorEstimatedCosts: (calculatorId: number) =>
-    `calculator:${calculatorId}:estimated-costs`,
+  calculatorTravelers: (calculatorId: number, gameId: string, nsoId: string) =>
+    `calculator:${calculatorId}:travelers:${gameId}:${nsoId}`,
+  calculatorEstimatedCosts: (
+    calculatorId: number,
+    gameId: string,
+    nsoId: string,
+  ) => `calculator:${calculatorId}:estimated-costs:${gameId}:${nsoId}`,
   teamJourneyEstimate: (gameId: string, nsoId: string) =>
     `team-journey:${gameId}:${nsoId}:estimate`,
   teamJourneyDisciplines: (gameId: string, nsoId: string) =>
