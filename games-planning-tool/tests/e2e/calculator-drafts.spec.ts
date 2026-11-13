@@ -5,28 +5,34 @@ import {
   createTestGameWithNso,
   deleteTestGameWithNso,
   withClient,
+  type TestGameWithNso,
 } from './helpers/test-data';
 
 const calculatorId = 1;
-const draftScope = 'admin:game_id_1:all:calculator:1:estimated-costs';
 const category = 'Travel Economy Fare';
 
-async function savedAmount() {
+function draftScope({ gameId, nsoId }: TestGameWithNso) {
+  return `admin:game_id_1:all:calculator:${calculatorId}:estimated-costs:${gameId}:${nsoId}`;
+}
+
+async function savedAmount({ gameId, nsoId }: TestGameWithNso) {
   return withClient(async (client) => {
     const { rows } = await client.query<{ amount: number }>(
       `SELECT amount FROM calculator_estimated_cost_items
-       WHERE calculator_id = $1 AND category = $2`,
-      [calculatorId, category],
+       WHERE calculator_id = $1 AND category = $2 AND "gameId" = $3 AND "nsoId" = $4`,
+      [calculatorId, category, gameId, nsoId],
     );
     return rows[0]?.amount ?? null;
   });
 }
 
-async function draftAmount() {
+async function draftAmount(fixture: TestGameWithNso) {
   return withClient(async (client) => {
     const { rows } = await client.query<{
       payload: { rows: { category: string; amount: number }[] };
-    }>(`SELECT payload FROM drafts WHERE scope_key = $1`, [draftScope]);
+    }>(`SELECT payload FROM drafts WHERE scope_key = $1`, [
+      draftScope(fixture),
+    ]);
     return (
       rows[0]?.payload.rows.find((row) => row.category === category)?.amount ??
       null
@@ -39,30 +45,15 @@ test('calculator costs save, restore, switch currency, and discard', async ({
 }) => {
   test.setTimeout(60_000);
 
-  // The calculator currently always uses ID 1, so it cannot be isolated by game.
   const database = new URL(requireLocalDatabaseUrl()).pathname.slice(1);
   if (!database.endsWith('_test')) {
     throw new Error(
       'Calculator E2E tests require a dedicated *_test database.',
     );
   }
-  const existing = await withClient(async (client) => {
-    const costs = await client.query(
-      'SELECT 1 FROM calculator_estimated_cost_items WHERE calculator_id = $1 LIMIT 1',
-      [calculatorId],
-    );
-    const draft = await client.query(
-      'SELECT 1 FROM drafts WHERE scope_key = $1',
-      [draftScope],
-    );
-    return { costs: costs.rowCount, draft: draft.rowCount };
-  });
-  expect(existing, 'Calculator 1 and its draft must be empty').toEqual({
-    costs: 0,
-    draft: 0,
-  });
-
   const fixture = await createTestGameWithNso();
+  const readSavedAmount = () => savedAmount(fixture);
+  const readDraftAmount = () => draftAmount(fixture);
   try {
     await page.goto(`/${fixture.gameId}/${fixture.nsoId}/calculator`);
 
@@ -82,8 +73,8 @@ test('calculator costs save, restore, switch currency, and discard', async ({
     await header.getByRole('button', { name: 'Edit', exact: true }).click();
     await editRow().getByPlaceholder('Amount').fill('138');
     await header.getByRole('button', { name: 'Save changes' }).click();
-    await expect.poll(savedAmount).toBe(138);
-    await expect.poll(draftAmount).toBeNull();
+    await expect.poll(readSavedAmount).toBe(138);
+    await expect.poll(readDraftAmount).toBeNull();
 
     await header.getByRole('button', { name: 'Edit', exact: true }).click();
     await editRow().getByPlaceholder('Amount').fill('276');
@@ -94,8 +85,8 @@ test('calculator costs save, restore, switch currency, and discard', async ({
       'true',
     );
     await expect(displayRow().locator('td').nth(1)).toHaveText('200');
-    await expect.poll(draftAmount).toBe(276);
-    expect(await savedAmount()).toBe(138);
+    await expect.poll(readDraftAmount).toBe(276);
+    expect(await readSavedAmount()).toBe(138);
 
     await page.reload();
     await expect(currency.getByRole('button', { name: 'CAD' })).toHaveAttribute(
@@ -108,14 +99,14 @@ test('calculator costs save, restore, switch currency, and discard', async ({
     page.once('dialog', (dialog) => dialog.dismiss());
     await header.getByRole('button', { name: 'Discard draft' }).click();
     await expect(displayRow().locator('td').nth(1)).toHaveText('276');
-    expect(await draftAmount()).toBe(276);
-    expect(await savedAmount()).toBe(138);
+    expect(await readDraftAmount()).toBe(276);
+    expect(await readSavedAmount()).toBe(138);
 
     page.once('dialog', (dialog) => dialog.accept());
     await header.getByRole('button', { name: 'Discard draft' }).click();
-    await expect.poll(draftAmount).toBeNull();
+    await expect.poll(readDraftAmount).toBeNull();
     await expect(displayRow().locator('td').nth(1)).toHaveText('138');
-    expect(await savedAmount()).toBe(138);
+    expect(await readSavedAmount()).toBe(138);
 
     await page.reload();
     await expect(displayRow().locator('td').nth(1)).toHaveText('138');
@@ -128,19 +119,19 @@ test('calculator costs save, restore, switch currency, and discard', async ({
     await header.getByRole('button', { name: 'Edit', exact: true }).click();
     await editRow().getByPlaceholder('Amount').fill('200');
     await header.getByRole('button', { name: 'Save changes' }).click();
-    await expect.poll(savedAmount).toBe(276);
-    await expect.poll(draftAmount).toBeNull();
+    await expect.poll(readSavedAmount).toBe(276);
+    await expect.poll(readDraftAmount).toBeNull();
 
     await page.reload();
     await expect(displayRow().locator('td').nth(1)).toHaveText('276');
   } finally {
     await withClient(async (client) => {
       await client.query('DELETE FROM drafts WHERE scope_key = $1', [
-        draftScope,
+        draftScope(fixture),
       ]);
       await client.query(
-        'DELETE FROM calculator_estimated_cost_items WHERE calculator_id = $1',
-        [calculatorId],
+        'DELETE FROM calculator_estimated_cost_items WHERE calculator_id = $1 AND "gameId" = $2 AND "nsoId" = $3',
+        [calculatorId, fixture.gameId, fixture.nsoId],
       );
     });
     await deleteTestGameWithNso(fixture);

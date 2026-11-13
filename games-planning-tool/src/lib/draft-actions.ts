@@ -46,7 +46,6 @@ export async function getDraftDocument(
   if (!draft) return null;
 
   if (draft.schemaVersion !== schemaVersion) {
-    await prisma.draft.delete({ where: { scopeKey } });
     return null;
   }
 

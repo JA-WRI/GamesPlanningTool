@@ -10,7 +10,12 @@ import {
 describe('draftKeys', () => {
   it('creates stable keys that include the relevant record scope', () => {
     expect(draftKeys.nsoContacts).toBe('contacts:nso');
-    expect(draftKeys.calculatorTravelers(12)).toBe('calculator:12:travelers');
+    expect(draftKeys.calculatorTravelers(12, '5', 'nso-1')).toBe(
+      'calculator:12:travelers:5:nso-1',
+    );
+    expect(draftKeys.calculatorEstimatedCosts(12, '5', 'nso-1')).toBe(
+      'calculator:12:estimated-costs:5:nso-1',
+    );
     expect(draftKeys.teamJourneyDisciplines('5', 'nso-1')).toBe(
       'team-journey:5:nso-1:disciplines',
     );

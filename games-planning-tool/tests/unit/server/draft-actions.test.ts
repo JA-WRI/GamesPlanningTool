@@ -44,7 +44,7 @@ describe('draft actions', () => {
     });
   });
 
-  it('deletes drafts written with an older schema version', async () => {
+  it('ignores drafts written with an older schema version without deleting them', async () => {
     prismaMock.draft.findUnique.mockResolvedValue({
       schemaVersion: 1,
       payload: { rows: [] },
@@ -53,11 +53,11 @@ describe('draft actions', () => {
     await expect(getDraftDocument('calculator:1:travelers', 2)).resolves.toBe(
       null,
     );
-    expect(prismaMock.draft.delete).toHaveBeenCalledWith({
-      where: {
-        scopeKey: 'admin:game_id_1:all:calculator:1:travelers',
-      },
+    expect(prismaMock.draft.findUnique).toHaveBeenCalledWith({
+      where: { scopeKey: 'admin:game_id_1:all:calculator:1:travelers' },
     });
+    expect(prismaMock.draft.delete).not.toHaveBeenCalled();
+    expect(prismaMock.draft.deleteMany).not.toHaveBeenCalled();
   });
 
   it('upserts JSON payloads and increments the draft revision', async () => {

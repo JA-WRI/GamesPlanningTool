@@ -32,11 +32,6 @@ const asRecord = (value: unknown): Record<string, unknown> =>
     ? (value as Record<string, unknown>)
     : {};
 
-const toNumber = (value: unknown): number => {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : 0;
-};
-
 const toText = (value: unknown): string => {
   if (typeof value !== 'string') {
     throw new Error('Invalid or missing text field.');

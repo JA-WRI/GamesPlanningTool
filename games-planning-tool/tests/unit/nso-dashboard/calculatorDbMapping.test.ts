@@ -8,7 +8,7 @@ import {
 describe('travelerItemsToDb', () => {
   it('maps supported traveler fields and normalizes optional text', () => {
     expect(
-      travelerItemsToDb(9, [
+      travelerItemsToDb('nso-1', '5', 9, [
         {
           id: 'traveler-1',
           category: 'Athlete',
@@ -27,6 +27,8 @@ describe('travelerItemsToDb', () => {
     ).toEqual([
       {
         id: 'traveler-1',
+        nsoId: 'nso-1',
+        gameId: '5',
         calculatorId: 9,
         category: 'Athlete',
         numberOfTeamMembers: 12,
@@ -42,51 +44,35 @@ describe('travelerItemsToDb', () => {
     ]);
   });
 
-  it('defaults malformed records and non-finite numbers safely', () => {
-    expect(
-      travelerItemsToDb(3, [null, { id: 4, category: null, days: 'NaN' }]),
-    ).toEqual([
-      {
-        id: '',
-        calculatorId: 3,
-        category: '',
-        numberOfTeamMembers: 0,
-        days: 0,
-        travelBudget: 0,
-        checkIn: null,
-        checkOut: null,
-        accommodationBudget: 0,
-        mealsBudget: 0,
-        insuranceBudget: 0,
-        totalCostPerTeamMember: 0,
-      },
-      {
-        id: '',
-        calculatorId: 3,
-        category: '',
-        numberOfTeamMembers: 0,
-        days: 0,
-        travelBudget: 0,
-        checkIn: null,
-        checkOut: null,
-        accommodationBudget: 0,
-        mealsBudget: 0,
-        insuranceBudget: 0,
-        totalCostPerTeamMember: 0,
-      },
-    ]);
+  it('rejects malformed records and invalid whole numbers', () => {
+    expect(() => travelerItemsToDb('nso-1', '5', 3, [null])).toThrow(
+      'Invalid or missing text field.',
+    );
+    expect(() =>
+      travelerItemsToDb('nso-1', '5', 3, [
+        { id: 'traveler-1', category: 'Athlete', numberOfTeamMembers: 'NaN' },
+      ]),
+    ).toThrow('Value must be a valid positive whole number.');
   });
 });
 
 describe('estimatedCostItemsToDb', () => {
-  it('maps amounts, supplies CAD when unit is missing, and converts blank notes to null', () => {
+  it('maps amounts, supplies CAD for a blank unit, and converts blank notes to null', () => {
     expect(
-      estimatedCostItemsToDb(4, [
-        { id: 'cost-1', category: 'Meals', amount: '58.25', notes: '' },
+      estimatedCostItemsToDb('nso-1', '5', 4, [
+        {
+          id: 'cost-1',
+          category: 'Meals',
+          amount: '58.25',
+          unitOfMeasure: '',
+          notes: '',
+        },
       ]),
     ).toEqual([
       {
         id: 'cost-1',
+        nsoId: 'nso-1',
+        gameId: '5',
         calculatorId: 4,
         category: 'Meals',
         amount: 58.25,
@@ -96,12 +82,13 @@ describe('estimatedCostItemsToDb', () => {
     ]);
   });
 
-  it('preserves explicit units and maps invalid amounts to zero', () => {
+  it('preserves explicit units and rejects invalid amounts', () => {
     expect(
-      estimatedCostItemsToDb(4, [
+      estimatedCostItemsToDb('nso-1', '5', 4, [
         {
           id: 'cost-2',
-          amount: Number.POSITIVE_INFINITY,
+          category: 'Meals',
+          amount: 10,
           unitOfMeasure: 'EUR',
           notes: 'estimate',
         },
@@ -109,12 +96,24 @@ describe('estimatedCostItemsToDb', () => {
     ).toEqual([
       {
         id: 'cost-2',
+        nsoId: 'nso-1',
+        gameId: '5',
         calculatorId: 4,
-        category: '',
-        amount: 0,
+        category: 'Meals',
+        amount: 10,
         unitOfMeasure: 'EUR',
         notes: 'estimate',
       },
     ]);
+    expect(() =>
+      estimatedCostItemsToDb('nso-1', '5', 4, [
+        {
+          id: 'cost-2',
+          category: 'Meals',
+          amount: Number.POSITIVE_INFINITY,
+          unitOfMeasure: 'EUR',
+        },
+      ]),
+    ).toThrow('Value must be a valid positive number.');
   });
 });
