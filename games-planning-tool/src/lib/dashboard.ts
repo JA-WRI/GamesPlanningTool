@@ -6,14 +6,14 @@ export type Column = {
   title: string;
   status: Status;
   href: string;
-}
+};
 
 export type Team = {
   name: string;
   altNames?: string[];
   logo?: string;
   columns: Column[];
-}
+};
 
 export type DashboardStats = {
   total: number;
@@ -26,7 +26,6 @@ export type DashboardChart = {
   title: string;
   counts: Record<Status, number>;
 };
-
 
 export function percentage(part: number, whole: number): number {
   return whole === 0 ? 0 : Math.round((part / whole) * 100);
