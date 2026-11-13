@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getSession } from '@/lib/data';
+import { getSession } from '@/server/auth/session'; // TODO(auth): real session
 import { getGamesWithNsos } from '@/server/queries/games';
 import { findGame, gamesForUser } from '@/lib/routing/Navigation';
 

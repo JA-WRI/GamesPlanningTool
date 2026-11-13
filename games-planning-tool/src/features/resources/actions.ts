@@ -10,7 +10,7 @@ import {
   updateResourceCategories as updateResourceCategoriesInDb,
 } from '@/lib/resources';
 import { uploadResourceFile } from '@/lib/storage';
-import { getSession } from '@/lib/data';
+import { getSession } from '@/server/auth/session'; // TODO(auth): real session
 import {
   MAX_RESOURCE_FILE_SIZE,
   MAX_RESOURCE_FILE_SIZE_MESSAGE,
