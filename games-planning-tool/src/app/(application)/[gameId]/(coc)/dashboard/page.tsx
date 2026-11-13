@@ -11,7 +11,7 @@ export default async function Home({
   const { gameId } = await params;
   // Accept the existing menu IDs and numeric database IDs.
   const match = /^(?:game_id_)?([1-9]\d*)$/.exec(gameId);
-  const numericGameId = match ? Number(match[1]) : NaN;
+  const numericGameId = match ? Number(match[1]) : Number.NaN;
   const validGameId =
     Number.isSafeInteger(numericGameId) && numericGameId <= 2147483647;
 
