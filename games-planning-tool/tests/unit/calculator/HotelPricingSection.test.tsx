@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 vi.mock('@/server/queries/hotel-pricing', () => ({ getHotelPricing: vi.fn() }));
 import { getHotelPricing } from '@/server/queries/hotel-pricing';
-import HotelPricingSection from '@/features/nso-calculator/components/HotelPricingSection';
+import HotelPricingSection from '@/features/nso-calculator/components/PropertyPricingSection';
 afterEach(() => vi.restoreAllMocks());
 beforeEach(() => {
   vi.mocked(getHotelPricing).mockReset();

@@ -2,7 +2,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { expect, it } from 'vitest';
 import CalculatorClient from '@/features/nso-calculator/components/CalculatorClient';
-import HotelPricingTable from '@/features/nso-calculator/components/HotelPricingTable';
+import HotelPricingTable from '@/features/nso-calculator/components/PropertyPricingTable';
 
 it('preserves calculator and estimated costs with database hotels while Cost Summary is deferred', () => {
   render(

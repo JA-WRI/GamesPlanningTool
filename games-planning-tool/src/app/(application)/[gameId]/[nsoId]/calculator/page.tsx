@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import CalculatorClient from '@/features/nso-calculator/components/CalculatorClient';
-import HotelPricingSection from '@/features/nso-calculator/components/HotelPricingSection';
+import HotelPricingSection from '@/features/nso-calculator/components/PropertyPricingSection';
 import { getGamesWithNsos } from '@/server/queries/games';
 import { getSession } from '@/lib/data';
 import { findGame, gamesForUser } from '@/lib/routing/Navigation';

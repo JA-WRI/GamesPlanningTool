@@ -912,24 +912,17 @@ type ClusterSeed = { name: string; properties: PropertySeed[] };
 
 const propertyClusterSeeds: ClusterSeed[] = [
   {
-    name: 'Los Angeles - Downtown',
+    name: 'Milano',
     properties: [
       {
-        name: 'Grand Plaza Hotel',
+        name: 'UNA Mediterraneo',
         prices: { single: 375, double: 750, triple: 900 },
       },
-      { name: 'Metro Congress Centre', prices: { single: 375, double: 750 } },
-      { name: 'Arts District Inn', prices: { single: 375, double: 750 } },
-    ],
-  },
-  {
-    name: 'Los Angeles - Santa Monica',
-    properties: [
       {
-        name: 'Seaside Resort',
-        prices: { single: 420, double: 840, triple: 1000, quad: 1200 },
+        name: 'NH Milano Congress Centre',
+        prices: { single: 375, double: 750 },
       },
-      { name: 'Pier View Hotel', prices: { single: 400, double: 800 } },
+      { name: 'NH Milano Fiera', prices: { single: 375, double: 750 } },
     ],
   },
 ];
