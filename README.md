@@ -9,6 +9,7 @@
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white)](https://github.com/JA-WRI/GamesPlanningTool/security/dependabot)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=JA-WRI_GamesPlanningTool&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=JA-WRI_GamesPlanningTool)
 ## Project Summary
+Planning for the Games shouldn’t mean chasing spreadsheets, emails, and disconnected documents. The Games Planning Tool is a centralized web application that gives National Sport Organizations (NSOs) and the Canadian Olympic Committee (COC) a single source of truth for Games preparation. Starting with the Team Journey, NSOs build and refine their team plans, from participant details to arrival and departure logistics, while the COC sees the full picture across organizations and can step in whenever needed. That same shared foundation carries into cost estimation, where NSOs work from simple templates and COC-configured rates so everyone is looking at the same numbers. A dashboard ties it all together, surfacing deadlines, outstanding actions, and resources, and helping the COC spot gaps early and keep every NSO on track. The result is less duplication, fewer errors, and a more collaborative path to getting Team Canada ready to compete.
 
 ## Developer Getting Started Guide
 📌 [Project board](https://github.com/users/JA-WRI/projects/11)
