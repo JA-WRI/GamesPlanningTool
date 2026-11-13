@@ -1,5 +1,5 @@
-// no substantial AI generated code
-// TEMP DEV AUTH: delete this file once real authentication is implemented
+// Less than 50% AI generated to healp create fake sessions for temporary role toggle
+// temporary: delete this file once real authentication is implemented
 // (it becomes the auth provider's login/logout actions).
 'use server';
 
