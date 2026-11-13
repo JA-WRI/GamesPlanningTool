@@ -10,14 +10,14 @@ import {
   runDraftSave,
 } from '@/lib/db-helpers';
 import { ContactRow } from '@/components/contact-information/ContactGrid';
-import { nsoContactsToDb } from '../lib/contactDbMapping';
+import { nsoContactsToDb, parseGameId } from '../lib/contactDbMapping';
 
 export async function getNsoContacts(
   nsoId: string,
   gameId: string,
 ): Promise<ContactRow[]> {
-  const contacts = await prisma.nsoContact.findMany({
-    where: { nsoId, gameId },
+  const contacts = await prisma.contact.findMany({
+    where: { nsoId, gameId: parseGameId(gameId), type: 'NSO' },
     orderBy: { role: 'asc' },
   });
 
@@ -37,14 +37,15 @@ export async function saveNsoContacts(
   gameId: string,
   rows: ContactRow[],
 ): Promise<ContactRow[]> {
+  const scope = { nsoId, gameId: parseGameId(gameId), type: 'NSO' as const };
   const outcome = await runDraftSave(rows, {
     validate: hasUniqueRowIds,
-    map: (draft) => nsoContactsToDb(nsoId, gameId, draft),
+    map: (draft) => nsoContactsToDb(nsoId, scope.gameId, draft),
     persist: async (mappedRows) => {
       await replaceCollection(
         (operation) => prisma.$transaction(operation),
-        (tx: Prisma.TransactionClient) => tx.nsoContact,
-        { nsoId, gameId },
+        (tx: Prisma.TransactionClient) => tx.contact,
+        scope,
         mappedRows,
       );
       return getNsoContacts(nsoId, gameId);

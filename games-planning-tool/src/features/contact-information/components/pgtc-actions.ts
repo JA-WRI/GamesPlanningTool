@@ -10,14 +10,14 @@ import {
   runDraftSave,
 } from '@/lib/db-helpers';
 import { DisciplineData } from '@/features/contact-information/components/PGTCDisciplines';
-import { pgtcDisciplinesToDb } from '../lib/contactDbMapping';
+import { parseGameId, pgtcDisciplinesToDb } from '../lib/contactDbMapping';
 
 export async function getDisciplines(
   nsoId: string,
   gameId: string,
 ): Promise<DisciplineData[]> {
   const records = await prisma.pgtcDiscipline.findMany({
-    where: { nsoId, gameId },
+    where: { nsoId, gameId: parseGameId(gameId) },
     orderBy: { name: 'asc' },
   });
 
@@ -33,7 +33,7 @@ export async function getDisciplines(
     streetNumber: r.streetNumber ?? '',
     zipCode: r.zipCode ?? '',
     city: r.city ?? '',
-    state: r.state ?? '',
+    state: r.stateOrProvince ?? '',
     country: r.country ?? '',
     travelMethod: r.travelMethod ?? '',
     pointOfEntry: r.pointOfEntry ?? '',
@@ -46,14 +46,15 @@ export async function saveDisciplines(
   gameId: string,
   rows: DisciplineData[],
 ): Promise<DisciplineData[]> {
+  const scope = { nsoId, gameId: parseGameId(gameId) };
   const outcome = await runDraftSave(rows, {
     validate: hasUniqueRowIds,
-    map: (draft) => pgtcDisciplinesToDb(nsoId, gameId, draft),
+    map: (draft) => pgtcDisciplinesToDb(nsoId, scope.gameId, draft),
     persist: async (mappedRows) => {
       await replaceCollection(
         (operation) => prisma.$transaction(operation),
         (tx: Prisma.TransactionClient) => tx.pgtcDiscipline,
-        { nsoId, gameId },
+        scope,
         mappedRows,
       );
       return getDisciplines(nsoId, gameId);

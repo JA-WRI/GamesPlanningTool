@@ -13,14 +13,14 @@ const contact = {
 
 describe('nsoContactsToDb', () => {
   it('preserves digits and leading zeroes', () => {
-    expect(nsoContactsToDb('nso', 'game', [contact])).toEqual([
-      { ...contact, nsoId: 'nso', gameId: 'game' },
+    expect(nsoContactsToDb('nso', 1, [contact])).toEqual([
+      { ...contact, nsoId: 'nso', gameId: 1, type: 'NSO' },
     ]);
   });
 
   it('allows empty values', () => {
     expect(
-      nsoContactsToDb('nso', 'game', [
+      nsoContactsToDb('nso', 1, [
         { ...contact, countryCode: '', phone: '' },
       ])[0],
     ).toMatchObject({ countryCode: '', phone: '' });
@@ -33,7 +33,7 @@ describe('nsoContactsToDb', () => {
     { phone: '1e3' },
   ])('rejects invalid values: %j', (invalid) => {
     expect(() =>
-      nsoContactsToDb('nso', 'game', [{ ...contact, ...invalid }]),
+      nsoContactsToDb('nso', 1, [{ ...contact, ...invalid }]),
     ).toThrow('Country code and phone number must contain only digits.');
   });
 });
