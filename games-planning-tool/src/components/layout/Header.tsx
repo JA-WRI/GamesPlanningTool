@@ -2,16 +2,32 @@
 import Image from 'next/image';
 import GamesSelector from './GamesSelector';
 import NsoSelector from './NsoSelector';
-import type { GameWithNsos, Role } from '@/lib/types';
+import DevUserToggle from './DevUserToggle';
+import type { GameWithNsos } from '@/lib/types';
+import type { SessionUser } from '@/server/auth/session';
 import { Suspense } from 'react';
 
+const ROLE_LABELS = { admin: 'Admin', coc: 'COC', nso: 'NSO' } as const;
+
+function initials(name: string) {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 export default function Header({
-  role,
+  user,
   games,
+  devUsers,
 }: {
-  role: Role;
+  user: SessionUser;
   games: GameWithNsos[];
+  devUsers: SessionUser[]; // temporary: remove with the toggle later
 }) {
+  const { role } = user;
   return (
     <div className="flex items-center justify-between bg-terracotta p-3">
       <div className="page-container justify-between flex items-center">
@@ -38,12 +54,14 @@ export default function Header({
           </div>
         </div>
         <div className="flex items-center gap-8">
+          {/* temporary: remove the toggle once real authentication is implemented */}
+          <DevUserToggle users={devUsers} currentUserId={user.id} />
           <div className="text-center text-sm">
-            <div className="font-bold text-white">Alex Dunphy</div>
-            <div className="text-xs text-gray-300">COC-Department</div>
+            <div className="font-bold text-white">{user.name}</div>
+            <div className="text-xs text-gray-300">{ROLE_LABELS[role]}</div>
           </div>
           <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white font-bold">
-            AD
+            {initials(user.name)}
           </button>
         </div>
       </div>
