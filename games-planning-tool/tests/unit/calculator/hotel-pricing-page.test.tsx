@@ -35,6 +35,7 @@ beforeEach(() => {
 });
 it('accepts a participating NSO and the database game ID', async () => {
   const result = await Page({ params: params('7', 'nso-a') });
+  expect(result.props.gameName).toBe('Games');
   expect(result.props.children.key).toBe('7');
   expect(result.props.children.props.children.props.gameId).toBe(7);
 });

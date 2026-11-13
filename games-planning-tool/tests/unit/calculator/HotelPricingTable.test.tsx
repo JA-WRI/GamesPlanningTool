@@ -55,6 +55,35 @@ describe('HotelPricingTable', () => {
     expect(screen.queryByText('CONVERSIONS')).not.toBeInTheDocument();
   });
 
+  it('refreshes changed rates and clears removed hotels without a parent remount', () => {
+    const { rerender } = render(
+      <HotelPricingTable
+        hotels={[
+          { id: 'a', hotel: 'Approved Hotel', prices: { single: '125.50' } },
+        ]}
+      />,
+    );
+    rerender(
+      <HotelPricingTable
+        hotels={[
+          { id: 'a', hotel: 'Approved Hotel', prices: { double: '0.00' } },
+        ]}
+      />,
+    );
+    expect(screen.queryByText('125.50')).not.toBeInTheDocument();
+    expect(
+      within(screen.getAllByRole('row')[1])
+        .getAllByRole('cell')
+        .map((cell) => cell.textContent),
+    ).toEqual(['Approved Hotel', '-', '0.00', '-']);
+    rerender(<HotelPricingTable hotels={[]} />);
+    expect(screen.queryByText('Approved Hotel')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('row')).toHaveLength(1);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'No hotel pricing configured',
+    );
+  });
+
   it('shows only the new game data when remounted with a game key', () => {
     const { rerender } = render(
       <HotelPricingTable

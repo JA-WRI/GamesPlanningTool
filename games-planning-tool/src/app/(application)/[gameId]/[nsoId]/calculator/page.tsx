@@ -28,7 +28,7 @@ export default async function CalculatorPage({
     notFound();
 
   return (
-    <CalculatorClient>
+    <CalculatorClient gameName={game.name}>
       <Suspense
         key={game.id}
         fallback={

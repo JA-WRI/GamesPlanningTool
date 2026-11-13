@@ -46,6 +46,7 @@ export default function HotelPricingTable({
   return (
     <Box className="mt-10 min-w-0 [&_.MuiTableCell-root]:h-[70px]">
       <BaseGridPage<HotelPricingRow>
+        key={JSON.stringify(rows)}
         title="HOTEL PRICING"
         description="Prices per room, per night."
         initialData={rows}

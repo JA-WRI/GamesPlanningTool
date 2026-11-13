@@ -1,14 +1,12 @@
 // AI-assisted tests; reviewed for calculator and hotel pricing requirements.
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { expect, it, vi } from 'vitest';
+import { expect, it } from 'vitest';
 import CalculatorClient from '@/features/nso-calculator/components/CalculatorClient';
 import HotelPricingTable from '@/features/nso-calculator/components/HotelPricingTable';
 
-vi.mock('next/navigation', () => ({ useParams: () => ({ gameId: '7' }) }));
-
 it('preserves calculator and estimated costs with database hotels while Cost Summary is deferred', () => {
   render(
-    <CalculatorClient>
+    <CalculatorClient gameName="Database Games">
       <HotelPricingTable
         hotels={[
           {
@@ -20,6 +18,10 @@ it('preserves calculator and estimated costs with database hotels while Cost Sum
       />
     </CalculatorClient>,
   );
+  expect(
+    screen.getByRole('heading', { name: 'Database Games' }),
+  ).toBeInTheDocument();
+  expect(screen.queryByText('SELECT A GAME')).not.toBeInTheDocument();
   expect(screen.getByText('Database Hotel')).toBeInTheDocument();
   expect(screen.getByText('125.50')).toBeInTheDocument();
   expect(
