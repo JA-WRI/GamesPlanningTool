@@ -1,9 +1,6 @@
 // AI contribution: 50% or more AI-generated
 import { describe, it, expect } from 'vitest';
-import {
-  MOCK_DISCIPLINES,
-  MOCK_TEAM_SIZE,
-} from '@/features/team-size/lib/mockData';
+import { MOCK_DISCIPLINES, MOCK_TEAM_SIZE } from './fixtures';
 import {
   DISCIPLINE_TOTAL_COLUMN,
   DisciplineGridRow,

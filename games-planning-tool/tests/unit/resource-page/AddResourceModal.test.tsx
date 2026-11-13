@@ -1,8 +1,12 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
 import { AddResourceModal } from '@/features/resources/components/AddResourceModal';
+import {
+  MAX_RESOURCE_FILE_SIZE,
+  MAX_RESOURCE_FILE_SIZE_MESSAGE,
+} from '@/features/resources/types/resource';
 
 describe('AddResourceModal', () => {
   it('does not render when isOpen is false', () => {
@@ -10,7 +14,7 @@ describe('AddResourceModal', () => {
       <AddResourceModal
         isOpen={false}
         onClose={() => {}}
-        onAddResource={() => {}}
+        onAddResource={async () => {}}
       />,
     );
     expect(container.firstChild).toBeNull();
@@ -22,7 +26,7 @@ describe('AddResourceModal', () => {
       <AddResourceModal
         isOpen={true}
         onClose={handleClose}
-        onAddResource={() => {}}
+        onAddResource={async () => {}}
       />,
     );
 
@@ -36,7 +40,7 @@ describe('AddResourceModal', () => {
       <AddResourceModal
         isOpen={true}
         onClose={() => {}}
-        onAddResource={() => {}}
+        onAddResource={async () => {}}
       />,
     );
 
@@ -64,7 +68,7 @@ describe('AddResourceModal', () => {
     fireEvent.click(linkTab);
   });
 
-  it('submits a new link resource with selected categories and preview image', () => {
+  it('submits a new link resource with selected categories', async () => {
     const handleAdd = vi.fn();
     const handleClose = vi.fn();
 
@@ -96,15 +100,15 @@ describe('AddResourceModal', () => {
     fireEvent.click(athleticsBtn);
 
     const submitBtn = screen.getByRole('button', { name: 'Add Resource' });
-    fireEvent.click(submitBtn);
+    await act(async () => {
+      fireEvent.click(submitBtn);
+    });
 
     expect(handleAdd).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Olympic Portal',
         type: 'link',
-        URL: 'https://olympics.com',
-        previewUrl:
-          'https://www.google.com/s2/favicons?domain_url=https%3A%2F%2Folympics.com&sz=128',
+        url: 'https://olympics.com',
         categories: expect.arrayContaining([
           'Winter Games',
           'Summer Games',
@@ -115,7 +119,7 @@ describe('AddResourceModal', () => {
     expect(handleClose).toHaveBeenCalled();
   });
 
-  it('switches to file input, selects a file, and submits file resource', () => {
+  it('switches to file input, selects a file, and submits file resource', async () => {
     const handleAdd = vi.fn();
     const handleClose = vi.fn();
 
@@ -139,7 +143,9 @@ describe('AddResourceModal', () => {
     expect(screen.getByText('team_roster.pdf')).toBeInTheDocument();
 
     const submitBtn = screen.getByRole('button', { name: 'Add Resource' });
-    fireEvent.click(submitBtn);
+    await act(async () => {
+      fireEvent.click(submitBtn);
+    });
 
     expect(handleAdd).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -154,12 +160,84 @@ describe('AddResourceModal', () => {
     expect(handleClose).toHaveBeenCalled();
   });
 
+  it('shows an upload progress indicator while a file is submitting', async () => {
+    let resolveAdd: () => void = () => {};
+    const handleAdd = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveAdd = resolve;
+        }),
+    );
+
+    render(
+      <AddResourceModal
+        isOpen={true}
+        onClose={() => {}}
+        onAddResource={handleAdd}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Upload File/i }));
+    const file = new File(['mock content'], 'team_roster.pdf', {
+      type: 'application/pdf',
+    });
+    fireEvent.change(document.querySelector('input[type="file"]')!, {
+      target: { files: [file] },
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Add Resource' }));
+    });
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Uploading team_roster.pdf...',
+    );
+    expect(screen.getByRole('button', { name: 'Uploading...' })).toBeDisabled();
+
+    await act(async () => {
+      resolveAdd();
+    });
+  });
+
+  it('rejects files over the size limit', async () => {
+    const handleAdd = vi.fn();
+
+    render(
+      <AddResourceModal
+        isOpen={true}
+        onClose={() => {}}
+        onAddResource={handleAdd}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Upload File/i }));
+
+    const file = new File(['mock content'], 'huge.pdf', {
+      type: 'application/pdf',
+    });
+    Object.defineProperty(file, 'size', {
+      value: MAX_RESOURCE_FILE_SIZE + 1,
+    });
+    fireEvent.change(document.querySelector('input[type="file"]')!, {
+      target: { files: [file] },
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Add Resource' }));
+    });
+
+    expect(
+      screen.getByText(MAX_RESOURCE_FILE_SIZE_MESSAGE),
+    ).toBeInTheDocument();
+    expect(handleAdd).not.toHaveBeenCalled();
+  });
+
   it('handles drag and drop file upload and drag states', () => {
     render(
       <AddResourceModal
         isOpen={true}
         onClose={() => {}}
-        onAddResource={() => {}}
+        onAddResource={async () => {}}
       />,
     );
 
@@ -181,88 +259,12 @@ describe('AddResourceModal', () => {
 
     expect(screen.getByText('badge.png')).toBeInTheDocument();
   });
-  it('generates thumbnail preview for pdf document files', async () => {
-    const mockCtx = {
-      fillStyle: '',
-      fillRect: vi.fn(),
-      fillText: vi.fn(),
-      font: '',
-      textAlign: '',
-    };
-    HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue(mockCtx);
-    HTMLCanvasElement.prototype.toDataURL = vi
-      .fn()
-      .mockReturnValue('data:image/jpeg;base64,thumb');
-
-    render(
-      <AddResourceModal
-        isOpen={true}
-        onClose={() => {}}
-        onAddResource={() => {}}
-      />,
-    );
-
-    // Switch to file tab
-    const fileTab = screen.getByRole('button', { name: 'Upload File' });
-    fireEvent.click(fileTab);
-
-    const pdfFile = new File(['%PDF-1.4'], 'guide.pdf', {
-      type: 'application/pdf',
-    });
-    const fileInput = document.querySelector(
-      'input[type="file"]',
-    ) as HTMLInputElement;
-
-    await act(async () => {
-      fireEvent.change(fileInput, { target: { files: [pdfFile] } });
-    });
-
-    expect(mockCtx.fillRect).toHaveBeenCalled();
-  });
-
-  it('generates text preview for text and markdown files', async () => {
-    const mockCtx = {
-      fillStyle: '',
-      fillRect: vi.fn(),
-      fillText: vi.fn(),
-      font: '',
-    };
-    HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue(mockCtx);
-    HTMLCanvasElement.prototype.toDataURL = vi
-      .fn()
-      .mockReturnValue('data:image/jpeg;base64,textthumb');
-
-    render(
-      <AddResourceModal
-        isOpen={true}
-        onClose={() => {}}
-        onAddResource={() => {}}
-      />,
-    );
-
-    const fileTab = screen.getByRole('button', { name: 'Upload File' });
-    fireEvent.click(fileTab);
-
-    const txtFile = new File(['Hello World\nSecond Line'], 'notes.txt', {
-      type: 'text/plain',
-    });
-    const fileInput = document.querySelector(
-      'input[type="file"]',
-    ) as HTMLInputElement;
-
-    await act(async () => {
-      fireEvent.change(fileInput, { target: { files: [txtFile] } });
-    });
-
-    expect(mockCtx.fillRect).toHaveBeenCalled();
-  });
-
   it('allows toggling categories on and off and validates empty resource name', () => {
     render(
       <AddResourceModal
         isOpen={true}
         onClose={() => {}}
-        onAddResource={() => {}}
+        onAddResource={async () => {}}
       />,
     );
 
@@ -286,5 +288,32 @@ describe('AddResourceModal', () => {
     expect(
       screen.getByText('Please enter a name for the resource.'),
     ).toBeInTheDocument();
+  });
+
+  it('shows a fallback error when the submission fails', async () => {
+    const handleAdd = vi.fn().mockRejectedValue('failed');
+
+    render(
+      <AddResourceModal
+        isOpen={true}
+        onClose={() => {}}
+        onAddResource={handleAdd}
+      />,
+    );
+
+    fireEvent.change(
+      screen.getByPlaceholderText('e.g. LA 2028 Team Roster Guide'),
+      { target: { value: 'Portal' } },
+    );
+    fireEvent.change(
+      screen.getByPlaceholderText('https://olympic.ca/handbook'),
+      { target: { value: 'https://example.com' } },
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Add Resource' }));
+    });
+
+    expect(screen.getByText('Unable to add the resource.')).toBeInTheDocument();
   });
 });

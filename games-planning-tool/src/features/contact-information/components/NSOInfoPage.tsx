@@ -7,7 +7,6 @@ import GridHeaderPage from '@/components/commons/GridHeader';
 export interface NSOInfoPage {
   name: string;
   sport: string;
-  information: string;
   primaryContactEmail: string;
 }
 
@@ -15,12 +14,12 @@ interface NSOInfoPageSectionProps {
   title?: string;
   description?: string;
   initialData?: NSOInfoPage;
+  readOnly?: boolean;
 }
 
 const defaultInfo: NSOInfoPage = {
   name: '',
   sport: '',
-  information: '',
   primaryContactEmail: '',
 };
 
@@ -28,6 +27,7 @@ export default function NSOInfoPageSection({
   title = 'NSO General Information',
   description = 'National Sport Organization Information',
   initialData = defaultInfo,
+  readOnly = true,
 }: NSOInfoPageSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
@@ -51,14 +51,15 @@ export default function NSOInfoPageSection({
     setIsPreview(false);
   };
 
-  const showInputs = isEditing && !isPreview;
+  const showInputs = isEditing && !isPreview && !readOnly;
 
   return (
     <div className="space-y-6">
       <GridHeaderPage
         title={title}
         description={description}
-        isEditing={isEditing}
+        readOnly={readOnly}
+        isEditing={isEditing && !readOnly}
         isPreview={isPreview}
         onEditToggle={() => {
           setIsEditing(!isEditing);
@@ -115,33 +116,6 @@ export default function NSOInfoPageSection({
             <div className="w-full p-2.5 text-sm bg-white border border-gray-200 rounded-lg text-gray-800 min-h-[42px] flex items-center shadow-sm">
               {formData.sport || (
                 <span className="text-gray-400 italic">Not provided</span>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <label
-            htmlFor="nso-information"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Information
-          </label>
-          {showInputs ? (
-            <textarea
-              id="nso-information"
-              rows={4}
-              value={formData.information}
-              onChange={(e) => handleChange('information', e.target.value)}
-              placeholder="Enter information"
-              className="w-full p-3 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-burgundy focus:border-burgundy shadow-sm resize-y"
-            />
-          ) : (
-            <div className="w-full min-h-[100px] p-3 text-sm bg-white border border-gray-200 rounded-lg text-gray-800 whitespace-pre-wrap shadow-sm">
-              {formData.information || (
-                <span className="text-gray-400 italic">
-                  No information provided
-                </span>
               )}
             </div>
           )}

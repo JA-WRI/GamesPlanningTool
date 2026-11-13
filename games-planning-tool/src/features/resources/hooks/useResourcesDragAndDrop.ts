@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -9,18 +9,24 @@ interface UseResourcesDragAndDropProps {
   allResources: Resource[];
   isReadOnly: boolean;
   selectedIds: Set<string>;
-  updateResources: (newResources: Resource[]) => void;
+  onMoveResourceToFolder: (
+    resourceId: string,
+    targetFolderId: string | null,
+  ) => void;
+  onReorderResources: (orderedResources: Resource[]) => void;
   showToast: (msg: string) => void;
   setActiveDirectoryFolder: (folder: FolderResource | null) => void;
   setIsEditing: (isEditing: boolean) => void;
 }
 
+// Exceeds 50 lines: drag state and drop/reorder logic share one hook.
 export function useResourcesDragAndDrop({
   filteredResources,
   allResources,
   isReadOnly,
   selectedIds,
-  updateResources,
+  onMoveResourceToFolder,
+  onReorderResources,
   showToast,
   setActiveDirectoryFolder,
   setIsEditing,
@@ -136,17 +142,10 @@ export function useResourcesDragAndDrop({
         : null);
 
     if (folderDropTarget && itemToMove && itemToMove !== folderDropTarget) {
-      const updated = allResources.map((r) =>
-        r.id === itemToMove ? { ...r, parentId: folderDropTarget } : r,
-      );
-      updateResources(updated);
+      onMoveResourceToFolder(itemToMove, folderDropTarget);
       showToast('Moved item into folder');
     } else if (itemToMove && selectedIds.size === 0) {
-      const reorderedIds = new Set(localOrderedRef.current.map((r) => r.id));
-      const otherResources = allResources.filter(
-        (r) => !reorderedIds.has(r.id),
-      );
-      updateResources([...otherResources, ...localOrderedRef.current]);
+      onReorderResources(localOrderedRef.current);
     }
     setDraggedCardId(null);
     draggedCardIdRef.current = null;
