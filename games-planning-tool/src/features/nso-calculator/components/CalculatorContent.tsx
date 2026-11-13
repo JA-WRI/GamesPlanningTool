@@ -7,11 +7,12 @@
 // The grid component was implemented manually
 'use client';
 
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { Box } from '@mui/material';
-import { useParams } from 'next/navigation';
-import { Games } from '@/lib/data';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
+import { asDraftRows } from '@/lib/draft-keys';
+import { amountToCAD, displayAmount, type Currency } from './ConversionRates';
 // these will be added later
 //import CostSummary from './costsummary';
 //import HotelDetails from './hoteldetails';
@@ -43,6 +44,22 @@ export type CalculatorRow = Record<string, unknown> & {
   insuranceBudget: number;
   totalCostPerTeamMember: number;
 };
+
+function createTraveler(category: string): CalculatorRow {
+  return {
+    id: crypto.randomUUID(),
+    category,
+    numberOfTeamMembers: 0,
+    days: 0,
+    travelBudget: 0,
+    checkIn: '',
+    checkOut: '',
+    accommodationBudget: 0,
+    mealsBudget: 0,
+    insuranceBudget: 0,
+    totalCostPerTeamMember: 0,
+  };
+}
 
 const columns: ColumnDefinition<CalculatorRow>[] = [
   {
@@ -131,38 +148,95 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
   },
 ];
 
-export default function CalculatorContent({
-  calculatorId,
-  initialItems = [],
-  initialDraft,
-  draftKey,
-  onSaveAction,
-}: {
+const budgetFields = [
+  'travelBudget',
+  'accommodationBudget',
+  'mealsBudget',
+  'insuranceBudget',
+  'totalCostPerTeamMember',
+] as const;
+
+function convertRows(rows: CalculatorRow[], currency: Currency, toCAD = false) {
+  return rows.map((row) => {
+    const result = { ...row };
+    for (const field of budgetFields) {
+      result[field] = toCAD
+        ? amountToCAD(row[field], currency)
+        : displayAmount(row[field], currency);
+    }
+    return result;
+  });
+}
+
+export type CalculatorContentHandle = {
+  prepareCurrencyChange: () => void;
+};
+
+type CalculatorContentProps = {
   readonly calculatorId: number;
   readonly initialItems?: CalculatorRow[];
   readonly initialDraft?: unknown;
   readonly draftKey: string;
-  readonly onSaveAction?: (
+  readonly currency: Currency;
+  readonly gameName: string;
+  readonly onSaveAction: (
     calculatorId: number,
     rows: CalculatorRow[],
   ) => Promise<CalculatorRow[]>;
-}) {
-  const params = useParams<{ gameId?: string }>();
-  const selectedGame = Games.find((game) => game.id === params.gameId);
+};
+
+const CalculatorContent = forwardRef<
+  CalculatorContentHandle,
+  CalculatorContentProps
+>(function CalculatorContent(
+  {
+    calculatorId,
+    initialItems,
+    initialDraft,
+    draftKey,
+    currency,
+    gameName,
+    onSaveAction,
+  },
+  ref,
+) {
+  const [savedCAD, setSavedCAD] = useState<CalculatorRow[]>(() =>
+    initialItems && initialItems.length > 0
+      ? initialItems
+      : TRAVEL_CATEGORIES.map(({ title }) => createTraveler(title)),
+  );
+  const [draftPayload, setDraftPayload] = useState(initialDraft);
+  const [isEditing, setIsEditing] = useState(false);
+  const restoreDraft = (value: unknown) => {
+    const rows = asDraftRows<CalculatorRow>(value);
+    return rows ? convertRows(rows, currency) : undefined;
+  };
+  const latestRowsRef = useRef(
+    restoreDraft(draftPayload) ?? convertRows(savedCAD, currency),
+  );
+
+  useImperativeHandle(ref, () => ({
+    prepareCurrencyChange: () => {
+      if (!isEditing) return;
+      const currentRows = latestRowsRef.current;
+      const hasEdits =
+        JSON.stringify(currentRows) !==
+        JSON.stringify(convertRows(savedCAD, currency));
+      setDraftPayload(
+        draftPayload !== undefined || hasEdits
+          ? convertRows(currentRows, currency, true)
+          : undefined,
+      );
+      setIsEditing(false);
+    },
+  }));
 
   const handleSave = async (updatedRows: CalculatorRow[]) => {
-    if (onSaveAction) {
-      await onSaveAction(calculatorId, updatedRows);
-    }
+    const rowsCAD = convertRows(updatedRows, currency, true);
+    const saved = await onSaveAction(calculatorId, rowsCAD);
+    setSavedCAD(saved);
+    setDraftPayload(undefined);
   };
-  // Totals remain placeholders until the calculator's business calculations are connected
-  // const summary = [
-  //   { label: 'Accommodation:', value: 0 },
-  //   { label: 'Travel:', value: 0 },
-  //   { label: 'Food:', value: 0 },
-  //   { label: 'Insurance:', value: 0 },
-  //   { label: 'SIM card:', value: 0 },
-  // ];
 
   return (
     <Box className="w-full min-w-0" data-calculator-id={calculatorId}>
@@ -183,39 +257,29 @@ export default function CalculatorContent({
         "
       >
         <BaseGridPage<CalculatorRow>
-          title={selectedGame?.title ?? 'SELECT A GAME'}
-          initialData={initialItems}
-          initialDraft={initialDraft}
+          key={currency}
+          title={gameName}
+          initialData={convertRows(savedCAD, currency)}
+          initialDraft={draftPayload}
+          restoreDraft={restoreDraft}
+          serializeDraft={(rows) => convertRows(rows, currency, true)}
           draftKey={draftKey}
           columns={columns}
-          createEmptyRow={() => ({
-            id: crypto.randomUUID(),
-            category: TRAVEL_CATEGORIES[0].title,
-            numberOfTeamMembers: 0,
-            days: 0,
-            travelBudget: 0,
-            checkIn: '',
-            checkOut: '',
-            accommodationBudget: 0,
-            mealsBudget: 0,
-            insuranceBudget: 0,
-            totalCostPerTeamMember: 0,
-          })}
+          createEmptyRow={() => createTraveler(TRAVEL_CATEGORIES[0].title)}
           addButtonLabel="Add New Traveler"
           showSearch={false}
           allowAddRow={true}
           allowDelete={true}
+          onRowsChange={(rows) => {
+            latestRowsRef.current = rows;
+          }}
+          onEditingChange={setIsEditing}
+          onDraftCleared={() => setDraftPayload(undefined)}
           onSave={handleSave}
         />
       </Box>
-      {/* <EstimatedCosts
-        currency={currency}
-        onCurrencyChange={handleCurrencyChange}
-      /> */}
-      {/* will be implemented later 
-      <HotelDetails />
-      <CostSummary summary={summary} estimatedTotal={0} />
-      */}
     </Box>
   );
-}
+});
+
+export default CalculatorContent;

@@ -9,14 +9,15 @@
 'use client';
 
 import { Box } from '@mui/material';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
 import { asDraftRows } from '@/lib/draft-keys';
 import { flushActiveDrafts } from '@/lib/draft-navigation';
 import ConversionRates, {
   type Currency,
-  CONVERSION_RATES,
+  amountToCAD,
+  displayAmount,
 } from './ConversionRates';
 
 export type EstimatedCostsData = {
@@ -39,19 +40,20 @@ export type EstimatedCostRow = Record<string, unknown> & {
 };
 
 type EstimatedCostsProps = {
-  readonly calculatorId?: number;
+  readonly calculatorId: number;
   readonly initialItems?: EstimatedCostRow[];
   readonly initialDraft?: unknown;
   readonly draftKey: string;
-  readonly onSaveAction?: (
+  readonly onSaveAction: (
     calculatorId: number,
     rows: EstimatedCostRow[],
   ) => Promise<EstimatedCostRow[]>;
   readonly currency: Currency;
-  readonly onCurrencyChange: (currency: Currency) => void;
+  readonly onCurrencyChange: (currency: Currency) => void | Promise<void>;
+  readonly onSavedRowsChange?: (rows: EstimatedCostRow[]) => void;
 };
 
-const INITIAL_COST_ROWS: EstimatedCostRow[] = [
+export const INITIAL_COST_ROWS: EstimatedCostRow[] = [
   {
     id: 'travelEconomyFare',
     category: 'Travel Economy Fare',
@@ -117,9 +119,7 @@ function displayCosts(
 ): EstimatedCostRow[] {
   return rows.map((row) => ({
     ...row,
-    amount: Number(
-      (Number(row.amount) / CONVERSION_RATES[currency]).toFixed(2),
-    ),
+    amount: displayAmount(row.amount, currency),
     unitOfMeasure: row.unitOfMeasure.replace(/^(CAD|USD|EUR)/, currency),
   }));
 }
@@ -130,19 +130,20 @@ function costsToCAD(
 ): EstimatedCostRow[] {
   return rows.map((row) => ({
     ...row,
-    amount: Number(row.amount) * CONVERSION_RATES[currency],
+    amount: amountToCAD(row.amount, currency),
     unitOfMeasure: row.unitOfMeasure.replace(/^(CAD|USD|EUR)/, 'CAD'),
   }));
 }
 
 export default function EstimatedCosts({
-  calculatorId = 1,
+  calculatorId,
   initialItems,
   initialDraft,
   draftKey,
   onSaveAction,
   currency,
   onCurrencyChange,
+  onSavedRowsChange,
 }: Readonly<EstimatedCostsProps>) {
   // Keep saved amounts in CAD, even while another currency is displayed.
   const [savedCAD, setSavedCAD] = useState<EstimatedCostRow[]>(() =>
@@ -166,6 +167,10 @@ export default function EstimatedCosts({
     restoreDraft(draftPayload) ?? displayCosts(savedCAD, currency);
   const latestRowsRef = useRef(startingRows);
 
+  useEffect(() => {
+    onSavedRowsChange?.(savedCAD);
+  }, [savedCAD, onSavedRowsChange]);
+
   const columns: ColumnDefinition<EstimatedCostRow>[] = [
     { field: 'category', label: 'Cost Item', type: 'text', width: '30%' },
     {
@@ -188,14 +193,9 @@ export default function EstimatedCosts({
   const handleSave = async (rows: EstimatedCostRow[]) => {
     const cadRows = costsToCAD(rows, currency);
 
-    if (onSaveAction) {
-      const dbSaved = await onSaveAction(calculatorId, cadRows);
-      setSavedCAD(dbSaved.map((row) => ({ ...row })));
-      setDraftPayload(undefined);
-    } else {
-      setSavedCAD(cadRows);
-      setDraftPayload(undefined);
-    }
+    const dbSaved = await onSaveAction(calculatorId, cadRows);
+    setSavedCAD(dbSaved.map((row) => ({ ...row })));
+    setDraftPayload(undefined);
   };
 
   const serializeDraft = (rows: EstimatedCostRow[]) => ({
@@ -203,21 +203,25 @@ export default function EstimatedCosts({
   });
 
   const handleCurrencyChange = async (nextCurrency: Currency) => {
-    if (isGridEditing) {
-      const currentRows = latestRowsRef.current;
-      const canonicalRows = displayCosts(savedCAD, currency);
-      const hasEdits =
-        JSON.stringify(currentRows) !== JSON.stringify(canonicalRows);
-
-      if (draftPayload !== undefined || hasEdits) {
-        await flushActiveDrafts();
-        setDraftPayload({ rows: costsToCAD(currentRows, currency) });
-      } else {
-        setDraftPayload(undefined);
+    if (nextCurrency === currency) return;
+    try {
+      await flushActiveDrafts();
+      if (isGridEditing) {
+        const currentRows = latestRowsRef.current;
+        const canonicalRows = displayCosts(savedCAD, currency);
+        const hasEdits =
+          JSON.stringify(currentRows) !== JSON.stringify(canonicalRows);
+        setDraftPayload(
+          draftPayload !== undefined || hasEdits
+            ? { rows: costsToCAD(currentRows, currency) }
+            : undefined,
+        );
       }
+      await onCurrencyChange(nextCurrency);
+      setIsGridEditing(false);
+    } catch {
+      alert('Could not save your draft. Currency was not changed.');
     }
-    setIsGridEditing(false);
-    onCurrencyChange(nextCurrency);
   };
 
   return (

@@ -18,6 +18,14 @@ export const CONVERSION_RATES: Record<Currency, number> = {
   EUR: 1.48,
 };
 
+export function displayAmount(amountCAD: number, currency: Currency): number {
+  return Number((Number(amountCAD) / CONVERSION_RATES[currency]).toFixed(2));
+}
+
+export function amountToCAD(amount: number, currency: Currency): number {
+  return Number(amount) * CONVERSION_RATES[currency];
+}
+
 type ConversionRatesProps = {
   readonly currency: Currency;
   readonly onCurrencyChange: (currency: Currency) => void;

@@ -2,11 +2,13 @@
 'use client';
 
 import { Box } from '@mui/material';
-import CalculatorContent from './CalculatorContent';
+import CalculatorContent, {
+  type CalculatorContentHandle,
+} from './CalculatorContent';
 import EstimatedCosts from './EstimatedCosts';
 import type { CalculatorRow } from './CalculatorContent';
 import type { EstimatedCostRow } from './EstimatedCosts';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { type Currency } from './ConversionRates';
 
 export default function CalculatorClient({
@@ -19,49 +21,55 @@ export default function CalculatorClient({
   initialEstimatedCostsDraft,
   onSaveTravelers,
   onSaveEstimatedCosts,
+  gameName,
+  children,
 }: {
   readonly calculatorId: number;
+  readonly gameName: string;
+  readonly children?: React.ReactNode;
   readonly travelerDraftKey: string;
   readonly estimatedCostsDraftKey: string;
   readonly initialTravelers?: CalculatorRow[];
   readonly initialTravelerDraft?: unknown;
   readonly initialEstimatedCosts?: EstimatedCostRow[];
   readonly initialEstimatedCostsDraft?: unknown;
-  readonly onSaveTravelers?: (
+  readonly onSaveTravelers: (
     calculatorId: number,
     rows: CalculatorRow[],
   ) => Promise<CalculatorRow[]>;
-  readonly onSaveEstimatedCosts?: (
+  readonly onSaveEstimatedCosts: (
     calculatorId: number,
     rows: EstimatedCostRow[],
   ) => Promise<EstimatedCostRow[]>;
 }) {
   const [currency, setCurrency] = useState<Currency>('CAD');
+  const travelerGrid = useRef<CalculatorContentHandle>(null);
 
   return (
     <Box component="main" className="min-h-full px-4 py-5 space-y-10">
       <CalculatorContent
+        ref={travelerGrid}
         calculatorId={calculatorId}
+        gameName={gameName}
+        currency={currency}
         initialItems={initialTravelers}
         initialDraft={initialTravelerDraft}
         draftKey={travelerDraftKey}
-        onSaveAction={(id, rows) =>
-          onSaveTravelers ? onSaveTravelers(id, rows) : Promise.resolve(rows)
-        }
+        onSaveAction={onSaveTravelers}
       />
       <EstimatedCosts
         calculatorId={calculatorId}
         initialItems={initialEstimatedCosts}
         initialDraft={initialEstimatedCostsDraft}
         draftKey={estimatedCostsDraftKey}
-        onSaveAction={(id, rows) =>
-          onSaveEstimatedCosts
-            ? onSaveEstimatedCosts(id, rows)
-            : Promise.resolve(rows)
-        }
+        onSaveAction={onSaveEstimatedCosts}
         currency={currency}
-        onCurrencyChange={setCurrency}
+        onCurrencyChange={(nextCurrency) => {
+          travelerGrid.current?.prepareCurrencyChange();
+          setCurrency(nextCurrency);
+        }}
       />
+      {children}
     </Box>
   );
 }
