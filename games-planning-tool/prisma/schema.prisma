@@ -45,7 +45,7 @@ model Game {
 
   gameNsos    GameNso[]
   gameMembers GameMember[]
-  hotels      GameHotel[]
+  gameProperties GameProperty[]
   
   @@map("games")
 }
@@ -209,32 +209,66 @@ model Resource {
   @@map("resources")
 }
 
-// Reference prices per room, per night, shared by all NSOs for a game.
-model GameHotel {
-  id           String   @id @default(uuid()) @db.Uuid
-  gameId       Int      @map("game_id")
-  name         String   @db.VarChar(255)
-  displayOrder Int      @default(0) @map("display_order")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+model PropertyCluster {
+  id   String @id @default(uuid()) @db.Uuid
+  name String 
 
-  game  Game        @relation(fields: [gameId], references: [id], onDelete: Restrict)
-  rates HotelRate[]
+  properties Property[]
 
-  @@index([gameId])
-  @@map("properties")
+  @@map("property_clusters")
+  @@unique([name])
 }
 
-model HotelRate {
-  id          String   @id @default(uuid()) @db.Uuid
-  gameHotelId String   @map("game_hotel_id") @db.Uuid
-  occupancy   String   @db.VarChar(50)
-  amount      Decimal  @db.Decimal(12, 2)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+model Property {
+  id        String @id @default(uuid()) @db.Uuid
+  clusterId String @map("cluster_id") @db.Uuid
+  name      String @db.VarChar(255)
 
-  gameHotel GameHotel @relation(fields: [gameHotelId], references: [id], onDelete: Restrict)
+  cluster        PropertyCluster @relation(fields: [clusterId], references: [id])
+  prices         PropertyPrice[]
+  gameProperties GameProperty[]
 
-  @@unique([gameHotelId, occupancy])
-  @@map("hotel_rates")
+  @@map("properties")
+  @@unique([clusterId, name])
+}
+
+model OccupancyType {
+  id        String @id @default(uuid()) @db.Uuid
+  code      String @unique @db.VarChar(50)
+  label     String @db.VarChar(100)        
+  capacity  Int
+  sortOrder Int    @default(0) @map("sort_order")
+
+  prices PropertyPrice[]
+
+  @@map("occupancy_types")
+}
+
+model PropertyPrice {
+  id              String  @id @default(uuid()) @db.Uuid
+  propertyId      String  @map("property_id") @db.Uuid
+  occupancyTypeId String  @map("occupancy_type_id") @db.Uuid
+  price           Decimal @db.Decimal(12, 2)
+  currency        String  @default("EUR") @db.Char(3)
+
+  property      Property      @relation(fields: [propertyId], references: [id])
+  occupancyType OccupancyType @relation(fields: [occupancyTypeId], references: [id])
+
+  @@unique([propertyId, occupancyTypeId])
+  @@map("property_prices")
+}
+
+
+model GameProperty {
+  id           String @id @default(uuid()) @db.Uuid
+  gameId       Int    @map("game_id")
+  propertyId   String @map("property_id") @db.Uuid
+  displayOrder Int    @default(0) @map("display_order")
+
+  game     Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id])
+
+  @@unique([gameId, propertyId])
+  @@index([propertyId])
+  @@map("game_properties")
 }
