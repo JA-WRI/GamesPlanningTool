@@ -1,4 +1,4 @@
-import { getHotelPricing } from '@/server/queries/hotel-pricing';
+import { getHotelPricing } from '@/server/queries/property-pricing';
 import HotelPricingTable from './HotelPricingTable';
 
 export default async function HotelPricingSection({

@@ -899,6 +899,75 @@ async function seedResources() {
   await updateResourceLinks(allRecords);
 }
 
+// Property catalog seed data (generic placeholder hotels)
+const occupancyTypeSeeds = [
+  { code: 'single', label: 'Price for single', capacity: 1, sortOrder: 1 },
+  { code: 'double', label: 'Price for double', capacity: 2, sortOrder: 2 },
+  { code: 'triple', label: 'Price for triple', capacity: 3, sortOrder: 3 },
+  { code: 'quad', label: 'Price for quad', capacity: 4, sortOrder: 4 },
+];
+
+type PropertySeed = { name: string; prices: Record<string, number> };
+type ClusterSeed = { name: string; properties: PropertySeed[] };
+
+const propertyClusterSeeds: ClusterSeed[] = [
+  {
+    name: 'Los Angeles - Downtown',
+    properties: [
+      {
+        name: 'Grand Plaza Hotel',
+        prices: { single: 375, double: 750, triple: 900 },
+      },
+      { name: 'Metro Congress Centre', prices: { single: 375, double: 750 } },
+      { name: 'Arts District Inn', prices: { single: 375, double: 750 } },
+    ],
+  },
+  {
+    name: 'Los Angeles - Santa Monica',
+    properties: [
+      {
+        name: 'Seaside Resort',
+        prices: { single: 420, double: 840, triple: 1000, quad: 1200 },
+      },
+      { name: 'Pier View Hotel', prices: { single: 400, double: 800 } },
+    ],
+  },
+];
+
+//property helper
+async function seedProperties(gameId: number) {
+  const types = await Promise.all(
+    occupancyTypeSeeds.map((t) => prisma.occupancyType.create({ data: t })),
+  );
+  const typeIdByCode = new Map(types.map((t) => [t.code, t.id]));
+
+  let displayOrder = 0;
+  for (const cluster of propertyClusterSeeds) {
+    const createdCluster = await prisma.propertyCluster.create({
+      data: { name: cluster.name },
+    });
+
+    for (const p of cluster.properties) {
+      const property = await prisma.property.create({
+        data: {
+          clusterId: createdCluster.id,
+          name: p.name,
+          prices: {
+            create: Object.entries(p.prices).map(([code, price]) => ({
+              occupancyTypeId: typeIdByCode.get(code)!,
+              price,
+            })),
+          },
+        },
+      });
+
+      await prisma.gameProperty.create({
+        data: { gameId, propertyId: property.id, displayOrder: displayOrder++ },
+      });
+    }
+  }
+}
+
 // Exceeds 50 lines: seeds every record type in dependency order.
 async function main() {
   // Wipe in dependency order (children first)
@@ -911,6 +980,12 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.nso.deleteMany();
   await prisma.game.deleteMany();
+  await prisma.gameProperty.deleteMany();
+  await prisma.propertyPrice.deleteMany();
+  await prisma.property.deleteMany();
+  await prisma.propertyCluster.deleteMany();
+  await prisma.occupancyType.deleteMany();
+  await prisma.resource.deleteMany();
 
   // Games
   const game = await prisma.game.create({
@@ -1011,6 +1086,11 @@ async function main() {
     ],
   });
 
+  // Properties (hotels + prices) linked to the game
+  await seedProperties(game.id);
+
+  // Resources (helper function)
+  await seedResources();
   // Resources (helper function)
   await seedResources();
 

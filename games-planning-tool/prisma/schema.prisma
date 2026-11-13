@@ -249,7 +249,6 @@ model PropertyPrice {
   propertyId      String  @map("property_id") @db.Uuid
   occupancyTypeId String  @map("occupancy_type_id") @db.Uuid
   price           Decimal @db.Decimal(12, 2)
-  currency        String  @default("EUR") @db.Char(3)
 
   property      Property      @relation(fields: [propertyId], references: [id])
   occupancyType OccupancyType @relation(fields: [occupancyTypeId], references: [id])
