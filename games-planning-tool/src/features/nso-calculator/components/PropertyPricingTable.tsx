@@ -35,7 +35,7 @@ export default function PropertyPricingTable({
   const rows: PropertyGridRow[] = table.rows.map(
     ({ id, clusterName, name, prices }) => ({
       id,
-      name: `${clusterName} - ${name}`, // "Milano - UNA Mediterraneo"
+      name: `${clusterName} - ${name}`,
       ...Object.fromEntries(
         table.columns.map(({ code }) => [`price_${code}`, prices[code] ?? '-']),
       ),

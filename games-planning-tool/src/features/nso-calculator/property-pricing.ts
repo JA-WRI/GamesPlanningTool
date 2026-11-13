@@ -5,10 +5,10 @@ export type PropertyPricingColumn = {
 };
 
 export type PropertyPricingRow = {
-  id: string; // GameProperty id
+  id: string;
   clusterName: string;
   name: string;
-  prices: Record<string, string>; // missing key = not offered
+  prices: Record<string, string>;
 };
 
 export type PropertyPricingTable = {
