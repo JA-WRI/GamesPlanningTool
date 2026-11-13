@@ -1,29 +1,38 @@
-// AI-assisted tests; reviewed for calculator and hotel pricing requirements.
+//AI usage: over 50%
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { expect, it } from 'vitest';
 import CalculatorClient from '@/features/nso-calculator/components/CalculatorClient';
-import HotelPricingTable from '@/features/nso-calculator/components/PropertyPricingTable';
+import PropertyPricingTable from '@/features/nso-calculator/components/PropertyPricingTable';
+import type { PropertyPricingTable as PropertyPricingTableData } from '@/features/nso-calculator/property-pricing';
 
-it('preserves calculator and estimated costs with database hotels while Cost Summary is deferred', () => {
+// Single source of truth for the property data rendered below.
+const pricing: PropertyPricingTableData = {
+  columns: [{ code: 'single', label: 'Price for single' }],
+  rows: [
+    {
+      id: 'property',
+      clusterName: 'Database Cluster',
+      name: 'Database Property',
+      prices: { single: '125.50' },
+    },
+  ],
+};
+const [property] = pricing.rows;
+const propertyLabel = `${property.clusterName} - ${property.name}`;
+const propertyPrice = property.prices.single;
+
+it('preserves calculator and estimated costs with database properties while Cost Summary is deferred', () => {
   render(
     <CalculatorClient gameName="Database Games">
-      <HotelPricingTable
-        hotels={[
-          {
-            id: 'hotel',
-            hotel: 'Database Hotel',
-            prices: { single: '125.50' },
-          },
-        ]}
-      />
+      <PropertyPricingTable table={pricing} />
     </CalculatorClient>,
   );
   expect(
     screen.getByRole('heading', { name: 'Database Games' }),
   ).toBeInTheDocument();
   expect(screen.queryByText('SELECT A GAME')).not.toBeInTheDocument();
-  expect(screen.getByText('Database Hotel')).toBeInTheDocument();
-  expect(screen.getByText('125.50')).toBeInTheDocument();
+  expect(screen.getByText(propertyLabel)).toBeInTheDocument();
+  expect(screen.getByText(propertyPrice)).toBeInTheDocument();
   expect(
     screen.queryByText('Milano - UNA Mediterraneo'),
   ).not.toBeInTheDocument();
@@ -31,7 +40,7 @@ it('preserves calculator and estimated costs with database hotels while Cost Sum
     .getAllByRole('heading')
     .map((heading) => heading.textContent);
   expect(headings.indexOf('ESTIMATED COSTS')).toBeLessThan(
-    headings.indexOf('HOTEL PRICING'),
+    headings.indexOf('PROPERTY PRICING'),
   );
   expect(
     screen.queryByRole('region', { name: 'Cost summary' }),
@@ -75,7 +84,8 @@ it('preserves calculator and estimated costs with database hotels while Cost Sum
   expect(
     within(screen.getAllByRole('table')[1]).getByText('7.25'),
   ).toBeInTheDocument();
-  expect(screen.getByText('125.50')).toBeInTheDocument();
+  // Property prices are not converted by the currency toggle
+  expect(screen.getByText(propertyPrice)).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'CAD' }));
   expect(
     within(screen.getAllByRole('table')[0]).getByText('2400'),

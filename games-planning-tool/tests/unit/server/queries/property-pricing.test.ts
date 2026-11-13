@@ -1,3 +1,4 @@
+// @vitest-environment node
 //AI usage: over 50%
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('server-only', () => ({}));
