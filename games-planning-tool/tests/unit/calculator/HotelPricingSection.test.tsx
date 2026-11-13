@@ -2,6 +2,10 @@
 import { render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 vi.mock('@/server/queries/hotel-pricing', () => ({ getHotelPricing: vi.fn() }));
+vi.mock('@/lib/draft-actions', () => ({
+  saveDraftDocument: vi.fn(),
+  deleteDraftDocument: vi.fn(),
+}));
 import { getHotelPricing } from '@/server/queries/hotel-pricing';
 import HotelPricingSection from '@/features/nso-calculator/components/HotelPricingSection';
 afterEach(() => vi.restoreAllMocks());

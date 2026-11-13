@@ -1,7 +1,13 @@
 // AI-assisted tests; reviewed for calculator and hotel pricing requirements.
 import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import HotelPricingTable from '@/features/nso-calculator/components/HotelPricingTable';
+
+vi.mock('@/lib/draft-actions', () => ({
+  saveDraftDocument: vi.fn(),
+  deleteDraftDocument: vi.fn(),
+}));
+
 describe('HotelPricingTable', () => {
   it('shows supplied rates, zero and missing occupancy as a read-only table', () => {
     render(

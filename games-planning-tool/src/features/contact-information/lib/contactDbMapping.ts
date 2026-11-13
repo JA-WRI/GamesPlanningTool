@@ -45,7 +45,11 @@ const toDigits = (value: unknown): string => {
 
 export function parseGameId(gameId: string): number {
   const parsed = Number(gameId);
-  if (!/^[1-9]\d*$/.test(gameId) || !Number.isSafeInteger(parsed) || parsed > 2147483647) {
+  if (
+    !/^[1-9]\d*$/.test(gameId) ||
+    !Number.isSafeInteger(parsed) ||
+    parsed > 2147483647
+  ) {
     throw new Error('Invalid game ID.');
   }
   return parsed;

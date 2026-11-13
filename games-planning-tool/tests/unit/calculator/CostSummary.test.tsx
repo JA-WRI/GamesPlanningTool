@@ -1,9 +1,14 @@
 // AI-assisted tests: updated with AI
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import CostSummary, {
   type CostSummaryData,
 } from '@/features/nso-calculator/components/CostSummary';
+
+vi.mock('@/lib/draft-actions', () => ({
+  saveDraftDocument: vi.fn(),
+  deleteDraftDocument: vi.fn(),
+}));
 
 const data: CostSummaryData = {
   accommodation: 34850,

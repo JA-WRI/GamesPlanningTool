@@ -1,7 +1,12 @@
 // AI contributed to these tests; reviewed for calculator requirements.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { calculateCostSummary } from '@/features/nso-calculator/components/calculateCostSummary';
 import { INITIAL_COST_ROWS } from '@/features/nso-calculator/components/EstimatedCosts';
+
+vi.mock('@/lib/draft-actions', () => ({
+  saveDraftDocument: vi.fn(),
+  deleteDraftDocument: vi.fn(),
+}));
 
 describe('calculateCostSummary', () => {
   it('aggregates saved budgets by team size and daily cell costs by traveler-days', () => {
