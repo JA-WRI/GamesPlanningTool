@@ -59,7 +59,7 @@ const toPositiveInt = (value: unknown): number => {
 // Ensures valid numbers
 const toPositiveNumber = (value: unknown): number => {
   const number = Number(value);
-  if (isNaN(number) || number < 0 || !Number.isFinite(number)) {
+  if (Number.isNaN(number) || number < 0 || !Number.isFinite(number)) {
     throw new Error('Value must be a valid positive number.');
   }
   return number;
