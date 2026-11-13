@@ -52,6 +52,14 @@ const toNullableText = (value: unknown): string | null => {
   return value;
 };
 
+const toDigits = (value: unknown): string => {
+  const text = toText(value ?? '');
+  if (text !== '' && !/^[0-9]+$/.test(text)) {
+    throw new Error('Country code and phone number must contain only digits.');
+  }
+  return text;
+};
+
 export function nsoContactsToDb(
   nsoId: string,
   gameId: string,
@@ -67,8 +75,8 @@ export function nsoContactsToDb(
       firstName: toText(row.firstName),
       lastName: toText(row.lastName),
       email: toText(row.email),
-      countryCode: toText(row.countryCode ?? ''),
-      phone: toText(row.phone ?? ''),
+      countryCode: toDigits(row.countryCode),
+      phone: toDigits(row.phone),
     };
   });
 }

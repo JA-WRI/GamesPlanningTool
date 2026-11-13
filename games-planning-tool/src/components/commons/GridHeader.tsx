@@ -39,7 +39,7 @@ export default function GridHeaderPage({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-200">
       {/* Title and description of the table */}
-      <div className="flex items-baseline gap-4 flex-wrap">
+      <div className="flex flex-col">
         <h1 className="text-2xl font-bold text-foreground">{title}</h1>
         {description && (
           <p className="text-sm text-muted mt-1">{description}</p>

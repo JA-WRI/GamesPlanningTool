@@ -15,6 +15,10 @@ export function useGridValidation<T extends Record<string, unknown>>(
   ): string | null => {
     if (val === '' || val === null || val === undefined) return null;
 
+    if (col.digitsOnly && !/^[0-9]+$/.test(String(val))) {
+      return 'Use digits only';
+    }
+
     const stringVal = String(val).trim();
 
     if (

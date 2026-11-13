@@ -42,6 +42,7 @@ type UseDraftAutosaveOptions<Value> = {
   draftKey?: string;
   value: Value;
   enabled: boolean;
+  canPersist?: boolean;
   schemaVersion?: number;
   debounceMs?: number;
   serialize?: (value: Value) => unknown;
@@ -53,6 +54,7 @@ export function useDraftAutosave<Value>({
   draftKey,
   value,
   enabled,
+  canPersist = true,
   schemaVersion = 1,
   debounceMs = 700,
   serialize,
@@ -61,10 +63,10 @@ export function useDraftAutosave<Value>({
 }: UseDraftAutosaveOptions<Value>) {
   const serializedValue = JSON.stringify(serialize ? serialize(value) : value);
   const persistedValueRef = useRef(serializedValue);
-  const currentSerializedRef = useRef(serializedValue);
   const currentValueRef = useRef(value);
   const serializeRef = useRef(serialize);
   const onPersistRef = useRef(onPersist);
+  const canPersistRef = useRef(canPersist);
   const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [status, setStatus] = useState<DraftSaveStatus>(
@@ -74,11 +76,11 @@ export function useDraftAutosave<Value>({
   const [hasPersistedDraft, setHasPersistedDraft] = useState(initiallyRestored);
 
   useEffect(() => {
-    currentSerializedRef.current = serializedValue;
     currentValueRef.current = value;
     serializeRef.current = serialize;
     onPersistRef.current = onPersist;
-  }, [onPersist, serialize, serializedValue, value]);
+    canPersistRef.current = canPersist;
+  }, [canPersist, onPersist, serialize, serializedValue, value]);
 
   const persist = useCallback(
     async (snapshot: Value) => {
@@ -88,6 +90,9 @@ export function useDraftAutosave<Value>({
         : snapshot;
       const serialized = JSON.stringify(payload);
       if (serialized === persistedValueRef.current) return;
+      if (!canPersistRef.current) {
+        throw new Error('Fix invalid inputs before saving the draft.');
+      }
 
       setStatus('saving');
       const request = saveQueueRef.current
@@ -101,9 +106,9 @@ export function useDraftAutosave<Value>({
         setPersistedValue(serialized);
         setHasPersistedDraft(true);
         onPersistRef.current?.(snapshot);
-        if (currentSerializedRef.current === serialized) setStatus('saved');
+        if (saveQueueRef.current === request) setStatus('saved');
       } catch (error) {
-        setStatus('error');
+        if (saveQueueRef.current === request) setStatus('error');
         throw error;
       }
     },
@@ -137,7 +142,6 @@ export function useDraftAutosave<Value>({
           : baselinePayload,
       );
       persistedValueRef.current = baselineSerialized;
-      currentSerializedRef.current = baselineSerialized;
       currentValueRef.current = baselinePayload;
       setPersistedValue(baselineSerialized);
       setHasPersistedDraft(false);
@@ -152,7 +156,7 @@ export function useDraftAutosave<Value>({
   }, []);
 
   useEffect(() => {
-    if (!draftKey || !enabled) return;
+    if (!draftKey || !enabled || !canPersist) return;
     const snapshot = value;
     timerRef.current = setTimeout(() => {
       timerRef.current = null;
@@ -163,7 +167,15 @@ export function useDraftAutosave<Value>({
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = null;
     };
-  }, [debounceMs, draftKey, enabled, persist, serializedValue, value]);
+  }, [
+    canPersist,
+    debounceMs,
+    draftKey,
+    enabled,
+    persist,
+    serializedValue,
+    value,
+  ]);
 
   useEffect(() => {
     if (!draftKey || !enabled) return;

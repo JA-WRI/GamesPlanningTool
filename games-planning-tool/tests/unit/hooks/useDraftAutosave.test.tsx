@@ -10,6 +10,7 @@ const draftActions = vi.hoisted(() => ({
 vi.mock('@/lib/draft-actions', () => draftActions);
 
 import { useDraftAutosave } from '@/hooks/useDraftAutosave';
+import { flushActiveDrafts } from '@/lib/draft-navigation';
 
 describe('useDraftAutosave', () => {
   beforeEach(() => {
@@ -94,5 +95,85 @@ describe('useDraftAutosave', () => {
 
     expect(result.current.status).toBe('restored');
     expect(result.current.hasPersistedDraft).toBe(true);
+  });
+
+  it('does not save or flush invalid edits, and resumes after correction', async () => {
+    const { rerender } = renderHook(
+      ({ value, canPersist }) =>
+        useDraftAutosave({
+          draftKey: 'test:grid',
+          value,
+          enabled: true,
+          canPersist,
+          debounceMs: 200,
+        }),
+      { initialProps: { value: '123', canPersist: true } },
+    );
+
+    rerender({ value: '12x', canPersist: false });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
+
+    expect(draftActions.saveDraftDocument).not.toHaveBeenCalled();
+    await expect(flushActiveDrafts()).rejects.toThrow(
+      'Fix invalid inputs before saving the draft.',
+    );
+    expect(draftActions.saveDraftDocument).not.toHaveBeenCalled();
+
+    rerender({ value: '0123', canPersist: true });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
+    expect(draftActions.saveDraftDocument).toHaveBeenCalledWith(
+      'test:grid',
+      '0123',
+      1,
+    );
+  });
+
+  it('keeps invalid edits pending when an earlier valid save finishes', async () => {
+    let finishSave!: () => void;
+    draftActions.saveDraftDocument.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishSave = resolve;
+      }),
+    );
+    const { rerender, result } = renderHook(
+      ({ value, canPersist }) =>
+        useDraftAutosave({
+          draftKey: 'test:grid',
+          value,
+          enabled: true,
+          canPersist,
+          debounceMs: 200,
+          initiallyRestored: true,
+        }),
+      { initialProps: { value: '123', canPersist: true } },
+    );
+
+    rerender({ value: '456', canPersist: true });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
+    expect(draftActions.saveDraftDocument).toHaveBeenCalledWith(
+      'test:grid',
+      '456',
+      1,
+    );
+    rerender({ value: '456x', canPersist: false });
+    await act(async () => {
+      finishSave();
+      await vi.advanceTimersByTimeAsync(300);
+    });
+
+    expect(draftActions.saveDraftDocument).toHaveBeenCalledTimes(1);
+    expect(draftActions.deleteDraftDocument).not.toHaveBeenCalled();
+    expect(result.current.hasPersistedDraft).toBe(true);
+    expect(result.current.isSaving).toBe(false);
+    expect(result.current.isPending).toBe(true);
+    await expect(flushActiveDrafts()).rejects.toThrow(
+      'Fix invalid inputs before saving the draft.',
+    );
   });
 });

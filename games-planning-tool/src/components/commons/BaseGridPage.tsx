@@ -12,6 +12,7 @@ import {
   useDraftAutosave,
 } from '@/hooks/useDraftAutosave';
 import { useGrid } from '@/hooks/useGrid';
+import { useGridValidation } from '@/hooks/useGridValidation';
 
 interface BaseGridPageProps<T extends Record<string, unknown>> {
   title: string;
@@ -71,7 +72,6 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
 }: BaseGridPageProps<T>) {
   const [isPreview, setIsPreview] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [hasValidationError, setHasValidationError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDiscardingDraft, setIsDiscardingDraft] = useState(false);
   const [saveError, setSaveError] = useState(false);
@@ -108,10 +108,22 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
     },
   );
 
+  const { getCellError, hasErrors: hasValidationError } = useGridValidation(
+    rows,
+    columns,
+  );
+  const hasInvalidDigits = rows.some((row) =>
+    columns.some(
+      (column) =>
+        column.digitsOnly && getCellError(column, row[column.field]) !== null,
+    ),
+  );
+
   const draft = useDraftAutosave({
     draftKey,
     value: rows,
     enabled: isEditing && !readOnly,
+    canPersist: !hasInvalidDigits,
     schemaVersion: draftSchemaVersion,
     serialize: serializeDraft,
     initiallyRestored: restoredDraft !== undefined || initiallyRestoredDraft,
@@ -158,15 +170,18 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
     serializeDraft ? serializeDraft(rows) : rows,
   );
   const hasLocalChanges = currentSnapshot !== canonicalSnapshot;
-  const draftStatusMessage = getDraftStatusMessage({
-    status: draft.status,
-    isDraftSaving: draft.isSaving,
-    isPending: draft.isPending,
-    isSavingChanges: isSaving,
-    isDiscarding: isDiscardingDraft,
-    saveError,
-    cleanupError: draftCleanupError,
-  });
+  const draftStatusMessage =
+    draftKey && isEditing && !readOnly && hasInvalidDigits && !isDiscardingDraft
+      ? 'Fix invalid inputs. Draft not saved'
+      : getDraftStatusMessage({
+          status: draft.status,
+          isDraftSaving: draft.isSaving,
+          isPending: draft.isPending,
+          isSavingChanges: isSaving,
+          isDiscarding: isDiscardingDraft,
+          saveError,
+          cleanupError: draftCleanupError,
+        });
 
   const discardDraft = async () => {
     if (savingRef.current || isDiscardingDraft) return;
@@ -212,6 +227,22 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
           setSaveError(false);
           draft.cancelPending();
           const nextEditing = !isEditing;
+          if (nextEditing) {
+            setRows((currentRows) =>
+              currentRows.map((row) => {
+                const normalized = { ...row };
+                for (const column of columns) {
+                  const value = row[column.field];
+                  if (column.digitsOnly && typeof value === 'string') {
+                    Object.assign(normalized, {
+                      [column.field]: value.replace(/[+\s().-]/g, ''),
+                    });
+                  }
+                }
+                return normalized;
+              }),
+            );
+          }
           setIsEditing(nextEditing);
           onEditingChange?.(nextEditing);
           setIsPreview(false);
@@ -283,7 +314,6 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
         onRowsChange={handleRowsChange}
         onAddRow={handleAddRow}
         addButtonLabel={addButtonLabel}
-        onValidationChange={(errorState) => setHasValidationError(errorState)}
         allowDelete={allowDelete && !readOnly}
         allowAddRow={allowAddRow && !readOnly}
         minWidth={minWidth}
