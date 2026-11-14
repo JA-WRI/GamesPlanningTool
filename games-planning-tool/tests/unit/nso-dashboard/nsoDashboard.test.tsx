@@ -8,6 +8,7 @@ import ActionsRequiredCard from '../../../src/components/nso-dashboard/ActionsRe
 import DashboardPanel from '../../../src/components/nso-dashboard/DashboardPanel';
 import AnnouncementsCard from '@/components/nso-dashboard/AnnouncementsCard';
 import PlanningProgressCard from '@/components/nso-dashboard/PlanningProgressCard';
+import DeadlinesAheadCard from '@/components/nso-dashboard/DeadlinesAheadCard';
 
 const { chartMock } = vi.hoisted(() => ({ chartMock: vi.fn() }));
 
@@ -228,4 +229,52 @@ describe('PlanningProgressCard', () => {
     expect(screen.getByText('In Progress (75%)')).toBeInTheDocument();
     expect(chartMock).toHaveBeenCalled();
   });
+});
+
+describe('DeadlinesAheadCard', () => {
+  it.each([
+    [-3, 'Overdue by 3 days'],
+    [-1, 'Overdue by 1 day'],
+    [0, 'Due today'],
+    [1, 'Due in 1 day'],
+    [5, 'Due in 5 days'],
+  ])(
+    'renders the correct label for %i days remaining',
+    (daysRemaining, label) => {
+      render(
+        <DeadlinesAheadCard
+          deadlines={[
+            {
+              id: 'travel',
+              title: 'Review travel details',
+              description: 'Confirm the delegation arrival details.',
+              date: '2026-11-14',
+              dateLabel: 'Nov 14, 2026',
+              daysRemaining,
+            },
+          ]}
+        />,
+      );
+
+      const row = screen.getByRole('listitem');
+
+      expect(
+        within(row).getByRole('heading', { name: 'Review travel details' }),
+      ).toBeInTheDocument();
+
+      expect(
+        within(row).getByText('Confirm the delegation arrival details.'),
+      ).toBeInTheDocument();
+
+      expect(within(row).getByText(label)).toBeInTheDocument();
+
+      expect(within(row).getByRole('time')).toHaveAttribute(
+        'datetime',
+        '2026-11-14',
+      );
+
+      expect(within(row).getByRole('time')).toHaveTextContent('Nov 14, 2026');
+      expect(screen.queryByText('No deadlines ahead.')).not.toBeInTheDocument();
+    },
+  );
 });
