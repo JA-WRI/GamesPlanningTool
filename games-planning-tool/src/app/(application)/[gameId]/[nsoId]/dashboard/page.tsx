@@ -146,6 +146,7 @@ export default async function Page({ params }: DashboardPageProps) {
             gameId={gameId}
             nsoId={nsoId}
             viewerRole="nso"
+            resources={resources}
           />
         </div>
       </div>

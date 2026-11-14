@@ -1,4 +1,4 @@
-// AI contribution: 50%
+// AI contribution: 30%
 import { notFound } from 'next/navigation';
 import { Nsos } from '@/lib/data';
 import { prisma } from '@/lib/prisma';
