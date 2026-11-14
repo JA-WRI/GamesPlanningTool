@@ -1,7 +1,6 @@
 // AI contribution: 50% or more AI-generated
 import { describe, it, expect } from 'vitest';
 import { INITIAL_TEAM_SIZE } from '@/features/team-size/lib/constants';
-import { MOCK_MEDAL_ROWS } from '@/features/team-size/lib/mockData';
 import { MOCK_DISCIPLINES, MOCK_TEAM_SIZE } from './fixtures';
 import {
   GridNumber,
@@ -17,7 +16,6 @@ import {
   createEmptyMedalRow,
   disciplineHasLowAboveBest,
   gendersWithRangeError,
-  rowsMissingName,
   rowsToAthletes,
   toGridNumber,
   toText,
@@ -201,37 +199,6 @@ describe('allWholeCounts', () => {
 
   it('is true when there are no rows', () => {
     expect(allWholeCounts([], fields)).toBe(true);
-  });
-});
-
-describe('rowsMissingName', () => {
-  const named = MOCK_MEDAL_ROWS[0];
-
-  it('is empty when every athlete has both names', () => {
-    expect(rowsMissingName(MOCK_MEDAL_ROWS)).toEqual([]);
-  });
-
-  it('finds an athlete with no first name', () => {
-    const noFirst = { ...named, id: 'x', firstName: '' };
-    expect(rowsMissingName([named, noFirst])).toEqual([noFirst]);
-  });
-
-  it('finds an athlete with no last name', () => {
-    const noLast = { ...named, id: 'y', lastName: '' };
-    expect(rowsMissingName([noLast])).toEqual([noLast]);
-  });
-
-  it('counts a name with only spaces as missing', () => {
-    const spaces = { ...named, firstName: '   ' };
-    expect(rowsMissingName([spaces])).toEqual([spaces]);
-  });
-
-  it('finds a new blank athlete', () => {
-    expect(rowsMissingName([createEmptyMedalRow()])).toHaveLength(1);
-  });
-
-  it('is empty when there are no athletes', () => {
-    expect(rowsMissingName([])).toEqual([]);
   });
 });
 
