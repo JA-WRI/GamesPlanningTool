@@ -135,45 +135,45 @@ export default async function Page({ params }: DashboardPageProps) {
   }));
 
   const resourceRows = await prisma.resource.findMany({
-  select: {
-    id: true,
-    name: true,
-    categories: true,
-    parentFolderId: true,
-    fileOrWebpageURL: true,
-    isWebpage: true,
-  },
-});
+    select: {
+      id: true,
+      name: true,
+      categories: true,
+      parentFolderId: true,
+      fileOrWebpageURL: true,
+      isWebpage: true,
+    },
+  });
 
-const resources: Resource[] = resourceRows.map((row): Resource => {
-  const base = {
-    id: row.id,
-    name: row.name,
-    categories: normalizeResourceCategories(row.categories),
-    parentId: row.parentFolderId,
-  };
+  const resources: Resource[] = resourceRows.map((row): Resource => {
+    const base = {
+      id: row.id,
+      name: row.name,
+      categories: normalizeResourceCategories(row.categories),
+      parentId: row.parentFolderId,
+    };
 
-  if (row.fileOrWebpageURL === null) {
+    if (row.fileOrWebpageURL === null) {
+      return {
+        ...base,
+        type: 'folder',
+      };
+    }
+
+    if (row.isWebpage) {
+      return {
+        ...base,
+        type: 'link',
+        URL: row.fileOrWebpageURL,
+      };
+    }
+
     return {
       ...base,
-      type: 'folder',
+      type: 'file',
+      fileUrl: row.fileOrWebpageURL,
     };
-  }
-
-  if (row.isWebpage) {
-    return {
-      ...base,
-      type: 'link',
-      URL: row.fileOrWebpageURL,
-    };
-  }
-
-  return {
-    ...base,
-    type: 'file',
-    fileUrl: row.fileOrWebpageURL,
-  };
-});
+  });
 
   return (
     <div className="w-full bg-white px-2 py-6 text-foreground sm:px-4">
