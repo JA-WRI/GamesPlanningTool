@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -16,7 +16,7 @@ export interface UseFolderModalDragProps {
     resourceIds: string[],
     targetFolderId: string | null,
   ) => void;
-  onReorderInFolder: (updatedChildren: Resource[]) => void;
+  onReorderInFolder: (parentId: string, updatedChildren: Resource[]) => void;
   onDropOnMainPage?: (ids: string[], targetId: string | null) => void;
   onPointerHoverMainPage?: (
     clientX: number,
@@ -32,6 +32,7 @@ export interface UseFolderModalDragProps {
   localOrderedRef: React.MutableRefObject<Resource[]>;
 }
 
+// Exceeds 50 lines: pointer drag, hover timers, and drop handling share one hook.
 export function useFolderModalDrag({
   isReadOnly,
   allResources,
@@ -401,7 +402,7 @@ export function useFolderModalDrag({
               ? { ...r, parentId: currentFolderId || undefined }
               : r,
           );
-          onReorderInFolder(updatedChildren);
+          onReorderInFolder(currentFolderId, updatedChildren);
           setIsEditingFolder(false);
         }
       }

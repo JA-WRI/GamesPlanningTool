@@ -22,7 +22,11 @@ import {
 
 type DisciplineTableProps = {
   disciplines: DisciplineBreakdown;
-  onChange: (disciplines: DisciplineBreakdown) => void;
+  initialDraft?: DisciplineGridRow[];
+  draftKey: string;
+  initialDraftNotes?: string;
+  draftNotesKey: string;
+  onSave: (disciplines: DisciplineBreakdown) => void | Promise<unknown>;
 };
 
 const numberColumn = (
@@ -76,11 +80,15 @@ function DisciplineWarnings({ rows }: { rows: DisciplineGridRow[] }) {
 
 export default function DisciplineTable({
   disciplines,
-  onChange,
+  initialDraft,
+  draftKey,
+  initialDraftNotes,
+  draftNotesKey,
+  onSave,
 }: DisciplineTableProps) {
   // the rows as the user types, so the warnings update live
-  const [liveRows, setLiveRows] = useState(() =>
-    disciplinesToGridRows(disciplines.rows),
+  const [liveRows, setLiveRows] = useState(
+    () => initialDraft ?? disciplinesToGridRows(disciplines.rows),
   );
 
   return (
@@ -89,6 +97,8 @@ export default function DisciplineTable({
         title="Discipline breakdown"
         columns={columns}
         initialData={disciplinesToGridRows(disciplines.rows)}
+        initialDraft={initialDraft}
+        draftKey={draftKey}
         // never called, this table has no add button
         createEmptyRow={() => disciplinesToGridRows(disciplines.rows)[0]}
         isValid={(rows) =>
@@ -96,7 +106,7 @@ export default function DisciplineTable({
           brokenDisciplines(rows).length === 0
         }
         onSave={(rows) =>
-          onChange({ ...disciplines, rows: gridRowsToDisciplines(rows) })
+          onSave({ ...disciplines, rows: gridRowsToDisciplines(rows) })
         }
         onRowsChange={setLiveRows}
         showSearch={false}
@@ -108,7 +118,9 @@ export default function DisciplineTable({
       <NotesBox
         id="discipline-notes"
         value={disciplines.notes}
-        onSave={(notes) => onChange({ ...disciplines, notes })}
+        initialDraft={initialDraftNotes}
+        draftKey={draftNotesKey}
+        onSave={(notes) => onSave({ ...disciplines, notes })}
       />
     </div>
   );

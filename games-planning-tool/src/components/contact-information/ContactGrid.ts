@@ -26,6 +26,7 @@ export const baseContactColumns: ColumnDefinition<ContactRow>[] = [
     field: 'countryCode',
     label: 'Country Code',
     placeholder: 'Enter Country Code',
+    digitsOnly: true,
     align: 'center',
   },
   {
@@ -33,6 +34,7 @@ export const baseContactColumns: ColumnDefinition<ContactRow>[] = [
     label: 'Telephone Number',
     type: 'tel',
     placeholder: 'Enter Phone Number',
+    digitsOnly: true,
     align: 'center',
   },
 ];

@@ -24,6 +24,18 @@ enum UserStatus {
   inactive
 }
 
+enum ContactType {
+  COC
+  NSO
+}
+
+enum Discipline {
+  hp
+  ssba @map("ss_ba")
+  ae
+  mo
+}
+
 model Game {
   id                  Int      @id @default(autoincrement())
   name                String
@@ -34,11 +46,14 @@ model Game {
   planningPeriodStart DateTime @map("planning_period_start")
   planningPeriodEnd   DateTime @map("planning_period_end")
   isActive            Boolean  @default(true) @map("is_active")
-  createdAt           DateTime @default(now())
+  createdAt           DateTime @default(now()) @map("created_at")
 
-  gameNsos    GameNso[]
-  gameMembers GameMember[]
-  travelers   Traveler[]
+  gameNsos        GameNso[]
+  gameMembers     GameMember[]
+  travelers       Traveler[]
+  hotels          GameHotel[]
+  contacts        Contact[]
+  pgtcDisciplines PgtcDiscipline[]
 
   @@map("games")
 }
@@ -54,18 +69,21 @@ model Nso {
   members   Member[]
   gameNsos  GameNso[]
   travelers Traveler[]
+  pgtcs     PgtcDiscipline[]
+  contacts  Contact[]
 
   @@map("nsos")
 }
 
 model GameNso {
+  estimatedCostItems EstimatedCostItem[]
   id                 String              @id @default(uuid()) @db.Uuid
   gameId             Int                 @map("game_id")
   nsoId              String              @map("nso_id") @db.Uuid
-  estimatedCostItems EstimatedCostItem[]
 
-  game Game @relation(fields: [gameId], references: [id])
-  nso  Nso  @relation(fields: [nsoId], references: [id])
+  game             Game              @relation(fields: [gameId], references: [id])
+  nso              Nso               @relation(fields: [nsoId], references: [id])
+  teamSizeEstimate TeamSizeEstimate?
 
   @@unique([gameId, nsoId])
   @@index([nsoId])
@@ -136,6 +154,49 @@ model GameMember {
   @@map("game_members")
 }
 
+// Team size of one NSO for one game
+model TeamSizeEstimate {
+  nsoId  String @map("nso_id") @db.Uuid
+  gameId Int    @map("game_id")
+
+  lowFemale                Int?   @map("low_female")
+  bestGuessFemale          Int?   @map("best_guess_female")
+  highFemale               Int?   @map("high_female")
+  lowMale                  Int?   @map("low_male")
+  bestGuessMale            Int?   @map("best_guess_male")
+  highMale                 Int?   @map("high_male")
+  notes                    String @default("")
+  disciplineBreakdownNotes String @default("") @map("discipline_breakdown_notes")
+  lowMedals                Int?   @map("low_medals")
+  highMedals               Int?   @map("high_medals")
+
+  // only NSOs taking part in the game can have a team size
+  gameNso              GameNso               @relation(fields: [nsoId, gameId], references: [nsoId, gameId])
+  disciplineBreakdowns DisciplineBreakdown[]
+
+  @@id([nsoId, gameId])
+  @@index([gameId])
+  @@map("team_size_estimates")
+}
+
+// one row per discipline for each NSO per game
+model DisciplineBreakdown {
+  id         String     @id @default(uuid()) @db.Uuid
+  nsoId      String     @map("nso_id") @db.Uuid
+  gameId     Int        @map("game_id")
+  discipline Discipline
+
+  bestFemale Int? @map("best_female")
+  bestMale   Int? @map("best_male")
+  lowFemale  Int? @map("low_female")
+  lowMale    Int? @map("low_male")
+
+  teamSizeEstimate TeamSizeEstimate @relation(fields: [nsoId, gameId], references: [nsoId, gameId], onDelete: Cascade)
+
+  @@unique([nsoId, gameId, discipline])
+  @@map("discipline_breakdowns")
+}
+
 model Resource {
   id String @id @default(uuid()) @db.Uuid
 
@@ -148,15 +209,146 @@ model Resource {
   isWebpage        Boolean  @default(false) @map("is_webpage")
   categories       String[] @default([])
 
-  previousElementId String?    @map("previous_element_id") @db.Uuid
-  previous          Resource?  @relation("PreviousElement", fields: [previousElementId], references: [id])
-  nextFromPrevious  Resource[] @relation("PreviousElement")
+  previousElementId String?   @unique @map("previous_element_id") @db.Uuid
+  previous          Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
+  nextFromPrevious  Resource? @relation("PreviousElement")
 
-  nextElementId    String?    @map("next_element_id") @db.Uuid
-  next             Resource?  @relation("NextElement", fields: [nextElementId], references: [id])
-  previousFromNext Resource[] @relation("NextElement")
+  nextElementId    String?   @unique @map("next_element_id") @db.Uuid
+  next             Resource? @relation("NextElement", fields: [nextElementId], references: [id])
+  previousFromNext Resource? @relation("NextElement")
 
   @@map("resources")
+}
+
+model Contact {
+  id          String      @id @default(uuid())
+  nsoId       String      @db.Uuid
+  gameId      Int
+  role        String      @unique // Unique per role for NSO structure
+  type        ContactType
+  isPrimary   Boolean     @default(false) @map("is_primary")
+  firstName   String      @map("first_name")
+  lastName    String      @map("last_name")
+  email       String
+  countryCode String      @map("country_code")
+  phone       String
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  game Game @relation(fields: [gameId], references: [id])
+  nso  Nso  @relation(fields: [nsoId], references: [id])
+
+  @@index([nsoId, gameId])
+  @@map("nso_contacts")
+}
+
+model PgtcDiscipline {
+  id                String   @id @default(uuid())
+  nsoId             String   @db.Uuid
+  gameId            Int
+  name              String
+  arrivalDate       String?  @map("arrival_date")
+  arrivalTime       String?  @map("arrival_time")
+  departureDate     String?  @map("departure_date")
+  departureTime     String?  @map("departure_time")
+  accommodationName String?  @map("accommodation_name")
+  streetName        String?  @map("street_name")
+  streetNumber      String?  @map("street_number")
+  zipCode           String?  @map("zip_code")
+  city              String?
+  stateOrProvince   String?
+  country           String?
+  travelMethod      String?  @map("travel_method")
+  pointOfEntry      String?  @map("point_of_entry")
+  additionalNotes   String?  @map("additional_notes")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  game Game @relation(fields: [gameId], references: [id])
+  nso  Nso  @relation(fields: [nsoId], references: [id])
+
+  @@index([nsoId, gameId])
+  @@map("pgtc_disciplines")
+}
+
+model CalculatorTravelerItem {
+  id                     String   @id @default(uuid())
+  nsoId                  String
+  gameId                 String
+  calculatorId           Int      @map("calculator_id")
+  category               String
+  numberOfTeamMembers    Int      @default(0) @map("number_of_team_members")
+  days                   Int      @default(0)
+  travelBudget           Float    @default(0) @map("travel_budget")
+  checkIn                String?  @map("check_in")
+  checkOut               String?  @map("check_out")
+  accommodationBudget    Float    @default(0) @map("accommodation_budget")
+  mealsBudget            Float    @default(0) @map("meals_budget")
+  insuranceBudget        Float    @default(0) @map("insurance_budget")
+  totalCostPerTeamMember Float    @default(0) @map("total_cost_per_team_member")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  @@index([nsoId, gameId])
+  @@map("calculator_traveler_items")
+}
+
+model CalculatorEstimatedCostItem {
+  id            String   @id @default(uuid())
+  nsoId         String
+  gameId        String
+  calculatorId  Int      @map("calculator_id")
+  category      String
+  amount        Float    @default(0)
+  unitOfMeasure String   @map("unit_of_measure")
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([nsoId, gameId])
+  @@map("calculator_estimated_cost_items")
+}
+
+model Draft {
+  scopeKey      String   @id @map("scope_key")
+  payload       Json
+  schemaVersion Int      @default(1) @map("schema_version")
+  revision      Int      @default(1)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([updatedAt])
+  @@map("drafts")
+}
+
+// Reference prices per room, per night, shared by all NSOs for a game.
+model GameHotel {
+  id           String   @id @default(uuid()) @db.Uuid
+  gameId       Int      @map("game_id")
+  name         String   @db.VarChar(255)
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  game  Game        @relation(fields: [gameId], references: [id], onDelete: Restrict)
+  rates HotelRate[]
+
+  @@index([gameId])
+  @@map("game_hotels")
+}
+
+model HotelRate {
+  id          String   @id @default(uuid()) @db.Uuid
+  gameHotelId String   @map("game_hotel_id") @db.Uuid
+  occupancy   String   @db.VarChar(50)
+  amount      Decimal  @db.Decimal(12, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  gameHotel GameHotel @relation(fields: [gameHotelId], references: [id], onDelete: Restrict)
+
+  @@unique([gameHotelId, occupancy])
+  @@map("hotel_rates")
 }
 
 // Calculator tables 

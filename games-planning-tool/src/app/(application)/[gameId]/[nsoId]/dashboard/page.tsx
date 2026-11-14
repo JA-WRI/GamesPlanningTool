@@ -1,3 +1,4 @@
+// 50% or more AI-generated
 // This page has been coded by both me and AI (50%).
 // I started coding the general structure of the page and used AI to accelerate the process and get the right placement of elements
 // Static preview data. Connect to real data when functionality is added.
@@ -8,6 +9,9 @@ import PlanningProgressCard from '../../../../../components/nso-dashboard/Planni
 import DashboardPanel from '../../../../../components/nso-dashboard/DashboardPanel';
 import { DashboardResourceRow } from '../../../../../components/resources/DashboardResourceRow';
 import { actions, deadlines, announcements } from './mock-data';
+import { listResources, resourceVisibilityFor } from '@/lib/resources';
+
+export const dynamic = 'force-dynamic';
 
 type DashboardPageProps = {
   params: Promise<{
@@ -18,6 +22,8 @@ type DashboardPageProps = {
 
 export default async function Page({ params }: DashboardPageProps) {
   const { gameId, nsoId } = await params;
+
+  const resources = await listResources(resourceVisibilityFor(gameId, nsoId));
   return (
     // Shared application layout supplies the header and navigation.
     <div className="w-full bg-white px-2 py-6 text-foreground sm:px-4">
@@ -59,6 +65,7 @@ export default async function Page({ params }: DashboardPageProps) {
             gameId={gameId}
             nsoId={nsoId}
             viewerRole="nso"
+            resources={resources}
           />
         </div>
       </div>

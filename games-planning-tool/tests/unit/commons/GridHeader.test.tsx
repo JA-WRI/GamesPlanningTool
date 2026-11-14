@@ -25,8 +25,12 @@ describe('GridHeaderPage', () => {
   it('renders title and description when provided', () => {
     render(<GridHeaderPage {...defaultProps} />);
 
-    expect(screen.getByText('Test Title')).toBeInTheDocument();
-    expect(screen.getByText('Test Description')).toBeInTheDocument();
+    const title = screen.getByRole('heading', { name: 'Test Title' });
+    const description = screen.getByText('Test Description');
+    expect(title).toBeInTheDocument();
+    expect(description).toBeInTheDocument();
+    expect(title.parentElement).toHaveClass('flex-col');
+    expect(title.nextElementSibling).toBe(description);
   });
 
   it('renders Edit button when not editing', () => {

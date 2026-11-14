@@ -1,9 +1,4 @@
-// 50% AI generated code:
-// The following was AI generated:
-// - Currency selector component structure
-// - css converted to tailwind
-// - ai used for styling
-// The options and layout were reviewed and modified to match the calculator requirements.
+// 50% AI generated code
 
 'use client';
 
@@ -11,6 +6,22 @@ import { Box, Button, Typography } from '@mui/material';
 
 export type Currency = 'CAD' | 'USD' | 'EUR';
 export type CurrencyRates = Record<Currency, number>;
+
+export function displayAmount(
+  amountCAD: number,
+  currency: Currency,
+  rates: CurrencyRates,
+): number {
+  return Number((Number(amountCAD) / rates[currency]).toFixed(2));
+}
+
+export function amountToCAD(
+  amount: number,
+  currency: Currency,
+  rates: CurrencyRates,
+): number {
+  return Number(amount) * rates[currency];
+}
 
 type ConversionRatesProps = {
   readonly currency: Currency;
@@ -33,18 +44,14 @@ export default function ConversionRates({
         <Box className="rounded-full border border-gray-200 bg-gray-50 px-3 py-2">
           <Typography className="text-[12px]!">
             USD → CAD{' '}
-            <span className="font-semibold">
-              {rates.USD.toFixed(2)}
-            </span>
+            <span className="font-semibold">{rates.USD.toFixed(2)}</span>
           </Typography>
         </Box>
 
         <Box className="rounded-full border border-gray-200 bg-gray-50 px-3 py-2">
           <Typography className="text-[12px]!">
             EUR → CAD{' '}
-            <span className="font-semibold">
-              {rates.EUR.toFixed(2)}
-            </span>
+            <span className="font-semibold">{rates.EUR.toFixed(2)}</span>
           </Typography>
         </Box>
       </Box>

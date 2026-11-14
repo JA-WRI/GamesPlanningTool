@@ -14,7 +14,9 @@ import {
 
 type MedalPotentialTableProps = {
   rows: MedalRow[];
-  onChange: (rows: MedalRow[]) => void;
+  initialDraft?: MedalRow[];
+  draftKey: string;
+  onSave: (rows: MedalRow[]) => void;
 };
 
 const columns: ColumnDefinition<MedalRow>[] = [
@@ -41,10 +43,12 @@ const columns: ColumnDefinition<MedalRow>[] = [
 
 export default function MedalPotentialTable({
   rows,
-  onChange,
+  initialDraft,
+  draftKey,
+  onSave,
 }: MedalPotentialTableProps) {
   // the rows as the user types, so the messages update live
-  const [liveRows, setLiveRows] = useState(rows);
+  const [liveRows, setLiveRows] = useState(initialDraft ?? rows);
 
   return (
     <div className="flex flex-col gap-3">
@@ -52,10 +56,13 @@ export default function MedalPotentialTable({
         title="Medal potential"
         columns={columns}
         initialData={rows}
+        initialDraft={initialDraft}
+        draftKey={draftKey}
+        clearDraftOnSave={false}
         createEmptyRow={createEmptyMedalRow}
         addButtonLabel="Add athlete"
         isValid={(rows) => rowsMissingName(rows).length === 0}
-        onSave={onChange}
+        onSave={onSave}
         onRowsChange={setLiveRows}
         showSearch={false}
       />

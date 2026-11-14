@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import React from 'react';
@@ -36,7 +36,8 @@ describe('useResourcesDragAndDrop', () => {
       allResources: [item1, item2, folder1],
       isReadOnly: false,
       selectedIds: new Set(),
-      updateResources: vi.fn(),
+      onMoveResourceToFolder: vi.fn(),
+      onReorderResources: vi.fn(),
       showToast: vi.fn(),
       setActiveDirectoryFolder: vi.fn(),
       setIsEditing: vi.fn(),
@@ -259,10 +260,9 @@ describe('useResourcesDragAndDrop', () => {
         );
       });
 
-      expect(defaultProps.updateResources).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.objectContaining({ id: 'res-1', parentId: 'folder-1' }),
-        ]),
+      expect(defaultProps.onMoveResourceToFolder).toHaveBeenCalledWith(
+        'res-1',
+        'folder-1',
       );
       expect(defaultProps.showToast).toHaveBeenCalledWith(
         'Moved item into folder',
@@ -307,7 +307,7 @@ describe('useResourcesDragAndDrop', () => {
         } as unknown as React.DragEvent);
       });
 
-      expect(defaultProps.updateResources).toHaveBeenCalled();
+      expect(defaultProps.onReorderResources).toHaveBeenCalled();
       expect(result.current.draggedCardId).toBeNull();
     });
 

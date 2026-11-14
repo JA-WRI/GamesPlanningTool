@@ -1,4 +1,5 @@
-// 50% or more AI-generated seed data and supporting setup code to have shared generic information accross developer databases
+// 50% or more AI-generated
+// Exceeds 500 lines: mostly seed data so all developer databases share generic content.
 import 'dotenv/config';
 import crypto from 'crypto';
 import { prisma } from '../src/lib/prisma';
@@ -131,173 +132,664 @@ type ResourceSeed = {
 
 const resourceSeeds: ResourceSeed[] = [
   {
-    id: 'res-w-folder-1',
-    name: 'Competition Schedules',
+    id: 'res-coc-governance',
+    name: 'COC Governance',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['General'],
+  },
+  {
+    id: 'res-brand-and-communications',
+    name: 'Brand and Communications',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['General'],
+    parentId: 'res-coc-governance',
+  },
+  {
+    id: 'res-coc-brand-guidelines-2025',
+    name: 'COC Brand Guidelines 2025',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/a3eb97a6-3844-469d-a033-4c19b1f39f9d/2025_COC_Brand_Guidelines.pdf',
+    categories: ['General'],
+    parentId: 'res-brand-and-communications',
+  },
+  {
+    id: 'res-team-canada-brand-toolkit',
+    name: 'Team Canada Brand Toolkit',
+    isWebpage: true,
+    fileOrWebpageURL: 'https://olympic.ca/team-canada/',
+    categories: ['General'],
+    parentId: 'res-brand-and-communications',
+  },
+  {
+    id: 'res-media-contact-list',
+    name: 'Media Contact List',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/41bd52fc-1ef7-4fb0-9863-d3a0b0c3dcb5/COC_Media_Contacts.csv',
+    categories: ['General'],
+    parentId: 'res-brand-and-communications',
+  },
+  {
+    id: 'res-safe-sport',
+    name: 'Safe Sport',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['General'],
+    parentId: 'res-coc-governance',
+  },
+  {
+    id: 'res-universal-code-of-conduct',
+    name: 'Universal Code of Conduct',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/46bcad6b-10b1-47e9-bbd7-d2831dd20a01/Universal_Code_of_Conduct.pdf',
+    categories: ['General'],
+    parentId: 'res-safe-sport',
+  },
+  {
+    id: 'res-safe-sport-reporting',
+    name: 'Safe Sport Reporting',
+    isWebpage: true,
+    fileOrWebpageURL: 'https://safesport.ca/',
+    categories: ['General'],
+    parentId: 'res-safe-sport',
+  },
+  {
+    id: 'res-cces-anti-doping-resources',
+    name: 'CCES Anti-Doping Resources',
+    isWebpage: true,
+    fileOrWebpageURL: 'https://cces.ca/',
+    categories: ['General'],
+    parentId: 'res-safe-sport',
+  },
+  {
+    id: 'res-complaint-intake-form',
+    name: 'Complaint Intake Form',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/0ccce8ab-836c-477f-ab41-5563acecd758/Safe_Sport_Complaint_Intake_Form.pdf',
+    categories: ['General'],
+    parentId: 'res-safe-sport',
+  },
+  {
+    id: 'res-finance-and-travel',
+    name: 'Finance and Travel',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['General'],
+    parentId: 'res-coc-governance',
+  },
+  {
+    id: 'res-per-diem-rates-2026',
+    name: 'Per Diem Rates 2026',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/992170be-d613-463d-a66a-0ec8f36892e8/COC_Per_Diem_Rates_2026.csv',
+    categories: ['General'],
+    parentId: 'res-finance-and-travel',
+  },
+  {
+    id: 'res-travel-expense-claim-form',
+    name: 'Travel Expense Claim Form',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/870de55e-818c-4041-aa40-02a26ff0014c/Travel_Expense_Claim_Form.pdf',
+    categories: ['General'],
+    parentId: 'res-finance-and-travel',
+  },
+  {
+    id: 'res-games-travel-policy-2026',
+    name: 'Games Travel Policy 2026',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/fcbbef11-5262-46d8-8f2e-ef13a60f0b07/Games_Travel_Policy_2026.pdf',
+    categories: ['General'],
+    parentId: 'res-finance-and-travel',
+  },
+  {
+    id: 'res-la-2028-planning',
+    name: 'LA 2028 Planning',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['Summer Games'],
+  },
+  {
+    id: 'res-accreditation',
+    name: 'Accreditation',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['Summer Games'],
+    parentId: 'res-la-2028-planning',
+  },
+  {
+    id: 'res-la-2028-accreditation-matrix',
+    name: 'LA 2028 Accreditation Matrix',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/c171c697-f032-4853-b8e5-9e2f100c2417/LA2028_Accreditation_Matrix.csv',
+    categories: ['Summer Games'],
+    parentId: 'res-accreditation',
+  },
+  {
+    id: 'res-la-2028-credential-request-form',
+    name: 'LA 2028 Credential Request Form',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/e10853f1-ff8c-4376-a277-59596cbe17be/LA2028_Credential_Request_Form.pdf',
+    categories: ['Summer Games'],
+    parentId: 'res-accreditation',
+  },
+  {
+    id: 'res-la28-games-plan',
+    name: 'LA28 Games Plan',
+    isWebpage: true,
+    fileOrWebpageURL: 'https://la28.org/en/games-plan',
+    categories: ['Summer Games'],
+    parentId: 'res-accreditation',
+  },
+  {
+    id: 'res-village-and-housing',
+    name: 'Village and Housing',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['Summer Games'],
+    parentId: 'res-la-2028-planning',
+  },
+  {
+    id: 'res-la-2028-village-guide',
+    name: 'LA 2028 Village Guide',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/12bfa0f3-3e60-4444-ad85-3c3305167b6d/LA2028_Village_Guide.pdf',
+    categories: ['Summer Games'],
+    parentId: 'res-village-and-housing',
+  },
+  {
+    id: 'res-rooming-list-template',
+    name: 'Rooming List Template',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/69def564-fcb2-451b-a89a-2577fda3358b/LA2028_Rooming_List_Template.csv',
+    categories: ['Summer Games'],
+    parentId: 'res-village-and-housing',
+  },
+  {
+    id: 'res-team-canada-at-the-games',
+    name: 'Team Canada at the Games',
+    isWebpage: true,
+    fileOrWebpageURL: 'https://olympic.ca/team-canada/',
+    categories: ['Summer Games'],
+    parentId: 'res-village-and-housing',
+  },
+  {
+    id: 'res-transportation',
+    name: 'Transportation',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['Summer Games'],
+    parentId: 'res-la-2028-planning',
+  },
+  {
+    id: 'res-la-2028-transport-operating-plan',
+    name: 'LA 2028 Transport Operating Plan',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/af0d0845-41c0-4ca9-9213-ff1be85e21cf/LA2028_Transport_Operating_Plan.pdf',
+    categories: ['Summer Games'],
+    parentId: 'res-transportation',
+  },
+  {
+    id: 'res-la-2028-shuttle-timetable',
+    name: 'LA 2028 Shuttle Timetable',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/ea7f9797-4dbc-4515-bb78-13daa5c67719/LA2028_Shuttle_Timetable.csv',
+    categories: ['Summer Games'],
+    parentId: 'res-transportation',
+  },
+  {
+    id: 'res-la-metro-games-service',
+    name: 'LA Metro Games Service',
+    isWebpage: true,
+    fileOrWebpageURL: 'https://www.metro.net/',
+    categories: ['Summer Games'],
+    parentId: 'res-transportation',
+  },
+  {
+    id: 'res-competition',
+    name: 'Competition',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['Summer Games'],
+    parentId: 'res-la-2028-planning',
+  },
+  {
+    id: 'res-la-2028-competition-schedule',
+    name: 'LA 2028 Competition Schedule',
+    isWebpage: true,
+    fileOrWebpageURL:
+      'https://olympics.com/en/olympic-games/los-angeles-2028/schedule',
+    categories: ['Summer Games'],
+    parentId: 'res-competition',
+  },
+  {
+    id: 'res-la-2028-venue-map-index',
+    name: 'LA 2028 Venue Map Index',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/678dd660-ee06-4ba3-9d5e-e17ae2123172/LA2028_Venue_Map_Index.pdf',
+    categories: ['Summer Games'],
+    parentId: 'res-competition',
+  },
+  {
+    id: 'res-la-2028-sport',
+    name: 'LA 2028 Sport',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['Summer Games'],
+  },
+  {
+    id: 'res-athlete-selection-framework',
+    name: 'Athlete Selection Framework',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/93cd0f8a-b048-476c-a625-1d7743d23bcc/Athlete_Selection_Framework.pdf',
+    categories: ['Summer Games'],
+    parentId: 'res-la-2028-sport',
+  },
+  {
+    id: 'res-athletics-canada',
+    name: 'Athletics Canada',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['Summer Games', 'Athletics Canada'],
+    parentId: 'res-la-2028-sport',
+  },
+  {
+    id: 'res-olympic-trials-results',
+    name: 'Olympic Trials Results',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/e7a2eaf0-d0e2-46eb-be9b-043ee21f0519/Athletics_Canada_Olympic_Trials_Results.csv',
+    categories: ['Summer Games', 'Athletics Canada'],
+    parentId: 'res-athletics-canada',
+  },
+  {
+    id: 'res-athletics-canada-2',
+    name: 'Athletics Canada',
+    isWebpage: true,
+    fileOrWebpageURL: 'https://athletics.ca/',
+    categories: ['Summer Games', 'Athletics Canada'],
+    parentId: 'res-athletics-canada',
+  },
+  {
+    id: 'res-swimming-canada',
+    name: 'Swimming Canada',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['Summer Games', 'Swimming Canada'],
+    parentId: 'res-la-2028-sport',
+  },
+  {
+    id: 'res-olympic-qualifying-standards',
+    name: 'Olympic Qualifying Standards',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/0c5cd43d-1ead-475b-9581-9c7a77f835b7/Swimming_Canada_Olympic_Qualifying_Standards.pdf',
+    categories: ['Summer Games', 'Swimming Canada'],
+    parentId: 'res-swimming-canada',
+  },
+  {
+    id: 'res-swimming-canada-2',
+    name: 'Swimming Canada',
+    isWebpage: true,
+    fileOrWebpageURL: 'https://www.swimming.ca/',
+    categories: ['Summer Games', 'Swimming Canada'],
+    parentId: 'res-swimming-canada',
+  },
+  {
+    id: 'res-rowing-canada',
+    name: 'Rowing Canada',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['Summer Games', 'Rowing Canada'],
+    parentId: 'res-la-2028-sport',
+  },
+  {
+    id: 'res-boat-transport-plan',
+    name: 'Boat Transport Plan',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/bd70c4d7-2243-49d3-947c-7db8f472f289/Rowing_Canada_Boat_Transport_Plan.pdf',
+    categories: ['Summer Games', 'Rowing Canada'],
+    parentId: 'res-rowing-canada',
+  },
+  {
+    id: 'res-rowing-canada-2',
+    name: 'Rowing Canada',
+    isWebpage: true,
+    fileOrWebpageURL: 'https://rowingcanada.org/',
+    categories: ['Summer Games', 'Rowing Canada'],
+    parentId: 'res-rowing-canada',
+  },
+  {
+    id: 'res-cycling-canada',
+    name: 'Cycling Canada',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['Summer Games', 'Cycling Canada'],
+    parentId: 'res-la-2028-sport',
+  },
+  {
+    id: 'res-track-cycling-schedule',
+    name: 'Track Cycling Schedule',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/eda04606-364e-4d48-8061-1b8088db8b01/Cycling_Canada_Track_Schedule.csv',
+    categories: ['Summer Games', 'Cycling Canada'],
+    parentId: 'res-cycling-canada',
+  },
+  {
+    id: 'res-cycling-canada-2',
+    name: 'Cycling Canada',
+    isWebpage: true,
+    fileOrWebpageURL: 'https://cyclingcanada.ca/',
+    categories: ['Summer Games', 'Cycling Canada'],
+    parentId: 'res-cycling-canada',
+  },
+  {
+    id: 'res-rugby-canada',
+    name: 'Rugby Canada',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['Summer Games', 'Rugby Canada'],
+    parentId: 'res-la-2028-sport',
+  },
+  {
+    id: 'res-sevens-staging-plan',
+    name: 'Sevens Staging Plan',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/7e28a05f-a1de-4058-b023-855115612e69/Rugby_Canada_Sevens_Staging_Plan.pdf',
+    categories: ['Summer Games', 'Rugby Canada'],
+    parentId: 'res-rugby-canada',
+  },
+  {
+    id: 'res-rugby-canada-2',
+    name: 'Rugby Canada',
+    isWebpage: true,
+    fileOrWebpageURL: 'https://rugby.ca/',
+    categories: ['Summer Games', 'Rugby Canada'],
+    parentId: 'res-rugby-canada',
+  },
+  {
+    id: 'res-milano-cortina-2026',
+    name: 'Milano Cortina 2026',
     isWebpage: false,
     fileOrWebpageURL: null,
     categories: ['Winter Games'],
   },
   {
-    id: 'res-w-child-1',
-    name: 'Alpine Training Runs',
+    id: 'res-accreditation-2',
+    name: 'Accreditation',
     isWebpage: false,
-    fileOrWebpageURL: '#',
+    fileOrWebpageURL: null,
     categories: ['Winter Games'],
-    parentId: 'res-w-folder-1',
+    parentId: 'res-milano-cortina-2026',
   },
   {
-    id: 'res-w-1',
-    name: 'Milano Cortina 2026 Manual',
+    id: 'res-accreditation-guide',
+    name: 'Accreditation Guide',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/525f54a7-d72c-43c3-954e-7704c214f607/Milano_Cortina_Accreditation_Guide.pdf',
+    categories: ['Winter Games'],
+    parentId: 'res-accreditation-2',
+  },
+  {
+    id: 'res-milano-cortina-2026-2',
+    name: 'Milano Cortina 2026',
     isWebpage: true,
     fileOrWebpageURL:
       'https://olympics.com/en/olympic-games/milano-cortina-2026',
     categories: ['Winter Games'],
+    parentId: 'res-accreditation-2',
   },
   {
-    id: 'res-w-2',
-    name: 'Winter Logistics Policy',
+    id: 'res-cold-weather-and-logistics',
+    name: 'Cold Weather and Logistics',
     isWebpage: false,
-    fileOrWebpageURL: '#',
+    fileOrWebpageURL: null,
     categories: ['Winter Games'],
+    parentId: 'res-milano-cortina-2026',
   },
   {
-    id: 'res-w-3',
-    name: 'Alpine Equipment Manifest',
+    id: 'res-cold-weather-protocols',
+    name: 'Cold Weather Protocols',
     isWebpage: false,
-    fileOrWebpageURL: '#',
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/c960223f-559a-4dd4-860b-9bdf4c37aa71/Cold_Weather_Protocols.pdf',
+    categories: ['Winter Games'],
+    parentId: 'res-cold-weather-and-logistics',
+  },
+  {
+    id: 'res-mountain-transport-plan',
+    name: 'Mountain Transport Plan',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/0048c189-b4a2-420e-b327-aee7aea598bc/Mountain_Transport_Plan.pdf',
+    categories: ['Winter Games'],
+    parentId: 'res-cold-weather-and-logistics',
+  },
+  {
+    id: 'res-snow-and-ice-sport',
+    name: 'Snow and Ice Sport',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['Winter Games'],
+    parentId: 'res-milano-cortina-2026',
+  },
+  {
+    id: 'res-winter-sport-selection-framework',
+    name: 'Winter Sport Selection Framework',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/44e5cab9-f453-4ce8-9fff-3793a77b5847/Winter_Sport_Selection_Framework.pdf',
+    categories: ['Winter Games'],
+    parentId: 'res-snow-and-ice-sport',
+  },
+  {
+    id: 'res-alpine-canada',
+    name: 'Alpine Canada',
+    isWebpage: false,
+    fileOrWebpageURL: null,
     categories: ['Winter Games', 'Alpine Canada'],
+    parentId: 'res-snow-and-ice-sport',
   },
   {
-    id: 'res-w-4',
-    name: 'Snowboard Prep Protocols',
+    id: 'res-training-runs',
+    name: 'Training Runs',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/c9e43662-bb2b-4250-b5f6-963ffa161af1/Alpine_Canada_Training_Runs.pdf',
+    categories: ['Winter Games', 'Alpine Canada'],
+    parentId: 'res-alpine-canada',
+  },
+  {
+    id: 'res-alpine-canada-2',
+    name: 'Alpine Canada',
     isWebpage: true,
-    fileOrWebpageURL: 'https://canadasnowboard.ca/en/team/protocols',
+    fileOrWebpageURL: 'https://alpinecanada.org/',
+    categories: ['Winter Games', 'Alpine Canada'],
+    parentId: 'res-alpine-canada',
+  },
+  {
+    id: 'res-canada-snowboard',
+    name: 'Canada Snowboard',
+    isWebpage: false,
+    fileOrWebpageURL: null,
     categories: ['Winter Games', 'Canada Snowboard'],
+    parentId: 'res-snow-and-ice-sport',
   },
   {
-    id: 'res-w-5',
-    name: 'Ice Hockey Accreditations',
+    id: 'res-snowboard-prep-protocols',
+    name: 'Snowboard Prep Protocols',
     isWebpage: false,
-    fileOrWebpageURL: '#',
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/4ea840fc-014e-46f6-92d0-0b04fb90897f/Canada_Snowboard_Prep_Protocols.pdf',
+    categories: ['Winter Games', 'Canada Snowboard'],
+    parentId: 'res-canada-snowboard',
+  },
+  {
+    id: 'res-canada-snowboard-2',
+    name: 'Canada Snowboard',
+    isWebpage: true,
+    fileOrWebpageURL: 'https://canadasnowboard.ca/',
+    categories: ['Winter Games', 'Canada Snowboard'],
+    parentId: 'res-canada-snowboard',
+  },
+  {
+    id: 'res-hockey-canada',
+    name: 'Hockey Canada',
+    isWebpage: false,
+    fileOrWebpageURL: null,
     categories: ['Winter Games', 'Hockey Canada'],
+    parentId: 'res-snow-and-ice-sport',
   },
   {
-    id: 'res-w-6',
-    name: 'Speed Skating Oval Schedule',
-    isWebpage: false,
-    fileOrWebpageURL: '#',
-    categories: ['Winter Games', 'Speed Skating Canada'],
-  },
-  {
-    id: 'res-w-7',
-    name: 'Curling Equipment Guidelines',
+    id: 'res-hockey-canada-2',
+    name: 'Hockey Canada',
     isWebpage: true,
-    fileOrWebpageURL: 'https://curling.ca/high-performance/olympics',
+    fileOrWebpageURL: 'https://www.hockeycanada.ca/en-ca',
+    categories: ['Winter Games', 'Hockey Canada'],
+    parentId: 'res-hockey-canada',
+  },
+  {
+    id: 'res-team-equipment-manifest',
+    name: 'Team Equipment Manifest',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/288cedc5-739e-41f6-bce8-67d79dff69b7/Hockey_Canada_Equipment_Manifest.csv',
+    categories: ['Winter Games', 'Hockey Canada'],
+    parentId: 'res-hockey-canada',
+  },
+  {
+    id: 'res-curling-canada',
+    name: 'Curling Canada',
+    isWebpage: false,
+    fileOrWebpageURL: null,
     categories: ['Winter Games', 'Curling Canada'],
+    parentId: 'res-snow-and-ice-sport',
   },
   {
-    id: 'res-w-8',
-    name: 'Winter Medical Protocols',
+    id: 'res-curling-equipment-guidelines',
+    name: 'Curling Equipment Guidelines',
     isWebpage: false,
-    fileOrWebpageURL: '#',
-    categories: ['Winter Games'],
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/86717a1c-fa37-4d35-b599-989c307a21da/Curling_Canada_Equipment_Guidelines.pdf',
+    categories: ['Winter Games', 'Curling Canada'],
+    parentId: 'res-curling-canada',
   },
   {
-    id: 'res-s-1',
-    name: 'LA 2028 Village Guide',
+    id: 'res-curling-canada-2',
+    name: 'Curling Canada',
     isWebpage: true,
-    fileOrWebpageURL: 'https://la28.org/en/games-plan',
-    categories: ['Summer Games'],
+    fileOrWebpageURL: 'https://www.curling.ca/',
+    categories: ['Winter Games', 'Curling Canada'],
+    parentId: 'res-curling-canada',
   },
   {
-    id: 'res-s-2',
-    name: 'Summer Accreditation Matrix',
+    id: 'res-team-canada-operations',
+    name: 'Team Canada Operations',
     isWebpage: false,
-    fileOrWebpageURL: '#',
-    categories: ['Summer Games'],
-  },
-  {
-    id: 'res-s-3',
-    name: 'Athletics Trials Schedule',
-    isWebpage: true,
-    fileOrWebpageURL: 'https://athletics.ca/national-championships-trials',
-    categories: ['Summer Games', 'Athletics Canada'],
-  },
-  {
-    id: 'res-s-4',
-    name: 'Aquatics Training Center Plan',
-    isWebpage: false,
-    fileOrWebpageURL: '#',
-    categories: ['Summer Games', 'Swimming Canada'],
-  },
-  {
-    id: 'res-s-5',
-    name: 'Rowing Shell Transit Plan',
-    isWebpage: false,
-    fileOrWebpageURL: '#',
-    categories: ['Summer Games', 'Rowing Canada'],
-  },
-  {
-    id: 'res-s-6',
-    name: 'Cycling Team Roadmap',
-    isWebpage: true,
-    fileOrWebpageURL: 'https://cyclingcanada.ca/olympic-pathway',
-    categories: ['Summer Games', 'Cycling Canada'],
-  },
-  {
-    id: 'res-s-7',
-    name: 'Rugby Sevens Staging Handbook',
-    isWebpage: false,
-    fileOrWebpageURL: '#',
-    categories: ['Summer Games', 'Rugby Canada'],
-  },
-  {
-    id: 'res-s-8',
-    name: 'Gymnastics Podium Training Slots',
-    isWebpage: true,
-    fileOrWebpageURL: 'https://gymcan.org/olympic-staging',
-    categories: ['Summer Games', 'Gymnastics Canada'],
-  },
-  {
-    id: 'res-g-1',
-    name: 'COC Brand Identity Guide',
-    isWebpage: false,
-    fileOrWebpageURL: '#',
+    fileOrWebpageURL: null,
     categories: ['General'],
   },
   {
-    id: 'res-g-2',
-    name: 'Athlete Code of Conduct',
+    id: 'res-outfitting',
+    name: 'Outfitting',
     isWebpage: false,
-    fileOrWebpageURL: '#',
+    fileOrWebpageURL: null,
     categories: ['General'],
+    parentId: 'res-team-canada-operations',
   },
   {
-    id: 'res-g-3',
-    name: 'Planning Master Timeline',
+    id: 'res-outfitting-schedule',
+    name: 'Outfitting Schedule',
     isWebpage: false,
-    fileOrWebpageURL: '#',
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/bb4d8105-5f05-44a5-86a7-b3834a5b732f/Team_Canada_Outfitting_Schedule.csv',
     categories: ['General'],
+    parentId: 'res-outfitting',
   },
   {
-    id: 'res-g-4',
-    name: 'SIM & Communications Guide',
+    id: 'res-kit-request-form',
+    name: 'Kit Request Form',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/ccf8590a-030f-4e56-bd25-0cf96cfe5154/Kit_Request_Form.pdf',
+    categories: ['General'],
+    parentId: 'res-outfitting',
+  },
+  {
+    id: 'res-games-time-communication',
+    name: 'Games-Time Communication',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['General'],
+    parentId: 'res-team-canada-operations',
+  },
+  {
+    id: 'res-sim-and-roaming-guide',
+    name: 'SIM and Roaming Guide',
     isWebpage: true,
-    fileOrWebpageURL: 'https://olympic.ca/operations/communications-roaming',
+    fileOrWebpageURL: 'https://olympic.ca/',
     categories: ['General'],
+    parentId: 'res-games-time-communication',
   },
   {
-    id: 'res-g-5',
-    name: 'Safe Sport & Safeguarding',
+    id: 'res-games-time-communications-plan',
+    name: 'Games-Time Communications Plan',
     isWebpage: false,
-    fileOrWebpageURL: '#',
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/47c46863-abc5-41dc-910b-cab63825f9ee/Games_Time_Communications_Plan.pdf',
     categories: ['General'],
+    parentId: 'res-games-time-communication',
   },
   {
-    id: 'res-g-6',
-    name: 'Per Diem Expense Policy',
+    id: 'res-medical-services',
+    name: 'Medical Services',
+    isWebpage: false,
+    fileOrWebpageURL: null,
+    categories: ['General'],
+    parentId: 'res-team-canada-operations',
+  },
+  {
+    id: 'res-medical-team-directory',
+    name: 'Medical Team Directory',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/0540fb19-cb4e-44ef-9655-3671c8d7e3ee/Medical_Team_Directory.csv',
+    categories: ['General'],
+    parentId: 'res-medical-services',
+  },
+  {
+    id: 'res-medical-services-protocols',
+    name: 'Medical Services Protocols',
+    isWebpage: false,
+    fileOrWebpageURL:
+      'https://ctffanxrzyjnsjrnbzbk.supabase.co/storage/v1/object/public/resources/c8040f48-f951-40aa-b2b2-1292307e22f9/Medical_Services_Protocols.pdf',
+    categories: ['General'],
+    parentId: 'res-medical-services',
+  },
+  {
+    id: 'res-canadian-olympic-committee',
+    name: 'Canadian Olympic Committee',
     isWebpage: true,
-    fileOrWebpageURL: 'https://olympic.ca/operations/finance/per-diem',
+    fileOrWebpageURL: 'https://olympic.ca/',
     categories: ['General'],
   },
 ];
@@ -358,7 +850,7 @@ async function updateResourceLinks(records: ResourceRecord[]) {
       r.nextElementId !== null,
   );
 
-  await Promise.all(
+  await prisma.$transaction(
     linked.map((r) =>
       prisma.resource.update({
         where: { id: r.id },
@@ -407,7 +899,6 @@ async function seedResources() {
   await updateResourceLinks(allRecords);
 }
 
-
 async function seedCalculator(gameId: number, nsoIds: string[]) {
   // Create the four traveler categories
   const categoryNames = [
@@ -453,61 +944,60 @@ async function seedCalculator(gameId: number, nsoIds: string[]) {
   });
 
   // Default values from the Estimated Costs table
-  
-const estimatedCosts = [
-  {
-    name: 'Travel Economy Fare',
-    costInCents: 240000,
-    unitOfMeasure: 'CAD',
-    notes: 'To be Confirmed',
-  },
-  {
-    name: 'Athlete Insurance',
-    costInCents: 5000,
-    unitOfMeasure: 'CAD',
-  },
-  {
-    name: 'Support Staff Insurance',
-    costInCents: 2800,
-    unitOfMeasure: 'CAD',
-  },
-  {
-    name: 'Cellphone (local plan)',
-    costInCents: 10800,
-    unitOfMeasure: 'CAD/day',
-  },
-  {
-    name: 'Meals',
-    costInCents: 11800,
-    unitOfMeasure: 'CAD/meal',
-    notes: '(outside of Village, breakfast incl at most accommodation)',
-  },
-  {
-    name: 'Village Meal Voucher',
-    costInCents: 5700,
-    unitOfMeasure: 'CAD',
-  },
-  {
-    name: 'Knife & Fork for Ap',
-    costInCents: 227900,
-    unitOfMeasure: 'CAD',
-  },
-  {
-    name: 'Clothing Package',
-    costInCents: 320000,
-    unitOfMeasure: 'CAD',
-  },
-];
 
-await prisma.estimatedCostItem.createMany({
-  data: gameNsos.flatMap((gameNso) =>
-    estimatedCosts.map((cost) => ({
-      ...cost,
-      gameNsoId: gameNso.id,
-    })),
-  ),
-});
+  const estimatedCosts = [
+    {
+      name: 'Travel Economy Fare',
+      costInCents: 240000,
+      unitOfMeasure: 'CAD',
+      notes: 'To be Confirmed',
+    },
+    {
+      name: 'Athlete Insurance',
+      costInCents: 5000,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Support Staff Insurance',
+      costInCents: 2800,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Cellphone (local plan)',
+      costInCents: 10800,
+      unitOfMeasure: 'CAD/day',
+    },
+    {
+      name: 'Meals',
+      costInCents: 11800,
+      unitOfMeasure: 'CAD/meal',
+      notes: '(outside of Village, breakfast incl at most accommodation)',
+    },
+    {
+      name: 'Village Meal Voucher',
+      costInCents: 5700,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Knife & Fork for Ap',
+      costInCents: 227900,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Clothing Package',
+      costInCents: 320000,
+      unitOfMeasure: 'CAD',
+    },
+  ];
 
+  await prisma.estimatedCostItem.createMany({
+    data: gameNsos.flatMap((gameNso) =>
+      estimatedCosts.map((cost) => ({
+        ...cost,
+        gameNsoId: gameNso.id,
+      })),
+    ),
+  });
 
   // Temporary conversion rates until API integration
   await prisma.conversionRate.createMany({
@@ -526,7 +1016,6 @@ await prisma.estimatedCostItem.createMany({
   });
 }
 
-
 async function main() {
   // Wipe in dependency order (children first)
   await prisma.resource.deleteMany();
@@ -535,6 +1024,13 @@ async function main() {
   await prisma.estimatedCostItem.deleteMany();
   await prisma.conversionRate.deleteMany();
   await prisma.travelerCategory.deleteMany();
+  await prisma.disciplineBreakdown.deleteMany();
+  await prisma.teamSizeEstimate.deleteMany();
+  await prisma.contact.deleteMany();
+  await prisma.pgtcDiscipline.deleteMany();
+  await prisma.hotelRate.deleteMany();
+  await prisma.gameHotel.deleteMany();
+  await prisma.draft.deleteMany();
   // Existing data
   await prisma.gameMember.deleteMany();
   await prisma.gameNso.deleteMany();
@@ -542,6 +1038,8 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.nso.deleteMany();
   await prisma.game.deleteMany();
+  await prisma.calculatorEstimatedCostItem.deleteMany();
+  await prisma.calculatorTravelerItem.deleteMany();
 
   // Games
   const game = await prisma.game.create({
@@ -576,10 +1074,7 @@ async function main() {
   });
 
   // Calculator seed data
-  await seedCalculator(game.id, [
-    nsos.aquatics.id,
-    nsos.athletics.id,
-  ]);
+  await seedCalculator(game.id, [nsos.aquatics.id, nsos.athletics.id]);
 
   // Members
   const members: { seed: MemberSeed; id: string }[] = [];

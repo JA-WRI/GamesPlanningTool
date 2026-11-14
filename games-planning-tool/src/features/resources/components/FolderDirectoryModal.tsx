@@ -1,4 +1,4 @@
-// Made with AI agents (Antigravity)
+// 50% or more AI-generated
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
@@ -31,7 +31,7 @@ export interface FolderDirectoryModalProps {
     resourceIds: string[],
     targetFolderId: string | null,
   ) => void;
-  onReorderInFolder: (updatedChildren: Resource[]) => void;
+  onReorderInFolder: (parentId: string, updatedChildren: Resource[]) => void;
   onAddResourceToFolder: (folderId: string) => void;
   onCreateSubfolder: (name: string, parentId: string) => void;
   onRenameResource?: (id: string, newName: string) => void;
@@ -46,6 +46,7 @@ export interface FolderDirectoryModalProps {
   ) => void;
 }
 
+// Exceeds 50 lines: the modal combines navigation, drag-and-drop, and inline editing.
 export function FolderDirectoryModal({
   folder,
   allResources,
@@ -324,7 +325,7 @@ export function FolderDirectoryModal({
                     ? { ...r, parentId: targetFolder || undefined }
                     : r,
                 );
-                onReorderInFolder?.(updatedChildren);
+                onReorderInFolder?.(currentFolder.id, updatedChildren);
               } else {
                 onMoveResourceToFolder([draggedId], targetFolder);
               }

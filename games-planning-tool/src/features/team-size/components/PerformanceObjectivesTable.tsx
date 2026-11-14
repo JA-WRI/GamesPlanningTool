@@ -17,7 +17,9 @@ import {
 
 type PerformanceObjectivesTableProps = {
   teamSize: TeamSize;
-  onChange: (teamSize: TeamSize) => void;
+  initialDraft?: MedalObjectiveRow[];
+  draftKey: string;
+  onSave: (teamSize: TeamSize) => void | Promise<unknown>;
 };
 
 const COUNT_FIELDS: (keyof MedalObjectiveRow)[] = ['low', 'high'];
@@ -62,10 +64,14 @@ function MedalWarnings({ rows }: { rows: MedalObjectiveRow[] }) {
 // projected medals Low and High, in the shared grid like the other tables
 export default function PerformanceObjectivesTable({
   teamSize,
-  onChange,
+  initialDraft,
+  draftKey,
+  onSave,
 }: PerformanceObjectivesTableProps) {
   // the rows as the user types, so the warnings update live
-  const [liveRows, setLiveRows] = useState(() => medalsToRows(teamSize));
+  const [liveRows, setLiveRows] = useState(
+    () => initialDraft ?? medalsToRows(teamSize),
+  );
 
   return (
     <div className="flex flex-col gap-3">
@@ -73,12 +79,14 @@ export default function PerformanceObjectivesTable({
         title="Performance objectives"
         columns={columns}
         initialData={medalsToRows(teamSize)}
+        initialDraft={initialDraft}
+        draftKey={draftKey}
         // never called, this table has no add button
         createEmptyRow={() => medalsToRows(teamSize)[0]}
         isValid={(rows) =>
           allWholeCounts(rows, COUNT_FIELDS) && !rows.some(medalRowHasError)
         }
-        onSave={(rows) => onChange(rowsToMedals(rows, teamSize))}
+        onSave={(rows) => onSave(rowsToMedals(rows, teamSize))}
         onRowsChange={setLiveRows}
         showSearch={false}
         allowAddRow={false}
