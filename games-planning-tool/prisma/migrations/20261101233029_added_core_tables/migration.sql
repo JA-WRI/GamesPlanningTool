@@ -14,9 +14,6 @@ CREATE TYPE "MemberType" AS ENUM ('Athlete', 'Staff');
 -- CreateEnum
 CREATE TYPE "UserStatus" AS ENUM ('invited', 'active', 'inactive');
 
--- CreateEnum
-CREATE TYPE "ProgressStatus" AS ENUM ('not_started', 'in_progress', 'submitted', 'requires_update','completed');
-
 -- DropTable
 DROP TABLE "Games";
 
@@ -103,26 +100,6 @@ CREATE TABLE "game_members" (
     CONSTRAINT "game_members_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "progress_tracking" (
-    "id" UUID NOT NULL,
-    "game_nso_id" UUID NOT NULL,
-    "last_updated" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "contact_info" "ProgressStatus" NOT NULL DEFAULT 'not_started',
-    "team_size" "ProgressStatus" NOT NULL DEFAULT 'not_started',
-    "accreditation" "ProgressStatus" NOT NULL DEFAULT 'not_started',
-    "estimated_costs" "ProgressStatus" NOT NULL DEFAULT 'not_started',
-    "review_and_completion" "ProgressStatus" NOT NULL DEFAULT 'not_started',
-
-    CONSTRAINT "progress_tracking_pkey" PRIMARY KEY ("id"),
-
-    CONSTRAINT "progress_tracking_game_nso_id_fkey" 
-        FOREIGN KEY ("game_nso_id") 
-        REFERENCES "game_nsos"("id")
-        ON DELETE CASCADE 
-        ON UPDATE CASCADE
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
@@ -143,9 +120,6 @@ CREATE INDEX "game_members_member_id_idx" ON "game_members"("member_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "game_members_game_id_member_id_key" ON "game_members"("game_id", "member_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "progress_tracking_game_nso_id_key" ON "progress_tracking"("game_nso_id");
 
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_nso_id_fkey" FOREIGN KEY ("nso_id") REFERENCES "nsos"("id") ON DELETE SET NULL ON UPDATE CASCADE;
