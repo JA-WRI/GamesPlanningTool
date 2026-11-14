@@ -1,31 +1,38 @@
-// 50% AI generated code:
-// The following was AI generated:
-// - Currency selector component structure
-// - css converted to tailwind
-// - ai used for styling
-// The options and layout were reviewed and modified to match the calculator requirements.
+// 50% AI generated code
 
 'use client';
 
 import { Box, Button, Typography } from '@mui/material';
 
 export type Currency = 'CAD' | 'USD' | 'EUR';
+export type CurrencyRates = Record<Currency, number>;
 
-// TO DELETE: will be connected to db to update teh conversion rates
-export const CONVERSION_RATES: Record<Currency, number> = {
-  CAD: 1,
-  USD: 1.38,
-  EUR: 1.48,
-};
+export function displayAmount(
+  amountCAD: number,
+  currency: Currency,
+  rates: CurrencyRates,
+): number {
+  return Number((Number(amountCAD) / rates[currency]).toFixed(2));
+}
+
+export function amountToCAD(
+  amount: number,
+  currency: Currency,
+  rates: CurrencyRates,
+): number {
+  return Number(amount) * rates[currency];
+}
 
 type ConversionRatesProps = {
   readonly currency: Currency;
   readonly onCurrencyChange: (currency: Currency) => void;
+  readonly rates: CurrencyRates;
 };
 
 export default function ConversionRates({
   currency,
   onCurrencyChange,
+  rates,
 }: Readonly<ConversionRatesProps>) {
   return (
     <Box className="flex flex-wrap items-center justify-between gap-4 border-t px-4 py-3">
@@ -37,18 +44,14 @@ export default function ConversionRates({
         <Box className="rounded-full border border-gray-200 bg-gray-50 px-3 py-2">
           <Typography className="text-[12px]!">
             USD → CAD{' '}
-            <span className="font-semibold">
-              {CONVERSION_RATES.USD.toFixed(2)}
-            </span>
+            <span className="font-semibold">{rates.USD.toFixed(2)}</span>
           </Typography>
         </Box>
 
         <Box className="rounded-full border border-gray-200 bg-gray-50 px-3 py-2">
           <Typography className="text-[12px]!">
             EUR → CAD{' '}
-            <span className="font-semibold">
-              {CONVERSION_RATES.EUR.toFixed(2)}
-            </span>
+            <span className="font-semibold">{rates.EUR.toFixed(2)}</span>
           </Typography>
         </Box>
       </Box>

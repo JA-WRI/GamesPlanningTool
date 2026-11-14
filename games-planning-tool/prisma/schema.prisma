@@ -24,6 +24,11 @@ enum UserStatus {
   inactive
 }
 
+enum ContactType {
+  COC
+  NSO
+}
+
 enum Discipline {
   hp
   ssba @map("ss_ba")
@@ -43,9 +48,13 @@ model Game {
   isActive            Boolean  @default(true) @map("is_active")
   createdAt           DateTime @default(now()) @map("created_at")
 
-  gameNsos    GameNso[]
-  gameMembers GameMember[]
-  
+  gameNsos        GameNso[]
+  gameMembers     GameMember[]
+  travelers       Traveler[]
+  hotels          GameHotel[]
+  contacts        Contact[]
+  pgtcDisciplines PgtcDiscipline[]
+
   @@map("games")
 }
 
@@ -56,17 +65,21 @@ model Nso {
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
 
-  users    User[]
-  members  Member[]
-  gameNsos GameNso[]
+  users     User[]
+  members   Member[]
+  gameNsos  GameNso[]
+  travelers Traveler[]
+  pgtcs     PgtcDiscipline[]
+  contacts  Contact[]
 
   @@map("nsos")
 }
 
 model GameNso {
-  id     String @id @default(uuid()) @db.Uuid
-  gameId Int    @map("game_id")
-  nsoId  String @map("nso_id") @db.Uuid
+  estimatedCostItems EstimatedCostItem[]
+  id                 String              @id @default(uuid()) @db.Uuid
+  gameId             Int                 @map("game_id")
+  nsoId              String              @map("nso_id") @db.Uuid
 
   game             Game              @relation(fields: [gameId], references: [id])
   nso              Nso               @relation(fields: [nsoId], references: [id])
@@ -112,9 +125,9 @@ model Member {
 
 // A member's participation in one game
 model GameMember {
-  id               String    @id @default(uuid()) @db.Uuid
-  gameId           Int       @map("game_id")
-  memberId         String    @map("member_id") @db.Uuid
+  id       String @id @default(uuid()) @db.Uuid
+  gameId   Int    @map("game_id")
+  memberId String @map("member_id") @db.Uuid
 
   // Shared by staff and athletes
   fundedBy         String?   @map("funded_by")
@@ -125,13 +138,13 @@ model GameMember {
   gameDeparture    DateTime? @map("game_departure") @db.Date
 
   // Staff only
-  gamesRole        String?   @map("games_role")
-  rank             String?
+  gamesRole String? @map("games_role")
+  rank      String?
 
   // Athletes only
-  event            String?
-  medal            String?
-  medalNotes       String?   @map("medal_notes")
+  event      String?
+  medal      String?
+  medalNotes String? @map("medal_notes")
 
   game   Game   @relation(fields: [gameId], references: [id])
   member Member @relation(fields: [memberId], references: [id])
@@ -184,26 +197,183 @@ model DisciplineBreakdown {
   @@map("discipline_breakdowns")
 }
 
-
 model Resource {
   id String @id @default(uuid()) @db.Uuid
 
-  parentFolderId String? @map("parent_folder_id") @db.Uuid
-  parent Resource? @relation("ParentElement", fields: [parentFolderId], references: [id])
-  children Resource[] @relation("ParentElement")
+  parentFolderId String?    @map("parent_folder_id") @db.Uuid
+  parent         Resource?  @relation("ParentElement", fields: [parentFolderId], references: [id])
+  children       Resource[] @relation("ParentElement")
 
-  name String
-  fileOrWebpageURL String? @map("file_or_webpage_URL") // null: folder
-  isWebpage Boolean @map("is_webpage") @default(false)
-  categories String[] @default([])
+  name             String
+  fileOrWebpageURL String?  @map("file_or_webpage_URL") // null: folder
+  isWebpage        Boolean  @default(false) @map("is_webpage")
+  categories       String[] @default([])
 
-  previousElementId String? @map("previous_element_id") @db.Uuid @unique
-  previous Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
-  nextFromPrevious Resource? @relation("PreviousElement")
+  previousElementId String?   @unique @map("previous_element_id") @db.Uuid
+  previous          Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
+  nextFromPrevious  Resource? @relation("PreviousElement")
 
-  nextElementId String? @map("next_element_id") @db.Uuid @unique
-  next Resource? @relation("NextElement", fields: [nextElementId], references: [id])
+  nextElementId    String?   @unique @map("next_element_id") @db.Uuid
+  next             Resource? @relation("NextElement", fields: [nextElementId], references: [id])
   previousFromNext Resource? @relation("NextElement")
 
   @@map("resources")
+}
+
+model Contact {
+  id          String      @id @default(uuid())
+  nsoId       String      @db.Uuid
+  gameId      Int
+  role        String      @unique // Unique per role for NSO structure
+  type        ContactType
+  isPrimary   Boolean     @default(false) @map("is_primary")
+  firstName   String      @map("first_name")
+  lastName    String      @map("last_name")
+  email       String
+  countryCode String      @map("country_code")
+  phone       String
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  game Game @relation(fields: [gameId], references: [id])
+  nso  Nso  @relation(fields: [nsoId], references: [id])
+
+  @@index([nsoId, gameId])
+  @@map("nso_contacts")
+}
+
+model PgtcDiscipline {
+  id                String   @id @default(uuid())
+  nsoId             String   @db.Uuid
+  gameId            Int
+  name              String
+  arrivalDate       String?  @map("arrival_date")
+  arrivalTime       String?  @map("arrival_time")
+  departureDate     String?  @map("departure_date")
+  departureTime     String?  @map("departure_time")
+  accommodationName String?  @map("accommodation_name")
+  streetName        String?  @map("street_name")
+  streetNumber      String?  @map("street_number")
+  zipCode           String?  @map("zip_code")
+  city              String?
+  stateOrProvince   String?
+  country           String?
+  travelMethod      String?  @map("travel_method")
+  pointOfEntry      String?  @map("point_of_entry")
+  additionalNotes   String?  @map("additional_notes")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  game Game @relation(fields: [gameId], references: [id])
+  nso  Nso  @relation(fields: [nsoId], references: [id])
+
+  @@index([nsoId, gameId])
+  @@map("pgtc_disciplines")
+}
+
+model Draft {
+  scopeKey      String   @id @map("scope_key")
+  payload       Json
+  schemaVersion Int      @default(1) @map("schema_version")
+  revision      Int      @default(1)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([updatedAt])
+  @@map("drafts")
+}
+
+// Reference prices per room, per night, shared by all NSOs for a game.
+model GameHotel {
+  id           String   @id @default(uuid()) @db.Uuid
+  gameId       Int      @map("game_id")
+  name         String   @db.VarChar(255)
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  game  Game        @relation(fields: [gameId], references: [id], onDelete: Restrict)
+  rates HotelRate[]
+
+  @@index([gameId])
+  @@map("game_hotels")
+}
+
+model HotelRate {
+  id          String   @id @default(uuid()) @db.Uuid
+  gameHotelId String   @map("game_hotel_id") @db.Uuid
+  occupancy   String   @db.VarChar(50)
+  amount      Decimal  @db.Decimal(12, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  gameHotel GameHotel @relation(fields: [gameHotelId], references: [id], onDelete: Restrict)
+
+  @@unique([gameHotelId, occupancy])
+  @@map("hotel_rates")
+}
+
+// Calculator tables 
+model Traveler {
+  id                 Int    @id @default(autoincrement())
+  travelerCategoryId Int    @map("traveler_category_id")
+  gameId             Int    @map("games_id")
+  nsoId              String @map("nso_id") @db.Uuid
+
+  numberOfTeamMembers Int       @default(0) @map("number_of_team_members")
+  days                Int       @default(0)
+  checkInDate         DateTime? @map("check_in_date") @db.Date
+  checkOutDate        DateTime? @map("check_out_date") @db.Date
+
+  travelCostInCents        Int @default(0) @map("travel_cost_in_cents")
+  accommodationCostInCents Int @default(0) @map("accommodation_cost_in_cents")
+  mealsCostInCents         Int @default(0) @map("meals_cost_in_cents")
+  insuranceCostInCents     Int @default(0) @map("insurance_cost_in_cents")
+  extraCostsInCents        Int @default(0) @map("extra_costs_in_cents")
+
+  travelerCategory TravelerCategory @relation(fields: [travelerCategoryId], references: [id])
+  game             Game             @relation(fields: [gameId], references: [id])
+  nso              Nso              @relation(fields: [nsoId], references: [id])
+
+  @@index([gameId, nsoId])
+  @@index([travelerCategoryId])
+  @@map("traveler")
+}
+
+model TravelerCategory {
+  id                 Int                 @id @default(autoincrement())
+  name               String              @unique
+  travelers          Traveler[]
+  estimatesCostItems EstimatedCostItem[]
+
+  @@map("traveler_category")
+}
+
+model EstimatedCostItem {
+  id                 Int     @id @default(autoincrement())
+  name               String
+  costInCents        Int     @default(0) @map("cost_in_cents")
+  unitOfMeasure      String  @map("unit_of_measure")
+  notes              String?
+  isCoveredByCOC     Boolean @default(false) @map("is_covered_by_COC")
+  travelerCategoryId Int?    @map("traveler_category_id")
+  gameNsoId          String  @map("game_nso_id") @db.Uuid
+
+  travelerCategory TravelerCategory? @relation(fields: [travelerCategoryId], references: [id])
+  gameNso          GameNso           @relation(fields: [gameNsoId], references: [id])
+
+  @@index([travelerCategoryId])
+  @@index([gameNsoId])
+  @@map("estimated_cost_items")
+}
+
+model ConversionRate {
+  id           Int      @id @default(autoincrement())
+  fromCurrency String   @map("from_currency")
+  toCurrency   String   @map("to_currency")
+  rate         Decimal  @db.Decimal(18, 8)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([fromCurrency, toCurrency])
+  @@map("conversion_rates")
 }

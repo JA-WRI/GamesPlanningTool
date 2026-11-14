@@ -6,9 +6,10 @@ import { useState } from 'react';
 // keeps the notes text & saves it or puts back the last saved version
 export function useNotes(
   initialNotes: string,
-  onSave: (notes: string) => void,
+  onSave: (notes: string) => void | Promise<unknown>,
+  initialDraft?: string,
 ) {
-  const [draft, setDraft] = useState(initialNotes);
+  const [draft, setDraft] = useState(initialDraft ?? initialNotes);
   const [saved, setSaved] = useState(initialNotes);
   const [justSaved, setJustSaved] = useState(false);
   const hasChanges = draft !== saved;
@@ -18,11 +19,11 @@ export function useNotes(
     setJustSaved(false);
   };
 
-  const save = () => {
+  const save = async () => {
     if (!hasChanges) return;
+    await onSave(draft);
     setSaved(draft);
     setJustSaved(true);
-    onSave(draft);
   };
 
   const discard = () => {

@@ -9,6 +9,12 @@ import { saveTeamSize } from '@/features/team-size/actions/teamSizeActions';
 import type { SavedTeamSize } from '@/features/team-size/lib/teamSizeDbMapping';
 import type { TeamSize } from '@/features/team-size/lib/teamSizeLogic';
 import type { DisciplineBreakdown } from '@/features/team-size/lib/teamSizeGridLogic';
+import type {
+  MedalObjectiveRow,
+  MedalRow,
+  TeamSizeRow,
+} from '@/features/team-size/lib/teamSizeGridLogic';
+import type { DisciplineGridRow } from '@/features/team-size/lib/disciplineGridLogic';
 import { useTeamJourneyState } from './useTeamJourneyState';
 
 // one small function per step, with the same props as before
@@ -43,12 +49,30 @@ type TeamJourneyClientProps = {
   gameId: string;
   nsoId: string;
   saved: SavedTeamSize;
+  draftKeys: {
+    estimate: string;
+    disciplines: string;
+    performance: string;
+    medalPotential: string;
+    estimateNotes: string;
+    disciplineNotes: string;
+  };
+  initialDrafts: {
+    estimate?: TeamSizeRow[];
+    disciplines?: DisciplineGridRow[];
+    performance?: MedalObjectiveRow[];
+    medalPotential?: MedalRow[];
+    estimateNotes?: string;
+    disciplineNotes?: string;
+  };
 };
 
 export default function TeamJourneyClient({
   gameId,
   nsoId,
   saved,
+  draftKeys,
+  initialDrafts,
 }: TeamJourneyClientProps) {
   const {
     teamSize,
@@ -61,13 +85,23 @@ export default function TeamJourneyClient({
   const [saveFailed, setSaveFailed] = useState(false);
 
   // saves to the db and shows an error if it fails
-  const saveToDb = (
+  const saveToDb = async (
     nextTeamSize: TeamSize,
     nextDisciplines: DisciplineBreakdown,
-  ) => {
-    saveTeamSize(gameId, nsoId, nextTeamSize, nextDisciplines)
-      .then((result) => setSaveFailed(!result.ok))
-      .catch(() => setSaveFailed(true));
+  ): Promise<void> => {
+    try {
+      const result = await saveTeamSize(
+        gameId,
+        nsoId,
+        nextTeamSize,
+        nextDisciplines,
+      );
+      setSaveFailed(!result.ok);
+      if (!result.ok) throw new Error('Team-size save was rejected.');
+    } catch (error) {
+      setSaveFailed(true);
+      throw error;
+    }
   };
 
   return (
@@ -79,17 +113,19 @@ export default function TeamJourneyClient({
       )}
       <TeamSizeStep
         teamSize={teamSize}
-        onTeamSizeSave={(next) => {
+        onTeamSizeSave={async (next) => {
           setTeamSize(next);
-          saveToDb(next, disciplines);
+          await saveToDb(next, disciplines);
         }}
         disciplines={disciplines}
-        onDisciplinesSave={(next) => {
+        onDisciplinesSave={async (next) => {
           setDisciplines(next);
-          saveToDb(teamSize, next);
+          await saveToDb(teamSize, next);
         }}
         medalRows={medalRows}
         onMedalRowsSave={setMedalRows}
+        draftKeys={draftKeys}
+        initialDrafts={initialDrafts}
       />
     </div>
   );

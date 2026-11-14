@@ -2,6 +2,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
+import { runDraftSave } from '@/lib/db-helpers';
 import type { TeamSize } from '../lib/teamSizeLogic';
 import type { DisciplineBreakdown } from '../lib/teamSizeGridLogic';
 import {
@@ -20,38 +21,47 @@ export async function saveTeamSize(
   disciplines: DisciplineBreakdown,
 ): Promise<{ ok: boolean }> {
   const ids = toDbIds(gameId, nsoId);
-  if (
-    !ids ||
-    !hasTeamSizeShape(teamSize, disciplines) ||
-    !isTeamSizeSavable(teamSize, disciplines)
-  )
-    return { ok: false };
+  if (!ids) return { ok: false };
 
-  // the NSO must take part in this game
-  const gameNso = await prisma.gameNso.findUnique({
-    where: { gameId_nsoId: ids },
-  });
-  if (!gameNso) return { ok: false };
-
-  const estimate = teamSizeToDb(teamSize, disciplines);
-
-  // all or nothing, the estimate first because the disciplines point to it
-  await prisma.$transaction([
-    prisma.teamSizeEstimate.upsert({
-      where: { nsoId_gameId: ids },
-      create: { ...ids, ...estimate },
-      update: estimate,
-    }),
-    ...disciplinesToDb(disciplines).map((row) =>
-      prisma.disciplineBreakdown.upsert({
-        where: {
-          nsoId_gameId_discipline: { ...ids, discipline: row.discipline },
-        },
-        create: { ...ids, ...row },
-        update: row,
+  const outcome = await runDraftSave(
+    { ids, teamSize, disciplines },
+    {
+      authorize: async ({ ids: dbIds }) =>
+        Boolean(
+          await prisma.gameNso.findUnique({
+            where: { gameId_nsoId: dbIds },
+          }),
+        ),
+      validate: ({ teamSize: draft, disciplines: breakdown }) =>
+        hasTeamSizeShape(draft, breakdown) &&
+        isTeamSizeSavable(draft, breakdown),
+      map: ({ teamSize: draft, disciplines: breakdown }) => ({
+        estimate: teamSizeToDb(draft, breakdown),
+        disciplines: disciplinesToDb(breakdown),
       }),
-    ),
-  ]);
+      persist: async ({ estimate, disciplines: rows }, { ids: dbIds }) => {
+        await prisma.$transaction([
+          prisma.teamSizeEstimate.upsert({
+            where: { nsoId_gameId: dbIds },
+            create: { ...dbIds, ...estimate },
+            update: estimate,
+          }),
+          ...rows.map((row) =>
+            prisma.disciplineBreakdown.upsert({
+              where: {
+                nsoId_gameId_discipline: {
+                  ...dbIds,
+                  discipline: row.discipline,
+                },
+              },
+              create: { ...dbIds, ...row },
+              update: row,
+            }),
+          ),
+        ]);
+      },
+    },
+  );
 
-  return { ok: true };
+  return { ok: outcome.ok };
 }

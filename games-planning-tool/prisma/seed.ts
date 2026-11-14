@@ -899,12 +899,139 @@ async function seedResources() {
   await updateResourceLinks(allRecords);
 }
 
-// Exceeds 50 lines: seeds every record type in dependency order.
+async function seedCalculator(gameId: number, nsoIds: string[]) {
+  // Create the four traveler categories
+  const categoryNames = [
+    'Travelling Accredited Alternate Athletes @ partial NSO cost (Ap)',
+    'Travelling Non-accredited Alternate Athletes @ full NSO cost',
+    'Support staff @ partial NSO cost (e.g., partial Ao)',
+    'Support staff @ full NSO cost (incl. non-accredited)',
+  ];
+
+  const gameNsos = await prisma.gameNso.findMany({
+    where: {
+      gameId,
+      nsoId: { in: nsoIds },
+    },
+    select: { id: true },
+  });
+
+  const categories: { id: number; name: string }[] = [];
+
+  for (const name of categoryNames) {
+    const category = await prisma.travelerCategory.create({
+      data: { name },
+    });
+    categories.push(category);
+  }
+
+  // Create the initial traveler rows for each NSO
+  await prisma.traveler.createMany({
+    data: nsoIds.flatMap((nsoId) =>
+      categories.map((category) => ({
+        gameId,
+        nsoId,
+        travelerCategoryId: category.id,
+        numberOfTeamMembers: 0,
+        days: 0,
+        travelCostInCents: 0,
+        accommodationCostInCents: 0,
+        mealsCostInCents: 0,
+        insuranceCostInCents: 0,
+        extraCostsInCents: 0,
+      })),
+    ),
+  });
+
+  // Default values from the Estimated Costs table
+
+  const estimatedCosts = [
+    {
+      name: 'Travel Economy Fare',
+      costInCents: 240000,
+      unitOfMeasure: 'CAD',
+      notes: 'To be Confirmed',
+    },
+    {
+      name: 'Athlete Insurance',
+      costInCents: 5000,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Support Staff Insurance',
+      costInCents: 2800,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Cellphone (local plan)',
+      costInCents: 10800,
+      unitOfMeasure: 'CAD/day',
+    },
+    {
+      name: 'Meals',
+      costInCents: 11800,
+      unitOfMeasure: 'CAD/meal',
+      notes: '(outside of Village, breakfast incl at most accommodation)',
+    },
+    {
+      name: 'Village Meal Voucher',
+      costInCents: 5700,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Knife & Fork for Ap',
+      costInCents: 227900,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Clothing Package',
+      costInCents: 320000,
+      unitOfMeasure: 'CAD',
+    },
+  ];
+
+  await prisma.estimatedCostItem.createMany({
+    data: gameNsos.flatMap((gameNso) =>
+      estimatedCosts.map((cost) => ({
+        ...cost,
+        gameNsoId: gameNso.id,
+      })),
+    ),
+  });
+
+  // Temporary conversion rates until API integration
+  await prisma.conversionRate.createMany({
+    data: [
+      {
+        fromCurrency: 'USD',
+        toCurrency: 'CAD',
+        rate: '1.38',
+      },
+      {
+        fromCurrency: 'EUR',
+        toCurrency: 'CAD',
+        rate: '1.48',
+      },
+    ],
+  });
+}
+
 async function main() {
   // Wipe in dependency order (children first)
   await prisma.resource.deleteMany();
+  // Calculator data
+  await prisma.traveler.deleteMany();
+  await prisma.estimatedCostItem.deleteMany();
+  await prisma.conversionRate.deleteMany();
+  await prisma.travelerCategory.deleteMany();
   await prisma.disciplineBreakdown.deleteMany();
   await prisma.teamSizeEstimate.deleteMany();
+  await prisma.contact.deleteMany();
+  await prisma.pgtcDiscipline.deleteMany();
+  await prisma.hotelRate.deleteMany();
+  await prisma.gameHotel.deleteMany();
+  await prisma.draft.deleteMany();
+  // Existing data
   await prisma.gameMember.deleteMany();
   await prisma.gameNso.deleteMany();
   await prisma.member.deleteMany();
@@ -943,6 +1070,9 @@ async function main() {
       nsoId: nso.id,
     })),
   });
+
+  // Calculator seed data
+  await seedCalculator(game.id, [nsos.aquatics.id, nsos.athletics.id]);
 
   // Members
   const members: { seed: MemberSeed; id: string }[] = [];
