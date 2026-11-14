@@ -1,4 +1,5 @@
-// This page has been coded by both me and AI (50%).
+// AI contribution: 50%
+// This page has been coded by both me and AI
 // I started coding the general structure of the page and used AI to accelerate the process and get the right placement of elements.
 
 import ActionsRequiredCard from '../../../../../components/nso-dashboard/ActionsRequiredCard';
@@ -25,10 +26,10 @@ const deadlineFormatter = new Intl.DateTimeFormat('en-CA', {
   year: 'numeric',
 });
 
-function getTodayOnServer() {
+function getTodayInUtc() {
   const now = new Date();
 
-  return Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
 }
 
 export default async function Page({ params }: DashboardPageProps) {
@@ -43,10 +44,7 @@ export default async function Page({ params }: DashboardPageProps) {
     dbGameId <= 2_147_483_647 &&
     isUuid;
 
-  const loadLocalTasks =
-    process.env.NODE_ENV === 'development' && isDatabaseRoute;
-
-  const pairing = loadLocalTasks
+  const pairing = isDatabaseRoute
     ? await prisma.gameNso.findUnique({
         where: {
           gameId_nsoId: {
@@ -58,21 +56,33 @@ export default async function Page({ params }: DashboardPageProps) {
       })
     : null;
 
-  if (loadLocalTasks && !pairing) notFound();
+  if (isDatabaseRoute && !pairing) notFound();
 
-  const tasks = pairing
-    ? await prisma.task.findMany({
-        where: { gameNsoId: pairing.id },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          status: true,
-          deadline: true,
-        },
-        orderBy: [{ deadline: 'asc' }, { title: 'asc' }],
-      })
-    : [];
+  const [tasks, announcementRows] = pairing
+    ? await Promise.all([
+        prisma.task.findMany({
+          where: { gameNsoId: pairing.id },
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            status: true,
+            deadline: true,
+          },
+          orderBy: [{ deadline: 'asc' }, { title: 'asc' }],
+        }),
+        prisma.announcement.findMany({
+          where: { gameNsoId: pairing.id },
+          select: {
+            id: true,
+            title: true,
+            body: true,
+            publishedAt: true,
+          },
+          orderBy: [{ publishedAt: 'desc' }, { id: 'asc' }],
+        }),
+      ])
+    : [[], []];
 
   const counts = {
     COMPLETE: 0,
@@ -94,7 +104,7 @@ export default async function Page({ params }: DashboardPageProps) {
       description: task.description ?? '',
     }));
 
-  const today = getTodayOnServer();
+  const today = getTodayInUtc();
 
   const deadlines = tasks.flatMap((task) => {
     if (!task.deadline || task.status === 'COMPLETE') return [];
@@ -103,7 +113,7 @@ export default async function Page({ params }: DashboardPageProps) {
     const date = task.deadline.toISOString().slice(0, 10);
     const daysRemaining = (Date.parse(date) - today) / MS_PER_DAY;
 
-    if (daysRemaining < 0 || daysRemaining > 5) return [];
+    if (daysRemaining > 5) return [];
 
     return [
       {
@@ -116,19 +126,6 @@ export default async function Page({ params }: DashboardPageProps) {
       },
     ];
   });
-
-  const announcementRows = pairing
-    ? await prisma.announcement.findMany({
-        where: { gameNsoId: pairing.id },
-        select: {
-          id: true,
-          title: true,
-          body: true,
-          publishedAt: true,
-        },
-        orderBy: [{ publishedAt: 'desc' }, { id: 'asc' }],
-      })
-    : [];
 
   const announcements = announcementRows.map((announcement) => ({
     ...announcement,

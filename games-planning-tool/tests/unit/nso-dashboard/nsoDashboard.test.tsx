@@ -97,15 +97,15 @@ describe('ActionsRequiredCard', () => {
     expect(within(rows[1]).getByText('2')).toBeInTheDocument();
   });
 
-  it('keeps the heading and an empty list when there are no actions', () => {
+  it('shows a message when no actions are required', () => {
     render(<ActionsRequiredCard actions={[]} />);
 
     expect(
       screen.getByRole('heading', { name: 'Actions Required' }),
     ).toBeInTheDocument();
-    expect(
-      within(screen.getByRole('list')).queryAllByRole('listitem'),
-    ).toHaveLength(0);
+
+    expect(screen.getByText('No actions required.')).toBeInTheDocument();
+    expect(screen.queryByRole('list')).not.toBeInTheDocument();
   });
 });
 
@@ -181,5 +181,51 @@ describe('PlanningProgressCard', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Complete (25%)')).toBeInTheDocument();
     expect(screen.getByText('In Progress (75%)')).toBeInTheDocument();
+  });
+
+  it('explains why an empty plan has no chart', () => {
+    render(
+      <PlanningProgressCard
+        counts={{
+          COMPLETE: 0,
+          SUBMITTED: 0,
+          ACTION_REQUIRED: 0,
+          IN_PROGRESS: 0,
+          NOT_STARTED: 0,
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        'No planning tasks yet. Your progress will appear here once tasks are added.',
+      ),
+    ).toBeInTheDocument();
+
+    expect(chartMock).not.toHaveBeenCalled();
+  });
+
+  it('shows the breakdown when tasks exist but none are complete', () => {
+    render(
+      <PlanningProgressCard
+        counts={{
+          COMPLETE: 0,
+          SUBMITTED: 0,
+          ACTION_REQUIRED: 1,
+          IN_PROGRESS: 3,
+          NOT_STARTED: 0,
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByRole('heading', {
+        name: /planning progress.*0% complete/i,
+      }),
+    ).toBeInTheDocument();
+
+    expect(screen.getByText('Required Actions (25%)')).toBeInTheDocument();
+    expect(screen.getByText('In Progress (75%)')).toBeInTheDocument();
+    expect(chartMock).toHaveBeenCalled();
   });
 });

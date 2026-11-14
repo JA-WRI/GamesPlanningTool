@@ -1,4 +1,5 @@
-//30% AI generated: The code was already partially written by me, and I used AI to extract the component in the proper manner.
+// AI contribution: 30%
+// The code was already partially written by me, and I used AI to extract the component in the proper manner.
 import DashboardPanel from './DashboardPanel';
 
 type AnnouncementItem = {

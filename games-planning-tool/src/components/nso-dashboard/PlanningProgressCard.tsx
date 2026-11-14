@@ -1,4 +1,5 @@
-// This page has been coded by both me and AI (50%).
+// AI contribution: 50%
+// This page has been coded by both me and AI
 // I started coding the general structure of the component and used AI to accelerate the process and get the right placement of elements
 import DonutChart from '@/components/commons/DonutChart';
 import ChartLegend from '@/components/commons/ChartLegend';
@@ -21,6 +22,19 @@ export default function PlanningProgressCard({
   const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
   const complete =
     total === 0 ? 0 : Math.round((counts.COMPLETE / total) * 100);
+  if (total === 0) {
+    return (
+      <DashboardPanel
+        id="progress-heading"
+        title="Planning Progress – 0% complete"
+      >
+        <p className="mt-6 text-sm text-muted">
+          No planning tasks yet. Your progress will appear here once tasks are
+          added.
+        </p>
+      </DashboardPanel>
+    );
+  }
 
   const segments: ChartSegment[] = [
     {

@@ -1,3 +1,4 @@
+// AI contribution: 30%
 import { Games } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';

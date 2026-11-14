@@ -466,14 +466,13 @@ async function main() {
     }),
   ]);
 
-  // Use the local calendar day, represented at midnight UTC for @db.Date.
   const seedDay = new Date();
   const dateFromToday = (offset: number) =>
     new Date(
       Date.UTC(
-        seedDay.getFullYear(),
-        seedDay.getMonth(),
-        seedDay.getDate() + offset,
+        seedDay.getUTCFullYear(),
+        seedDay.getUTCMonth(),
+        seedDay.getUTCDate() + offset,
       ),
     );
 
