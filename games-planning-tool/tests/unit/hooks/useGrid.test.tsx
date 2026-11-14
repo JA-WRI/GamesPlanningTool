@@ -100,3 +100,23 @@ describe('useGrid Hook', () => {
     expect(result.current.rows[0].name).toBe('Item 1');
   });
 });
+
+it('uses database-assigned IDs on the next save', async () => {
+  const canonicalRows = [{ id: '42', name: 'Saved row' }];
+  const save = vi.fn().mockResolvedValue(canonicalRows);
+  const { result } = renderHook(() =>
+    useGrid(
+      [{ id: 'temporary', name: 'New row' }],
+      () => ({ id: 'new', name: '' }),
+      save,
+    ),
+  );
+  await act(async () => {
+    await result.current.handleSave();
+  });
+  expect(result.current.rows).toEqual(canonicalRows);
+  await act(async () => {
+    await result.current.handleSave();
+  });
+  expect(save).toHaveBeenLastCalledWith(canonicalRows);
+});

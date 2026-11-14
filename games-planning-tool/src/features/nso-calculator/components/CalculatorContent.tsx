@@ -1,10 +1,4 @@
-// 60% AI generated code:
-// The following was AI generated:
-// - Original calculator layout, and component organization
-// - Temporary calculator-specific state used beforedb is connected
-// - css converted to tailwind
-// The table fields and calculator requirements were reviewed and modified manually
-// The grid component was implemented manually
+// 70% AI generated code
 'use client';
 
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
@@ -12,24 +6,16 @@ import { Box } from '@mui/material';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
 import { asDraftRows } from '@/lib/draft-keys';
-import { amountToCAD, displayAmount, type Currency } from './ConversionRates';
-// these will be added later
-//import CostSummary from './costsummary';
-//import HotelDetails from './hoteldetails';
-
-// these categories are now hard-coded values until we connect to the db
-const TRAVEL_CATEGORIES = [
-  {
-    id: 1,
-    title: 'Travelling Accredited Alternate Athletes @ partial NSO cost (Ap)',
-  },
-  {
-    id: 2,
-    title: 'Travelling Non-accredited Alternate Athletes @ full NSO cost',
-  },
-  { id: 3, title: 'Support staff @ partial NSO cost (e.g., partial Ao)' },
-  { id: 4, title: 'Support staff @ full NSO cost (incl. non-accredited)' },
-] as const;
+import {
+  amountToCAD,
+  displayAmount,
+  type Currency,
+  type CurrencyRates,
+} from './ConversionRates';
+import {
+  calculateDaysOnSite,
+  calculateTotalCostPerMember,
+} from '../utils/calculations';
 
 export type CalculatorRow = Record<string, unknown> & {
   id: string;
@@ -61,16 +47,71 @@ function createTraveler(category: string): CalculatorRow {
   };
 }
 
+function calculateTravelerRow(row: CalculatorRow): CalculatorRow {
+  const days = calculateDaysOnSite(row.checkIn, row.checkOut);
+
+  return {
+    ...row,
+    days,
+    totalCostPerTeamMember: calculateTotalCostPerMember(
+      row.travelBudget,
+      row.accommodationBudget,
+      days,
+      row.mealsBudget,
+      row.insuranceBudget,
+    ),
+  };
+}
+
+function displayDaysOnSite(checkIn: string, checkOut: string): number {
+  if (!checkIn || !checkOut) return 0;
+
+  try {
+    return calculateDaysOnSite(checkIn, checkOut);
+  } catch {
+    return 0;
+  }
+}
+
+function displayTotalCostPerMember(row: CalculatorRow): number {
+  const travel = Number(row.travelBudget);
+  const accommodation = Number(row.accommodationBudget);
+  const meals = Number(row.mealsBudget);
+  const insurance = Number(row.insuranceBudget);
+
+  const values = [travel, accommodation, meals, insurance];
+
+  // Keep the grid from crashing while editing
+  if (values.some((value) => !Number.isFinite(value) || value < 0)) {
+    return 0;
+  }
+
+  return calculateTotalCostPerMember(
+    travel,
+    accommodation,
+    displayDaysOnSite(row.checkIn, row.checkOut),
+    meals,
+    insurance,
+  );
+}
+
+function getLocalToday(): string {
+  const today = new Date();
+
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
 const columns: ColumnDefinition<CalculatorRow>[] = [
   {
     field: 'category',
     label: 'Access and Priviledges',
     type: 'select',
     width: 430,
-    options: TRAVEL_CATEGORIES.map(({ title }) => ({
-      label: title,
-      value: title,
-    })),
+    options: [],
   },
   {
     field: 'numberOfTeamMembers',
@@ -79,15 +120,6 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
     min: 0,
     step: 1,
     width: 150,
-    align: 'center',
-  },
-  {
-    field: 'days',
-    label: 'Days on Site',
-    type: 'number',
-    min: 0,
-    step: 1,
-    width: 125,
     align: 'center',
   },
   {
@@ -115,8 +147,18 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
     align: 'center',
   },
   {
+    field: 'days',
+    label: 'Days on Site',
+    type: 'calculated',
+    width: 125,
+    align: 'center',
+    formula: {
+      evaluate: (row) => displayDaysOnSite(row.checkIn, row.checkOut),
+    },
+  },
+  {
     field: 'accommodationBudget',
-    label: 'Accommodation Budget',
+    label: 'Accommodation Budget / Day on Site',
     type: 'number',
     min: 0,
     width: 175,
@@ -141,13 +183,15 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
   {
     field: 'totalCostPerTeamMember',
     label: 'Total Cost / Member',
-    type: 'number',
+    type: 'calculated',
     min: 0,
     width: 175,
     align: 'center',
+    formula: {
+      evaluate: (row) => displayTotalCostPerMember(row),
+    },
   },
 ];
-
 const budgetFields = [
   'travelBudget',
   'accommodationBudget',
@@ -156,13 +200,18 @@ const budgetFields = [
   'totalCostPerTeamMember',
 ] as const;
 
-function convertRows(rows: CalculatorRow[], currency: Currency, toCAD = false) {
+function convertRows(
+  rows: CalculatorRow[],
+  currency: Currency,
+  rates: CurrencyRates,
+  toCAD = false,
+) {
   return rows.map((row) => {
     const result = { ...row };
     for (const field of budgetFields) {
       result[field] = toCAD
-        ? amountToCAD(row[field], currency)
-        : displayAmount(row[field], currency);
+        ? amountToCAD(row[field], currency, rates)
+        : displayAmount(row[field], currency, rates);
     }
     return result;
   });
@@ -173,6 +222,8 @@ export type CalculatorContentHandle = {
 };
 
 type CalculatorContentProps = {
+  readonly rates: CurrencyRates;
+  readonly categories: { name: string }[];
   readonly calculatorId: number;
   readonly initialItems?: CalculatorRow[];
   readonly initialDraft?: unknown;
@@ -190,6 +241,8 @@ const CalculatorContent = forwardRef<
   CalculatorContentProps
 >(function CalculatorContent(
   {
+    rates,
+    categories,
     calculatorId,
     initialItems,
     initialDraft,
@@ -200,19 +253,17 @@ const CalculatorContent = forwardRef<
   },
   ref,
 ) {
-  const [savedCAD, setSavedCAD] = useState<CalculatorRow[]>(() =>
-    initialItems && initialItems.length > 0
-      ? initialItems
-      : TRAVEL_CATEGORIES.map(({ title }) => createTraveler(title)),
+  const [savedCAD, setSavedCAD] = useState<CalculatorRow[]>(
+    () => initialItems ?? [],
   );
   const [draftPayload, setDraftPayload] = useState(initialDraft);
   const [isEditing, setIsEditing] = useState(false);
   const restoreDraft = (value: unknown) => {
     const rows = asDraftRows<CalculatorRow>(value);
-    return rows ? convertRows(rows, currency) : undefined;
+    return rows ? convertRows(rows, currency, rates) : undefined;
   };
   const latestRowsRef = useRef(
-    restoreDraft(draftPayload) ?? convertRows(savedCAD, currency),
+    restoreDraft(draftPayload) ?? convertRows(savedCAD, currency, rates),
   );
 
   useImperativeHandle(ref, () => ({
@@ -221,21 +272,76 @@ const CalculatorContent = forwardRef<
       const currentRows = latestRowsRef.current;
       const hasEdits =
         JSON.stringify(currentRows) !==
-        JSON.stringify(convertRows(savedCAD, currency));
+        JSON.stringify(convertRows(savedCAD, currency, rates));
       setDraftPayload(
         draftPayload !== undefined || hasEdits
-          ? convertRows(currentRows, currency, true)
+          ? convertRows(currentRows, currency, rates, true)
           : undefined,
       );
       setIsEditing(false);
     },
   }));
 
+  const validateTravelerDates = (rows: CalculatorRow[]) => {
+    const today = getLocalToday();
+
+    rows.forEach((row, index) => {
+      const rowNumber = index + 1;
+
+      // Both empty is allowed
+      if (!row.checkIn && !row.checkOut) return;
+
+      // Give specific error messages
+      if (!row.checkIn) {
+        throw new Error(`Row ${rowNumber}: Please select a check-in date.`);
+      }
+
+      if (!row.checkOut) {
+        throw new Error(`Row ${rowNumber}: Please select a check-out date.`);
+      }
+
+      const previous = savedCAD.find((savedRow) => savedRow.id === row.id);
+
+      const datesChanged =
+        !previous ||
+        previous.checkIn !== row.checkIn ||
+        previous.checkOut !== row.checkOut;
+
+      try {
+        calculateDaysOnSite(
+          row.checkIn,
+          row.checkOut,
+          datesChanged ? today : undefined,
+        );
+      } catch (error) {
+        const reason =
+          error instanceof Error ? error.message : 'Invalid date range';
+
+        throw new Error(`Row ${rowNumber}: ${reason}`);
+      }
+    });
+  };
+
+  const getDateValidationError = (rows: CalculatorRow[]): string | null => {
+    try {
+      validateTravelerDates(rows);
+      return null;
+    } catch (error) {
+      return error instanceof Error
+        ? error.message
+        : 'Please correct the dates.';
+    }
+  };
+
   const handleSave = async (updatedRows: CalculatorRow[]) => {
-    const rowsCAD = convertRows(updatedRows, currency, true);
+    validateTravelerDates(updatedRows);
+    const rowsCAD = convertRows(updatedRows, currency, rates, true).map(
+      calculateTravelerRow,
+    );
     const saved = await onSaveAction(calculatorId, rowsCAD);
     setSavedCAD(saved);
     setDraftPayload(undefined);
+    return convertRows(saved, currency, rates);
   };
 
   return (
@@ -259,13 +365,24 @@ const CalculatorContent = forwardRef<
         <BaseGridPage<CalculatorRow>
           key={currency}
           title={gameName}
-          initialData={convertRows(savedCAD, currency)}
+          initialData={convertRows(savedCAD, currency, rates)}
           initialDraft={draftPayload}
           restoreDraft={restoreDraft}
-          serializeDraft={(rows) => convertRows(rows, currency, true)}
+          serializeDraft={(rows) => convertRows(rows, currency, rates, true)}
           draftKey={draftKey}
-          columns={columns}
-          createEmptyRow={() => createTraveler(TRAVEL_CATEGORIES[0].title)}
+          columns={columns.map((column) =>
+            column.field === 'category'
+              ? {
+                  ...column,
+                  options: categories.map(({ name }) => ({
+                    label: name,
+                    value: name,
+                  })),
+                }
+              : column,
+          )}
+          isValid={(rows) => getDateValidationError(rows) === null}
+          createEmptyRow={() => createTraveler(categories[0]?.name ?? '')}
           addButtonLabel="Add New Traveler"
           showSearch={false}
           allowAddRow={true}

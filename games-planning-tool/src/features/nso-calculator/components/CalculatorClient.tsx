@@ -1,4 +1,4 @@
-// No AI code
+// 20% AI for fixing integration due to merge conflict
 'use client';
 
 import { Box } from '@mui/material';
@@ -9,9 +9,11 @@ import EstimatedCosts from './EstimatedCosts';
 import type { CalculatorRow } from './CalculatorContent';
 import type { EstimatedCostRow } from './EstimatedCosts';
 import { useRef, useState } from 'react';
-import { type Currency } from './ConversionRates';
+import { type Currency, type CurrencyRates } from './ConversionRates';
 
 export default function CalculatorClient({
+  rates,
+  categories,
   calculatorId,
   travelerDraftKey,
   estimatedCostsDraftKey,
@@ -24,6 +26,8 @@ export default function CalculatorClient({
   gameName,
   children,
 }: {
+  readonly rates: CurrencyRates;
+  readonly categories: { name: string }[];
   readonly calculatorId: number;
   readonly gameName: string;
   readonly children?: React.ReactNode;
@@ -48,6 +52,8 @@ export default function CalculatorClient({
   return (
     <Box component="main" className="min-h-full px-4 py-5 space-y-10">
       <CalculatorContent
+        rates={rates}
+        categories={categories}
         ref={travelerGrid}
         calculatorId={calculatorId}
         gameName={gameName}
@@ -58,6 +64,7 @@ export default function CalculatorClient({
         onSaveAction={onSaveTravelers}
       />
       <EstimatedCosts
+        rates={rates}
         calculatorId={calculatorId}
         initialItems={initialEstimatedCosts}
         initialDraft={initialEstimatedCostsDraft}

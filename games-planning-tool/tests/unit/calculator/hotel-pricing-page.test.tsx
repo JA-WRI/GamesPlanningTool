@@ -1,5 +1,15 @@
 // AI-assisted tests; reviewed for calculator and hotel pricing requirements.
 import { beforeEach, expect, it, vi } from 'vitest';
+vi.mock('@/lib/calculator', () => ({
+  getCalculatorData: vi
+    .fn()
+    .mockResolvedValue({
+      rates: { CAD: 1, USD: 1.38, EUR: 1.48 },
+      categories: [],
+      travelers: [],
+      estimatedCosts: [],
+    }),
+}));
 vi.mock('@/server/queries/games', () => ({ getGamesWithNsos: vi.fn() }));
 vi.mock('@/lib/data', () => ({ getSession: vi.fn() }));
 vi.mock('next/navigation', () => ({
@@ -24,10 +34,7 @@ vi.mock('@/lib/draft-actions', () => ({
 }));
 import { getGamesWithNsos } from '@/server/queries/games';
 import { getSession } from '@/lib/data';
-import {
-  getTravelerItems,
-  getEstimatedCostItems,
-} from '@/features/nso-calculator/components/calculator-actions';
+import { getCalculatorData } from '@/lib/calculator';
 import { getDraftDocument } from '@/lib/draft-actions';
 import Page from '@/app/(application)/[gameId]/[nsoId]/calculator/page';
 const params = (gameId: string, nsoId: string) =>
@@ -52,8 +59,7 @@ it('accepts a participating NSO and the database game ID', async () => {
   expect(result.props.children.key).toBe('7');
   expect(result.props.children.props.children.props.gameId).toBe(7);
   expect(result.props.gameName).toBe('Games');
-  expect(getTravelerItems).toHaveBeenCalledWith('nso-a', '7', 1);
-  expect(getEstimatedCostItems).toHaveBeenCalledWith('nso-a', '7', 1);
+  expect(getCalculatorData).toHaveBeenCalledWith(7, 'nso-a');
   expect(getDraftDocument).toHaveBeenCalledWith(
     'calculator:1:travelers:7:nso-a',
     1,

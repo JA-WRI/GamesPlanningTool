@@ -1,22 +1,5 @@
-/*
-  Warnings:
-
-  - Added the required column `gameId` to the `calculator_estimated_cost_items` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `nsoId` to the `calculator_estimated_cost_items` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `gameId` to the `calculator_traveler_items` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `nsoId` to the `calculator_traveler_items` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- CreateEnum
 CREATE TYPE "ContactType" AS ENUM ('COC', 'NSO');
-
--- AlterTable
-ALTER TABLE "calculator_estimated_cost_items" ADD COLUMN     "gameId" TEXT NOT NULL,
-ADD COLUMN     "nsoId" TEXT NOT NULL;
-
--- AlterTable
-ALTER TABLE "calculator_traveler_items" ADD COLUMN     "gameId" TEXT NOT NULL,
-ADD COLUMN     "nsoId" TEXT NOT NULL;
 
 -- CreateTable
 CREATE TABLE "nso_contacts" (
@@ -71,12 +54,6 @@ CREATE INDEX "nso_contacts_nsoId_gameId_idx" ON "nso_contacts"("nsoId", "gameId"
 
 -- CreateIndex
 CREATE INDEX "pgtc_disciplines_nsoId_gameId_idx" ON "pgtc_disciplines"("nsoId", "gameId");
-
--- CreateIndex
-CREATE INDEX "calculator_estimated_cost_items_nsoId_gameId_idx" ON "calculator_estimated_cost_items"("nsoId", "gameId");
-
--- CreateIndex
-CREATE INDEX "calculator_traveler_items_nsoId_gameId_idx" ON "calculator_traveler_items"("nsoId", "gameId");
 
 -- AddForeignKey
 ALTER TABLE "nso_contacts" ADD CONSTRAINT "nso_contacts_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "games"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

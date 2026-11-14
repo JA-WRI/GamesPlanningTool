@@ -11,8 +11,10 @@ export function useGrid<T extends { id: string }>(
   const [savedRows, setSavedRows] = useState<T[]>(initialRows);
 
   const handleSave = async () => {
-    await onSaveCallback?.(rows);
-    setSavedRows(rows);
+    const result = await onSaveCallback?.(rows);
+    const canonicalRows = Array.isArray(result) ? (result as T[]) : rows;
+    setRows(canonicalRows);
+    setSavedRows(canonicalRows);
     setIsEditing(false);
   };
 

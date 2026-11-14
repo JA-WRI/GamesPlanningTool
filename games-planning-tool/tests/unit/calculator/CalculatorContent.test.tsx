@@ -1,4 +1,4 @@
-// AI-assisted tests; reviewed for calculator and hotel pricing requirements.
+// 90% AI
 import {
   fireEvent,
   render,
@@ -9,6 +9,7 @@ import {
 import { expect, it, vi } from 'vitest';
 import CalculatorClient from '@/features/nso-calculator/components/CalculatorClient';
 import HotelPricingTable from '@/features/nso-calculator/components/HotelPricingTable';
+import { INITIAL_COST_ROWS } from '@/features/nso-calculator/components/EstimatedCosts';
 import { saveDraftDocument } from '@/lib/draft-actions';
 
 vi.mock('@/lib/draft-actions', () => ({
@@ -16,11 +17,33 @@ vi.mock('@/lib/draft-actions', () => ({
   deleteDraftDocument: vi.fn().mockResolvedValue(undefined),
 }));
 
+const canonical = {
+  rates: { CAD: 1, USD: 1.38, EUR: 1.48 },
+  categories: [{ name: 'Support staff' }],
+  initialTravelers: [
+    {
+      id: '1',
+      category: 'Support staff',
+      numberOfTeamMembers: 0,
+      days: 0,
+      checkIn: '',
+      checkOut: '',
+      travelBudget: 0,
+      accommodationBudget: 0,
+      mealsBudget: 0,
+      insuranceBudget: 0,
+      totalCostPerTeamMember: 0,
+    },
+  ],
+  initialEstimatedCosts: INITIAL_COST_ROWS,
+};
+
 it('preserves calculator and estimated costs with database hotels while Cost Summary is deferred', async () => {
   const saveTravelers = vi.fn(async (_id, rows) => rows);
   const saveCosts = vi.fn(async (_id, rows) => rows);
   render(
     <CalculatorClient
+      {...canonical}
       calculatorId={1}
       gameName="Games"
       travelerDraftKey="travelers"
@@ -61,11 +84,10 @@ it('preserves calculator and estimated costs with database hotels while Cost Sum
   // Members, days, travel, accommodation, meals, insurance, total/member.
   for (const [index, value] of [
     [0, 2],
-    [1, 3],
-    [2, 2400],
-    [3, 750],
-    [4, 118],
-    [5, 28],
+    [1, 2400],
+    [2, 750],
+    [3, 118],
+    [4, 28],
   ]) {
     fireEvent.change(inputs[index], { target: { value: String(value) } });
   }
@@ -116,6 +138,7 @@ it('preserves calculator and estimated costs with database hotels while Cost Sum
 it('flushes both drafts in CAD before switching currency and restores them on reload', async () => {
   vi.mocked(saveDraftDocument).mockClear();
   const props = {
+    ...canonical,
     calculatorId: 1,
     gameName: 'Games',
     travelerDraftKey: 'travelers',
@@ -127,7 +150,7 @@ it('flushes both drafts in CAD before switching currency and restores them on re
   const tables = screen.getAllByRole('table');
 
   fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
-  fireEvent.change(within(tables[0]).getAllByRole('spinbutton')[2], {
+  fireEvent.change(within(tables[0]).getAllByRole('spinbutton')[1], {
     target: { value: '276' },
   });
   fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
@@ -144,7 +167,7 @@ it('flushes both drafts in CAD before switching currency and restores them on re
     ),
   );
   expect(
-    within(screen.getAllByRole('table')[0]).getByText('200'),
+    within(screen.getAllByRole('table')[0]).getAllByText('200')[0],
   ).toBeInTheDocument();
   expect(
     within(screen.getAllByRole('table')[1]).getByText('100'),
@@ -165,13 +188,14 @@ it('flushes both drafts in CAD before switching currency and restores them on re
   unmount();
   render(
     <CalculatorClient
+      {...canonical}
       {...props}
       initialTravelerDraft={travelerDraft}
       initialEstimatedCostsDraft={costsDraft}
     />,
   );
   expect(
-    within(screen.getAllByRole('table')[0]).getByText('276'),
+    within(screen.getAllByRole('table')[0]).getAllByText('276')[0],
   ).toBeInTheDocument();
   expect(
     within(screen.getAllByRole('table')[1]).getByText('138'),
@@ -188,6 +212,7 @@ it('keeps the currency and edits when a draft flush fails', async () => {
   const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
   render(
     <CalculatorClient
+      {...canonical}
       calculatorId={1}
       gameName="Games"
       travelerDraftKey="travelers"
@@ -199,7 +224,7 @@ it('keeps the currency and edits when a draft flush fails', async () => {
   fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
   const travelInput = within(screen.getAllByRole('table')[0]).getAllByRole(
     'spinbutton',
-  )[2];
+  )[1];
   fireEvent.change(travelInput, { target: { value: '276' } });
   fireEvent.click(screen.getByRole('button', { name: 'USD' }));
 

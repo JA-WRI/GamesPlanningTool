@@ -24,7 +24,9 @@ const data: CostSummaryData = {
 
 describe('CostSummary', () => {
   it('totals the categories and shows clothing separately', () => {
-    render(<CostSummary data={data} />);
+    render(
+      <CostSummary rates={{ CAD: 1, USD: 1.38, EUR: 1.48 }} data={data} />,
+    );
     expect(screen.getByLabelText('Estimated total')).toHaveTextContent(
       '$48,778.00',
     );
@@ -45,11 +47,22 @@ describe('CostSummary', () => {
   });
 
   it('updates totals from props and converts all amounts to the selected currency', () => {
-    const { rerender } = render(<CostSummary data={data} currency="USD" />);
+    const { rerender } = render(
+      <CostSummary
+        rates={{ CAD: 1, USD: 1.38, EUR: 1.48 }}
+        data={data}
+        currency="USD"
+      />,
+    );
     expect(screen.getByLabelText('Estimated total')).toHaveTextContent(
       'US$35,346.38',
     );
-    rerender(<CostSummary data={{ ...data, accommodation: 0 }} />);
+    rerender(
+      <CostSummary
+        rates={{ CAD: 1, USD: 1.38, EUR: 1.48 }}
+        data={{ ...data, accommodation: 0 }}
+      />,
+    );
     expect(screen.getByLabelText('Estimated total')).toHaveTextContent(
       '$13,928.00',
     );

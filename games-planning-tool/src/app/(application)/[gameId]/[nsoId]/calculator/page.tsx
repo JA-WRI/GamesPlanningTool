@@ -1,9 +1,10 @@
+// 30% AI generated
+import { getCalculatorData } from '@/lib/calculator';
+import { dbTravelerToRow } from '@/features/nso-calculator/lib/canonicalMapping';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import CalculatorClient from '@/features/nso-calculator/components/CalculatorClient';
 import {
-  getTravelerItems,
-  getEstimatedCostItems,
   saveTravelerItems,
   saveEstimatedCostItems,
 } from '@/features/nso-calculator/components/calculator-actions';
@@ -46,17 +47,14 @@ export default async function CalculatorPage({
     gameId,
     nsoId,
   );
-  const [
-    initialTravelers,
-    initialEstimatedCosts,
-    initialTravelerDraft,
-    initialEstimatedCostsDraft,
-  ] = await Promise.all([
-    getTravelerItems(nsoId, gameId, calculatorId),
-    getEstimatedCostItems(nsoId, gameId, calculatorId),
-    getDraftDocument(travelerDraftKey, DRAFT_SCHEMA_VERSION),
-    getDraftDocument(estimatedCostsDraftKey, DRAFT_SCHEMA_VERSION),
-  ]);
+  const [calculatorData, initialTravelerDraft, initialEstimatedCostsDraft] =
+    await Promise.all([
+      getCalculatorData(game.id, nsoId),
+      getDraftDocument(travelerDraftKey, DRAFT_SCHEMA_VERSION),
+      getDraftDocument(estimatedCostsDraftKey, DRAFT_SCHEMA_VERSION),
+    ]);
+
+  if (!calculatorData) notFound();
 
   return (
     <CalculatorClient
@@ -64,9 +62,17 @@ export default async function CalculatorPage({
       calculatorId={calculatorId}
       travelerDraftKey={travelerDraftKey}
       estimatedCostsDraftKey={estimatedCostsDraftKey}
-      initialTravelers={initialTravelers}
+      rates={calculatorData.rates}
+      categories={calculatorData.categories}
+      initialTravelers={calculatorData.travelers.map(dbTravelerToRow)}
       initialTravelerDraft={initialTravelerDraft}
-      initialEstimatedCosts={initialEstimatedCosts}
+      initialEstimatedCosts={calculatorData.estimatedCosts.map((cost) => ({
+        id: String(cost.id),
+        category: cost.name,
+        amount: cost.costInCents / 100,
+        unitOfMeasure: cost.unitOfMeasure,
+        notes: cost.notes ?? '',
+      }))}
       initialEstimatedCostsDraft={initialEstimatedCostsDraft}
       onSaveTravelers={saveTravelerItems.bind(null, nsoId, gameId)}
       onSaveEstimatedCosts={saveEstimatedCostItems.bind(null, nsoId, gameId)}

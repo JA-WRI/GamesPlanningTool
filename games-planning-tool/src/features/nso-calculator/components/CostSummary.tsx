@@ -7,7 +7,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
-import { CONVERSION_RATES, type Currency } from './ConversionRates';
+import { type CurrencyRates, type Currency } from './ConversionRates';
 
 export type CostSummaryData = {
   accommodation: number;
@@ -35,10 +35,12 @@ const columns: ColumnDefinition<SummaryRow>[] = [
 export default function CostSummary({
   data,
   currency = 'CAD',
+  rates,
   onSave,
   onExport,
   onDuplicate,
 }: {
+  readonly rates: CurrencyRates;
   readonly data: CostSummaryData;
   readonly currency?: Currency;
   readonly onSave?: () => void;
@@ -50,7 +52,7 @@ export default function CostSummary({
       style: 'currency',
       currency,
       maximumFractionDigits: 2,
-    }).format(amount / CONVERSION_RATES[currency]);
+    }).format(amount / rates[currency]);
   const categories = [
     ['accommodation', 'Accommodation', data.accommodation],
     ['travel', 'Travel', data.travel],

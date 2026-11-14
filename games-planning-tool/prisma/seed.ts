@@ -899,20 +899,145 @@ async function seedResources() {
   await updateResourceLinks(allRecords);
 }
 
-// Exceeds 50 lines: seeds every record type in dependency order.
+async function seedCalculator(gameId: number, nsoIds: string[]) {
+  // Create the four traveler categories
+  const categoryNames = [
+    'Travelling Accredited Alternate Athletes @ partial NSO cost (Ap)',
+    'Travelling Non-accredited Alternate Athletes @ full NSO cost',
+    'Support staff @ partial NSO cost (e.g., partial Ao)',
+    'Support staff @ full NSO cost (incl. non-accredited)',
+  ];
+
+  const gameNsos = await prisma.gameNso.findMany({
+    where: {
+      gameId,
+      nsoId: { in: nsoIds },
+    },
+    select: { id: true },
+  });
+
+  const categories: { id: number; name: string }[] = [];
+
+  for (const name of categoryNames) {
+    const category = await prisma.travelerCategory.create({
+      data: { name },
+    });
+    categories.push(category);
+  }
+
+  // Create the initial traveler rows for each NSO
+  await prisma.traveler.createMany({
+    data: nsoIds.flatMap((nsoId) =>
+      categories.map((category) => ({
+        gameId,
+        nsoId,
+        travelerCategoryId: category.id,
+        numberOfTeamMembers: 0,
+        days: 0,
+        travelCostInCents: 0,
+        accommodationCostInCents: 0,
+        mealsCostInCents: 0,
+        insuranceCostInCents: 0,
+        extraCostsInCents: 0,
+      })),
+    ),
+  });
+
+  // Default values from the Estimated Costs table
+
+  const estimatedCosts = [
+    {
+      name: 'Travel Economy Fare',
+      costInCents: 240000,
+      unitOfMeasure: 'CAD',
+      notes: 'To be Confirmed',
+    },
+    {
+      name: 'Athlete Insurance',
+      costInCents: 5000,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Support Staff Insurance',
+      costInCents: 2800,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Cellphone (local plan)',
+      costInCents: 10800,
+      unitOfMeasure: 'CAD/day',
+    },
+    {
+      name: 'Meals',
+      costInCents: 11800,
+      unitOfMeasure: 'CAD/meal',
+      notes: '(outside of Village, breakfast incl at most accommodation)',
+    },
+    {
+      name: 'Village Meal Voucher',
+      costInCents: 5700,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Knife & Fork for Ap',
+      costInCents: 227900,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Clothing Package',
+      costInCents: 320000,
+      unitOfMeasure: 'CAD',
+    },
+  ];
+
+  await prisma.estimatedCostItem.createMany({
+    data: gameNsos.flatMap((gameNso) =>
+      estimatedCosts.map((cost) => ({
+        ...cost,
+        gameNsoId: gameNso.id,
+      })),
+    ),
+  });
+
+  // Temporary conversion rates until API integration
+  await prisma.conversionRate.createMany({
+    data: [
+      {
+        fromCurrency: 'USD',
+        toCurrency: 'CAD',
+        rate: '1.38',
+      },
+      {
+        fromCurrency: 'EUR',
+        toCurrency: 'CAD',
+        rate: '1.48',
+      },
+    ],
+  });
+}
+
 async function main() {
   // Wipe in dependency order (children first)
   await prisma.resource.deleteMany();
+  // Calculator data
+  await prisma.traveler.deleteMany();
+  await prisma.estimatedCostItem.deleteMany();
+  await prisma.conversionRate.deleteMany();
+  await prisma.travelerCategory.deleteMany();
   await prisma.disciplineBreakdown.deleteMany();
   await prisma.teamSizeEstimate.deleteMany();
+  await prisma.contact.deleteMany();
+  await prisma.pgtcDiscipline.deleteMany();
+  await prisma.hotelRate.deleteMany();
+  await prisma.gameHotel.deleteMany();
+  await prisma.draft.deleteMany();
+  // Existing data
   await prisma.gameMember.deleteMany();
   await prisma.gameNso.deleteMany();
   await prisma.member.deleteMany();
   await prisma.user.deleteMany();
   await prisma.nso.deleteMany();
   await prisma.game.deleteMany();
-  await prisma.calculatorEstimatedCostItem.deleteMany();
-  await prisma.calculatorTravelerItem.deleteMany();
 
   // Games
   const game = await prisma.game.create({
@@ -945,6 +1070,9 @@ async function main() {
       nsoId: nso.id,
     })),
   });
+
+  // Calculator seed data
+  await seedCalculator(game.id, [nsos.aquatics.id, nsos.athletics.id]);
 
   // Members
   const members: { seed: MemberSeed; id: string }[] = [];
@@ -1013,146 +1141,6 @@ async function main() {
     ],
   });
 
-  for (const nso of Object.values(nsos)) {
-    const gameId = String(game.id);
-    // Calculator - Estimated Costs
-    await prisma.calculatorEstimatedCostItem.createMany({
-      data: [
-        {
-          gameId,
-          nsoId: nso.id,
-          calculatorId: 1,
-          category: 'Travel Economy Fare',
-          amount: 2400,
-          unitOfMeasure: 'CAD',
-          notes: 'To be Confirmed',
-        },
-        {
-          gameId,
-          nsoId: nso.id,
-          calculatorId: 1,
-          category: 'Athlete Insurance',
-          amount: 50,
-          unitOfMeasure: 'CAD',
-          notes: '',
-        },
-        {
-          gameId,
-          nsoId: nso.id,
-          calculatorId: 1,
-          category: 'Support Staff Insurance',
-          amount: 28,
-          unitOfMeasure: 'CAD',
-          notes: '',
-        },
-        {
-          gameId,
-          nsoId: nso.id,
-          calculatorId: 1,
-          category: 'Cellphone (local plan)',
-          amount: 108,
-          unitOfMeasure: 'CAD/day',
-          notes: '',
-        },
-        {
-          gameId,
-          nsoId: nso.id,
-          calculatorId: 1,
-          category: 'Meals',
-          amount: 118,
-          unitOfMeasure: 'CAD/meal',
-          notes: '(outside of Village, breakfast incl at most accommodation)',
-        },
-        {
-          gameId,
-          nsoId: nso.id,
-          calculatorId: 1,
-          category: 'Village Meal Voucher',
-          amount: 57,
-          unitOfMeasure: 'CAD',
-          notes: '',
-        },
-        {
-          gameId,
-          nsoId: nso.id,
-          calculatorId: 1,
-          category: 'Knife & Fork for Ap',
-          amount: 2279,
-          unitOfMeasure: 'CAD',
-          notes: '',
-        },
-        {
-          gameId,
-          nsoId: nso.id,
-          calculatorId: 1,
-          category: 'Clothing Package',
-          amount: 3200,
-          unitOfMeasure: 'CAD',
-          notes: '',
-        },
-      ],
-    });
-
-    // Calculator - Travelers
-    await prisma.calculatorTravelerItem.createMany({
-      data: [
-        {
-          gameId,
-          nsoId: nso.id,
-          calculatorId: 1,
-          category:
-            'Travelling Accredited Alternate Athletes @ partial NSO cost (Ap)',
-          numberOfTeamMembers: 0,
-          days: 0,
-          travelBudget: 0,
-          accommodationBudget: 0,
-          mealsBudget: 0,
-          insuranceBudget: 0,
-          totalCostPerTeamMember: 0,
-        },
-        {
-          gameId,
-          nsoId: nso.id,
-          calculatorId: 1,
-          category:
-            'Travelling Non-accredited Alternate Athletes @ full NSO cost',
-          numberOfTeamMembers: 0,
-          days: 0,
-          travelBudget: 0,
-          accommodationBudget: 0,
-          mealsBudget: 0,
-          insuranceBudget: 0,
-          totalCostPerTeamMember: 0,
-        },
-        {
-          gameId,
-          nsoId: nso.id,
-          calculatorId: 1,
-          category: 'Support staff @ partial NSO cost (e.g., partial Ao)',
-          numberOfTeamMembers: 0,
-          days: 0,
-          travelBudget: 0,
-          accommodationBudget: 0,
-          mealsBudget: 0,
-          insuranceBudget: 0,
-          totalCostPerTeamMember: 0,
-        },
-        {
-          gameId,
-          nsoId: nso.id,
-          calculatorId: 1,
-          category: 'Support staff @ full NSO cost (incl. non-accredited)',
-          numberOfTeamMembers: 0,
-          days: 0,
-          travelBudget: 0,
-          accommodationBudget: 0,
-          mealsBudget: 0,
-          insuranceBudget: 0,
-          totalCostPerTeamMember: 0,
-        },
-      ],
-    });
-  }
   // Resources (helper function)
   await seedResources();
 

@@ -1,66 +1,37 @@
-// No Substantial AI contribution
+// 50$ AI generated
 'use server';
 
-import { prisma } from '@/lib/prisma';
-import type { Prisma } from '@/generated/prisma/client';
-import {
-  hasUniqueRowIds,
-  replaceCollection,
-  runDraftSave,
-} from '@/lib/db-helpers';
-import {
-  estimatedCostItemsToDb,
-  travelerItemsToDb,
-} from '../lib/calculatorDbMapping';
+import { getCalculatorData } from '@/lib/calculator';
+import { saveTravelers, saveEstimatedCosts } from '../action';
+import type { CalculatorRow } from './CalculatorContent';
+import type { EstimatedCostRow } from './EstimatedCosts';
+import { dbTravelerToRow } from '../lib/canonicalMapping';
+
+function requireCalculator(calculatorId: number) {
+  if (calculatorId !== 1) throw new Error('Unknown calculator');
+}
 
 export async function getTravelerItems(
   nsoId: string,
   gameId: string,
   calculatorId: number,
 ) {
-  const records = await prisma.calculatorTravelerItem.findMany({
-    where: { nsoId, gameId, calculatorId },
-    orderBy: { createdAt: 'asc' },
-  });
-
-  return records.map((r) => ({
-    id: r.id,
-    calculatorId: r.calculatorId,
-    category: r.category,
-    numberOfTeamMembers: r.numberOfTeamMembers,
-    days: r.days,
-    travelBudget: r.travelBudget,
-    checkIn: r.checkIn ?? '',
-    checkOut: r.checkOut ?? '',
-    accommodationBudget: r.accommodationBudget,
-    mealsBudget: r.mealsBudget,
-    insuranceBudget: r.insuranceBudget,
-    totalCostPerTeamMember: r.totalCostPerTeamMember,
-  }));
+  requireCalculator(calculatorId);
+  const data = await getCalculatorData(Number(gameId), nsoId);
+  if (!data) throw new Error('Game or NSO not found');
+  return data.travelers.map(dbTravelerToRow);
 }
 
 export async function saveTravelerItems(
   nsoId: string,
   gameId: string,
   calculatorId: number,
-  rows: unknown[],
+  rows: CalculatorRow[],
 ) {
-  const outcome = await runDraftSave(rows, {
-    validate: hasUniqueRowIds,
-    map: (draft) => travelerItemsToDb(nsoId, gameId, calculatorId, draft),
-    persist: async (mappedRows) => {
-      await replaceCollection(
-        (operation) => prisma.$transaction(operation),
-        (tx: Prisma.TransactionClient) => tx.calculatorTravelerItem,
-        { nsoId, gameId, calculatorId },
-        mappedRows,
-      );
-      return getTravelerItems(nsoId, gameId, calculatorId);
-    },
-  });
-
-  if (!outcome.ok) throw new Error('Invalid traveler-item draft.');
-  return outcome.value;
+  requireCalculator(calculatorId);
+  return (await saveTravelers(Number(gameId), nsoId, rows)).map(
+    dbTravelerToRow,
+  );
 }
 
 export async function getEstimatedCostItems(
@@ -68,18 +39,15 @@ export async function getEstimatedCostItems(
   gameId: string,
   calculatorId: number,
 ) {
-  const records = await prisma.calculatorEstimatedCostItem.findMany({
-    where: { nsoId, gameId, calculatorId },
-    orderBy: { createdAt: 'asc' },
-  });
-
-  return records.map((r) => ({
-    id: r.id,
-    calculatorId: r.calculatorId,
-    category: r.category,
-    amount: r.amount,
-    unitOfMeasure: r.unitOfMeasure,
-    notes: r.notes ?? '',
+  requireCalculator(calculatorId);
+  const data = await getCalculatorData(Number(gameId), nsoId);
+  if (!data) throw new Error('Game or NSO not found');
+  return data.estimatedCosts.map((cost) => ({
+    id: String(cost.id),
+    category: cost.name,
+    amount: cost.costInCents / 100,
+    unitOfMeasure: cost.unitOfMeasure,
+    notes: cost.notes ?? '',
   }));
 }
 
@@ -87,22 +55,16 @@ export async function saveEstimatedCostItems(
   nsoId: string,
   gameId: string,
   calculatorId: number,
-  rows: unknown[],
+  rows: EstimatedCostRow[],
 ) {
-  const outcome = await runDraftSave(rows, {
-    validate: hasUniqueRowIds,
-    map: (draft) => estimatedCostItemsToDb(nsoId, gameId, calculatorId, draft),
-    persist: async (mappedRows) => {
-      await replaceCollection(
-        (operation) => prisma.$transaction(operation),
-        (tx: Prisma.TransactionClient) => tx.calculatorEstimatedCostItem,
-        { nsoId, gameId, calculatorId },
-        mappedRows,
-      );
-      return getEstimatedCostItems(nsoId, gameId, calculatorId);
-    },
-  });
-
-  if (!outcome.ok) throw new Error('Invalid estimated-cost draft.');
-  return outcome.value;
+  requireCalculator(calculatorId);
+  return (await saveEstimatedCosts(Number(gameId), nsoId, rows)).map(
+    (cost) => ({
+      id: String(cost.id),
+      category: cost.name,
+      amount: cost.costInCents / 100,
+      unitOfMeasure: cost.unitOfMeasure,
+      notes: cost.notes ?? '',
+    }),
+  );
 }

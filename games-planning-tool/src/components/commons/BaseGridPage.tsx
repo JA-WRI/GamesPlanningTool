@@ -101,7 +101,7 @@ export default function BaseGridPage<T extends Record<string, unknown>>({
     createEmptyRow as () => T & { id: string },
     async (savedRows) => {
       if (onSave) {
-        await onSave(savedRows);
+        return await onSave(savedRows);
       } else {
         console.log(`Saved ${title} to API:`, savedRows);
       }

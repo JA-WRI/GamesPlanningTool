@@ -1,10 +1,4 @@
-// 60% AI generated code:
-// The following was AI generated:
-// - Original estimated cost component structure and MUI inputs
-// - css converted to tailwind
-// - used to help for the original currency logic
-// The layout, cost categories, values, and styling were modified to match the wanted calculator design.
-// The reusable grid component was impleted manually
+// 60% AI generated code
 
 'use client';
 
@@ -16,6 +10,7 @@ import { asDraftRows } from '@/lib/draft-keys';
 import { flushActiveDrafts } from '@/lib/draft-navigation';
 import ConversionRates, {
   type Currency,
+  type CurrencyRates,
   amountToCAD,
   displayAmount,
 } from './ConversionRates';
@@ -40,6 +35,7 @@ export type EstimatedCostRow = Record<string, unknown> & {
 };
 
 type EstimatedCostsProps = {
+  readonly rates: CurrencyRates;
   readonly calculatorId: number;
   readonly initialItems?: EstimatedCostRow[];
   readonly initialDraft?: unknown;
@@ -116,10 +112,11 @@ export const INITIAL_COST_ROWS: EstimatedCostRow[] = [
 function displayCosts(
   rows: EstimatedCostRow[],
   currency: Currency,
+  rates: CurrencyRates,
 ): EstimatedCostRow[] {
   return rows.map((row) => ({
     ...row,
-    amount: displayAmount(row.amount, currency),
+    amount: displayAmount(row.amount, currency, rates),
     unitOfMeasure: row.unitOfMeasure.replace(/^(CAD|USD|EUR)/, currency),
   }));
 }
@@ -127,15 +124,17 @@ function displayCosts(
 function costsToCAD(
   rows: EstimatedCostRow[],
   currency: Currency,
+  rates: CurrencyRates,
 ): EstimatedCostRow[] {
   return rows.map((row) => ({
     ...row,
-    amount: amountToCAD(row.amount, currency),
+    amount: amountToCAD(row.amount, currency, rates),
     unitOfMeasure: row.unitOfMeasure.replace(/^(CAD|USD|EUR)/, 'CAD'),
   }));
 }
 
 export default function EstimatedCosts({
+  rates,
   calculatorId,
   initialItems,
   initialDraft,
@@ -147,9 +146,7 @@ export default function EstimatedCosts({
 }: Readonly<EstimatedCostsProps>) {
   // Keep saved amounts in CAD, even while another currency is displayed.
   const [savedCAD, setSavedCAD] = useState<EstimatedCostRow[]>(() =>
-    initialItems && initialItems.length > 0
-      ? initialItems.map((row) => ({ ...row }))
-      : INITIAL_COST_ROWS.map((row) => ({ ...row, id: crypto.randomUUID() })),
+    (initialItems ?? []).map((row) => ({ ...row })),
   );
   const [draftPayload, setDraftPayload] = useState(initialDraft);
   const [isGridEditing, setIsGridEditing] = useState(false);
@@ -160,11 +157,11 @@ export default function EstimatedCosts({
     }
     const cadRows = asDraftRows<EstimatedCostRow>(value.rows);
     if (!cadRows) return undefined;
-    return displayCosts(cadRows, currency);
+    return displayCosts(cadRows, currency, rates);
   };
 
   const startingRows =
-    restoreDraft(draftPayload) ?? displayCosts(savedCAD, currency);
+    restoreDraft(draftPayload) ?? displayCosts(savedCAD, currency, rates);
   const latestRowsRef = useRef(startingRows);
 
   useEffect(() => {
@@ -191,15 +188,16 @@ export default function EstimatedCosts({
   ];
 
   const handleSave = async (rows: EstimatedCostRow[]) => {
-    const cadRows = costsToCAD(rows, currency);
+    const cadRows = costsToCAD(rows, currency, rates);
 
     const dbSaved = await onSaveAction(calculatorId, cadRows);
     setSavedCAD(dbSaved.map((row) => ({ ...row })));
     setDraftPayload(undefined);
+    return displayCosts(dbSaved, currency, rates);
   };
 
   const serializeDraft = (rows: EstimatedCostRow[]) => ({
-    rows: costsToCAD(rows, currency),
+    rows: costsToCAD(rows, currency, rates),
   });
 
   const handleCurrencyChange = async (nextCurrency: Currency) => {
@@ -208,12 +206,12 @@ export default function EstimatedCosts({
       await flushActiveDrafts();
       if (isGridEditing) {
         const currentRows = latestRowsRef.current;
-        const canonicalRows = displayCosts(savedCAD, currency);
+        const canonicalRows = displayCosts(savedCAD, currency, rates);
         const hasEdits =
           JSON.stringify(currentRows) !== JSON.stringify(canonicalRows);
         setDraftPayload(
           draftPayload !== undefined || hasEdits
-            ? { rows: costsToCAD(currentRows, currency) }
+            ? { rows: costsToCAD(currentRows, currency, rates) }
             : undefined,
         );
       }
@@ -230,7 +228,7 @@ export default function EstimatedCosts({
         <BaseGridPage<EstimatedCostRow>
           key={currency}
           title="ESTIMATED COSTS"
-          initialData={displayCosts(savedCAD, currency)}
+          initialData={displayCosts(savedCAD, currency, rates)}
           initialDraft={draftPayload}
           restoreDraft={restoreDraft}
           serializeDraft={serializeDraft}
@@ -258,6 +256,7 @@ export default function EstimatedCosts({
 
         <Box className="border-x border-b border-gray-200 rounded-b-lg bg-white px-6 py-3">
           <ConversionRates
+            rates={rates}
             currency={currency}
             onCurrencyChange={handleCurrencyChange}
           />

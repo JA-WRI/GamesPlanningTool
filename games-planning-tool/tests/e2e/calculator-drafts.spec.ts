@@ -18,11 +18,11 @@ function draftScope({ gameId, nsoId }: TestGameWithNso) {
 async function savedAmount({ gameId, nsoId }: TestGameWithNso) {
   return withClient(async (client) => {
     const { rows } = await client.query<{ amount: number }>(
-      `SELECT amount FROM calculator_estimated_cost_items
-       WHERE calculator_id = $1 AND category = $2 AND "gameId" = $3 AND "nsoId" = $4`,
-      [calculatorId, category, gameId, nsoId],
+      `SELECT cost_in_cents / 100.0 AS amount FROM estimated_cost_items
+       WHERE name = $1 AND game_nso_id IN (SELECT id FROM game_nsos WHERE game_id = $2 AND nso_id = $3)`,
+      [category, Number(gameId), nsoId],
     );
-    return rows[0]?.amount ?? null;
+    return rows[0] ? Number(rows[0].amount) : null;
   });
 }
 
@@ -55,6 +55,18 @@ test('calculator costs save, restore, switch currency, and discard', async ({
   const readSavedAmount = () => savedAmount(fixture);
   const readDraftAmount = () => draftAmount(fixture);
   try {
+    await withClient(async (client) => {
+      await client.query(
+        `INSERT INTO estimated_cost_items (name, cost_in_cents, unit_of_measure, game_nso_id)
+         SELECT $1, 240000, 'CAD', id FROM game_nsos WHERE game_id = $2 AND nso_id = $3`,
+        [category, Number(fixture.gameId), fixture.nsoId],
+      );
+      await client.query(
+        `INSERT INTO conversion_rates (from_currency, to_currency, rate)
+         VALUES ('USD', 'CAD', 1.38), ('EUR', 'CAD', 1.48)
+         ON CONFLICT (from_currency, to_currency) DO NOTHING`,
+      );
+    });
     await page.goto(`/${fixture.gameId}/${fixture.nsoId}/calculator`);
 
     const header = page
@@ -130,8 +142,8 @@ test('calculator costs save, restore, switch currency, and discard', async ({
         draftScope(fixture),
       ]);
       await client.query(
-        'DELETE FROM calculator_estimated_cost_items WHERE calculator_id = $1 AND "gameId" = $2 AND "nsoId" = $3',
-        [calculatorId, fixture.gameId, fixture.nsoId],
+        'DELETE FROM estimated_cost_items WHERE game_nso_id IN (SELECT id FROM game_nsos WHERE game_id = $1 AND nso_id = $2)',
+        [Number(fixture.gameId), fixture.nsoId],
       );
     });
     await deleteTestGameWithNso(fixture);
