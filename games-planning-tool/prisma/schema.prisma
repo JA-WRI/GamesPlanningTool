@@ -24,6 +24,13 @@ enum UserStatus {
   inactive
 }
 
+enum ProgressStatus {
+  not_started
+  in_progress
+  submitted
+  requires_update
+  completed
+}
 enum Discipline {
   hp
   ssba @map("ss_ba")
@@ -71,6 +78,8 @@ model GameNso {
   game             Game              @relation(fields: [gameId], references: [id])
   nso              Nso               @relation(fields: [nsoId], references: [id])
   teamSizeEstimate TeamSizeEstimate?
+
+  progressTracking ProgressTracking?
 
   @@unique([gameId, nsoId])
   @@index([nsoId])
@@ -206,4 +215,21 @@ model Resource {
   previousFromNext Resource? @relation("NextElement")
 
   @@map("resources")
+}
+
+// 1 per gameNso, separate for each game an NSO participates in
+model ProgressTracking {
+  id        String   @id @default(uuid()) @db.Uuid
+  gameNsoId String   @unique @map("game_nso_id") @db.Uuid
+  lastUpdated DateTime @updatedAt @map("last_updated")
+
+  contactInfo         ProgressStatus @default(not_started) @map("contact_info")
+  teamSize            ProgressStatus @default(not_started) @map("team_size")
+  accreditation       ProgressStatus @default(not_started)
+  estimatedCosts      ProgressStatus @default(not_started) @map("estimated_costs")
+  reviewAndCompletion ProgressStatus @default(not_started) @map("review_and_completion")
+
+  gameNso GameNso @relation(fields: [gameNsoId], references: [id], onDelete: Cascade)
+
+  @@map("progress_tracking")
 }

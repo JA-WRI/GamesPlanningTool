@@ -1,3 +1,4 @@
+/* AI contribution: Less than 50% AI-generated */
 /*
   Warnings:
 

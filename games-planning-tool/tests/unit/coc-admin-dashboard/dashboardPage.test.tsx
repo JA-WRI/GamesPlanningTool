@@ -1,132 +1,166 @@
-//50% or more AI-generated
-import { describe, it, expect, beforeAll } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import Dashboard from '../../../src/app/(application)/[gameId]/(coc)/dashboard/page';
-import { computeStats } from '../../../src/lib/dashboard';
-import { mockDashboard } from '../../../src/lib/mock-data-chart';
-import { mockChartLayout } from './chartTestUtils';
+// AI contribution: Above 50% AI-generated
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-beforeAll(() => {
-  mockChartLayout();
+const { findMany } = vi.hoisted(() => ({ findMany: vi.fn() }));
+vi.mock('@/lib/prisma', () => ({ prisma: { gameNso: { findMany } } }));
+vi.mock('@/app/(application)/[gameId]/(coc)/dashboard/DashboardClient', () => ({
+  default: () => null,
+}));
+import DashboardPage from '@/app/(application)/[gameId]/(coc)/dashboard/page';
+
+beforeEach(() => {
+  vi.resetAllMocks();
+  findMany.mockResolvedValue([]);
 });
 
-const allTeamNames = [
-  'Badminton Canada',
-  'Basketball Canada',
-  'Archery Canada',
-  'Swimming Canada',
-  'Cycling Canada',
-  'Rowing Canada',
-  'Soccer Canada',
-];
+describe('COC dashboard database loading', () => {
+  it.each(['game_id_2', '2'])(
+    'loads the selected game using route %s',
+    async (gameId) => {
+      await DashboardPage({ params: Promise.resolve({ gameId }) });
+      expect(findMany).toHaveBeenCalledExactlyOnceWith({
+        where: { gameId: 2 },
+        include: { nso: true, progressTracking: true },
+      });
+    },
+  );
 
-// Teams with a logo render the name as alt text on the logo image; teams
-// without one fall back to rendering the name as plain text.
-const findTeam = (name: string) =>
-  screen.queryByText(name) ?? screen.queryByAltText(name);
-
-describe('Dashboard page', () => {
-  it('renders every team by default', () => {
-    render(<Dashboard />);
-
-    allTeamNames.forEach((name) => {
-      expect(findTeam(name)).toBeInTheDocument();
+  it('passes every returned NSO and its saved statuses to the dashboard', async () => {
+    findMany.mockResolvedValue([
+      {
+        id: 'pair-a',
+        nso: { name: 'NSO A' },
+        progressTracking: {
+          contactInfo: 'completed',
+          teamSize: 'in_progress',
+          accreditation: 'submitted',
+          estimatedCosts: 'requires_update',
+          reviewAndCompletion: 'not_started',
+        },
+      },
+      { id: 'pair-b', nso: { name: 'NSO B' }, progressTracking: null },
+    ]);
+    const page = await DashboardPage({
+      params: Promise.resolve({ gameId: 'game_id_1' }),
     });
+    expect(page.props.teams.map((team: { name: string }) => team.name)).toEqual(
+      ['NSO A', 'NSO B'],
+    );
+    expect(page.props.dashboardCharts[0].counts.Completed).toBe(1);
+    expect(page.props.dashboardCharts[0].counts['Not Started']).toBe(1);
   });
 
-  it('shows the computed stat cards', () => {
-    render(<Dashboard />);
-    const stats = computeStats(mockDashboard);
-
-    expect(screen.getByText(stats.total)).toBeInTheDocument();
-    expect(screen.getByText(`${stats.avgCompletion}%`)).toBeInTheDocument();
-    expect(screen.getByText(`${stats.toReview}%`)).toBeInTheDocument();
-    expect(screen.getByText(`${stats.toStart}%`)).toBeInTheDocument();
+  it('changes the database filter when switching games', async () => {
+    const sameNso = { name: 'NSO A' };
+    findMany
+      .mockResolvedValueOnce([
+        {
+          id: 'pair-game-1',
+          nso: sameNso,
+          progressTracking: {
+            contactInfo: 'completed',
+            teamSize: 'completed',
+            accreditation: 'completed',
+            estimatedCosts: 'completed',
+            reviewAndCompletion: 'completed',
+          },
+        },
+      ])
+      .mockResolvedValueOnce([
+        { id: 'pair-game-3', nso: sameNso, progressTracking: null },
+      ]);
+    const firstGame = await DashboardPage({
+      params: Promise.resolve({ gameId: 'game_id_1' }),
+    });
+    const secondGame = await DashboardPage({
+      params: Promise.resolve({ gameId: 'game_id_3' }),
+    });
+    expect(findMany.mock.calls.map(([query]) => query.where.gameId)).toEqual([
+      1, 3,
+    ]);
+    expect(firstGame.props.teams[0].columns[0].status).toBe('Completed');
+    expect(secondGame.props.teams[0].columns[0].status).toBe('Not Started');
+    expect(secondGame.props.dashboardCharts[0].counts.Completed).toBe(0);
   });
 
-  it('filters teams by search text', async () => {
-    render(<Dashboard />);
+  it('reads changed database results when the same game page is loaded again', async () => {
+    const pairing = { id: 'pair-a', nso: { name: 'NSO A' } };
+    findMany
+      .mockResolvedValueOnce([{ ...pairing, progressTracking: null }])
+      .mockResolvedValueOnce([
+        {
+          ...pairing,
+          progressTracking: {
+            contactInfo: 'completed',
+            teamSize: 'not_started',
+            accreditation: 'not_started',
+            estimatedCosts: 'not_started',
+            reviewAndCompletion: 'not_started',
+          },
+        },
+      ]);
 
-    await userEvent.type(
-      screen.getByPlaceholderText('Search by team name'),
-      'bad',
-    );
+    const firstLoad = await DashboardPage({
+      params: Promise.resolve({ gameId: '1' }),
+    });
+    const nextLoad = await DashboardPage({
+      params: Promise.resolve({ gameId: '1' }),
+    });
 
-    expect(findTeam('Badminton Canada')).toBeInTheDocument();
-    expect(findTeam('Basketball Canada')).not.toBeInTheDocument();
+    expect(findMany).toHaveBeenCalledTimes(2);
+    expect(firstLoad.props.teams[0].columns[0].status).toBe('Not Started');
+    expect(nextLoad.props.teams[0].columns[0].status).toBe('Completed');
+    expect(nextLoad.props.dashboardCharts[0].counts.Completed).toBe(1);
+    expect(nextLoad.props.dashboardCharts[0].counts['Not Started']).toBe(0);
   });
 
-  it('shows a message when no teams match', async () => {
-    render(<Dashboard />);
+  it.each(['2147483647', 'game_id_2147483647'])(
+    'accepts the largest PostgreSQL integer game ID in route %s',
+    async (gameId) => {
+      await DashboardPage({ params: Promise.resolve({ gameId }) });
+      expect(findMany).toHaveBeenCalledExactlyOnceWith({
+        where: { gameId: 2147483647 },
+        include: { nso: true, progressTracking: true },
+      });
+    },
+  );
 
-    await userEvent.type(
-      screen.getByPlaceholderText('Search by team name'),
-      'zzz-no-match',
-    );
+  it.each([
+    '',
+    'game_id_x',
+    '0',
+    '-1',
+    '1.5',
+    'game_id_0',
+    '2147483648',
+    '9007199254740993',
+    'game_id_2147483648',
+    '1abc',
+    'game_id_1/extra',
+    '1e2',
+  ])(
+    'shows an empty dashboard without querying the database for invalid ID %s',
+    async (gameId) => {
+      const page = await DashboardPage({ params: Promise.resolve({ gameId }) });
+      expect(findMany).not.toHaveBeenCalled();
+      expect(page.props.teams).toEqual([]);
+      expect(page.props.dashboardCharts).toHaveLength(5);
+    },
+  );
 
-    expect(
-      screen.getByText('No NSOs match your search or filters.'),
-    ).toBeInTheDocument();
+  it('shows an empty dashboard when the selected game has no NSOs', async () => {
+    const page = await DashboardPage({
+      params: Promise.resolve({ gameId: '1' }),
+    });
+    expect(findMany).toHaveBeenCalledOnce();
+    expect(page.props.teams).toEqual([]);
+    expect(page.props.dashboardCharts[0].counts['Not Started']).toBe(0);
   });
 
-  it('filters teams by the global status filter', async () => {
-    render(<Dashboard />);
-
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Filter by status' }),
-    );
-    await userEvent.click(
-      screen.getByRole('checkbox', { name: 'Requires Update' }),
-    );
-
-    // Badminton (Contact Info) and Rowing (Team Size/Accreditation) both have
-    // a step marked "Requires Update"; teams with no such step drop out.
-    expect(findTeam('Badminton Canada')).toBeInTheDocument();
-    expect(findTeam('Rowing Canada')).toBeInTheDocument();
-    expect(findTeam('Archery Canada')).not.toBeInTheDocument();
-  });
-
-  it('filters teams by a single column status', async () => {
-    render(<Dashboard />);
-
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Filter Team Size by status' }),
-    );
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Completed' }));
-
-    // Only Team Size === Completed: Swimming, Cycling, and Soccer.
-    expect(findTeam('Swimming Canada')).toBeInTheDocument();
-    expect(findTeam('Cycling Canada')).toBeInTheDocument();
-    expect(findTeam('Soccer Canada')).toBeInTheDocument();
-    expect(findTeam('Badminton Canada')).not.toBeInTheDocument();
-  });
-
-  it('opens the status overview panel for the clicked step', async () => {
-    render(<Dashboard />);
-
-    await userEvent.click(
-      screen.getByRole('button', { name: mockDashboard[0].title }),
-    );
-
-    expect(screen.getByLabelText('Status Overview Panel')).toBeInTheDocument();
-    expect(
-      within(screen.getByLabelText('Status Overview Panel')).getByText(
-        mockDashboard[0].title,
-      ),
-    ).toBeInTheDocument();
-  });
-
-  it('closes the status overview panel', async () => {
-    render(<Dashboard />);
-
-    await userEvent.click(
-      screen.getByRole('button', { name: mockDashboard[0].title }),
-    );
-    await userEvent.click(screen.getByRole('button', { name: 'Close panel' }));
-
-    expect(
-      screen.queryByLabelText('Status Overview Panel'),
-    ).not.toBeInTheDocument();
+  it('does not disguise a database failure as an empty game', async () => {
+    findMany.mockRejectedValue(new Error('Database unavailable'));
+    await expect(
+      DashboardPage({ params: Promise.resolve({ gameId: '1' }) }),
+    ).rejects.toThrow('Database unavailable');
   });
 });

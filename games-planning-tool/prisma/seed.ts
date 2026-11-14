@@ -3,7 +3,12 @@
 import 'dotenv/config';
 import crypto from 'crypto';
 import { prisma } from '../src/lib/prisma';
-import { Role, MemberType, UserStatus } from '../src/generated/prisma/enums';
+import {
+  Role,
+  MemberType,
+  UserStatus,
+  ProgressStatus,
+} from '../src/generated/prisma/enums';
 
 if (process.env.NODE_ENV === 'production') {
   throw new Error('Refusing to seed a production database.');
@@ -902,6 +907,7 @@ async function seedResources() {
 // Exceeds 50 lines: seeds every record type in dependency order.
 async function main() {
   // Wipe in dependency order (children first)
+  await prisma.progressTracking.deleteMany();
   await prisma.resource.deleteMany();
   await prisma.disciplineBreakdown.deleteMany();
   await prisma.teamSizeEstimate.deleteMany();
@@ -1013,6 +1019,25 @@ async function main() {
 
   // Resources (helper function)
   await seedResources();
+
+  // Progress statuses
+  // For every game_nso, create a progress_tracking record for each resource
+  const gameNsos = await prisma.gameNso.findMany({
+    where: {
+      gameId: game.id,
+    },
+  });
+
+  await prisma.progressTracking.createMany({
+    data: gameNsos.map((gameNso) => ({
+      gameNsoId: gameNso.id,
+      contactInfo: ProgressStatus.not_started,
+      teamSize: ProgressStatus.not_started,
+      accreditation: ProgressStatus.not_started,
+      estimatedCosts: ProgressStatus.not_started,
+      reviewAndCompletion: ProgressStatus.not_started,
+    })),
+  });
 
   console.log('Seed complete.');
 }

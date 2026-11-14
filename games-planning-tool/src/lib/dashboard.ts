@@ -1,12 +1,30 @@
-//50% or more AI-generated
+// AI contribution: 50% or more AI-generated
 import type { Status, StatusCounts } from '@/components/commons/status';
 import { STATUS_ORDER } from '@/components/commons/status';
+
+export type Column = {
+  title: string;
+  status: Status;
+  href: string;
+};
+
+export type Team = {
+  name: string;
+  altNames?: string[];
+  logo?: string;
+  columns: Column[];
+};
 
 export type DashboardStats = {
   total: number;
   avgCompletion: number;
   toReview: number;
   toStart: number;
+};
+
+export type DashboardChart = {
+  title: string;
+  counts: Record<Status, number>;
 };
 
 export function percentage(part: number, whole: number): number {

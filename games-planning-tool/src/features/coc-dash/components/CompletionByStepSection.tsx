@@ -5,51 +5,50 @@ import { BookOpen, Gauge, TriangleAlert, Users } from 'lucide-react';
 import { statusToSegments, type Status } from '@/components/commons/status';
 import DonutChartCard from './chart/DonutChartCard';
 import StatCard from '../components/StatCard';
-import { mockDashboard } from '@/lib/mock-data-chart';
 import { computeStats } from '@/lib/dashboard';
+import { DashboardChart } from '@/lib/dashboard';
 
-// mockDashboard is static, so the overall stats never change between renders
-const stats = computeStats(mockDashboard);
-
-// The 4 summary stat cards shown under the donut charts.
-const statCards = [
-  {
-    icon: Users,
-    label: 'Total',
-    value: stats.total,
-    description: 'NSOs tracked',
-  },
-  {
-    icon: Gauge,
-    label: 'Avg',
-    value: `${stats.avgCompletion}%`,
-    description: 'Average completion',
-  },
-  {
-    icon: BookOpen,
-    label: 'To review',
-    value: `${stats.toReview}%`,
-    description: 'Awaiting review',
-  },
-  {
-    icon: TriangleAlert,
-    label: 'To start',
-    value: `${stats.toStart}%`,
-    description: 'Not started',
-  },
-];
+type CompletionByStepSectionProps = {
+  dashboardCharts: DashboardChart[];
+  selectedChart: DashboardChart | null;
+  onSelectChart: (chart: DashboardChart, status?: Status) => void;
+};
 
 // Top area: the 5 donut charts and the 4 summary stat cards.
 export default function CompletionByStepSection({
+  dashboardCharts,
   selectedChart,
   onSelectChart,
-}: {
-  selectedChart: (typeof mockDashboard)[number] | null;
-  onSelectChart: (
-    chart: (typeof mockDashboard)[number],
-    status?: Status,
-  ) => void;
-}) {
+}: CompletionByStepSectionProps) {
+  const stats = computeStats(dashboardCharts);
+
+  // The 4 summary stat cards shown under the donut charts.
+  const statCards = [
+    {
+      icon: Users,
+      label: 'Total',
+      value: stats.total,
+      description: 'NSOs tracked',
+    },
+    {
+      icon: Gauge,
+      label: 'Avg',
+      value: `${stats.avgCompletion}%`,
+      description: 'Average completion',
+    },
+    {
+      icon: BookOpen,
+      label: 'To review',
+      value: `${stats.toReview}%`,
+      description: 'Awaiting review',
+    },
+    {
+      icon: TriangleAlert,
+      label: 'To start',
+      value: `${stats.toStart}%`,
+      description: 'Not started',
+    },
+  ];
   return (
     <div
       className={`min-w-0 max-w-full mt-3 w-full rounded-3xl bg-white py-4 lg:flex-1 shadow-[0_2px_10px_rgba(15,23,42,0.12)]`}
@@ -61,7 +60,7 @@ export default function CompletionByStepSection({
             : 'justify-center gap-20 px-0'
         }`}
       >
-        {mockDashboard.map((d) => (
+        {dashboardCharts.map((d) => (
           <DonutChartCard
             key={d.title}
             title={d.title}

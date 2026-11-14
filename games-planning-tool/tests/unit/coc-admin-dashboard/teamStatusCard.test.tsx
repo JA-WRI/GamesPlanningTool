@@ -1,6 +1,6 @@
 //50% or more AI-generated
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import TeamStatusCard from '../../../src/features/coc-dash/components/TeamStatusCard';
 import type { Status } from '../../../src/components/commons/status';
 
@@ -68,6 +68,20 @@ describe('TeamStatusCard', () => {
 
     expect(screen.queryByAltText('Badminton Canada')).not.toBeInTheDocument();
     expect(screen.getByText('Badminton Canada')).toBeInTheDocument();
+  });
+
+  it('falls back to the team name when the logo fails to load', () => {
+    renderCard();
+
+    fireEvent.error(screen.getByRole('img', { name: 'Badminton Canada' }));
+
+    expect(
+      screen.queryByRole('img', { name: 'Badminton Canada' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('Badminton Canada')).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'View Detail' })).toHaveLength(
+      columns.length,
+    );
   });
 
   it('shows the same status in more than one column', () => {

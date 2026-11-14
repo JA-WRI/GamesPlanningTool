@@ -1,4 +1,4 @@
-//50% or more AI-generated
+//AI declaration: 50% or more AI-generated
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ChartLegend from '../../../src/components/commons/ChartLegend';
