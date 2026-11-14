@@ -1084,8 +1084,6 @@ async function main() {
 
   // Resources (helper function)
   await seedResources();
-  // Resources (helper function)
-  await seedResources();
 
   console.log('Seed complete.');
 }
