@@ -247,6 +247,68 @@ describe('Dashboard page', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('refreshes the open panel counts and names when saved progress changes', async () => {
+    const { rerender } = renderDashboard();
+    await userEvent.click(screen.getByRole('button', { name: 'Contact Info' }));
+    const panel = () => within(screen.getByLabelText('Status Overview Panel'));
+    expect(panel().getByText('5 of 7 completed')).toBeInTheDocument();
+
+    const updatedTeams = testTeams.map((team) => ({
+      ...team,
+      columns: team.columns.map((column) =>
+        column.title === 'Contact Info'
+          ? { ...column, status: 'Not Started' as const }
+          : column,
+      ),
+    }));
+    const updatedCharts = testDashboardCharts.map((chart) =>
+      chart.title === 'Contact Info'
+        ? {
+            ...chart,
+            counts: {
+              'Not Started': 7,
+              'In Progress': 0,
+              Completed: 0,
+              Submitted: 0,
+              'Requires Update': 0,
+            },
+          }
+        : chart,
+    );
+    rerender(
+      <DashboardClient teams={updatedTeams} dashboardCharts={updatedCharts} />,
+    );
+
+    expect(panel().getByText('0 of 7 completed')).toBeInTheDocument();
+    expect(panel().getByText('No NSOs with this status.')).toBeInTheDocument();
+    expect(panel().queryByText('Basketball Canada')).not.toBeInTheDocument();
+    await userEvent.click(
+      panel().getByRole('button', { name: 'Not Started', pressed: false }),
+    );
+    expect(panel().getByText('7 of 7 not started')).toBeInTheDocument();
+    expect(panel().getByText('Basketball Canada')).toBeInTheDocument();
+  });
+
+  it('clears the open panel counts when refreshed game data contains no NSOs', async () => {
+    const { rerender } = renderDashboard();
+    await userEvent.click(screen.getByRole('button', { name: 'Contact Info' }));
+    const emptyCharts = testDashboardCharts.map((chart) => ({
+      ...chart,
+      counts: {
+        'Not Started': 0,
+        'In Progress': 0,
+        Completed: 0,
+        Submitted: 0,
+        'Requires Update': 0,
+      },
+    }));
+    rerender(<DashboardClient teams={[]} dashboardCharts={emptyCharts} />);
+
+    const panel = within(screen.getByLabelText('Status Overview Panel'));
+    expect(panel.getByText('0 of 0 completed')).toBeInTheDocument();
+    expect(panel.getByText('No NSOs with this status.')).toBeInTheDocument();
+  });
+
   it('displays the team name when no logo is provided', () => {
     renderDashboard();
 
