@@ -9,6 +9,8 @@ import AnnouncementsCard from '../../../../../components/nso-dashboard/Announcem
 import { DashboardResourceRow } from '../../../../../components/resources/DashboardResourceRow';
 import { prisma } from '../../../../../lib/prisma';
 import { notFound } from 'next/navigation';
+import type { Resource } from '@/features/resources/types/resource';
+import { normalizeResourceCategories } from '@/lib/resources-data';
 
 type DashboardPageProps = {
   params: Promise<{
@@ -131,6 +133,47 @@ export default async function Page({ params }: DashboardPageProps) {
     ...announcement,
     publishedAt: announcement.publishedAt.toISOString().slice(0, 10),
   }));
+
+  const resourceRows = await prisma.resource.findMany({
+  select: {
+    id: true,
+    name: true,
+    categories: true,
+    parentFolderId: true,
+    fileOrWebpageURL: true,
+    isWebpage: true,
+  },
+});
+
+const resources: Resource[] = resourceRows.map((row): Resource => {
+  const base = {
+    id: row.id,
+    name: row.name,
+    categories: normalizeResourceCategories(row.categories),
+    parentId: row.parentFolderId,
+  };
+
+  if (row.fileOrWebpageURL === null) {
+    return {
+      ...base,
+      type: 'folder',
+    };
+  }
+
+  if (row.isWebpage) {
+    return {
+      ...base,
+      type: 'link',
+      URL: row.fileOrWebpageURL,
+    };
+  }
+
+  return {
+    ...base,
+    type: 'file',
+    fileUrl: row.fileOrWebpageURL,
+  };
+});
 
   return (
     <div className="w-full bg-white px-2 py-6 text-foreground sm:px-4">
