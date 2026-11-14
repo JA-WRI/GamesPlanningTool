@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import type { MedalRow } from '../lib/teamSizeGridLogic';
 import { toDbIds } from '../lib/teamSizeDbMapping';
 import { hasMedalRowsShape, medalRowsToDb } from '../lib/medalDbMapping';
+import { canEditNso } from './canEditNso';
 
 // saves event, medal and notes for the NSO athletes in one game
 export async function saveMedalRows(
@@ -14,6 +15,8 @@ export async function saveMedalRows(
 ): Promise<{ ok: boolean }> {
   const ids = toDbIds(gameId, nsoId);
   if (!ids || !hasMedalRowsShape(rows)) return { ok: false };
+  // the user must be allowed to edit this NSO
+  if (!(await canEditNso(nsoId))) return { ok: false };
 
   const data = medalRowsToDb(rows);
   const rowIds = data.map((row) => row.id);

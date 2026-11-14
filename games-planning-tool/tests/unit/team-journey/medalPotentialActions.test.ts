@@ -3,13 +3,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // fake prisma object, the tests never touch a real database
-const { prismaMock } = vi.hoisted(() => ({
+const { prismaMock, getSession } = vi.hoisted(() => ({
   prismaMock: {
     $transaction: vi.fn(),
     gameMember: { count: vi.fn(), update: vi.fn() },
   },
+  getSession: vi.fn(),
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: prismaMock }));
+vi.mock('@/lib/data', () => ({ getSession }));
 
 import { saveMedalRows } from '@/features/team-size/actions/medalPotentialActions';
 
@@ -30,6 +32,8 @@ beforeEach(() => {
   prismaMock.$transaction.mockResolvedValue([]);
   // by default every row is an athlete of this NSO
   prismaMock.gameMember.count.mockResolvedValue(1);
+  // by default the user is an admin
+  getSession.mockResolvedValue({ user: { role: 'admin', gameId: GAME_ID } });
 });
 
 describe('saveMedalRows', () => {
@@ -63,6 +67,26 @@ describe('saveMedalRows', () => {
 
     expect(result).toEqual({ ok: false });
     expect(prismaMock.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('does not let an NSO user save for another NSO', async () => {
+    getSession.mockResolvedValue({
+      user: { role: 'nso', gameId: GAME_ID, nsoId: 'another-nso' },
+    });
+
+    const result = await saveMedalRows(GAME_ID, NSO_ID, [ROW]);
+
+    expect(result).toEqual({ ok: false });
+    expect(prismaMock.gameMember.count).not.toHaveBeenCalled();
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('lets an NSO user save their own NSO', async () => {
+    getSession.mockResolvedValue({
+      user: { role: 'nso', gameId: GAME_ID, nsoId: NSO_ID },
+    });
+
+    expect(await saveMedalRows(GAME_ID, NSO_ID, [ROW])).toEqual({ ok: true });
   });
 
   it('does not save with fake ids, broken rows or the same athlete twice', async () => {

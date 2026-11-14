@@ -11,6 +11,7 @@ import {
   teamSizeToDb,
   toDbIds,
 } from '../lib/teamSizeDbMapping';
+import { canEditNso } from './canEditNso';
 
 // saves one NSO team size for one game, creates the rows the first time and updates them after
 export async function saveTeamSize(
@@ -26,6 +27,9 @@ export async function saveTeamSize(
     !isTeamSizeSavable(teamSize, disciplines)
   )
     return { ok: false };
+
+  // the user must be allowed to edit this NSO
+  if (!(await canEditNso(nsoId))) return { ok: false };
 
   // the NSO must take part in this game
   const gameNso = await prisma.gameNso.findUnique({
