@@ -43,10 +43,10 @@ model Game {
   isActive            Boolean  @default(true) @map("is_active")
   createdAt           DateTime @default(now()) @map("created_at")
 
-  gameNsos    GameNso[]
-  gameMembers GameMember[]
+  gameNsos       GameNso[]
+  gameMembers    GameMember[]
   gameProperties GameProperty[]
-  
+
   @@map("games")
 }
 
@@ -69,10 +69,10 @@ model GameNso {
   gameId Int    @map("game_id")
   nsoId  String @map("nso_id") @db.Uuid
 
-  game  Game   @relation(fields: [gameId], references: [id])
-  nso   Nso    @relation(fields: [nsoId], references: [id])
-  tasks Task[]
-  announcements Announcement[]
+  game             Game              @relation(fields: [gameId], references: [id])
+  nso              Nso               @relation(fields: [nsoId], references: [id])
+  tasks            Task[]
+  announcements    Announcement[]
   teamSizeEstimate TeamSizeEstimate?
 
   @@unique([gameId, nsoId])
@@ -187,7 +187,6 @@ model DisciplineBreakdown {
   @@map("discipline_breakdowns")
 }
 
-
 model Resource {
   id String @id @default(uuid()) @db.Uuid
 
@@ -200,12 +199,12 @@ model Resource {
   isWebpage        Boolean  @default(false) @map("is_webpage")
   categories       String[] @default([])
 
-  previousElementId String? @map("previous_element_id") @db.Uuid @unique
-  previous Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
-  nextFromPrevious Resource? @relation("PreviousElement")
+  previousElementId String?   @unique @map("previous_element_id") @db.Uuid
+  previous          Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
+  nextFromPrevious  Resource? @relation("PreviousElement")
 
-  nextElementId String? @map("next_element_id") @db.Uuid @unique
-  next Resource? @relation("NextElement", fields: [nextElementId], references: [id])
+  nextElementId    String?   @unique @map("next_element_id") @db.Uuid
+  next             Resource? @relation("NextElement", fields: [nextElementId], references: [id])
   previousFromNext Resource? @relation("NextElement")
 
   @@map("resources")
@@ -235,8 +234,8 @@ model Task {
 }
 
 model Announcement {
-  id          String     @id @default(uuid()) @db.Uuid
-  gameNsoId   String     @map("game_nso_id") @db.Uuid
+  id          String   @id @default(uuid()) @db.Uuid
+  gameNsoId   String   @map("game_nso_id") @db.Uuid
   title       String
   body        String?
   publishedAt DateTime @map("published_at") @db.Date
@@ -245,14 +244,16 @@ model Announcement {
 
   @@index([gameNsoId])
   @@map("announcements")
+}
+
 model PropertyCluster {
   id   String @id @default(uuid()) @db.Uuid
-  name String 
+  name String
 
   properties Property[]
 
-  @@map("property_clusters")
   @@unique([name])
+  @@map("property_clusters")
 }
 
 model Property {
@@ -264,14 +265,14 @@ model Property {
   prices         PropertyPrice[]
   gameProperties GameProperty[]
 
-  @@map("properties")
   @@unique([clusterId, name])
+  @@map("properties")
 }
 
 model OccupancyType {
   id        String @id @default(uuid()) @db.Uuid
   code      String @unique @db.VarChar(50)
-  label     String @db.VarChar(100)        
+  label     String @db.VarChar(100)
   capacity  Int
   sortOrder Int    @default(0) @map("sort_order")
 
@@ -292,7 +293,6 @@ model PropertyPrice {
   @@unique([propertyId, occupancyTypeId])
   @@map("property_prices")
 }
-
 
 model GameProperty {
   id           String @id @default(uuid()) @db.Uuid
