@@ -21,16 +21,11 @@ type DashboardClientProps = {
 function SelectedChartPanel({
   selectedChart,
   selectedStatus,
-  panelData,
   teamNamesByStatus,
   onClose,
 }: {
   selectedChart: DashboardChart | null;
   selectedStatus: Status;
-  panelData: {
-    counts: Record<Status, number>;
-    namesByStatus: Record<Status, string[]>;
-  } | null;
   teamNamesByStatus: Record<Status, string[]>;
   onClose: () => void;
 }) {
@@ -43,8 +38,8 @@ function SelectedChartPanel({
         // step or status is picked, e.g. by clicking a specific donut slice.
         key={`${selectedChart.title}-${selectedStatus}`}
         stepTitle={selectedChart.title}
-        counts={panelData?.counts ?? selectedChart.counts}
-        nsoNamesByStatus={panelData?.namesByStatus ?? teamNamesByStatus}
+        counts={selectedChart.counts}
+        nsoNamesByStatus={teamNamesByStatus}
         onClose={onClose}
         initialStatus={selectedStatus}
       />
@@ -85,32 +80,22 @@ function useSelectedChartData(
   teams: Team[],
   dashboardCharts: DashboardChart[],
 ) {
-  const [selectedChart, setSelectedChart] = useState<DashboardChart | null>(
+  const [selectedChartTitle, setSelectedChartTitle] = useState<string | null>(
     null,
   );
   const [selectedStatus, setSelectedStatus] = useState<Status>('Completed');
 
+  // REVIEW: Store only the selection, not a snapshot of its counts. After a
+  // data refresh, the open panel must use the latest counts and NSO names.
+  const selectedChart =
+    dashboardCharts.find((chart) => chart.title === selectedChartTitle) ?? null;
+
   // Selects a chart/step, optionally opening it directly on a given status
   // (e.g. when a specific donut slice was clicked rather than the card).
   function selectChart(chart: DashboardChart, status?: Status) {
-    setSelectedChart(chart);
+    setSelectedChartTitle(chart.title);
     setSelectedStatus(status ?? 'Completed');
   }
-
-  const panelData = useMemo(() => {
-    if (!selectedChart || teams.length == 0) return null;
-
-    const columnIndex = teams[0].columns.findIndex(
-      (column) => column.title === selectedChart.title,
-    );
-
-    if (columnIndex === -1) return null;
-
-    return {
-      counts: selectedChart.counts,
-      namesByStatus: namesByStatusAtColumn(teams, columnIndex),
-    };
-  }, [selectedChart, teams]);
 
   // Teams sharing the selected chart's column, grouped by their status there.
   const teamNamesByStatus = useMemo(() => {
@@ -135,8 +120,7 @@ function useSelectedChartData(
     selectedChart,
     selectedStatus,
     selectChart,
-    setSelectedChart,
-    panelData,
+    closeChart: () => setSelectedChartTitle(null),
     teamNamesByStatus,
   };
 }
@@ -159,8 +143,7 @@ export default function DashboardClient({
     selectedChart,
     selectedStatus,
     selectChart,
-    setSelectedChart,
-    panelData,
+    closeChart,
     teamNamesByStatus,
   } = useSelectedChartData(teams, dashboardCharts);
 
@@ -182,9 +165,8 @@ export default function DashboardClient({
         <SelectedChartPanel
           selectedChart={selectedChart}
           selectedStatus={selectedStatus}
-          panelData={panelData}
           teamNamesByStatus={teamNamesByStatus}
-          onClose={() => setSelectedChart(null)}
+          onClose={closeChart}
         />
       </div>
 
