@@ -28,7 +28,7 @@ export type EstimatedCostsData = {
   knifeAndFork: number;
 };
 
-type EstimatedCostRow = Record<string, unknown> & {
+export type EstimatedCostRow = Record<string, unknown> & {
   id: string;
   category: string;
   amount: number;
@@ -41,7 +41,7 @@ type EstimatedCostsProps = {
   readonly onCurrencyChange: (currency: Currency) => void;
 };
 
-const INITIAL_COST_ROWS: EstimatedCostRow[] = [
+export const INITIAL_COST_ROWS: EstimatedCostRow[] = [
   {
     id: 'travelEconomyFare',
     category: 'Travel Economy Fare',
