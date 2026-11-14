@@ -1020,8 +1020,26 @@ async function main() {
   // Resources (helper function)
   await seedResources();
 
-  // Progress statuses
-  // For every game_nso, create a progress_tracking record for each resource
+  // Give each NSO a distinct planning profile and cover all five statuses.
+  // Final review stays unstarted while earlier steps still need work.
+  const progressByNso = {
+    [nsos.aquatics.id]: {
+      contactInfo: ProgressStatus.completed,
+      teamSize: ProgressStatus.submitted,
+      accreditation: ProgressStatus.in_progress,
+      estimatedCosts: ProgressStatus.requires_update,
+      reviewAndCompletion: ProgressStatus.not_started,
+    },
+    [nsos.athletics.id]: {
+      contactInfo: ProgressStatus.submitted,
+      teamSize: ProgressStatus.requires_update,
+      accreditation: ProgressStatus.not_started,
+      estimatedCosts: ProgressStatus.in_progress,
+      reviewAndCompletion: ProgressStatus.not_started,
+    },
+  };
+
+  // Create one progress record per game/NSO pairing.
   const gameNsos = await prisma.gameNso.findMany({
     where: {
       gameId: game.id,
@@ -1031,11 +1049,7 @@ async function main() {
   await prisma.progressTracking.createMany({
     data: gameNsos.map((gameNso) => ({
       gameNsoId: gameNso.id,
-      contactInfo: ProgressStatus.not_started,
-      teamSize: ProgressStatus.not_started,
-      accreditation: ProgressStatus.not_started,
-      estimatedCosts: ProgressStatus.not_started,
-      reviewAndCompletion: ProgressStatus.not_started,
+      ...progressByNso[gameNso.nsoId],
     })),
   });
 
