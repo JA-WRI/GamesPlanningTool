@@ -20,7 +20,7 @@ type TeamSizeStepProps = {
     disciplines: DisciplineBreakdown,
   ) => void | Promise<unknown>;
   medalRows: MedalRow[];
-  onMedalRowsSave: (rows: MedalRow[]) => void;
+  onMedalRowsSave: (rows: MedalRow[]) => void | Promise<unknown>;
   draftKeys: {
     estimate: string;
     disciplines: string;

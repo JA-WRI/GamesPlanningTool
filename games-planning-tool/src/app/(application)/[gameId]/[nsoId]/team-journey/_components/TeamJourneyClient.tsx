@@ -1,12 +1,11 @@
 // AI contribution: 50% or more AI-generated
 'use client';
 
-//import StepTabs from './StepTabs';
 import { useState } from 'react';
 import { Alert } from '@mui/material';
 import TeamSizeStep from '@/features/team-size/components/TeamSizeStep';
 import { saveTeamSize } from '@/features/team-size/actions/teamSizeActions';
-import type { SavedTeamSize } from '@/features/team-size/lib/teamSizeDbMapping';
+import { saveMedalRows } from '@/features/team-size/actions/medalPotentialActions';
 import type { TeamSize } from '@/features/team-size/lib/teamSizeLogic';
 import type { DisciplineBreakdown } from '@/features/team-size/lib/teamSizeGridLogic';
 import type {
@@ -15,40 +14,15 @@ import type {
   TeamSizeRow,
 } from '@/features/team-size/lib/teamSizeGridLogic';
 import type { DisciplineGridRow } from '@/features/team-size/lib/disciplineGridLogic';
-import { useTeamJourneyState } from './useTeamJourneyState';
+import {
+  type SavedTeamJourney,
+  useTeamJourneyState,
+} from './useTeamJourneyState';
 
-// one small function per step, with the same props as before
-// const STEPS: Record<number, (state: TeamJourneyState) => React.ReactNode> = {
-//   1: (state) => (
-//     <TeamSizeStep
-//       teamSize={state.teamSize}
-//       onChange={state.setTeamSize}
-//       disciplines={state.disciplines}
-//       onDisciplinesChange={state.setDisciplines}
-//       medalRows={state.medalRows}
-//       onMedalRowsChange={state.setMedalRows}
-//     />
-//   ),
-// };
-
-// export default function TeamJourneyClient() {
-//   const state = useTeamJourneyState();
-
-//   return (
-//     <div className="min-h-screen bg-white">
-//       <StepTabs
-//         activeStep={state.activeStep}
-//         onStepChange={state.setActiveStep}
-//       />
-
-//       <div className="px-10 py-8">{STEPS[state.activeStep]?.(state)}</div>
-//     </div>
-//   );
-// }
 type TeamJourneyClientProps = {
   gameId: string;
   nsoId: string;
-  saved: SavedTeamSize;
+  saved: SavedTeamJourney;
   draftKeys: {
     estimate: string;
     disciplines: string;
@@ -104,6 +78,18 @@ export default function TeamJourneyClient({
     }
   };
 
+  const saveMedals = async (nextRows: MedalRow[]): Promise<void> => {
+    try {
+      const result = await saveMedalRows(gameId, nsoId, nextRows);
+      setSaveFailed(!result.ok);
+      if (!result.ok) throw new Error('Medal save was rejected.');
+      setMedalRows(nextRows);
+    } catch (error) {
+      setSaveFailed(true);
+      throw error;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white px-10 py-8">
       {saveFailed && (
@@ -123,7 +109,7 @@ export default function TeamJourneyClient({
           await saveToDb(teamSize, next);
         }}
         medalRows={medalRows}
-        onMedalRowsSave={setMedalRows}
+        onMedalRowsSave={saveMedals}
         draftKeys={draftKeys}
         initialDrafts={initialDrafts}
       />

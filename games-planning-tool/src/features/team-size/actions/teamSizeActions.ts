@@ -12,6 +12,7 @@ import {
   teamSizeToDb,
   toDbIds,
 } from '../lib/teamSizeDbMapping';
+import { canEditNso } from './canEditNso';
 
 // saves one NSO team size for one game, creates the rows the first time and updates them after
 export async function saveTeamSize(
@@ -27,6 +28,7 @@ export async function saveTeamSize(
     { ids, teamSize, disciplines },
     {
       authorize: async ({ ids: dbIds }) =>
+        (await canEditNso(nsoId)) &&
         Boolean(
           await prisma.gameNso.findUnique({
             where: { gameId_nsoId: dbIds },

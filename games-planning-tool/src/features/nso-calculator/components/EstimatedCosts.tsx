@@ -3,7 +3,7 @@
 'use client';
 
 import { Box } from '@mui/material';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
 import { asDraftRows } from '@/lib/draft-keys';
@@ -46,7 +46,6 @@ type EstimatedCostsProps = {
   ) => Promise<EstimatedCostRow[]>;
   readonly currency: Currency;
   readonly onCurrencyChange: (currency: Currency) => void | Promise<void>;
-  readonly onSavedRowsChange?: (rows: EstimatedCostRow[]) => void;
 };
 
 export const INITIAL_COST_ROWS: EstimatedCostRow[] = [
@@ -142,7 +141,6 @@ export default function EstimatedCosts({
   onSaveAction,
   currency,
   onCurrencyChange,
-  onSavedRowsChange,
 }: Readonly<EstimatedCostsProps>) {
   // Keep saved amounts in CAD, even while another currency is displayed.
   const [savedCAD, setSavedCAD] = useState<EstimatedCostRow[]>(() =>
@@ -163,10 +161,6 @@ export default function EstimatedCosts({
   const startingRows =
     restoreDraft(draftPayload) ?? displayCosts(savedCAD, currency, rates);
   const latestRowsRef = useRef(startingRows);
-
-  useEffect(() => {
-    onSavedRowsChange?.(savedCAD);
-  }, [savedCAD, onSavedRowsChange]);
 
   const columns: ColumnDefinition<EstimatedCostRow>[] = [
     { field: 'category', label: 'Cost Item', type: 'text', width: '30%' },

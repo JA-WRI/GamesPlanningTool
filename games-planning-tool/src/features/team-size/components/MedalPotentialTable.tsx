@@ -1,27 +1,31 @@
 // AI contribution: 50% or more AI-generated
 'use client';
 
-import { useState } from 'react';
-import { Alert } from '@mui/material';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
 import {
   MEDAL_POTENTIAL_OPTIONS,
   MedalRow,
   createEmptyMedalRow,
-  rowsMissingName,
 } from '../lib/teamSizeGridLogic';
 
 type MedalPotentialTableProps = {
   rows: MedalRow[];
   initialDraft?: MedalRow[];
   draftKey: string;
-  onSave: (rows: MedalRow[]) => void;
+  onSave: (rows: MedalRow[]) => void | Promise<unknown>;
 };
 
+// the names come from members, so they cannot be edited here
 const columns: ColumnDefinition<MedalRow>[] = [
-  { field: 'firstName', label: 'FIRST NAME', width: '16%' },
-  { field: 'lastName', label: 'LAST NAME', align: 'center', width: '18%' },
+  { field: 'firstName', label: 'FIRST NAME', width: '16%', readOnly: true },
+  {
+    field: 'lastName',
+    label: 'LAST NAME',
+    align: 'center',
+    width: '18%',
+    readOnly: true,
+  },
   { field: 'event', label: 'EVENT', align: 'center', width: '24%' },
   {
     field: 'medalPotential',
@@ -47,35 +51,25 @@ export default function MedalPotentialTable({
   draftKey,
   onSave,
 }: MedalPotentialTableProps) {
-  // the rows as the user types, so the messages update live
-  const [liveRows, setLiveRows] = useState(initialDraft ?? rows);
-
   return (
     <div className="flex flex-col gap-3">
+      {/* athletes are added in members, not here */}
       <BaseGridPage
         title="Medal potential"
         columns={columns}
         initialData={rows}
         initialDraft={initialDraft}
         draftKey={draftKey}
-        clearDraftOnSave={false}
         createEmptyRow={createEmptyMedalRow}
-        addButtonLabel="Add athlete"
-        isValid={(rows) => rowsMissingName(rows).length === 0}
+        allowAddRow={false}
+        allowDelete={false}
         onSave={onSave}
-        onRowsChange={setLiveRows}
         showSearch={false}
       />
-      {liveRows.length === 0 && (
+      {rows.length === 0 && (
         <p className="py-2 text-center text-sm text-gray-400">
-          No athletes added yet
+          No athletes in this game yet
         </p>
-      )}
-      {/* only new rows can miss a name, saved rows always have both */}
-      {rowsMissingName(liveRows).length > 0 && (
-        <Alert severity="warning">
-          Every athlete needs a first and last name.
-        </Alert>
       )}
     </div>
   );

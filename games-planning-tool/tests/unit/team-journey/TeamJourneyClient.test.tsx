@@ -6,10 +6,14 @@ import { MOCK_DISCIPLINES, MOCK_TEAM_SIZE } from './fixtures';
 
 const mocks = vi.hoisted(() => ({
   saveTeamSize: vi.fn(),
+  saveMedalRows: vi.fn(),
 }));
 
 vi.mock('@/features/team-size/actions/teamSizeActions', () => ({
   saveTeamSize: mocks.saveTeamSize,
+}));
+vi.mock('@/features/team-size/actions/medalPotentialActions', () => ({
+  saveMedalRows: mocks.saveMedalRows,
 }));
 
 vi.mock('@/features/team-size/components/TeamSizeStep', async () => {
@@ -18,6 +22,7 @@ vi.mock('@/features/team-size/components/TeamSizeStep', async () => {
     default: (props: {
       onTeamSizeSave: (value: typeof MOCK_TEAM_SIZE) => Promise<void>;
       onDisciplinesSave: (value: typeof MOCK_DISCIPLINES) => Promise<void>;
+      onMedalRowsSave: (value: []) => Promise<void>;
     }) =>
       React.createElement(
         'div',
@@ -40,6 +45,14 @@ vi.mock('@/features/team-size/components/TeamSizeStep', async () => {
           },
           'Save disciplines',
         ),
+        React.createElement(
+          'button',
+          {
+            onClick: () =>
+              void props.onMedalRowsSave([]).catch(() => undefined),
+          },
+          'Save medals',
+        ),
       ),
   };
 });
@@ -61,6 +74,7 @@ describe('TeamJourneyClient save integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.saveTeamSize.mockResolvedValue({ ok: true });
+    mocks.saveMedalRows.mockResolvedValue({ ok: true });
   });
 
   it('updates local estimate state and persists through the server action', async () => {
@@ -68,7 +82,11 @@ describe('TeamJourneyClient save integration', () => {
       <TeamJourneyClient
         gameId="10"
         nsoId="nso-1"
-        saved={{ teamSize: MOCK_TEAM_SIZE, disciplines: MOCK_DISCIPLINES }}
+        saved={{
+          teamSize: MOCK_TEAM_SIZE,
+          disciplines: MOCK_DISCIPLINES,
+          medalRows: [],
+        }}
         draftKeys={draftKeys}
         initialDrafts={initialDrafts}
       />,
@@ -93,7 +111,11 @@ describe('TeamJourneyClient save integration', () => {
       <TeamJourneyClient
         gameId="10"
         nsoId="nso-1"
-        saved={{ teamSize: MOCK_TEAM_SIZE, disciplines: MOCK_DISCIPLINES }}
+        saved={{
+          teamSize: MOCK_TEAM_SIZE,
+          disciplines: MOCK_DISCIPLINES,
+          medalRows: [],
+        }}
         draftKeys={draftKeys}
         initialDrafts={initialDrafts}
       />,
@@ -115,7 +137,11 @@ describe('TeamJourneyClient save integration', () => {
       <TeamJourneyClient
         gameId="10"
         nsoId="nso-1"
-        saved={{ teamSize: MOCK_TEAM_SIZE, disciplines: MOCK_DISCIPLINES }}
+        saved={{
+          teamSize: MOCK_TEAM_SIZE,
+          disciplines: MOCK_DISCIPLINES,
+          medalRows: [],
+        }}
         draftKeys={draftKeys}
         initialDrafts={initialDrafts}
       />,
@@ -126,5 +152,27 @@ describe('TeamJourneyClient save integration', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Your last change was not saved.',
     );
+  });
+
+  it('persists medals and reports rejected saves', async () => {
+    mocks.saveMedalRows.mockResolvedValue({ ok: false });
+    render(
+      <TeamJourneyClient
+        gameId="10"
+        nsoId="nso-1"
+        saved={{
+          teamSize: MOCK_TEAM_SIZE,
+          disciplines: MOCK_DISCIPLINES,
+          medalRows: [],
+        }}
+        draftKeys={draftKeys}
+        initialDrafts={initialDrafts}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save medals' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Your last change was not saved.',
+    );
+    expect(mocks.saveMedalRows).toHaveBeenCalledWith('10', 'nso-1', []);
   });
 });

@@ -10,7 +10,7 @@ import {
 } from '@/features/nso-calculator/components/calculator-actions';
 import { getDraftDocument } from '@/lib/draft-actions';
 import { DRAFT_SCHEMA_VERSION, draftKeys } from '@/lib/draft-keys';
-import HotelPricingSection from '@/features/nso-calculator/components/HotelPricingSection';
+import PropertyPricingSection from '@/features/nso-calculator/components/PropertyPricingSection';
 import { getGamesWithNsos } from '@/server/queries/games';
 import { getSession } from '@/lib/data';
 import { findGame, gamesForUser } from '@/lib/routing/Navigation';
@@ -82,11 +82,11 @@ export default async function CalculatorPage({
         key={game.id}
         fallback={
           <p role="status" className="mt-10 p-6">
-            Loading hotel pricing…
+            Loading property pricing…
           </p>
         }
       >
-        <HotelPricingSection gameId={game.id} />
+        <PropertyPricingSection gameId={game.id} />
       </Suspense>
     </CalculatorClient>
   );
