@@ -72,6 +72,7 @@ model GameNso {
   nso   Nso    @relation(fields: [nsoId], references: [id])
   tasks Task[]
   announcements Announcement[]
+  teamSizeEstimate TeamSizeEstimate?
 
   @@unique([gameId, nsoId])
   @@index([nsoId])

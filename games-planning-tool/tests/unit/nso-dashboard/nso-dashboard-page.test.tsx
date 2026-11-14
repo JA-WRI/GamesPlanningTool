@@ -8,6 +8,7 @@ vi.mock('@/lib/prisma', () => ({
     gameNso: { findUnique: vi.fn().mockResolvedValue(null) },
     task: { findMany: vi.fn().mockResolvedValue([]) },
     announcement: { findMany: vi.fn().mockResolvedValue([]) },
+    resource: { findMany: vi.fn().mockResolvedValue([]) },
   },
 }));
 
