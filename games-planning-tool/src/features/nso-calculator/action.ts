@@ -1,4 +1,4 @@
-// 70% ai generated code 
+// 70% ai generated code
 'use server';
 
 import { prisma } from '@/lib/prisma';
@@ -46,8 +46,10 @@ function toDate(value: string): Date | null {
   }
 
   const date = new Date(`${value}T00:00:00.000Z`);
-  if (Number.isNaN(date.getTime()) ||
-      date.toISOString().slice(0, 10) !== value) {
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.toISOString().slice(0, 10) !== value
+  ) {
     throw new Error('Invalid date');
   }
 
@@ -64,9 +66,13 @@ export async function saveTravelers(
     throw new Error('Calculator saving is not enabled in this environment');
   }
 
-  if (!Number.isSafeInteger(gameId) || gameId <= 0 ||
-      !/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(nsoId) ||
-      !Array.isArray(rows) || rows.length > 100) {
+  if (
+    !Number.isSafeInteger(gameId) ||
+    gameId <= 0 ||
+    !/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(nsoId) ||
+    !Array.isArray(rows) ||
+    rows.length > 100
+  ) {
     throw new Error('Invalid calculator request');
   }
 
@@ -129,7 +135,11 @@ export async function saveTravelers(
         await tx.traveler.update({ where: { id }, data });
         savedIds.add(id);
       } else {
-        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(row.id)) {
+        if (
+          !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+            row.id,
+          )
+        ) {
           throw new Error('Invalid new traveler ID');
         }
 
@@ -156,7 +166,6 @@ export async function saveTravelers(
     });
   });
 }
-
 
 export type EstimatedCostInput = {
   id: string;

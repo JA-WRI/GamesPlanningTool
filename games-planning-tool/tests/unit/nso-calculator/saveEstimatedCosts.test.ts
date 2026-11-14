@@ -1,4 +1,4 @@
-// about 50% ai 
+// about 50% ai
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { saveEstimatedCosts } from '@/features/nso-calculator/action';
 
@@ -134,7 +134,9 @@ describe('saveEstimatedCosts — server action', () => {
     await saveEstimatedCosts(gameId, nsoId, []);
 
     expect(db.estimatedCostItem.deleteMany).toHaveBeenCalled();
-    expect(db.estimatedCostItem.deleteMany.mock.calls[0][0]).toHaveProperty('where');
+    expect(db.estimatedCostItem.deleteMany.mock.calls[0][0]).toHaveProperty(
+      'where',
+    );
   });
 
   it('rejects an ID owned by another game/NSO', async () => {
@@ -183,15 +185,17 @@ describe('saveEstimatedCosts — server action', () => {
     db.gameNso.findUnique.mockResolvedValue(null);
     db.gameNso.findFirst.mockResolvedValue(null);
 
-    await expect(saveEstimatedCosts(gameId, nsoId, [costRow()])).rejects.toThrow();
+    await expect(
+      saveEstimatedCosts(gameId, nsoId, [costRow()]),
+    ).rejects.toThrow();
     expect(db.estimatedCostItem.create).not.toHaveBeenCalled();
   });
 
   it('surfaces a Prisma write error', async () => {
     db.estimatedCostItem.create.mockRejectedValue(new Error('DB write failed'));
 
-    await expect(saveEstimatedCosts(gameId, nsoId, [costRow()])).rejects.toThrow(
-      /DB write failed/,
-    );
+    await expect(
+      saveEstimatedCosts(gameId, nsoId, [costRow()]),
+    ).rejects.toThrow(/DB write failed/);
   });
 });

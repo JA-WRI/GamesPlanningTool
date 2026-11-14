@@ -1,14 +1,12 @@
 // AI-assisted tests; reviewed for calculator and hotel pricing requirements.
 import { beforeEach, expect, it, vi } from 'vitest';
 vi.mock('@/lib/calculator', () => ({
-  getCalculatorData: vi
-    .fn()
-    .mockResolvedValue({
-      rates: { CAD: 1, USD: 1.38, EUR: 1.48 },
-      categories: [],
-      travelers: [],
-      estimatedCosts: [],
-    }),
+  getCalculatorData: vi.fn().mockResolvedValue({
+    rates: { CAD: 1, USD: 1.38, EUR: 1.48 },
+    categories: [],
+    travelers: [],
+    estimatedCosts: [],
+  }),
 }));
 vi.mock('@/server/queries/games', () => ({ getGamesWithNsos: vi.fn() }));
 vi.mock('@/lib/data', () => ({ getSession: vi.fn() }));

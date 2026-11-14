@@ -39,7 +39,9 @@ describe('calculateDaysOnSite', () => {
   });
 
   it('accepts check-in today', () => {
-    expect(calculateDaysOnSite('2026-11-09', '2026-11-12', '2026-11-09')).toBe(3);
+    expect(calculateDaysOnSite('2026-11-09', '2026-11-12', '2026-11-09')).toBe(
+      3,
+    );
   });
 
   it('can still calculate an old saved trip when no today constraint is provided', () => {
@@ -76,9 +78,18 @@ describe('calculateTotalCostPerMember', () => {
     [2400, 150, 2, 100, -50],
     [Number.NaN, 150, 2, 100, 50],
     [Number.POSITIVE_INFINITY, 150, 2, 100, 50],
-  ])('rejects invalid amounts', (travel, accommodation, days, meals, insurance) => {
-    expect(() =>
-      calculateTotalCostPerMember(travel, accommodation, days, meals, insurance),
-    ).toThrow(/invalid/i);
-  });
+  ])(
+    'rejects invalid amounts',
+    (travel, accommodation, days, meals, insurance) => {
+      expect(() =>
+        calculateTotalCostPerMember(
+          travel,
+          accommodation,
+          days,
+          meals,
+          insurance,
+        ),
+      ).toThrow(/invalid/i);
+    },
+  );
 });

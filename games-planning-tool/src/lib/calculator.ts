@@ -11,11 +11,11 @@ export async function getCalculatorData(gameId: number, nsoId: string) {
       },
     },
     include: {
-        game: {
-            select: {
-                name: true,
-            },
+      game: {
+        select: {
+          name: true,
         },
+      },
     },
   });
 
@@ -38,7 +38,7 @@ export async function getCalculatorData(gameId: number, nsoId: string) {
 
       prisma.estimatedCostItem.findMany({
         where: {
-            gameNsoId: gameNso.id,
+          gameNsoId: gameNso.id,
         },
         orderBy: { id: 'asc' },
       }),
@@ -46,29 +46,29 @@ export async function getCalculatorData(gameId: number, nsoId: string) {
       prisma.conversionRate.findMany(),
     ]);
 
-    
-const usdRate = conversionRates.find(
-  (item) => item.fromCurrency === 'USD' && item.toCurrency === 'CAD',
-);
+  const usdRate = conversionRates.find(
+    (item) => item.fromCurrency === 'USD' && item.toCurrency === 'CAD',
+  );
 
-const eurRate = conversionRates.find(
-  (item) => item.fromCurrency === 'EUR' && item.toCurrency === 'CAD',
-);
+  const eurRate = conversionRates.find(
+    (item) => item.fromCurrency === 'EUR' && item.toCurrency === 'CAD',
+  );
 
-if (!usdRate || !eurRate) {
-  throw new Error('Required conversion rates are missing from the database');
-}
+  if (!usdRate || !eurRate) {
+    throw new Error('Required conversion rates are missing from the database');
+  }
 
-const rates = {
-  CAD: 1,
-  USD: Number(usdRate.rate),
-  EUR: Number(eurRate.rate),
-};
+  const rates = {
+    CAD: 1,
+    USD: Number(usdRate.rate),
+    EUR: Number(eurRate.rate),
+  };
 
-if (Object.values(rates).some((rate) => !Number.isFinite(rate) || rate <= 0)) {
-  throw new Error('Invalid conversion rates in the database');
-}
-
+  if (
+    Object.values(rates).some((rate) => !Number.isFinite(rate) || rate <= 0)
+  ) {
+    throw new Error('Invalid conversion rates in the database');
+  }
 
   return {
     gameId,

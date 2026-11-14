@@ -42,7 +42,6 @@ export function calculateDaysOnSite(
   return (end - start) / MS_PER_DAY;
 }
 
-
 export function calculateTotalCostPerMember(
   travelBudget: number,
   accommodationBudget: number,

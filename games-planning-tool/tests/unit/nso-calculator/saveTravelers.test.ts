@@ -1,11 +1,15 @@
-// about 50% ai 
+// about 50% ai
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { saveTravelers } from '@/features/nso-calculator/action';
 
 const db = vi.hoisted(() => ({
   $transaction: vi.fn(),
   gameNso: { findUnique: vi.fn(), findFirst: vi.fn() },
-  travelerCategory: { findMany: vi.fn(), findUnique: vi.fn(), findFirst: vi.fn() },
+  travelerCategory: {
+    findMany: vi.fn(),
+    findUnique: vi.fn(),
+    findFirst: vi.fn(),
+  },
   traveler: {
     findMany: vi.fn(),
     findUnique: vi.fn(),
@@ -164,7 +168,10 @@ describe('saveTravelers — server action', () => {
   it('does not allow an existing ID belonging to another NSO', async () => {
     // The current NSO owns no existing IDs; ID 11 belongs elsewhere.
     db.traveler.findMany.mockResolvedValue([]);
-    db.traveler.findUnique.mockResolvedValue({ ...storedTraveler, nsoId: 'other-nso' });
+    db.traveler.findUnique.mockResolvedValue({
+      ...storedTraveler,
+      nsoId: 'other-nso',
+    });
     db.traveler.findFirst.mockResolvedValue(null);
 
     await expect(
@@ -201,7 +208,9 @@ describe('saveTravelers — server action', () => {
 
   it('rejects an unknown traveler category', async () => {
     await expect(
-      saveTravelers(gameId, nsoId, [travelerRow({ category: 'Unknown category' })]),
+      saveTravelers(gameId, nsoId, [
+        travelerRow({ category: 'Unknown category' }),
+      ]),
     ).rejects.toThrow();
   });
 
@@ -209,7 +218,9 @@ describe('saveTravelers — server action', () => {
     db.gameNso.findUnique.mockResolvedValue(null);
     db.gameNso.findFirst.mockResolvedValue(null);
 
-    await expect(saveTravelers(gameId, nsoId, [travelerRow()])).rejects.toThrow();
+    await expect(
+      saveTravelers(gameId, nsoId, [travelerRow()]),
+    ).rejects.toThrow();
     expect(db.traveler.create).not.toHaveBeenCalled();
   });
 

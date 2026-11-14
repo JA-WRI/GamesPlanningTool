@@ -26,14 +26,13 @@ describe('getCalculatorData', () => {
       game: { name: 'Summer Games 2028' },
     } as never);
 
-    vi.mocked(prisma.travelerCategory.findMany)
-      .mockResolvedValue([{ id: 1, name: 'Athletes' }] as never);
+    vi.mocked(prisma.travelerCategory.findMany).mockResolvedValue([
+      { id: 1, name: 'Athletes' },
+    ] as never);
 
-    vi.mocked(prisma.traveler.findMany)
-      .mockResolvedValue([] as never);
+    vi.mocked(prisma.traveler.findMany).mockResolvedValue([] as never);
 
-    vi.mocked(prisma.estimatedCostItem.findMany)
-      .mockResolvedValue([] as never);
+    vi.mocked(prisma.estimatedCostItem.findMany).mockResolvedValue([] as never);
 
     vi.mocked(prisma.conversionRate.findMany).mockResolvedValue([
       { fromCurrency: 'USD', toCurrency: 'CAD', rate: '1.38' },
@@ -85,9 +84,9 @@ describe('getCalculatorData', () => {
   });
 
   it('rejects missing required exchange rates', async () => {
-    vi.mocked(prisma.conversionRate.findMany).mockResolvedValue(
-      [{ fromCurrency: 'USD', toCurrency: 'CAD', rate: '1.38' }] as never,
-    );
+    vi.mocked(prisma.conversionRate.findMany).mockResolvedValue([
+      { fromCurrency: 'USD', toCurrency: 'CAD', rate: '1.38' },
+    ] as never);
 
     await expect(getCalculatorData(gameId, nsoId)).rejects.toThrow();
   });
