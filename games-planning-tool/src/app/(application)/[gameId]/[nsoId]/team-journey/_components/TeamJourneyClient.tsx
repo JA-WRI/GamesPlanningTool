@@ -1,7 +1,6 @@
 // AI contribution: 50% or more AI-generated
 'use client';
 
-//import StepTabs from './StepTabs';
 import { useState } from 'react';
 import { Alert } from '@mui/material';
 import TeamSizeStep from '@/features/team-size/components/TeamSizeStep';
@@ -14,34 +13,6 @@ import type {
 } from '@/features/team-size/lib/teamSizeGridLogic';
 import { SavedTeamJourney, useTeamJourneyState } from './useTeamJourneyState';
 
-// one small function per step, with the same props as before
-// const STEPS: Record<number, (state: TeamJourneyState) => React.ReactNode> = {
-//   1: (state) => (
-//     <TeamSizeStep
-//       teamSize={state.teamSize}
-//       onChange={state.setTeamSize}
-//       disciplines={state.disciplines}
-//       onDisciplinesChange={state.setDisciplines}
-//       medalRows={state.medalRows}
-//       onMedalRowsChange={state.setMedalRows}
-//     />
-//   ),
-// };
-
-// export default function TeamJourneyClient() {
-//   const state = useTeamJourneyState();
-
-//   return (
-//     <div className="min-h-screen bg-white">
-//       <StepTabs
-//         activeStep={state.activeStep}
-//         onStepChange={state.setActiveStep}
-//       />
-
-//       <div className="px-10 py-8">{STEPS[state.activeStep]?.(state)}</div>
-//     </div>
-//   );
-// }
 type TeamJourneyClientProps = {
   gameId: string;
   nsoId: string;
