@@ -906,6 +906,8 @@ async function main() {
   await prisma.disciplineBreakdown.deleteMany();
   await prisma.teamSizeEstimate.deleteMany();
   await prisma.gameMember.deleteMany();
+  await prisma.announcement.deleteMany();
+  await prisma.task.deleteMany();
   await prisma.gameNso.deleteMany();
   await prisma.member.deleteMany();
   await prisma.user.deleteMany();
@@ -942,6 +944,115 @@ async function main() {
       gameId: game.id,
       nsoId: nso.id,
     })),
+  });
+
+  const [swimmingPair, athleticsPair] = await Promise.all([
+    prisma.gameNso.findUniqueOrThrow({
+      where: {
+        gameId_nsoId: { gameId: game.id, nsoId: nsos.aquatics.id },
+      },
+      select: { id: true },
+    }),
+    prisma.gameNso.findUniqueOrThrow({
+      where: {
+        gameId_nsoId: { gameId: game.id, nsoId: nsos.athletics.id },
+      },
+      select: { id: true },
+    }),
+  ]);
+
+  const seedDay = new Date();
+  const dateFromToday = (offset: number) =>
+    new Date(
+      Date.UTC(
+        seedDay.getUTCFullYear(),
+        seedDay.getUTCMonth(),
+        seedDay.getUTCDate() + offset,
+      ),
+    );
+
+  await prisma.announcement.createMany({
+    data: [
+      {
+        gameNsoId: swimmingPair.id,
+        title: 'New Rate Conversion from CAD to USD',
+        body: 'Updated exchange-rate assumptions are available for your cost estimates. Review your budget before submitting it.',
+        publishedAt: dateFromToday(0),
+      },
+      {
+        gameNsoId: swimmingPair.id,
+        title: 'Earlier Village Check-in for Team Canada',
+        body: 'Village check-in will open 24 hours earlier. Review your team’s arrival plans and update your itinerary if needed.',
+        publishedAt: dateFromToday(-1),
+      },
+      {
+        gameNsoId: swimmingPair.id,
+        title: 'Transport Hub C Service Update',
+        body: 'Transport Hub C will use an electric fleet. Check the revised shuttle windows before confirming your team’s arrival times.',
+        publishedAt: dateFromToday(-2),
+      },
+      {
+        gameNsoId: athleticsPair.id,
+        title: 'Accreditation Photo Guidelines Updated',
+        body: 'Review the new photo requirements before uploading accreditation photos for your delegation.',
+        publishedAt: dateFromToday(0),
+      },
+      {
+        gameNsoId: athleticsPair.id,
+        title: 'Training Venue Schedule Released',
+        body: 'The first draft of the training schedule is available. Check your assigned practice times before finalizing travel plans.',
+        publishedAt: dateFromToday(-2),
+      },
+    ],
+  });
+
+  await prisma.task.createMany({
+    data: [
+      {
+        gameNsoId: swimmingPair.id,
+        stepKey: 'confirm-shuttle-booking',
+        title: 'Confirm shuttle booking',
+        description:
+          'Review your assigned shuttle and confirm the passenger count.',
+        status: 'ACTION_REQUIRED',
+        deadline: dateFromToday(2),
+      },
+      {
+        gameNsoId: swimmingPair.id,
+        stepKey: 'prepare-equipment-inventory',
+        title: 'Prepare equipment inventory',
+        description:
+          'List the equipment your delegation will bring to the Games.',
+        status: 'IN_PROGRESS',
+        deadline: dateFromToday(4),
+      },
+      {
+        gameNsoId: swimmingPair.id,
+        stepKey: 'verify-delegation-contacts',
+        title: 'Verify delegation contacts',
+        description:
+          'Confirm the primary and backup contacts for your delegation.',
+        status: 'COMPLETE',
+        deadline: dateFromToday(3),
+      },
+      {
+        gameNsoId: athleticsPair.id,
+        stepKey: 'upload-accreditation-photos',
+        title: 'Upload accreditation photos',
+        description:
+          'Replace any photos that do not meet the updated requirements.',
+        status: 'ACTION_REQUIRED',
+        deadline: dateFromToday(3),
+      },
+      {
+        gameNsoId: athleticsPair.id,
+        stepKey: 'confirm-training-venue',
+        title: 'Confirm training venue',
+        description: 'Verify your assigned venue and practice time.',
+        status: 'COMPLETE',
+        deadline: dateFromToday(5),
+      },
+    ],
   });
 
   // Members

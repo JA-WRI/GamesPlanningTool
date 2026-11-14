@@ -1,7 +1,7 @@
-//no substantial AI generated code
+// AI contribution: 30%
 import { notFound } from 'next/navigation';
-import { getGamesWithNsos } from '@/server/queries/games';
-import { findGame } from '@/lib/routing/Navigation';
+import { Nsos } from '@/lib/data';
+import { prisma } from '@/lib/prisma';
 
 export default async function NsoLayout({
   children,
@@ -10,11 +10,32 @@ export default async function NsoLayout({
   children: React.ReactNode;
   params: Promise<{ gameId: string; nsoId: string }>;
 }) {
-  const [{ gameId, nsoId }, games] = await Promise.all([
-    params,
-    getGamesWithNsos(),
-  ]);
-  const game = findGame(games, gameId);
-  if (!game?.nsos.some((n) => n.id === nsoId)) notFound();
+  const { gameId, nsoId } = await params;
+
+  const isMockRoute =
+    !/^\d+$/.test(gameId) && Nsos.some((nso) => nso.id === nsoId);
+
+  if (!isMockRoute) {
+    const dbGameId = Number(gameId);
+    const isUuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(nsoId);
+
+    if (
+      !/^\d+$/.test(gameId) ||
+      dbGameId < 1 ||
+      dbGameId > 2_147_483_647 ||
+      !isUuid
+    ) {
+      notFound();
+    }
+
+    const pairing = await prisma.gameNso.findUnique({
+      where: {
+        gameId_nsoId: { gameId: dbGameId, nsoId },
+      },
+      select: { id: true },
+    });
+
+    if (!pairing) notFound();
+  }
   return <>{children}</>;
 }

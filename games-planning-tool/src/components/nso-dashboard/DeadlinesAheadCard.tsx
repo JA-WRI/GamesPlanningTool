@@ -1,5 +1,7 @@
-// This page has been coded by both me and AI (50%).
+// AI contribution: 50%
+// This page has been coded by both me and AI
 // I started coding the general structure of the component and used AI to accelerate the process and get the right placement of elements
+
 import DashboardPanel from './DashboardPanel';
 
 type Deadline = {
@@ -16,6 +18,17 @@ export default function DeadlinesAheadCard({
 }: {
   deadlines: Deadline[];
 }) {
+  if (deadlines.length === 0) {
+    return (
+      <DashboardPanel
+        id="deadlines-heading"
+        title="Deadlines Ahead"
+        className="h-auto min-h-0 self-start"
+      >
+        <p className="mt-8 text-sm text-muted">No deadlines ahead.</p>
+      </DashboardPanel>
+    );
+  }
   return (
     <DashboardPanel id="deadlines-heading" title="Deadlines Ahead">
       <div
@@ -42,7 +55,15 @@ export default function DeadlinesAheadCard({
                 </p>
               </div>
               <span className="shrink-0 rounded-full bg-terracotta px-3 py-1.5 text-[10px] font-medium text-surface">
-                Due in {deadline.daysRemaining} days
+                {deadline.daysRemaining < 0
+                  ? `Overdue by ${Math.abs(deadline.daysRemaining)} ${
+                      deadline.daysRemaining === -1 ? 'day' : 'days'
+                    }`
+                  : deadline.daysRemaining === 0
+                    ? 'Due today'
+                    : `Due in ${deadline.daysRemaining} ${
+                        deadline.daysRemaining === 1 ? 'day' : 'days'
+                      }`}
               </span>
             </li>
           ))}

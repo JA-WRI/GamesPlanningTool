@@ -45,7 +45,7 @@ model Game {
 
   gameNsos    GameNso[]
   gameMembers GameMember[]
-  
+
   @@map("games")
 }
 
@@ -68,9 +68,10 @@ model GameNso {
   gameId Int    @map("game_id")
   nsoId  String @map("nso_id") @db.Uuid
 
-  game             Game              @relation(fields: [gameId], references: [id])
-  nso              Nso               @relation(fields: [nsoId], references: [id])
-  teamSizeEstimate TeamSizeEstimate?
+  game  Game   @relation(fields: [gameId], references: [id])
+  nso   Nso    @relation(fields: [nsoId], references: [id])
+  tasks Task[]
+  announcements Announcement[]
 
   @@unique([gameId, nsoId])
   @@index([nsoId])
@@ -112,9 +113,9 @@ model Member {
 
 // A member's participation in one game
 model GameMember {
-  id               String    @id @default(uuid()) @db.Uuid
-  gameId           Int       @map("game_id")
-  memberId         String    @map("member_id") @db.Uuid
+  id       String @id @default(uuid()) @db.Uuid
+  gameId   Int    @map("game_id")
+  memberId String @map("member_id") @db.Uuid
 
   // Shared by staff and athletes
   fundedBy         String?   @map("funded_by")
@@ -125,13 +126,13 @@ model GameMember {
   gameDeparture    DateTime? @map("game_departure") @db.Date
 
   // Staff only
-  gamesRole        String?   @map("games_role")
-  rank             String?
+  gamesRole String? @map("games_role")
+  rank      String?
 
   // Athletes only
-  event            String?
-  medal            String?
-  medalNotes       String?   @map("medal_notes")
+  event      String?
+  medal      String?
+  medalNotes String? @map("medal_notes")
 
   game   Game   @relation(fields: [gameId], references: [id])
   member Member @relation(fields: [memberId], references: [id])
@@ -188,14 +189,14 @@ model DisciplineBreakdown {
 model Resource {
   id String @id @default(uuid()) @db.Uuid
 
-  parentFolderId String? @map("parent_folder_id") @db.Uuid
-  parent Resource? @relation("ParentElement", fields: [parentFolderId], references: [id])
-  children Resource[] @relation("ParentElement")
+  parentFolderId String?    @map("parent_folder_id") @db.Uuid
+  parent         Resource?  @relation("ParentElement", fields: [parentFolderId], references: [id])
+  children       Resource[] @relation("ParentElement")
 
-  name String
-  fileOrWebpageURL String? @map("file_or_webpage_URL") // null: folder
-  isWebpage Boolean @map("is_webpage") @default(false)
-  categories String[] @default([])
+  name             String
+  fileOrWebpageURL String?  @map("file_or_webpage_URL") // null: folder
+  isWebpage        Boolean  @default(false) @map("is_webpage")
+  categories       String[] @default([])
 
   previousElementId String? @map("previous_element_id") @db.Uuid @unique
   previous Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
@@ -206,4 +207,40 @@ model Resource {
   previousFromNext Resource? @relation("NextElement")
 
   @@map("resources")
+}
+
+enum TaskStatus {
+  COMPLETE
+  SUBMITTED
+  ACTION_REQUIRED
+  IN_PROGRESS
+  NOT_STARTED
+}
+
+model Task {
+  id          String     @id @default(uuid()) @db.Uuid
+  gameNsoId   String     @map("game_nso_id") @db.Uuid
+  stepKey     String     @map("step_key")
+  title       String
+  description String?
+  status      TaskStatus @default(NOT_STARTED)
+  deadline    DateTime?  @db.Date
+
+  gameNso GameNso @relation(fields: [gameNsoId], references: [id])
+
+  @@index([gameNsoId])
+  @@map("tasks")
+}
+
+model Announcement {
+  id          String     @id @default(uuid()) @db.Uuid
+  gameNsoId   String     @map("game_nso_id") @db.Uuid
+  title       String
+  body        String?
+  publishedAt DateTime @map("published_at") @db.Date
+
+  gameNso GameNso @relation(fields: [gameNsoId], references: [id])
+
+  @@index([gameNsoId])
+  @@map("announcements")
 }
