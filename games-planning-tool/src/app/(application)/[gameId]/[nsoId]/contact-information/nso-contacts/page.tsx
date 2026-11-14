@@ -30,9 +30,10 @@ export default async function Page({
   params: Promise<{ gameId: string; nsoId: string }>;
 }) {
   const { gameId, nsoId } = await params;
+  const draftKey = draftKeys.nsoContacts(gameId, nsoId);
   const [contacts, rawDraft] = await Promise.all([
     getNsoContacts(nsoId, gameId),
-    getDraftDocument(draftKeys.nsoContacts, DRAFT_SCHEMA_VERSION),
+    getDraftDocument(draftKey, DRAFT_SCHEMA_VERSION),
   ]);
   const initialDraft = asDraftRows<ContactRow>(rawDraft);
 
@@ -43,7 +44,7 @@ export default async function Page({
       roles={NSO_ROLES}
       initialData={contacts}
       initialDraft={initialDraft}
-      draftKey={draftKeys.nsoContacts}
+      draftKey={draftKey}
       onSaveAction={saveNsoContacts.bind(null, nsoId, gameId)}
       readOnly={false}
     />

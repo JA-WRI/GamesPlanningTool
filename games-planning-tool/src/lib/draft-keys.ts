@@ -3,8 +3,10 @@
 export const DRAFT_SCHEMA_VERSION = 1;
 
 export const draftKeys = {
-  nsoContacts: 'contacts:nso',
-  pgtcDisciplines: 'contacts:pgtc-disciplines',
+  nsoContacts: (gameId: string, nsoId: string) =>
+    `contacts:nso:${gameId}:${nsoId}`,
+  pgtcDisciplines: (gameId: string, nsoId: string) =>
+    `contacts:pgtc-disciplines:${gameId}:${nsoId}`,
   calculatorTravelers: (calculatorId: number, gameId: string, nsoId: string) =>
     `calculator:${calculatorId}:travelers:${gameId}:${nsoId}`,
   calculatorEstimatedCosts: (

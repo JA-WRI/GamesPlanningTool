@@ -4,6 +4,9 @@
 import { prisma } from '@/lib/prisma';
 import { calculateDaysOnSite } from './utils/calculations';
 
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export type TravelerInput = {
   id: string;
   category: string;
@@ -69,7 +72,8 @@ export async function saveTravelers(
   if (
     !Number.isSafeInteger(gameId) ||
     gameId <= 0 ||
-    !/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(nsoId) ||
+    typeof nsoId !== 'string' ||
+    !uuidPattern.test(nsoId) ||
     !Array.isArray(rows) ||
     rows.length > 100
   ) {
@@ -93,11 +97,17 @@ export async function saveTravelers(
 
     const existingIds = new Set(existing.map((row) => row.id));
     const savedIds = new Set<number>();
+    const submittedIds = new Set<string>();
 
     for (const row of rows) {
-      if (!row || typeof row.id !== 'string') {
+      if (
+        !row ||
+        typeof row.id !== 'string' ||
+        submittedIds.has(row.id.toLowerCase())
+      ) {
         throw new Error('Invalid traveler row');
       }
+      submittedIds.add(row.id.toLowerCase());
 
       const travelerCategoryId = categoryIds.get(row.category);
       if (travelerCategoryId === undefined) {
@@ -135,11 +145,7 @@ export async function saveTravelers(
         await tx.traveler.update({ where: { id }, data });
         savedIds.add(id);
       } else {
-        if (
-          !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-            row.id,
-          )
-        ) {
+        if (!uuidPattern.test(row.id)) {
           throw new Error('Invalid new traveler ID');
         }
 
@@ -203,7 +209,7 @@ export async function saveEstimatedCosts(
     !Number.isSafeInteger(gameId) ||
     gameId <= 0 ||
     typeof nsoId !== 'string' ||
-    !/^[0-9a-f-]{36}$/i.test(nsoId) ||
+    !uuidPattern.test(nsoId) ||
     !Array.isArray(rows) ||
     rows.length > 100
   ) {
@@ -232,7 +238,7 @@ export async function saveEstimatedCosts(
       if (
         !row ||
         typeof row.id !== 'string' ||
-        submittedIds.has(row.id) ||
+        submittedIds.has(row.id.toLowerCase()) ||
         typeof row.category !== 'string' ||
         !row.category.trim() ||
         row.category.length > 200 ||
@@ -244,7 +250,7 @@ export async function saveEstimatedCosts(
         throw new Error('Invalid or duplicate cost item');
       }
 
-      submittedIds.add(row.id);
+      submittedIds.add(row.id.toLowerCase());
 
       const data = {
         name: row.category.trim(),
@@ -267,11 +273,7 @@ export async function saveEstimatedCosts(
 
         savedIds.add(id);
       } else {
-        if (
-          !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-            row.id,
-          )
-        ) {
+        if (!uuidPattern.test(row.id)) {
           throw new Error('Invalid new cost item ID');
         }
 

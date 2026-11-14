@@ -1,6 +1,7 @@
 // 80% ai generated
 import type { getCalculatorData } from '@/lib/calculator';
 import type { CalculatorRow } from '../components/CalculatorContent';
+import type { EstimatedCostRow } from '../components/EstimatedCosts';
 import {
   calculateDaysOnSite,
   calculateTotalCostPerMember,
@@ -30,7 +31,7 @@ export function dbTravelerToRow(
   });
 }
 
-function calculateTravelerRow(row: CalculatorRow): CalculatorRow {
+export function calculateTravelerRow(row: CalculatorRow): CalculatorRow {
   const days = calculateDaysOnSite(row.checkIn, row.checkOut);
 
   return {
@@ -43,5 +44,17 @@ function calculateTravelerRow(row: CalculatorRow): CalculatorRow {
       row.mealsBudget,
       row.insuranceBudget,
     ),
+  };
+}
+
+export function dbEstimatedCostToRow(
+  cost: CalculatorData['estimatedCosts'][number],
+): EstimatedCostRow {
+  return {
+    id: String(cost.id),
+    category: cost.name,
+    amount: cost.costInCents / 100,
+    unitOfMeasure: cost.unitOfMeasure,
+    notes: cost.notes ?? '',
   };
 }

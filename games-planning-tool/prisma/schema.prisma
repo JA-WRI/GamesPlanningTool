@@ -224,7 +224,7 @@ model Contact {
   id          String      @id @default(uuid())
   nsoId       String      @db.Uuid
   gameId      Int
-  role        String      @unique // Unique per role for NSO structure
+  role        String
   type        ContactType
   isPrimary   Boolean     @default(false) @map("is_primary")
   firstName   String      @map("first_name")

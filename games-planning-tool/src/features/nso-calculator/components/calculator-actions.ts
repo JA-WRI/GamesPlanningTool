@@ -5,7 +5,7 @@ import { getCalculatorData } from '@/lib/calculator';
 import { saveTravelers, saveEstimatedCosts } from '../action';
 import type { CalculatorRow } from './CalculatorContent';
 import type { EstimatedCostRow } from './EstimatedCosts';
-import { dbTravelerToRow } from '../lib/canonicalMapping';
+import { dbEstimatedCostToRow, dbTravelerToRow } from '../lib/canonicalMapping';
 
 function requireCalculator(calculatorId: number) {
   if (calculatorId !== 1) throw new Error('Unknown calculator');
@@ -42,13 +42,7 @@ export async function getEstimatedCostItems(
   requireCalculator(calculatorId);
   const data = await getCalculatorData(Number(gameId), nsoId);
   if (!data) throw new Error('Game or NSO not found');
-  return data.estimatedCosts.map((cost) => ({
-    id: String(cost.id),
-    category: cost.name,
-    amount: cost.costInCents / 100,
-    unitOfMeasure: cost.unitOfMeasure,
-    notes: cost.notes ?? '',
-  }));
+  return data.estimatedCosts.map(dbEstimatedCostToRow);
 }
 
 export async function saveEstimatedCostItems(
@@ -59,12 +53,6 @@ export async function saveEstimatedCostItems(
 ) {
   requireCalculator(calculatorId);
   return (await saveEstimatedCosts(Number(gameId), nsoId, rows)).map(
-    (cost) => ({
-      id: String(cost.id),
-      category: cost.name,
-      amount: cost.costInCents / 100,
-      unitOfMeasure: cost.unitOfMeasure,
-      notes: cost.notes ?? '',
-    }),
+    dbEstimatedCostToRow,
   );
 }

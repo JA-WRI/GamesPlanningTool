@@ -23,6 +23,7 @@ import { getGamesWithNsos } from '@/server/queries/games';
 import { getSession } from '@/lib/data';
 import { getCalculatorData } from '@/lib/calculator';
 import { getDraftDocument } from '@/lib/draft-actions';
+import { ConversionRatesError } from '@/lib/calculator-errors';
 import Page from '@/app/(application)/[gameId]/[nsoId]/calculator/page';
 
 const game = {
@@ -61,9 +62,31 @@ it('accepts a participating NSO and the database game ID', async () => {
   const result = await Page({
     params: params(String(game.id), participatingNso.id),
   });
+
   expect(result.props.gameName).toBe(game.name);
   expect(result.props.children.key).toBe(String(game.id));
   expect(result.props.children.props.children.props.gameId).toBe(game.id);
+});
+
+it('shows a clear message when conversion rates are unavailable', async () => {
+  const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.mocked(getCalculatorData).mockRejectedValue(
+    new ConversionRatesError('Missing rate'),
+  );
+  const result = await Page({
+    params: params(String(game.id), participatingNso.id),
+  });
+  expect(result.props.role).toBe('alert');
+  expect(result.props.children).toContain('currency conversion rates');
+  expect(log).toHaveBeenCalled();
+  log.mockRestore();
+});
+
+it('does not hide unrelated database failures', async () => {
+  vi.mocked(getCalculatorData).mockRejectedValue(new Error('database offline'));
+  await expect(
+    Page({ params: params(String(game.id), participatingNso.id) }),
+  ).rejects.toThrow('database offline');
 });
 
 it.each([

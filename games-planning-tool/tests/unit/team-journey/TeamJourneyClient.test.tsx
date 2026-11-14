@@ -23,10 +23,45 @@ vi.mock('@/features/team-size/components/TeamSizeStep', async () => {
       onTeamSizeSave: (value: typeof MOCK_TEAM_SIZE) => Promise<void>;
       onDisciplinesSave: (value: typeof MOCK_DISCIPLINES) => Promise<void>;
       onMedalRowsSave: (value: []) => Promise<void>;
+      teamSize: typeof MOCK_TEAM_SIZE;
+      disciplines: typeof MOCK_DISCIPLINES;
     }) =>
       React.createElement(
         'div',
         null,
+        React.createElement(
+          'span',
+          { 'data-testid': 'saved-team-notes' },
+          props.teamSize.notes,
+        ),
+        React.createElement(
+          'span',
+          { 'data-testid': 'saved-discipline-notes' },
+          props.disciplines.notes,
+        ),
+        React.createElement(
+          'button',
+          {
+            onClick: () =>
+              void props
+                .onTeamSizeSave({ ...MOCK_TEAM_SIZE, notes: 'failed team' })
+                .catch(() => undefined),
+          },
+          'Save changed team size',
+        ),
+        React.createElement(
+          'button',
+          {
+            onClick: () =>
+              void props
+                .onDisciplinesSave({
+                  ...MOCK_DISCIPLINES,
+                  notes: 'failed discipline',
+                })
+                .catch(() => undefined),
+          },
+          'Save changed disciplines',
+        ),
         React.createElement(
           'button',
           {
@@ -174,5 +209,69 @@ describe('TeamJourneyClient save integration', () => {
       'Your last change was not saved.',
     );
     expect(mocks.saveMedalRows).toHaveBeenCalledWith('10', 'nso-1', []);
+  });
+
+  it('does not send failed team-size edits when disciplines are saved later', async () => {
+    mocks.saveTeamSize.mockResolvedValueOnce({ ok: false });
+    render(
+      <TeamJourneyClient
+        gameId="10"
+        nsoId="nso-1"
+        saved={{
+          teamSize: MOCK_TEAM_SIZE,
+          disciplines: MOCK_DISCIPLINES,
+          medalRows: [],
+        }}
+        draftKeys={draftKeys}
+        initialDrafts={initialDrafts}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Save changed team size' }),
+    );
+    await screen.findByRole('alert');
+    expect(screen.getByTestId('saved-team-notes')).toHaveTextContent(
+      MOCK_TEAM_SIZE.notes,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save disciplines' }));
+    await waitFor(() => expect(mocks.saveTeamSize).toHaveBeenCalledTimes(2));
+    expect(mocks.saveTeamSize).toHaveBeenLastCalledWith(
+      '10',
+      'nso-1',
+      MOCK_TEAM_SIZE,
+      MOCK_DISCIPLINES,
+    );
+  });
+
+  it('does not send failed discipline edits when team size is saved later', async () => {
+    mocks.saveTeamSize.mockRejectedValueOnce(new Error('offline'));
+    render(
+      <TeamJourneyClient
+        gameId="10"
+        nsoId="nso-1"
+        saved={{
+          teamSize: MOCK_TEAM_SIZE,
+          disciplines: MOCK_DISCIPLINES,
+          medalRows: [],
+        }}
+        draftKeys={draftKeys}
+        initialDrafts={initialDrafts}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Save changed disciplines' }),
+    );
+    await screen.findByRole('alert');
+    expect(screen.getByTestId('saved-discipline-notes')).toHaveTextContent(
+      MOCK_DISCIPLINES.notes,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save team size' }));
+    await waitFor(() => expect(mocks.saveTeamSize).toHaveBeenCalledTimes(2));
+    expect(mocks.saveTeamSize).toHaveBeenLastCalledWith(
+      '10',
+      'nso-1',
+      MOCK_TEAM_SIZE,
+      MOCK_DISCIPLINES,
+    );
   });
 });

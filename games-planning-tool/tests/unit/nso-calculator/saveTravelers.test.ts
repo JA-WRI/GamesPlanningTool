@@ -103,6 +103,22 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe('saveTravelers — server action', () => {
+  it('rejects duplicate new row IDs', async () => {
+    await expect(
+      saveTravelers(gameId, nsoId, [
+        travelerRow(),
+        travelerRow({ id: newRowId.toUpperCase() }),
+      ]),
+    ).rejects.toThrow('Invalid traveler row');
+    expect(db.traveler.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects malformed NSO IDs before opening a transaction', async () => {
+    await expect(
+      saveTravelers(gameId, 'a'.repeat(36), [travelerRow()]),
+    ).rejects.toThrow('Invalid calculator request');
+    expect(db.$transaction).not.toHaveBeenCalled();
+  });
   it('creates a new traveler under the requested game and NSO', async () => {
     await saveTravelers(gameId, nsoId, [travelerRow()]);
 

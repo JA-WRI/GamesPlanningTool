@@ -6,6 +6,7 @@ import { Box } from '@mui/material';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
 import { asDraftRows } from '@/lib/draft-keys';
+import { calculateTravelerRow } from '../lib/canonicalMapping';
 import {
   amountToCAD,
   displayAmount,
@@ -44,22 +45,6 @@ function createTraveler(category: string): CalculatorRow {
     mealsBudget: 0,
     insuranceBudget: 0,
     totalCostPerTeamMember: 0,
-  };
-}
-
-function calculateTravelerRow(row: CalculatorRow): CalculatorRow {
-  const days = calculateDaysOnSite(row.checkIn, row.checkOut);
-
-  return {
-    ...row,
-    days,
-    totalCostPerTeamMember: calculateTotalCostPerMember(
-      row.travelBudget,
-      row.accommodationBudget,
-      days,
-      row.mealsBudget,
-      row.insuranceBudget,
-    ),
   };
 }
 

@@ -9,7 +9,16 @@ import {
 
 describe('draftKeys', () => {
   it('creates stable keys that include the relevant record scope', () => {
-    expect(draftKeys.nsoContacts).toBe('contacts:nso');
+    expect(draftKeys.nsoContacts('5', 'nso-1')).toBe('contacts:nso:5:nso-1');
+    expect(draftKeys.nsoContacts('6', 'nso-1')).not.toBe(
+      draftKeys.nsoContacts('5', 'nso-1'),
+    );
+    expect(draftKeys.nsoContacts('5', 'nso-2')).not.toBe(
+      draftKeys.nsoContacts('5', 'nso-1'),
+    );
+    expect(draftKeys.pgtcDisciplines('5', 'nso-1')).toBe(
+      'contacts:pgtc-disciplines:5:nso-1',
+    );
     expect(draftKeys.calculatorTravelers(12, '5', 'nso-1')).toBe(
       'calculator:12:travelers:5:nso-1',
     );

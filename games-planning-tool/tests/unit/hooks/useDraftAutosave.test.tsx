@@ -10,7 +10,10 @@ const draftActions = vi.hoisted(() => ({
 vi.mock('@/lib/draft-actions', () => draftActions);
 
 import { useDraftAutosave } from '@/hooks/useDraftAutosave';
-import { flushActiveDrafts } from '@/lib/draft-navigation';
+import {
+  flushActiveDrafts,
+  hasUnsavedDraftChanges,
+} from '@/lib/draft-navigation';
 
 describe('useDraftAutosave', () => {
   beforeEach(() => {
@@ -156,6 +159,7 @@ describe('useDraftAutosave', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(200);
     });
+
     expect(draftActions.saveDraftDocument).toHaveBeenCalledWith(
       'test:grid',
       '456',
@@ -175,5 +179,44 @@ describe('useDraftAutosave', () => {
     await expect(flushActiveDrafts()).rejects.toThrow(
       'Fix invalid inputs before saving the draft.',
     );
+  });
+
+  it('tracks unsaved edits and an in-flight save even if values return to the baseline', async () => {
+    let finishSave!: () => void;
+    draftActions.saveDraftDocument.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishSave = resolve;
+      }),
+    );
+    const { rerender } = renderHook(
+      ({ value }) =>
+        useDraftAutosave({
+          draftKey: 'test:grid',
+          value,
+          enabled: true,
+          debounceMs: 200,
+        }),
+      { initialProps: { value: 'original' } },
+    );
+    expect(hasUnsavedDraftChanges()).toBe(false);
+    rerender({ value: 'edited' });
+    expect(hasUnsavedDraftChanges()).toBe(true);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
+    rerender({ value: 'original' });
+    expect(hasUnsavedDraftChanges()).toBe(true);
+    let flushing!: Promise<void>;
+    await act(async () => {
+      flushing = flushActiveDrafts();
+      finishSave();
+      await flushing;
+    });
+    expect(draftActions.saveDraftDocument).toHaveBeenLastCalledWith(
+      'test:grid',
+      'original',
+      1,
+    );
+    expect(hasUnsavedDraftChanges()).toBe(false);
   });
 });

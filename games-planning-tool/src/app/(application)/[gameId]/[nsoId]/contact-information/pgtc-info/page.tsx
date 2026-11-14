@@ -14,12 +14,10 @@ export default async function Page({
   params: Promise<{ gameId: string; nsoId: string }>;
 }) {
   const { gameId, nsoId } = await params;
+  const draftKey = draftKeys.pgtcDisciplines(gameId, nsoId);
   const [disciplines, rawDraft] = await Promise.all([
     getDisciplines(nsoId, gameId),
-    getDraftDocument(
-      `${draftKeys.pgtcDisciplines}:${gameId}:${nsoId}`,
-      DRAFT_SCHEMA_VERSION,
-    ),
+    getDraftDocument(draftKey, DRAFT_SCHEMA_VERSION),
   ]);
   const initialDraft = asDraftRows<DisciplineData>(rawDraft);
 
@@ -27,7 +25,7 @@ export default async function Page({
     <DisciplinesSection
       initialDisciplines={disciplines}
       initialDraft={initialDraft}
-      draftKey={`${draftKeys.pgtcDisciplines}:${gameId}:${nsoId}`}
+      draftKey={draftKey}
       onSaveAction={saveDisciplines.bind(null, nsoId, gameId)}
     />
   );

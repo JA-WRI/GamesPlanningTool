@@ -77,6 +77,12 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe('saveEstimatedCosts — server action', () => {
+  it('rejects malformed NSO IDs before opening a transaction', async () => {
+    await expect(
+      saveEstimatedCosts(gameId, 'a'.repeat(36), [costRow()]),
+    ).rejects.toThrow('Invalid calculator request');
+    expect(db.$transaction).not.toHaveBeenCalled();
+  });
   it('creates a cost item associated with the current game-NSO pair', async () => {
     await saveEstimatedCosts(gameId, nsoId, [costRow()]);
 

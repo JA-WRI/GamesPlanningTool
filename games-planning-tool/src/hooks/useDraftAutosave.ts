@@ -68,6 +68,7 @@ export function useDraftAutosave<Value>({
   const onPersistRef = useRef(onPersist);
   const canPersistRef = useRef(canPersist);
   const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const pendingSavesRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [status, setStatus] = useState<DraftSaveStatus>(
     initiallyRestored ? 'restored' : 'idle',
@@ -89,12 +90,17 @@ export function useDraftAutosave<Value>({
         ? serializeRef.current(snapshot)
         : snapshot;
       const serialized = JSON.stringify(payload);
-      if (serialized === persistedValueRef.current) return;
+      if (
+        serialized === persistedValueRef.current &&
+        pendingSavesRef.current === 0
+      )
+        return;
       if (!canPersistRef.current) {
         throw new Error('Fix invalid inputs before saving the draft.');
       }
 
       setStatus('saving');
+      pendingSavesRef.current++;
       const request = saveQueueRef.current
         .catch(() => undefined)
         .then(() => saveDraftDocument(draftKey, payload, schemaVersion));
@@ -110,6 +116,8 @@ export function useDraftAutosave<Value>({
       } catch (error) {
         if (saveQueueRef.current === request) setStatus('error');
         throw error;
+      } finally {
+        pendingSavesRef.current--;
       }
     },
     [draftKey, schemaVersion],
@@ -179,7 +187,16 @@ export function useDraftAutosave<Value>({
 
   useEffect(() => {
     if (!draftKey || !enabled) return;
-    return registerDraftFlusher(() => flush(currentValueRef.current));
+    return registerDraftFlusher(
+      () => flush(currentValueRef.current),
+      () =>
+        pendingSavesRef.current > 0 ||
+        JSON.stringify(
+          serializeRef.current
+            ? serializeRef.current(currentValueRef.current)
+            : currentValueRef.current,
+        ) !== persistedValueRef.current,
+    );
   }, [draftKey, enabled, flush]);
 
   return {

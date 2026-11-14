@@ -1,5 +1,6 @@
 // 70% ai generated code
 import { prisma } from '@/lib/prisma';
+import { ConversionRatesError } from '@/lib/calculator-errors';
 
 export async function getCalculatorData(gameId: number, nsoId: string) {
   // Make sure this NSO participates in the selected game
@@ -55,7 +56,9 @@ export async function getCalculatorData(gameId: number, nsoId: string) {
   );
 
   if (!usdRate || !eurRate) {
-    throw new Error('Required conversion rates are missing from the database');
+    throw new ConversionRatesError(
+      'Required conversion rates are missing from the database',
+    );
   }
 
   const rates = {
@@ -67,7 +70,7 @@ export async function getCalculatorData(gameId: number, nsoId: string) {
   if (
     Object.values(rates).some((rate) => !Number.isFinite(rate) || rate <= 0)
   ) {
-    throw new Error('Invalid conversion rates in the database');
+    throw new ConversionRatesError('Invalid conversion rates in the database');
   }
 
   return {

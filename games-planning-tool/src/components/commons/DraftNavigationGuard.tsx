@@ -2,16 +2,19 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { flushActiveDrafts } from '@/lib/draft-navigation';
+import {
+  flushActiveDrafts,
+  hasUnsavedDraftChanges,
+} from '@/lib/draft-navigation';
 
 export default function DraftNavigationGuard() {
-  const router = useRouter();
   const isNavigating = useRef(false);
+  const replayingClick = useRef(false);
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
       if (
+        replayingClick.current ||
         event.defaultPrevented ||
         event.button !== 0 ||
         event.metaKey ||
@@ -42,20 +45,30 @@ export default function DraftNavigationGuard() {
         return;
       }
 
+      if (!hasUnsavedDraftChanges()) return;
       event.preventDefault();
+      event.stopPropagation();
       if (isNavigating.current) return;
       isNavigating.current = true;
 
-      const href = `${destination.pathname}${destination.search}${destination.hash}`;
+      const resumeNavigation = () => {
+        if (!anchor.isConnected) return;
+        replayingClick.current = true;
+        try {
+          anchor.click();
+        } finally {
+          replayingClick.current = false;
+        }
+      };
       void flushActiveDrafts()
-        .then(() => router.push(href))
+        .then(resumeNavigation)
         .catch(() => {
           if (
             window.confirm(
               'A draft could not be saved. Leave this page and risk losing recent edits?',
             )
           ) {
-            router.push(href);
+            resumeNavigation();
           }
         })
         .finally(() => {
@@ -63,9 +76,19 @@ export default function DraftNavigationGuard() {
         });
     };
 
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasUnsavedDraftChanges()) return;
+      event.preventDefault();
+      event.returnValue = true;
+    };
+
     document.addEventListener('click', handleClick, true);
-    return () => document.removeEventListener('click', handleClick, true);
-  }, [router]);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      document.removeEventListener('click', handleClick, true);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   return null;
 }

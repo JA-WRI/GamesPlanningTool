@@ -100,13 +100,13 @@ export default function TeamJourneyClient({
       <TeamSizeStep
         teamSize={teamSize}
         onTeamSizeSave={async (next) => {
-          setTeamSize(next);
           await saveToDb(next, disciplines);
+          setTeamSize(next);
         }}
         disciplines={disciplines}
         onDisciplinesSave={async (next) => {
-          setDisciplines(next);
           await saveToDb(teamSize, next);
+          setDisciplines(next);
         }}
         medalRows={medalRows}
         onMedalRowsSave={saveMedals}

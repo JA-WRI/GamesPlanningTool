@@ -1,6 +1,10 @@
 // 30% AI generated
 import { getCalculatorData } from '@/lib/calculator';
-import { dbTravelerToRow } from '@/features/nso-calculator/lib/canonicalMapping';
+import {
+  dbEstimatedCostToRow,
+  dbTravelerToRow,
+} from '@/features/nso-calculator/lib/canonicalMapping';
+import { ConversionRatesError } from '@/lib/calculator-errors';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import CalculatorClient from '@/features/nso-calculator/components/CalculatorClient';
@@ -49,12 +53,27 @@ export default async function CalculatorPage({
   );
   const [calculatorData, initialTravelerDraft, initialEstimatedCostsDraft] =
     await Promise.all([
-      getCalculatorData(game.id, nsoId),
+      getCalculatorData(game.id, nsoId).catch((error: unknown) => {
+        if (!(error instanceof ConversionRatesError)) throw error;
+        console.error(
+          'Unable to load calculator conversion rates:',
+          error.message,
+        );
+        return 'rates-unavailable' as const;
+      }),
       getDraftDocument(travelerDraftKey, DRAFT_SCHEMA_VERSION),
       getDraftDocument(estimatedCostsDraftKey, DRAFT_SCHEMA_VERSION),
     ]);
 
   if (!calculatorData) notFound();
+  if (calculatorData === 'rates-unavailable') {
+    return (
+      <section role="alert" className="p-6">
+        Calculator unavailable: currency conversion rates are missing or
+        invalid. Please contact an administrator.
+      </section>
+    );
+  }
 
   return (
     <CalculatorClient
@@ -66,13 +85,9 @@ export default async function CalculatorPage({
       categories={calculatorData.categories}
       initialTravelers={calculatorData.travelers.map(dbTravelerToRow)}
       initialTravelerDraft={initialTravelerDraft}
-      initialEstimatedCosts={calculatorData.estimatedCosts.map((cost) => ({
-        id: String(cost.id),
-        category: cost.name,
-        amount: cost.costInCents / 100,
-        unitOfMeasure: cost.unitOfMeasure,
-        notes: cost.notes ?? '',
-      }))}
+      initialEstimatedCosts={calculatorData.estimatedCosts.map(
+        dbEstimatedCostToRow,
+      )}
       initialEstimatedCostsDraft={initialEstimatedCostsDraft}
       onSaveTravelers={saveTravelerItems.bind(null, nsoId, gameId)}
       onSaveEstimatedCosts={saveEstimatedCostItems.bind(null, nsoId, gameId)}
