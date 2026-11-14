@@ -39,6 +39,22 @@ describe('getMedalRows', () => {
     );
   });
 
+  it('sorts by last name, first name, then id so the order never changes', async () => {
+    prismaMock.gameMember.findMany.mockResolvedValue([]);
+
+    await getMedalRows(GAME_ID, NSO_ID);
+
+    expect(prismaMock.gameMember.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: [
+          { member: { lastName: 'asc' } },
+          { member: { firstName: 'asc' } },
+          { id: 'asc' },
+        ],
+      }),
+    );
+  });
+
   it('turns the athletes into table rows', async () => {
     prismaMock.gameMember.findMany.mockResolvedValue([
       {

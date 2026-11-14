@@ -28,6 +28,8 @@ export async function getMedalRows(
     orderBy: [
       { member: { lastName: 'asc' } },
       { member: { firstName: 'asc' } },
+      // same names keep the same order on every load
+      { id: 'asc' },
     ],
   });
 
