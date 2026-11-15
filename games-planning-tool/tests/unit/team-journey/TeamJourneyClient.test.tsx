@@ -9,6 +9,8 @@ import { saveTeamSize } from '@/features/team-size/actions/teamSizeActions';
 import { saveMedalRows } from '@/features/team-size/actions/medalPotentialActions';
 import { MOCK_DISCIPLINES, MOCK_TEAM_SIZE } from './fixtures';
 
+const { saveRejected } = vi.hoisted(() => ({ saveRejected: vi.fn() }));
+
 vi.mock('@/features/team-size/actions/teamSizeActions', () => ({
   saveTeamSize: vi.fn(),
 }));
@@ -27,32 +29,38 @@ vi.mock('@/features/team-size/components/TeamSizeStep', () => ({
       </output>
       <button
         onClick={() =>
-          props.onTeamSizeSave({
-            ...props.teamSize,
-            notes: 'Updated team notes',
-          })
+          Promise.resolve(
+            props.onTeamSizeSave({
+              ...props.teamSize,
+              notes: 'Updated team notes',
+            }),
+          ).catch(saveRejected)
         }
       >
         Save team size
       </button>
       <button
         onClick={() =>
-          props.onDisciplinesSave({
-            ...props.disciplines,
-            notes: 'Updated discipline notes',
-          })
+          Promise.resolve(
+            props.onDisciplinesSave({
+              ...props.disciplines,
+              notes: 'Updated discipline notes',
+            }),
+          ).catch(saveRejected)
         }
       >
         Save disciplines
       </button>
       <button
         onClick={() =>
-          props.onMedalRowsSave(
-            props.medalRows.map((row) => ({
-              ...row,
-              notes: 'Updated medal notes',
-            })),
-          )
+          Promise.resolve(
+            props.onMedalRowsSave(
+              props.medalRows.map((row) => ({
+                ...row,
+                notes: 'Updated medal notes',
+              })),
+            ),
+          ).catch(saveRejected)
         }
       >
         Save medals
@@ -79,7 +87,22 @@ const SAVED = {
 };
 
 function renderClient() {
-  render(<TeamJourneyClient gameId={GAME_ID} nsoId={NSO_ID} saved={SAVED} />);
+  render(
+    <TeamJourneyClient
+      gameId={GAME_ID}
+      nsoId={NSO_ID}
+      saved={SAVED}
+      draftKeys={{
+        estimate: 'estimate',
+        disciplines: 'disciplines',
+        performance: 'performance',
+        medalPotential: 'medal-potential',
+        estimateNotes: 'estimate-notes',
+        disciplineNotes: 'discipline-notes',
+      }}
+      initialDrafts={{}}
+    />,
+  );
   return userEvent.setup();
 }
 
@@ -163,6 +186,8 @@ describe('TeamJourneyClient', () => {
   it.each([
     ['Save team size', 'refused'],
     ['Save team size', 'rejected'],
+    ['Save disciplines', 'refused'],
+    ['Save disciplines', 'rejected'],
     ['Save medals', 'refused'],
     ['Save medals', 'rejected'],
   ])(
@@ -180,12 +205,52 @@ describe('TeamJourneyClient', () => {
       expect(await screen.findByRole('alert')).toHaveTextContent(
         'Your last change was not saved. Please try again.',
       );
+      expect(saveRejected).toHaveBeenCalledExactlyOnceWith(expect.any(Error));
+      expect(screen.getByLabelText('Team notes')).toHaveTextContent(
+        MOCK_TEAM_SIZE.notes,
+      );
+      expect(screen.getByLabelText('Discipline notes')).toHaveTextContent(
+        MOCK_DISCIPLINES.notes,
+      );
+      expect(screen.getByLabelText('Medal notes')).toHaveTextContent(
+        'Saved medal notes',
+      );
 
       await user.click(screen.getByRole('button', { name: button }));
       await waitFor(() =>
         expect(screen.queryByRole('alert')).not.toBeInTheDocument(),
       );
       expect(save).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it.each([
+    ['Save team size', 'Save disciplines', 'refused'],
+    ['Save disciplines', 'Save team size', 'rejected'],
+  ])(
+    'does not include failed edits from %s in a later %s save',
+    async (failedButton, nextButton, failure) => {
+      if (failure === 'refused')
+        vi.mocked(saveTeamSize).mockResolvedValueOnce({ ok: false });
+      else vi.mocked(saveTeamSize).mockRejectedValueOnce(new Error('offline'));
+      const user = renderClient();
+      await user.click(screen.getByRole('button', { name: failedButton }));
+      await screen.findByRole('alert');
+
+      await user.click(screen.getByRole('button', { name: nextButton }));
+      expect(saveTeamSize).toHaveBeenLastCalledWith(
+        GAME_ID,
+        NSO_ID,
+        nextButton === 'Save team size'
+          ? { ...MOCK_TEAM_SIZE, notes: 'Updated team notes' }
+          : MOCK_TEAM_SIZE,
+        nextButton === 'Save disciplines'
+          ? { ...MOCK_DISCIPLINES, notes: 'Updated discipline notes' }
+          : MOCK_DISCIPLINES,
+      );
+      await waitFor(() =>
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument(),
+      );
     },
   );
 });

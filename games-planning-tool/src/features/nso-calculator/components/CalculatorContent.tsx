@@ -1,64 +1,66 @@
-// 60% AI generated code:
-// The following was AI generated:
-// - Original calculator layout, and component organization
-// - Temporary calculator-specific state used beforedb is connected
-// - css converted to tailwind
-// The table fields and calculator requirements were reviewed and modified manually
-// The grid component was implemented manually
+// 70% AI generated code
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { Box } from '@mui/material';
 import BaseGridPage from '@/components/commons/BaseGridPage';
 import type { ColumnDefinition } from '@/components/commons/Grid';
-import { type Currency, CONVERSION_RATES } from './ConversionRates';
-import EstimatedCosts from './EstimatedCosts';
+import { asDraftRows } from '@/lib/draft-keys';
+import { calculateTravelerRow } from '../lib/canonicalMapping';
+import {
+  amountToCAD,
+  displayAmount,
+  type Currency,
+  type CurrencyRates,
+} from './ConversionRates';
+import { calculateTotalCostPerMember } from '../utils/calculations';
 
-// these categories are now hard-coded values until we connect to the db
-const TRAVEL_CATEGORIES = [
-  {
-    id: 1,
-    title: 'Travelling Accredited Alternate Athletes @ partial NSO cost (Ap)',
-  },
-  {
-    id: 2,
-    title: 'Travelling Non-accredited Alternate Athletes @ full NSO cost',
-  },
-  { id: 3, title: 'Support staff @ partial NSO cost (e.g., partial Ao)' },
-  { id: 4, title: 'Support staff @ full NSO cost (incl. non-accredited)' },
-] as const;
-
-type CalculatorRow = Record<string, unknown> & {
+export type CalculatorRow = Record<string, unknown> & {
   id: string;
   category: string;
   numberOfTeamMembers: number;
   days: number;
   travelBudget: number;
-  checkIn: string;
-  checkOut: string;
   accommodationBudget: number;
   mealsBudget: number;
   insuranceBudget: number;
   totalCostPerTeamMember: number;
 };
 
-function createTraveler(
-  id: string,
-  category: string = TRAVEL_CATEGORIES[0].title,
-): CalculatorRow {
+function createTraveler(category: string): CalculatorRow {
   return {
-    id,
+    id: crypto.randomUUID(),
     category,
     numberOfTeamMembers: 0,
     days: 0,
     travelBudget: 0,
-    checkIn: '',
-    checkOut: '',
     accommodationBudget: 0,
     mealsBudget: 0,
     insuranceBudget: 0,
     totalCostPerTeamMember: 0,
   };
+}
+
+function displayTotalCostPerMember(row: CalculatorRow): number {
+  const travel = Number(row.travelBudget);
+  const accommodation = Number(row.accommodationBudget);
+  const meals = Number(row.mealsBudget);
+  const insurance = Number(row.insuranceBudget);
+
+  const values = [travel, accommodation, meals, insurance, Number(row.days)];
+
+  // Keep the grid from crashing while editing
+  if (values.some((value) => !Number.isFinite(value) || value < 0)) {
+    return 0;
+  }
+
+  return calculateTotalCostPerMember(
+    travel,
+    accommodation,
+    Number(row.days),
+    meals,
+    insurance,
+  );
 }
 
 const columns: ColumnDefinition<CalculatorRow>[] = [
@@ -67,10 +69,7 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
     label: 'Access and Priviledges',
     type: 'select',
     width: 430,
-    options: TRAVEL_CATEGORIES.map(({ title }) => ({
-      label: title,
-      value: title,
-    })),
+    options: [],
   },
   {
     field: 'numberOfTeamMembers',
@@ -79,6 +78,14 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
     min: 0,
     step: 1,
     width: 150,
+    align: 'center',
+  },
+  {
+    field: 'travelBudget',
+    label: 'Travel Budget',
+    type: 'number',
+    min: 0,
+    width: 155,
     align: 'center',
   },
   {
@@ -91,32 +98,8 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
     align: 'center',
   },
   {
-    field: 'travelBudget',
-    label: 'Travel Budget',
-    type: 'number',
-    min: 0,
-    width: 155,
-    align: 'center',
-  },
-  {
-    field: 'checkIn',
-    label: 'Check-in Date',
-    type: 'text',
-    placeholder: 'YYYY-MM-DD',
-    width: 155,
-    align: 'center',
-  },
-  {
-    field: 'checkOut',
-    label: 'Check-out Date',
-    type: 'text',
-    placeholder: 'YYYY-MM-DD',
-    width: 155,
-    align: 'center',
-  },
-  {
     field: 'accommodationBudget',
-    label: 'Accommodation Budget',
+    label: 'Accommodation Budget / Day on Site',
     type: 'number',
     min: 0,
     width: 175,
@@ -141,79 +124,113 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
   {
     field: 'totalCostPerTeamMember',
     label: 'Total Cost / Member',
-    type: 'number',
+    type: 'calculated',
     min: 0,
     width: 175,
     align: 'center',
+    formula: {
+      evaluate: (row) => displayTotalCostPerMember(row),
+    },
   },
 ];
-const BUDGET_FIELDS = [
+const budgetFields = [
   'travelBudget',
   'accommodationBudget',
   'mealsBudget',
   'insuranceBudget',
   'totalCostPerTeamMember',
 ] as const;
-const INITIAL_ROWS = TRAVEL_CATEGORIES.map(({ id, title }) =>
-  createTraveler(String(id), title),
-);
+
 function convertRows(
   rows: CalculatorRow[],
   currency: Currency,
-): CalculatorRow[] {
+  rates: CurrencyRates,
+  toCAD = false,
+) {
   return rows.map((row) => {
     const result = { ...row };
-    for (const field of BUDGET_FIELDS)
-      result[field] = Number(
-        (row[field] / CONVERSION_RATES[currency]).toFixed(2),
-      );
+    for (const field of budgetFields) {
+      result[field] = toCAD
+        ? amountToCAD(row[field], currency, rates)
+        : displayAmount(row[field], currency, rates);
+    }
     return result;
   });
 }
 
-export default function CalculatorContent({
-  calculatorId,
-  gameName,
-  children,
-}: {
-  readonly calculatorId: number;
-  readonly gameName: string;
-  readonly children?: React.ReactNode;
-}) {
-  const [currency, setCurrency] = useState<Currency>('CAD');
-  const [gridVersion, setGridVersion] = useState(0);
-  const [renderRowsCAD, setRenderRowsCAD] = useState<CalculatorRow[]>(() =>
-    INITIAL_ROWS.map((row) => ({ ...row })),
-  );
-  const draftCAD = useRef<CalculatorRow[]>(
-    INITIAL_ROWS.map((row) => ({ ...row })),
-  );
-  const toCAD = useCallback(
-    (rows: CalculatorRow[]) =>
-      rows.map((row) => {
-        const result = { ...row };
-        for (const field of BUDGET_FIELDS)
-          result[field] = Number(row[field]) * CONVERSION_RATES[currency];
-        return result;
-      }),
-    [currency],
-  );
-  const handleRowsChange = useCallback(
-    (rows: CalculatorRow[]) => {
-      draftCAD.current = toCAD(rows);
-    },
-    [toCAD],
-  );
-  const handleSave = (rows: CalculatorRow[]) => {
-    const rowsCAD = toCAD(rows);
-    draftCAD.current = rowsCAD;
-  };
+export type CalculatorContentHandle = {
+  prepareCurrencyChange: () => void;
+};
 
-  const handleCurrencyChange = (nextCurrency: Currency) => {
-    if (nextCurrency === currency) return;
-    setRenderRowsCAD(draftCAD.current.map((row) => ({ ...row })));
-    setCurrency(nextCurrency);
-    setGridVersion((version) => version + 1);
+type CalculatorContentProps = {
+  readonly rates: CurrencyRates;
+  readonly categories: { name: string }[];
+  readonly calculatorId: number;
+  readonly initialItems?: CalculatorRow[];
+  readonly initialDraft?: unknown;
+  readonly draftKey: string;
+  readonly currency: Currency;
+  readonly gameName: string;
+  readonly onSaveAction: (
+    calculatorId: number,
+    rows: CalculatorRow[],
+  ) => Promise<CalculatorRow[]>;
+};
+
+const CalculatorContent = forwardRef<
+  CalculatorContentHandle,
+  CalculatorContentProps
+>(function CalculatorContent(
+  {
+    rates,
+    categories,
+    calculatorId,
+    initialItems,
+    initialDraft,
+    draftKey,
+    currency,
+    gameName,
+    onSaveAction,
+  },
+  ref,
+) {
+  const [savedCAD, setSavedCAD] = useState<CalculatorRow[]>(
+    () => initialItems ?? [],
+  );
+  const [draftPayload, setDraftPayload] = useState(initialDraft);
+  const [isEditing, setIsEditing] = useState(false);
+  const restoreDraft = (value: unknown) => {
+    const rows = asDraftRows<CalculatorRow>(value);
+    return rows ? convertRows(rows, currency, rates) : undefined;
+  };
+  const latestRowsRef = useRef(
+    restoreDraft(draftPayload) ?? convertRows(savedCAD, currency, rates),
+  );
+
+  useImperativeHandle(ref, () => ({
+    prepareCurrencyChange: () => {
+      if (!isEditing) return;
+      const currentRows = latestRowsRef.current;
+      const hasEdits =
+        JSON.stringify(currentRows) !==
+        JSON.stringify(convertRows(savedCAD, currency, rates));
+      setDraftPayload(
+        draftPayload !== undefined || hasEdits
+          ? convertRows(currentRows, currency, rates, true)
+          : undefined,
+      );
+      setIsEditing(false);
+    },
+  }));
+
+  const handleSave = async (updatedRows: CalculatorRow[]) => {
+    const rowsCAD = convertRows(updatedRows, currency, rates, true).map(
+      calculateTravelerRow,
+    );
+    const saved = await onSaveAction(calculatorId, rowsCAD);
+    setSavedCAD(saved);
+    setDraftPayload(undefined);
+    return convertRows(saved, currency, rates);
   };
 
   return (
@@ -235,23 +252,42 @@ export default function CalculatorContent({
         "
       >
         <BaseGridPage<CalculatorRow>
-          key={gridVersion}
+          key={currency}
           title={gameName}
-          initialData={convertRows(renderRowsCAD, currency)}
-          columns={columns}
-          createEmptyRow={() => createTraveler(crypto.randomUUID())}
+          initialData={convertRows(savedCAD, currency, rates)}
+          initialDraft={draftPayload}
+          restoreDraft={restoreDraft}
+          serializeDraft={(rows) => convertRows(rows, currency, rates, true)}
+          draftKey={draftKey}
+          columns={columns.map((column) =>
+            column.field === 'category'
+              ? {
+                  ...column,
+                  options: categories.map(({ name }) => ({
+                    label: name,
+                    value: name,
+                  })),
+                }
+              : column,
+          )}
+          isValid={(rows) =>
+            rows.every((row) => Number.isSafeInteger(row.days) && row.days >= 0)
+          }
+          createEmptyRow={() => createTraveler(categories[0]?.name ?? '')}
           addButtonLabel="Add New Traveler"
           showSearch={false}
-          onRowsChange={handleRowsChange}
+          allowAddRow={true}
+          allowDelete={true}
+          onRowsChange={(rows) => {
+            latestRowsRef.current = rows;
+          }}
+          onEditingChange={setIsEditing}
+          onDraftCleared={() => setDraftPayload(undefined)}
           onSave={handleSave}
         />
       </Box>
-
-      <EstimatedCosts
-        currency={currency}
-        onCurrencyChange={handleCurrencyChange}
-      />
-      {children}
     </Box>
   );
-}
+});
+
+export default CalculatorContent;

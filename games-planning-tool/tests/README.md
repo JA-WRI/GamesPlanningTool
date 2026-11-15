@@ -44,7 +44,7 @@ docker compose up -d
 Then run the tests:
 
 ```bash
-# Run all E2E tests, headless, across Chromium/Firefox/WebKit
+# Run Run all E2E tests, headless, across Chromium/Firefox/WebKit
 npx playwright test
 
 # Run tests with the interactive UI (useful for debugging)
@@ -64,12 +64,52 @@ You do **not** need to manually start the dev server first — Playwright is con
 
 Test files live in `tests/e2e/` and must be named `*.spec.ts`.
 
+### Calculator draft E2E test
+
+`tests/e2e/calculator-drafts.spec.ts` checks saving, draft restoration after
+reload, currency conversion, cancelling or confirming discard, and saving in
+USD. It checks both the browser and the PostgreSQL rows. The calculator
+currently uses the same ID for every game, so run this test in an **isolated,
+dedicated test database** and do not run other calculator tests against it at
+the same time. The test refuses databases whose names do not end in `_test` or
+that already contain data for calculator 1 or its estimated-cost draft.
+
+From `games-planning-tool/`, with Docker Desktop running:
+
+```bash
+# Start a separate PostgreSQL container on a different port.
+export POSTGRES_PASSWORD=postgres
+export POSTGRES_DB=games_planning_tool_test
+export POSTGRES_PORT=55432
+export DATABASE_URL="postgresql://postgres:postgres@localhost:55432/games_planning_tool_test?schema=public"
+export DIRECT_URL="$DATABASE_URL"
+docker compose -p games-planning-e2e up -d
+
+npm run prisma:generate
+npm run db:migrate
+npx playwright install chromium
+npx playwright test tests/e2e/calculator-drafts.spec.ts --project=chromium --workers=1
+```
+
+Stop any existing app server on port 3000 before running the test: Playwright
+reuses an existing local server, which might be connected to another database.
+Both database environment variables above matter because Prisma migrations
+prefer `DIRECT_URL`, while the app and test helpers use `DATABASE_URL`.
+When finished, `docker compose -p games-planning-e2e down` stops the test
+container without removing its data volume.
+
 ### Viewing the Playwright HTML report
 
 After a run, you can view a detailed report (including screenshots/traces for any failures):
 
 ```bash
 npx playwright show-report
+```
+
+### Viewing Playwright's UI mode:
+
+```bash
+npx playwright test tests/e2e/calculator-drafts.spec.ts --project=chromium --workers=1 --ui
 ```
 
 ---

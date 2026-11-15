@@ -11,7 +11,9 @@ import {
 
 type MedalPotentialTableProps = {
   rows: MedalRow[];
-  onSave: (rows: MedalRow[]) => void;
+  initialDraft?: MedalRow[];
+  draftKey: string;
+  onSave: (rows: MedalRow[]) => void | Promise<unknown>;
 };
 
 // the names come from members, so they cannot be edited here
@@ -45,6 +47,8 @@ const columns: ColumnDefinition<MedalRow>[] = [
 
 export default function MedalPotentialTable({
   rows,
+  initialDraft,
+  draftKey,
   onSave,
 }: MedalPotentialTableProps) {
   return (
@@ -54,6 +58,8 @@ export default function MedalPotentialTable({
         title="Medal potential"
         columns={columns}
         initialData={rows}
+        initialDraft={initialDraft}
+        draftKey={draftKey}
         createEmptyRow={createEmptyMedalRow}
         allowAddRow={false}
         allowDelete={false}

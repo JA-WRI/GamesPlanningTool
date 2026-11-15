@@ -1,6 +1,10 @@
 //AI usage: over 50%
 import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+vi.mock('@/lib/draft-actions', () => ({
+  saveDraftDocument: vi.fn().mockResolvedValue(undefined),
+  deleteDraftDocument: vi.fn().mockResolvedValue(undefined),
+}));
 import PropertyPricingTable from '@/features/nso-calculator/components/PropertyPricingTable';
 import type {
   PropertyPricingColumn,
