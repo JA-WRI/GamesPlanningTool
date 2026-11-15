@@ -7,7 +7,7 @@ import {
   Role,
   MemberType,
   UserStatus,
-  ProgressStatus,
+  TaskStatus,
 } from '../src/generated/prisma/enums';
 
 if (process.env.NODE_ENV === 'production') {
@@ -1206,18 +1206,18 @@ async function main() {
   // Final review stays unstarted while earlier steps still need work.
   const progressByNso = {
     [nsos.aquatics.id]: {
-      contactInfo: ProgressStatus.completed,
-      teamSize: ProgressStatus.submitted,
-      accreditation: ProgressStatus.in_progress,
-      estimatedCosts: ProgressStatus.requires_update,
-      reviewAndCompletion: ProgressStatus.not_started,
+      contactInfo: TaskStatus.COMPLETE,
+      teamSize: TaskStatus.SUBMITTED,
+      accreditation: TaskStatus.IN_PROGRESS,
+      estimatedCosts: TaskStatus.ACTION_REQUIRED,
+      reviewAndCompletion: TaskStatus.NOT_STARTED,
     },
     [nsos.athletics.id]: {
-      contactInfo: ProgressStatus.submitted,
-      teamSize: ProgressStatus.requires_update,
-      accreditation: ProgressStatus.not_started,
-      estimatedCosts: ProgressStatus.in_progress,
-      reviewAndCompletion: ProgressStatus.not_started,
+      contactInfo: TaskStatus.SUBMITTED,
+      teamSize: TaskStatus.ACTION_REQUIRED,
+      accreditation: TaskStatus.NOT_STARTED,
+      estimatedCosts: TaskStatus.IN_PROGRESS,
+      reviewAndCompletion: TaskStatus.NOT_STARTED,
     },
   };
 

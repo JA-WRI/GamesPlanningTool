@@ -15,9 +15,9 @@ beforeAll(() => {
 const statuses: Status[] = [
   'Not Started',
   'In Progress',
-  'Completed',
+  'Complete',
   'Submitted',
-  'Requires Update',
+  'Action Required',
 ];
 
 const stepTitles = [
@@ -33,9 +33,9 @@ const testTeams: Team[] = [
     name: 'Badminton Canada',
     logo: '/logos/badminton-canada.png',
     columns: [
-      { title: 'Contact Info', href: '#', status: 'Requires Update' },
+      { title: 'Contact Info', href: '#', status: 'Action Required' },
       { title: 'Team Size', href: '#', status: 'In Progress' },
-      { title: 'Accreditation', href: '#', status: 'Completed' },
+      { title: 'Accreditation', href: '#', status: 'Complete' },
       { title: 'Estimated Costs', href: '#', status: 'Not Started' },
       { title: 'Review and Completion', href: '#', status: 'Not Started' },
     ],
@@ -44,7 +44,7 @@ const testTeams: Team[] = [
     name: 'Basketball Canada',
     // No logo data
     columns: [
-      { title: 'Contact Info', href: '#', status: 'Completed' },
+      { title: 'Contact Info', href: '#', status: 'Complete' },
       { title: 'Team Size', href: '#', status: 'In Progress' },
       { title: 'Accreditation', href: '#', status: 'Not Started' },
       { title: 'Estimated Costs', href: '#', status: 'Not Started' },
@@ -55,9 +55,9 @@ const testTeams: Team[] = [
     name: 'Archery Canada',
     // No logo data
     columns: [
-      { title: 'Contact Info', href: '#', status: 'Completed' },
+      { title: 'Contact Info', href: '#', status: 'Complete' },
       { title: 'Team Size', href: '#', status: 'Not Started' },
-      { title: 'Accreditation', href: '#', status: 'Completed' },
+      { title: 'Accreditation', href: '#', status: 'Complete' },
       { title: 'Estimated Costs', href: '#', status: 'In Progress' },
       { title: 'Review and Completion', href: '#', status: 'Not Started' },
     ],
@@ -66,9 +66,9 @@ const testTeams: Team[] = [
     name: 'Swimming Canada',
     // No logo data
     columns: [
-      { title: 'Contact Info', href: '#', status: 'Completed' },
-      { title: 'Team Size', href: '#', status: 'Completed' },
-      { title: 'Accreditation', href: '#', status: 'Completed' },
+      { title: 'Contact Info', href: '#', status: 'Complete' },
+      { title: 'Team Size', href: '#', status: 'Complete' },
+      { title: 'Accreditation', href: '#', status: 'Complete' },
       { title: 'Estimated Costs', href: '#', status: 'In Progress' },
       { title: 'Review and Completion', href: '#', status: 'Not Started' },
     ],
@@ -77,9 +77,9 @@ const testTeams: Team[] = [
     name: 'Cycling Canada',
     // No logo data
     columns: [
-      { title: 'Contact Info', href: '#', status: 'Completed' },
-      { title: 'Team Size', href: '#', status: 'Completed' },
-      { title: 'Accreditation', href: '#', status: 'Completed' },
+      { title: 'Contact Info', href: '#', status: 'Complete' },
+      { title: 'Team Size', href: '#', status: 'Complete' },
+      { title: 'Accreditation', href: '#', status: 'Complete' },
       { title: 'Estimated Costs', href: '#', status: 'In Progress' },
       { title: 'Review and Completion', href: '#', status: 'Not Started' },
     ],
@@ -89,8 +89,8 @@ const testTeams: Team[] = [
     // No logo data
     columns: [
       { title: 'Contact Info', href: '#', status: 'In Progress' },
-      { title: 'Team Size', href: '#', status: 'Requires Update' },
-      { title: 'Accreditation', href: '#', status: 'Requires Update' },
+      { title: 'Team Size', href: '#', status: 'Action Required' },
+      { title: 'Accreditation', href: '#', status: 'Action Required' },
       { title: 'Estimated Costs', href: '#', status: 'Not Started' },
       { title: 'Review and Completion', href: '#', status: 'Not Started' },
     ],
@@ -99,8 +99,8 @@ const testTeams: Team[] = [
     name: 'Soccer Canada',
     // No logo data
     columns: [
-      { title: 'Contact Info', href: '#', status: 'Completed' },
-      { title: 'Team Size', href: '#', status: 'Completed' },
+      { title: 'Contact Info', href: '#', status: 'Complete' },
+      { title: 'Team Size', href: '#', status: 'Complete' },
       { title: 'Accreditation', href: '#', status: 'In Progress' },
       { title: 'Estimated Costs', href: '#', status: 'Not Started' },
       { title: 'Review and Completion', href: '#', status: 'Not Started' },
@@ -194,11 +194,11 @@ describe('Dashboard page', () => {
       screen.getByRole('button', { name: 'Filter by status' }),
     );
     await userEvent.click(
-      screen.getByRole('checkbox', { name: 'Requires Update' }),
+      screen.getByRole('checkbox', { name: 'Action Required' }),
     );
 
     // Badminton (Contact Info) and Rowing (Team Size/Accreditation) both have
-    // a step marked "Requires Update"; teams with no such step drop out.
+    // a step marked "Action Required"; teams with no such step drop out.
     expect(findTeam('Badminton Canada')).toBeInTheDocument();
     expect(findTeam('Rowing Canada')).toBeInTheDocument();
     expect(findTeam('Archery Canada')).not.toBeInTheDocument();
@@ -268,9 +268,9 @@ describe('Dashboard page', () => {
             counts: {
               'Not Started': 7,
               'In Progress': 0,
-              Completed: 0,
+              Complete: 0,
               Submitted: 0,
-              'Requires Update': 0,
+              'Action Required': 0,
             },
           }
         : chart,
@@ -297,9 +297,9 @@ describe('Dashboard page', () => {
       counts: {
         'Not Started': 0,
         'In Progress': 0,
-        Completed: 0,
+        Complete: 0,
         Submitted: 0,
-        'Requires Update': 0,
+        'Action Required': 0,
       },
     }));
     rerender(<DashboardClient teams={[]} dashboardCharts={emptyCharts} />);

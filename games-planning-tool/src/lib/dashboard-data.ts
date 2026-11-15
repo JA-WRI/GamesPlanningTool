@@ -1,14 +1,15 @@
 // AI contribution: Above 50% AI generated
 import type { Status, StatusCounts } from '@/components/commons/status';
 import type { Team } from '@/lib/dashboard';
+import type { TaskStatus } from '@/generated/prisma/enums';
 
 // Db enum mapping to frontend status strings
 const statusMap = {
-  not_started: 'Not Started',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  submitted: 'Submitted',
-  requires_update: 'Requires Update',
+  NOT_STARTED: 'Not Started',
+  IN_PROGRESS: 'In Progress',
+  COMPLETE: 'Complete',
+  SUBMITTED: 'Submitted',
+  ACTION_REQUIRED: 'Action Required',
 } as const satisfies Record<string, Status>;
 
 const STEPS = [
@@ -25,11 +26,11 @@ type GameNsoRecord = {
     name: string;
   };
   progressTracking: {
-    contactInfo: keyof typeof statusMap;
-    teamSize: keyof typeof statusMap;
-    accreditation: keyof typeof statusMap;
-    estimatedCosts: keyof typeof statusMap;
-    reviewAndCompletion: keyof typeof statusMap;
+    contactInfo: TaskStatus;
+    teamSize: TaskStatus;
+    accreditation: TaskStatus;
+    estimatedCosts: TaskStatus;
+    reviewAndCompletion: TaskStatus;
   } | null;
 };
 
@@ -48,7 +49,7 @@ export function transformDashboardData(records: GameNsoRecord[]) {
       columns: STEPS.map((step) => ({
         title: step.title,
         href: '#',
-        status: statusMap[progress?.[step.field] ?? 'not_started'],
+        status: statusMap[progress?.[step.field] ?? 'NOT_STARTED'],
       })),
     };
   });
@@ -57,9 +58,9 @@ export function transformDashboardData(records: GameNsoRecord[]) {
     const counts: StatusCounts = {
       'Not Started': 0,
       'In Progress': 0,
-      Completed: 0,
+      Complete: 0,
       Submitted: 0,
-      'Requires Update': 0,
+      'Action Required': 0,
     };
 
     teams.forEach((team) => {

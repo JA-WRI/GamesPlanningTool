@@ -5,11 +5,11 @@ CREATE TABLE "progress_tracking" (
     "id" UUID NOT NULL,
     "game_nso_id" UUID NOT NULL,
     "last_updated" TIMESTAMP(3) NOT NULL,
-    "contact_info" "TaskStatus" NOT NULL DEFAULT 'not_started',
-    "team_size" "TaskStatus" NOT NULL DEFAULT 'not_started',
-    "accreditation" "TaskStatus" NOT NULL DEFAULT 'not_started',
-    "estimated_costs" "TaskStatus" NOT NULL DEFAULT 'not_started',
-    "review_and_completion" "TaskStatus" NOT NULL DEFAULT 'not_started',
+    "contact_info" "TaskStatus" NOT NULL DEFAULT 'NOT_STARTED',
+    "team_size" "TaskStatus" NOT NULL DEFAULT 'NOT_STARTED',
+    "accreditation" "TaskStatus" NOT NULL DEFAULT 'NOT_STARTED',
+    "estimated_costs" "TaskStatus" NOT NULL DEFAULT 'NOT_STARTED',
+    "review_and_completion" "TaskStatus" NOT NULL DEFAULT 'NOT_STARTED',
 
     CONSTRAINT "progress_tracking_pkey" PRIMARY KEY ("id"),
     CONSTRAINT "progress_tracking_game_nso_id_fkey"

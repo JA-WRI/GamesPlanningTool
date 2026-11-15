@@ -31,10 +31,10 @@ describe('COC dashboard database loading', () => {
         id: 'pair-a',
         nso: { name: 'NSO A' },
         progressTracking: {
-          contactInfo: 'completed',
+          contactInfo: 'complete',
           teamSize: 'in_progress',
           accreditation: 'submitted',
-          estimatedCosts: 'requires_update',
+          estimatedCosts: 'action_required',
           reviewAndCompletion: 'not_started',
         },
       },
@@ -46,7 +46,7 @@ describe('COC dashboard database loading', () => {
     expect(page.props.teams.map((team: { name: string }) => team.name)).toEqual(
       ['NSO A', 'NSO B'],
     );
-    expect(page.props.dashboardCharts[0].counts.Completed).toBe(1);
+    expect(page.props.dashboardCharts[0].counts.Complete).toBe(1);
     expect(page.props.dashboardCharts[0].counts['Not Started']).toBe(1);
   });
 
@@ -58,11 +58,11 @@ describe('COC dashboard database loading', () => {
           id: 'pair-game-1',
           nso: sameNso,
           progressTracking: {
-            contactInfo: 'completed',
-            teamSize: 'completed',
-            accreditation: 'completed',
-            estimatedCosts: 'completed',
-            reviewAndCompletion: 'completed',
+            contactInfo: 'complete',
+            teamSize: 'complete',
+            accreditation: 'complete',
+            estimatedCosts: 'complete',
+            reviewAndCompletion: 'complete',
           },
         },
       ])
@@ -78,9 +78,9 @@ describe('COC dashboard database loading', () => {
     expect(findMany.mock.calls.map(([query]) => query.where.gameId)).toEqual([
       1, 3,
     ]);
-    expect(firstGame.props.teams[0].columns[0].status).toBe('Completed');
+    expect(firstGame.props.teams[0].columns[0].status).toBe('Complete');
     expect(secondGame.props.teams[0].columns[0].status).toBe('Not Started');
-    expect(secondGame.props.dashboardCharts[0].counts.Completed).toBe(0);
+    expect(secondGame.props.dashboardCharts[0].counts.Complete).toBe(0);
   });
 
   it('reads changed database results when the same game page is loaded again', async () => {
@@ -91,7 +91,7 @@ describe('COC dashboard database loading', () => {
         {
           ...pairing,
           progressTracking: {
-            contactInfo: 'completed',
+            contactInfo: 'complete',
             teamSize: 'not_started',
             accreditation: 'not_started',
             estimatedCosts: 'not_started',
@@ -109,8 +109,8 @@ describe('COC dashboard database loading', () => {
 
     expect(findMany).toHaveBeenCalledTimes(2);
     expect(firstLoad.props.teams[0].columns[0].status).toBe('Not Started');
-    expect(nextLoad.props.teams[0].columns[0].status).toBe('Completed');
-    expect(nextLoad.props.dashboardCharts[0].counts.Completed).toBe(1);
+    expect(nextLoad.props.teams[0].columns[0].status).toBe('Complete');
+    expect(nextLoad.props.dashboardCharts[0].counts.Complete).toBe(1);
     expect(nextLoad.props.dashboardCharts[0].counts['Not Started']).toBe(0);
   });
 

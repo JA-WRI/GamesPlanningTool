@@ -5,9 +5,9 @@ import TeamStatusCard from '../../../src/features/coc-dash/components/TeamStatus
 import type { Status } from '../../../src/components/commons/status';
 
 const columns: { title: string; status: Status; href: string }[] = [
-  { title: 'Contact Info', status: 'Requires Update', href: '/contact-info' },
+  { title: 'Contact Info', status: 'Action Required', href: '/contact-info' },
   { title: 'Team Size', status: 'Submitted', href: '/team-size' },
-  { title: 'Accreditation', status: 'Completed', href: '/accreditation' },
+  { title: 'Accreditation', status: 'Complete', href: '/accreditation' },
   { title: 'Estimated Costs', status: 'In Progress', href: '/estimated-costs' },
   { title: 'Review and Completion', status: 'Not Started', href: '/review' },
 ];

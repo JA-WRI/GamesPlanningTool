@@ -317,11 +317,11 @@ model ProgressTracking {
   gameNsoId String   @unique @map("game_nso_id") @db.Uuid
   lastUpdated DateTime @updatedAt @map("last_updated")
 
-  contactInfo         TaskStatus @default(not_started) @map("contact_info")
-  teamSize            TaskStatus @default(not_started) @map("team_size")
-  accreditation       TaskStatus @default(not_started)
-  estimatedCosts      TaskStatus @default(not_started) @map("estimated_costs")
-  reviewAndCompletion TaskStatus @default(not_started) @map("review_and_completion")
+  contactInfo         TaskStatus @default(NOT_STARTED) @map("contact_info")
+  teamSize            TaskStatus @default(NOT_STARTED) @map("team_size")
+  accreditation       TaskStatus @default(NOT_STARTED)
+  estimatedCosts      TaskStatus @default(NOT_STARTED) @map("estimated_costs")
+  reviewAndCompletion TaskStatus @default(NOT_STARTED) @map("review_and_completion")
 
   gameNso GameNso @relation(fields: [gameNsoId], references: [id], onDelete: Cascade)
 

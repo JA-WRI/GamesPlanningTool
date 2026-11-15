@@ -14,15 +14,15 @@ import type { Status } from '../../../src/components/commons/status';
 const counts = (
   notStarted: number,
   inProgress: number,
-  completed: number,
+  complete: number,
   submitted: number,
-  requiresUpdate: number,
+  actionRequired: number,
 ) => ({
   'Not Started': notStarted,
   'In Progress': inProgress,
-  Completed: completed,
+  Complete: complete,
   Submitted: submitted,
-  'Requires Update': requiresUpdate,
+  'Action Required': actionRequired,
 });
 
 const team = (name: string, ...statuses: Status[]) => ({
@@ -34,10 +34,10 @@ const team = (name: string, ...statuses: Status[]) => ({
 });
 
 const teams = [
-  team('Alpha', 'Completed', 'Not Started'),
-  team('Beta', 'Submitted', 'Completed'),
+  team('Alpha', 'Complete', 'Not Started'),
+  team('Beta', 'Submitted', 'Complete'),
   team('Gamma', 'Not Started', 'Not Started'),
-  team('Delta', 'Not Started', 'Requires Update'),
+  team('Delta', 'Not Started', 'Action Required'),
 ];
 
 describe('dashboard logic', () => {
@@ -87,12 +87,12 @@ describe('dashboard logic', () => {
 
     it('keeps teams with any step in a selected status', () => {
       expect(
-        filterTeams(teams, '', ['Requires Update']).map((t) => t.name),
+        filterTeams(teams, '', ['Action Required']).map((t) => t.name),
       ).toEqual(['Delta']);
     });
 
     it('combines search and status filters', () => {
-      expect(filterTeams(teams, 'beta', ['Completed'])).toHaveLength(1);
+      expect(filterTeams(teams, 'beta', ['Complete'])).toHaveLength(1);
       expect(filterTeams(teams, 'alpha', ['Submitted'])).toHaveLength(0);
     });
   });
@@ -110,7 +110,7 @@ describe('dashboard logic', () => {
         'In Progress': [],
         Completed: ['Alpha'],
         Submitted: ['Beta'],
-        'Requires Update': [],
+        'Action Required': [],
       });
     });
 
@@ -120,7 +120,7 @@ describe('dashboard logic', () => {
         'In Progress': [],
         Completed: [],
         Submitted: [],
-        'Requires Update': [],
+        'Action Required': [],
       });
     });
   });
@@ -133,12 +133,12 @@ describe('dashboard logic', () => {
 
     const titledTeams = [
       titledTeam('Alpha', [
-        { title: 'Team Size', status: 'Completed' },
+        { title: 'Team Size', status: 'Complete' },
         { title: 'Accreditation', status: 'Not Started' },
       ]),
       titledTeam('Beta', [
         { title: 'Team Size', status: 'Submitted' },
-        { title: 'Accreditation', status: 'Completed' },
+        { title: 'Accreditation', status: 'Complete' },
       ]),
     ];
 
@@ -149,7 +149,7 @@ describe('dashboard logic', () => {
     it('keeps only teams matching an active column filter', () => {
       expect(
         filterByColumnStatuses(titledTeams, {
-          'Team Size': ['Completed'],
+          'Team Size': ['Complete'],
         }).map((t) => t.name),
       ).toEqual(['Alpha']);
     });
@@ -158,7 +158,7 @@ describe('dashboard logic', () => {
       expect(
         filterByColumnStatuses(titledTeams, {
           'Team Size': ['Submitted'],
-          Accreditation: ['Completed'],
+          Accreditation: ['Complete'],
         }).map((t) => t.name),
       ).toEqual(['Beta']);
     });
@@ -166,7 +166,7 @@ describe('dashboard logic', () => {
     it('excludes teams missing the filtered column entirely', () => {
       expect(
         filterByColumnStatuses(titledTeams, {
-          'Missing Column': ['Completed'],
+          'Missing Column': ['Complete'],
         }),
       ).toHaveLength(0);
     });

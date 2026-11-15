@@ -24,7 +24,7 @@ export type DashboardStats = {
 
 export type DashboardChart = {
   title: string;
-  counts: Record<Status, number>;
+  counts: StatusCounts;
 };
 
 export function percentage(part: number, whole: number): number {
@@ -46,7 +46,7 @@ export function computeStats(
 
   return {
     total: steps.length > 0 ? totalOf(steps[0].counts) : 0,
-    avgCompletion: percentage(sumOf('Completed'), all),
+    avgCompletion: percentage(sumOf('Complete'), all),
     toReview: percentage(sumOf('Submitted'), all),
     toStart: percentage(sumOf('Not Started'), all),
   };

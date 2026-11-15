@@ -83,7 +83,7 @@ function useSelectedChartData(
   const [selectedChartTitle, setSelectedChartTitle] = useState<string | null>(
     null,
   );
-  const [selectedStatus, setSelectedStatus] = useState<Status>('Completed');
+  const [selectedStatus, setSelectedStatus] = useState<Status>('Complete');
 
   // REVIEW: Store only the selection, not a snapshot of its counts. After a
   // data refresh, the open panel must use the latest counts and NSO names.
@@ -94,7 +94,7 @@ function useSelectedChartData(
   // (e.g. when a specific donut slice was clicked rather than the card).
   function selectChart(chart: DashboardChart, status?: Status) {
     setSelectedChartTitle(chart.title);
-    setSelectedStatus(status ?? 'Completed');
+    setSelectedStatus(status ?? 'Complete');
   }
 
   // Teams sharing the selected chart's column, grouped by their status there.
@@ -108,9 +108,9 @@ function useSelectedChartData(
       return {
         'Not Started': [],
         'In Progress': [],
-        Completed: [],
+        Complete: [],
         Submitted: [],
-        'Requires Update': [],
+        'Action Required': [],
       };
     }
     return namesByStatusAtColumn(teams, selectedIndex);

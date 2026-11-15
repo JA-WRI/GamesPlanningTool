@@ -2,9 +2,9 @@
 import { describe, it, expect } from 'vitest';
 import { transformDashboardData } from '@/lib/dashboard-data';
 import { computeStats } from '@/lib/dashboard';
-import type { ProgressStatus } from '@/generated/prisma/enums';
+import { TaskStatus } from '@/generated/prisma/enums';
 
-const progress = (status: ProgressStatus) => ({
+const progress = (status: TaskStatus) => ({
   contactInfo: status,
   teamSize: status,
   accreditation: status,
@@ -24,21 +24,21 @@ describe('transformDashboardData', () => {
   it('maps all five saved statuses to the matching journey steps', () => {
     const { teams } = transformDashboardData([
       record('Badminton Canada', {
-        contactInfo: 'completed',
-        teamSize: 'in_progress',
-        accreditation: 'submitted',
-        estimatedCosts: 'requires_update',
-        reviewAndCompletion: 'not_started',
+        contactInfo: TaskStatus.COMPLETE,
+        teamSize: TaskStatus.IN_PROGRESS,
+        accreditation: TaskStatus.SUBMITTED,
+        estimatedCosts: TaskStatus.ACTION_REQUIRED,
+        reviewAndCompletion: TaskStatus.NOT_STARTED,
       }),
     ]);
 
     expect(
       teams[0].columns.map(({ title, status }) => ({ title, status })),
     ).toEqual([
-      { title: 'Contact Info', status: 'Completed' },
+      { title: 'Contact Info', status: 'Complete' },
       { title: 'Team Size', status: 'In Progress' },
       { title: 'Accreditation', status: 'Submitted' },
-      { title: 'Estimated Costs', status: 'Requires Update' },
+      { title: 'Estimated Costs', status: 'Action Required' },
       { title: 'Review and Completion', status: 'Not Started' },
     ]);
   });
@@ -58,11 +58,11 @@ describe('transformDashboardData', () => {
 
   it('counts every NSO once per step, including NSOs without progress', () => {
     const { teams, dashboardData } = transformDashboardData([
-      record('A', progress('completed')),
-      record('B', progress('submitted')),
-      record('C', progress('in_progress')),
-      record('D', progress('requires_update')),
-      record('E', progress('not_started')),
+      record('A', progress(TaskStatus.COMPLETE)),
+      record('B', progress(TaskStatus.SUBMITTED)),
+      record('C', progress(TaskStatus.IN_PROGRESS)),
+      record('D', progress(TaskStatus.ACTION_REQUIRED)),
+      record('E', progress(TaskStatus.NOT_STARTED)),
       record('F', null),
     ]);
     expect(teams).toHaveLength(6);
@@ -71,9 +71,9 @@ describe('transformDashboardData', () => {
       expect(chart.counts).toEqual({
         'Not Started': 2,
         'In Progress': 1,
-        Completed: 1,
+        Complete: 1,
         Submitted: 1,
-        'Requires Update': 1,
+        'Action Required': 1,
       });
     }
   });
@@ -90,11 +90,11 @@ describe('transformDashboardData', () => {
   it('keeps counts separate when each step has different progress', () => {
     const { dashboardData } = transformDashboardData([
       record('A', {
-        contactInfo: 'completed',
-        teamSize: 'in_progress',
-        accreditation: 'submitted',
-        estimatedCosts: 'requires_update',
-        reviewAndCompletion: 'not_started',
+        contactInfo: TaskStatus.COMPLETE,
+        teamSize: TaskStatus.IN_PROGRESS,
+        accreditation: TaskStatus.SUBMITTED,
+        estimatedCosts: TaskStatus.ACTION_REQUIRED,
+        reviewAndCompletion: TaskStatus.NOT_STARTED,
       }),
       record('B', null),
     ]);
@@ -105,9 +105,9 @@ describe('transformDashboardData', () => {
         counts: {
           'Not Started': 1,
           'In Progress': 0,
-          Completed: 1,
+          Complete: 1,
           Submitted: 0,
-          'Requires Update': 0,
+          'Action Required': 0,
         },
       },
       {
@@ -115,9 +115,9 @@ describe('transformDashboardData', () => {
         counts: {
           'Not Started': 1,
           'In Progress': 1,
-          Completed: 0,
+          Complete: 0,
           Submitted: 0,
-          'Requires Update': 0,
+          'Action Required': 0,
         },
       },
       {
@@ -125,9 +125,9 @@ describe('transformDashboardData', () => {
         counts: {
           'Not Started': 1,
           'In Progress': 0,
-          Completed: 0,
+          Complete: 0,
           Submitted: 1,
-          'Requires Update': 0,
+          'Action Required': 0,
         },
       },
       {
@@ -135,9 +135,9 @@ describe('transformDashboardData', () => {
         counts: {
           'Not Started': 1,
           'In Progress': 0,
-          Completed: 0,
+          Complete: 0,
           Submitted: 0,
-          'Requires Update': 1,
+          'Action Required': 1,
         },
       },
       {
@@ -145,9 +145,9 @@ describe('transformDashboardData', () => {
         counts: {
           'Not Started': 2,
           'In Progress': 0,
-          Completed: 0,
+          Complete: 0,
           Submitted: 0,
-          'Requires Update': 0,
+          'Action Required': 0,
         },
       },
     ]);
@@ -156,16 +156,16 @@ describe('transformDashboardData', () => {
   it('calculates summary percentages from all saved steps and missing records', () => {
     const { dashboardData } = transformDashboardData([
       record('A', {
-        contactInfo: 'completed',
-        teamSize: 'completed',
-        accreditation: 'submitted',
-        estimatedCosts: 'in_progress',
-        reviewAndCompletion: 'not_started',
+        contactInfo: TaskStatus.COMPLETE,
+        teamSize: TaskStatus.COMPLETE,
+        accreditation: TaskStatus.SUBMITTED,
+        estimatedCosts: TaskStatus.IN_PROGRESS,
+        reviewAndCompletion: TaskStatus.NOT_STARTED,
       }),
       record('B', null),
     ]);
 
-    // Two NSOs, ten steps: two completed, one submitted, six not started.
+    // Two NSOs, ten steps: two complete, one submitted, six not started.
     expect(computeStats(dashboardData)).toEqual({
       total: 2,
       avgCompletion: 20,
