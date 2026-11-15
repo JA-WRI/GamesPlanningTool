@@ -8,9 +8,9 @@ import NsoProgressSection from '../../../../../features/coc-dash/components/NsoP
 import {
   filterTeams,
   filterByColumnStatuses,
-  namesByStatusAtColumn,
+  namesByStatusForStep,
 } from '@/lib/dashboard';
-import type { Team, DashboardChart } from '@/lib/dashboard';
+import type { Team, DashboardChart, StepKey } from '@/lib/dashboard';
 
 type DashboardClientProps = {
   teams: Team[];
@@ -36,7 +36,7 @@ function SelectedChartPanel({
       <StatusOverviewPanel
         // Remounts the panel (resetting its chip selection) whenever a new
         // step or status is picked, e.g. by clicking a specific donut slice.
-        key={`${selectedChart.title}-${selectedStatus}`}
+        key={`${selectedChart.stepKey}-${selectedStatus}`}
         stepTitle={selectedChart.title}
         counts={selectedChart.counts}
         nsoNamesByStatus={teamNamesByStatus}
@@ -80,47 +80,32 @@ function useSelectedChartData(
   teams: Team[],
   dashboardCharts: DashboardChart[],
 ) {
-  const [selectedChartTitle, setSelectedChartTitle] = useState<string | null>(
-    null,
-  );
+  const [selectedStepKey, setSelectedStepKey] = useState<StepKey | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<Status>('Complete');
 
   // REVIEW: Store only the selection, not a snapshot of its counts. After a
   // data refresh, the open panel must use the latest counts and NSO names.
   const selectedChart =
-    dashboardCharts.find((chart) => chart.title === selectedChartTitle) ?? null;
+    dashboardCharts.find((chart) => chart.stepKey === selectedStepKey) ?? null;
 
   // Selects a chart/step, optionally opening it directly on a given status
   // (e.g. when a specific donut slice was clicked rather than the card).
   function selectChart(chart: DashboardChart, status?: Status) {
-    setSelectedChartTitle(chart.title);
+    setSelectedStepKey(chart.stepKey);
     setSelectedStatus(status ?? 'Complete');
   }
 
-  // Teams sharing the selected chart's column, grouped by their status there.
-  const teamNamesByStatus = useMemo(() => {
-    const selectedIndex = selectedChart
-      ? dashboardCharts.findIndex(
-          (chart) => chart.title === selectedChart.title,
-        )
-      : -1;
-    if (selectedIndex === -1) {
-      return {
-        'Not Started': [],
-        'In Progress': [],
-        Complete: [],
-        Submitted: [],
-        'Action Required': [],
-      };
-    }
-    return namesByStatusAtColumn(teams, selectedIndex);
-  }, [selectedChart, dashboardCharts, teams]);
+  const activeStepKey = selectedChart?.stepKey ?? null;
+  const teamNamesByStatus = useMemo(
+    () => namesByStatusForStep(teams, activeStepKey),
+    [activeStepKey, teams],
+  );
 
   return {
     selectedChart,
     selectedStatus,
     selectChart,
-    closeChart: () => setSelectedChartTitle(null),
+    closeChart: () => setSelectedStepKey(null),
     teamNamesByStatus,
   };
 }

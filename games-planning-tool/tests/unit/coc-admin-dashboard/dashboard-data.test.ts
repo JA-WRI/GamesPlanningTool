@@ -33,13 +33,25 @@ describe('transformDashboardData', () => {
     ]);
 
     expect(
-      teams[0].columns.map(({ title, status }) => ({ title, status })),
+      teams[0].columns.map(({ stepKey, title, status }) => ({
+        stepKey,
+        title,
+        status,
+      })),
     ).toEqual([
-      { title: 'Contact Info', status: 'Complete' },
-      { title: 'Team Size', status: 'In Progress' },
-      { title: 'Accreditation', status: 'Submitted' },
-      { title: 'Estimated Costs', status: 'Action Required' },
-      { title: 'Review and Completion', status: 'Not Started' },
+      { stepKey: 'contactInfo', title: 'Contact Info', status: 'Complete' },
+      { stepKey: 'teamSize', title: 'Team Size', status: 'In Progress' },
+      { stepKey: 'accreditation', title: 'Accreditation', status: 'Submitted' },
+      {
+        stepKey: 'estimatedCosts',
+        title: 'Estimated Costs',
+        status: 'Action Required',
+      },
+      {
+        stepKey: 'reviewAndCompletion',
+        title: 'Review and Completion',
+        status: 'Not Started',
+      },
     ]);
   });
 
@@ -101,6 +113,7 @@ describe('transformDashboardData', () => {
 
     expect(dashboardData).toEqual([
       {
+        stepKey: 'contactInfo',
         title: 'Contact Info',
         counts: {
           'Not Started': 1,
@@ -111,6 +124,7 @@ describe('transformDashboardData', () => {
         },
       },
       {
+        stepKey: 'teamSize',
         title: 'Team Size',
         counts: {
           'Not Started': 1,
@@ -121,6 +135,7 @@ describe('transformDashboardData', () => {
         },
       },
       {
+        stepKey: 'accreditation',
         title: 'Accreditation',
         counts: {
           'Not Started': 1,
@@ -131,6 +146,7 @@ describe('transformDashboardData', () => {
         },
       },
       {
+        stepKey: 'estimatedCosts',
         title: 'Estimated Costs',
         counts: {
           'Not Started': 1,
@@ -141,6 +157,7 @@ describe('transformDashboardData', () => {
         },
       },
       {
+        stepKey: 'reviewAndCompletion',
         title: 'Review and Completion',
         counts: {
           'Not Started': 2,

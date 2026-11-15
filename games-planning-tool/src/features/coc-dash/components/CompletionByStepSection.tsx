@@ -62,14 +62,14 @@ export default function CompletionByStepSection({
       >
         {dashboardCharts.map((d) => (
           <DonutChartCard
-            key={d.title}
+            key={d.stepKey}
             title={d.title}
             segments={statusToSegments(d.counts)}
             onClick={() => onSelectChart(d)}
             onSegmentClick={(segment) =>
               onSelectChart(d, segment.label as Status)
             }
-            isSelected={selectedChart?.title === d.title}
+            isSelected={selectedChart?.stepKey === d.stepKey}
           />
         ))}
       </div>

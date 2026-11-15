@@ -5,11 +5,14 @@ import {
   cycleIndex,
   filterByColumnStatuses,
   filterTeams,
-  namesByStatusAtColumn,
+  namesByStatusForStep,
   percentage,
   totalOf,
 } from '../../../src/lib/dashboard';
 import type { Status } from '../../../src/components/commons/status';
+import type { StepKey } from '../../../src/lib/dashboard';
+
+const stepKeys: StepKey[] = ['contactInfo', 'teamSize'];
 
 const counts = (
   notStarted: number,
@@ -28,6 +31,7 @@ const counts = (
 const team = (name: string, ...statuses: Status[]) => ({
   name,
   columns: statuses.map((status, i) => ({
+    stepKey: stepKeys[i],
     title: `Step ${i + 1}`,
     status,
   })),
@@ -103,9 +107,13 @@ describe('dashboard logic', () => {
     expect(cycleIndex(2, 1, 5)).toBe(3);
   });
 
-  describe('namesByStatusAtColumn', () => {
-    it('groups team names by their status at the given column index', () => {
-      expect(namesByStatusAtColumn(teams, 0)).toEqual({
+  describe('namesByStatusForStep', () => {
+    it('groups team names by step even when column orders differ', () => {
+      const reorderedTeams = teams.map((team, index) => ({
+        ...team,
+        columns: index % 2 === 0 ? [...team.columns].reverse() : team.columns,
+      }));
+      expect(namesByStatusForStep(reorderedTeams, 'contactInfo')).toEqual({
         'Not Started': ['Gamma', 'Delta'],
         'In Progress': [],
         Complete: ['Alpha'],
@@ -114,15 +122,18 @@ describe('dashboard logic', () => {
       });
     });
 
-    it('returns an empty list for every status when the index is out of range', () => {
-      expect(namesByStatusAtColumn(teams, 99)).toEqual({
-        'Not Started': [],
-        'In Progress': [],
-        Complete: [],
-        Submitted: [],
-        'Action Required': [],
-      });
-    });
+    it.each([null, 'accreditation'] as const)(
+      'returns empty groups when the step is unselected or missing (%s)',
+      (stepKey) => {
+        expect(namesByStatusForStep(teams, stepKey)).toEqual({
+          'Not Started': [],
+          'In Progress': [],
+          Complete: [],
+          Submitted: [],
+          'Action Required': [],
+        });
+      },
+    );
   });
 
   describe('filterByColumnStatuses', () => {
