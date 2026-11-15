@@ -12,24 +12,37 @@ const { prismaMock } = vi.hoisted(() => ({
     gameNso: { findUnique: vi.fn() },
   },
 }));
+vi.mock('@/features/team-size/actions/canEditNso', () => ({
+  canEditNso: vi.fn().mockResolvedValue(true),
+}));
 vi.mock('@/lib/prisma', () => ({ prisma: prismaMock }));
 // server-only throws outside the server, so the tests turn it off
 vi.mock('server-only', () => ({}));
 
 import { saveTeamSize } from '@/features/team-size/actions/teamSizeActions';
 import { getTeamSize } from '@/server/queries/teamSizeDb';
+import { canEditNso } from '@/features/team-size/actions/canEditNso';
 
 const GAME_ID = '1';
 const NSO_ID = 'b9f0193f-2e62-4141-bffb-ffa3c7f9e9d7';
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(canEditNso).mockResolvedValue(true);
   prismaMock.$transaction.mockResolvedValue([]);
   // by default the NSO takes part in the game
   prismaMock.gameNso.findUnique.mockResolvedValue({ id: 'link' });
 });
 
 describe('saveTeamSize', () => {
+  it('does not save when the user cannot edit the NSO', async () => {
+    vi.mocked(canEditNso).mockResolvedValue(false);
+    expect(
+      await saveTeamSize(GAME_ID, NSO_ID, MOCK_TEAM_SIZE, MOCK_DISCIPLINES),
+    ).toEqual({ ok: false });
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
+  });
+
   it('saves the estimate and the 4 disciplines together', async () => {
     const result = await saveTeamSize(
       GAME_ID,

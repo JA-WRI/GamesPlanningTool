@@ -1,5 +1,13 @@
 // AI contribution: over 50% AI-generated
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+const draftActions = vi.hoisted(() => ({
+  saveDraftDocument: vi.fn().mockResolvedValue(undefined),
+  deleteDraftDocument: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/lib/draft-actions', () => draftActions);
+
 import {
   baseContactColumns,
   createEmptyContactRow,

@@ -180,11 +180,6 @@ export function medalRowHasError(row: MedalObjectiveRow): boolean {
   return getMedalsMessage(toText(row.low), toText(row.high)) !== null;
 }
 
-// athletes missing a first or last name (spaces only count as missing)
-export function rowsMissingName(rows: MedalRow[]): MedalRow[] {
-  return rows.filter((row) => !row.firstName.trim() || !row.lastName.trim());
-}
-
 // Makes a blank athlete row with a new id for "Add athlete"
 export function createEmptyMedalRow(): MedalRow {
   return {

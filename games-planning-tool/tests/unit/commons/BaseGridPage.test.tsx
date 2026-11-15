@@ -4,8 +4,15 @@
 import { ColumnDefinition } from '../../../../games-planning-tool/src/components/commons/Grid';
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import BaseGridPage from '../../../../games-planning-tool/src/components/commons/BaseGridPage';
+
+const draftActions = vi.hoisted(() => ({
+  saveDraftDocument: vi.fn().mockResolvedValue(undefined),
+  deleteDraftDocument: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/lib/draft-actions', () => draftActions);
 
 interface ItemRow extends Record<string, unknown> {
   id: string;
@@ -102,7 +109,7 @@ describe('BaseGridPage', () => {
     expect(screen.getByText('Desk')).toBeInTheDocument();
   });
 
-  it('calls custom onSave callback with saved rows when provided', () => {
+  it('calls custom onSave callback with saved rows when provided', async () => {
     const handleSaveMock = vi.fn();
     render(
       <BaseGridPage
@@ -120,8 +127,10 @@ describe('BaseGridPage', () => {
     const saveButton = screen.getByRole('button', { name: /save/i });
     fireEvent.click(saveButton);
 
-    expect(handleSaveMock).toHaveBeenCalledTimes(1);
-    expect(handleSaveMock).toHaveBeenCalledWith(initialData);
+    await waitFor(() => {
+      expect(handleSaveMock).toHaveBeenCalledTimes(1);
+      expect(handleSaveMock).toHaveBeenCalledWith(initialData);
+    });
   });
 
   it('blocks saving and shows alert when custom isValid rule returns false', () => {
@@ -175,8 +184,9 @@ describe('BaseGridPage', () => {
     ]);
   });
 
-  it('gives back the saved rows with onRowsChange after Cancel', () => {
+  it('discards the draft and restores canonical rows', async () => {
     const handleRowsChange = vi.fn();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     render(
       <BaseGridPage
         title="Inventory"
@@ -191,9 +201,45 @@ describe('BaseGridPage', () => {
     fireEvent.change(screen.getByDisplayValue('Laptop'), {
       target: { value: 'Changed' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+    fireEvent.click(screen.getByRole('button', { name: /discard changes/i }));
 
-    expect(handleRowsChange).toHaveBeenLastCalledWith(initialData);
+    await waitFor(() =>
+      expect(handleRowsChange).toHaveBeenLastCalledWith(initialData),
+    );
+    expect(confirmSpy).toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
+
+  it('shows restored draft status and discard action outside edit mode', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    draftActions.deleteDraftDocument.mockClear();
+    render(
+      <BaseGridPage
+        title="Inventory"
+        initialData={initialData}
+        initialDraft={[{ ...initialData[0], item: 'Draft Laptop' }]}
+        draftKey="inventory:test"
+        columns={columns}
+        createEmptyRow={createEmptyRow}
+      />,
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Draft restored');
+    expect(
+      screen.getByRole('button', { name: /discard draft/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Draft Laptop')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /discard draft/i }));
+
+    expect(confirmSpy).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(draftActions.deleteDraftDocument).toHaveBeenCalledWith(
+        'inventory:test',
+      ),
+    );
+    await waitFor(() => expect(screen.getByText('Laptop')).toBeInTheDocument());
+    confirmSpy.mockRestore();
   });
 
   it('works the same without onRowsChange', () => {

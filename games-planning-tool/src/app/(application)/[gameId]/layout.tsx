@@ -1,7 +1,6 @@
+// AI contribution: 30%
 import { notFound } from 'next/navigation';
-import { getSession } from '@/lib/data';
-import { getGamesWithNsos } from '@/server/queries/games';
-import { findGame, gamesForUser } from '@/lib/routing/Navigation';
+import { prisma } from '@/lib/prisma';
 
 export default async function GameLayout({
   children,
@@ -10,15 +9,24 @@ export default async function GameLayout({
   children: React.ReactNode;
   params: Promise<{ gameId: string }>;
 }) {
-  const [session, { gameId }, games] = await Promise.all([
-    getSession(),
-    params,
-    getGamesWithNsos(),
-  ]);
+  const { gameId } = await params;
+  const dbGameId = Number(gameId);
 
-  // NSO users can only open games their NSO takes part in
-  const { role, nsoId } = session.user;
-  if (!findGame(gamesForUser(games, role, nsoId), gameId)) notFound();
+  if (!/^\d+$/.test(gameId) || dbGameId < 1 || dbGameId > 2_147_483_647) {
+    notFound();
+  }
+
+  const game = await prisma.game.findUnique({
+    where: { id: dbGameId },
+    select: {
+      id: true,
+      isActive: true,
+    },
+  });
+
+  if (!game || !game.isActive) {
+    notFound();
+  }
 
   return <>{children}</>;
 }
