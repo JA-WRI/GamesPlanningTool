@@ -42,7 +42,7 @@ export type SavedTeamSize = {
   disciplines: DisciplineBreakdown;
 };
 
-const UUID_PATTERN =
+export const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // url ids -> db ids, null for the fake ids from mock-data ('game_id_1', 'nso_1')

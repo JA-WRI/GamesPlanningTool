@@ -50,9 +50,10 @@ model Game {
   isActive            Boolean  @default(true) @map("is_active")
   createdAt           DateTime @default(now()) @map("created_at")
 
-  gameNsos    GameNso[]
-  gameMembers GameMember[]
-  
+  gameNsos       GameNso[]
+  gameMembers    GameMember[]
+  gameProperties GameProperty[]
+
   @@map("games")
 }
 
@@ -77,6 +78,8 @@ model GameNso {
 
   game             Game              @relation(fields: [gameId], references: [id])
   nso              Nso               @relation(fields: [nsoId], references: [id])
+  tasks            Task[]
+  announcements    Announcement[]
   teamSizeEstimate TeamSizeEstimate?
 
   progressTracking ProgressTracking?
@@ -121,9 +124,9 @@ model Member {
 
 // A member's participation in one game
 model GameMember {
-  id               String    @id @default(uuid()) @db.Uuid
-  gameId           Int       @map("game_id")
-  memberId         String    @map("member_id") @db.Uuid
+  id       String @id @default(uuid()) @db.Uuid
+  gameId   Int    @map("game_id")
+  memberId String @map("member_id") @db.Uuid
 
   // Shared by staff and athletes
   fundedBy         String?   @map("funded_by")
@@ -134,13 +137,13 @@ model GameMember {
   gameDeparture    DateTime? @map("game_departure") @db.Date
 
   // Staff only
-  gamesRole        String?   @map("games_role")
-  rank             String?
+  gamesRole String? @map("games_role")
+  rank      String?
 
   // Athletes only
-  event            String?
-  medal            String?
-  medalNotes       String?   @map("medal_notes")
+  event      String?
+  medal      String?
+  medalNotes String? @map("medal_notes")
 
   game   Game   @relation(fields: [gameId], references: [id])
   member Member @relation(fields: [memberId], references: [id])
@@ -193,29 +196,127 @@ model DisciplineBreakdown {
   @@map("discipline_breakdowns")
 }
 
-
 model Resource {
   id String @id @default(uuid()) @db.Uuid
 
-  parentFolderId String? @map("parent_folder_id") @db.Uuid
-  parent Resource? @relation("ParentElement", fields: [parentFolderId], references: [id])
-  children Resource[] @relation("ParentElement")
+  parentFolderId String?    @map("parent_folder_id") @db.Uuid
+  parent         Resource?  @relation("ParentElement", fields: [parentFolderId], references: [id])
+  children       Resource[] @relation("ParentElement")
 
-  name String
-  fileOrWebpageURL String? @map("file_or_webpage_URL") // null: folder
-  isWebpage Boolean @map("is_webpage") @default(false)
-  categories String[] @default([])
+  name             String
+  fileOrWebpageURL String?  @map("file_or_webpage_URL") // null: folder
+  isWebpage        Boolean  @default(false) @map("is_webpage")
+  categories       String[] @default([])
 
-  previousElementId String? @map("previous_element_id") @db.Uuid @unique
-  previous Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
-  nextFromPrevious Resource? @relation("PreviousElement")
+  previousElementId String?   @unique @map("previous_element_id") @db.Uuid
+  previous          Resource? @relation("PreviousElement", fields: [previousElementId], references: [id])
+  nextFromPrevious  Resource? @relation("PreviousElement")
 
-  nextElementId String? @map("next_element_id") @db.Uuid @unique
-  next Resource? @relation("NextElement", fields: [nextElementId], references: [id])
+  nextElementId    String?   @unique @map("next_element_id") @db.Uuid
+  next             Resource? @relation("NextElement", fields: [nextElementId], references: [id])
   previousFromNext Resource? @relation("NextElement")
 
   @@map("resources")
 }
+
+enum TaskStatus {
+  COMPLETE
+  SUBMITTED
+  ACTION_REQUIRED
+  IN_PROGRESS
+  NOT_STARTED
+}
+
+model Task {
+  id          String     @id @default(uuid()) @db.Uuid
+  gameNsoId   String     @map("game_nso_id") @db.Uuid
+  stepKey     String     @map("step_key")
+  title       String
+  description String?
+  status      TaskStatus @default(NOT_STARTED)
+  deadline    DateTime?  @db.Date
+
+  gameNso GameNso @relation(fields: [gameNsoId], references: [id])
+
+  @@index([gameNsoId])
+  @@map("tasks")
+}
+
+model Announcement {
+  id          String   @id @default(uuid()) @db.Uuid
+  gameNsoId   String   @map("game_nso_id") @db.Uuid
+  title       String
+  body        String?
+  publishedAt DateTime @map("published_at") @db.Date
+
+  gameNso GameNso @relation(fields: [gameNsoId], references: [id])
+
+  @@index([gameNsoId])
+  @@map("announcements")
+}
+
+model PropertyCluster {
+  id   String @id @default(uuid()) @db.Uuid
+  name String
+
+  properties Property[]
+
+  @@unique([name])
+  @@map("property_clusters")
+}
+
+model Property {
+  id        String @id @default(uuid()) @db.Uuid
+  clusterId String @map("cluster_id") @db.Uuid
+  name      String @db.VarChar(255)
+
+  cluster        PropertyCluster @relation(fields: [clusterId], references: [id])
+  prices         PropertyPrice[]
+  gameProperties GameProperty[]
+
+  @@unique([clusterId, name])
+  @@map("properties")
+}
+
+model OccupancyType {
+  id        String @id @default(uuid()) @db.Uuid
+  code      String @unique @db.VarChar(50)
+  label     String @db.VarChar(100)
+  capacity  Int
+  sortOrder Int    @default(0) @map("sort_order")
+
+  prices PropertyPrice[]
+
+  @@map("occupancy_types")
+}
+
+model PropertyPrice {
+  id              String  @id @default(uuid()) @db.Uuid
+  propertyId      String  @map("property_id") @db.Uuid
+  occupancyTypeId String  @map("occupancy_type_id") @db.Uuid
+  price           Decimal @db.Decimal(12, 2)
+
+  property      Property      @relation(fields: [propertyId], references: [id])
+  occupancyType OccupancyType @relation(fields: [occupancyTypeId], references: [id])
+
+  @@unique([propertyId, occupancyTypeId])
+  @@map("property_prices")
+}
+
+model GameProperty {
+  id           String @id @default(uuid()) @db.Uuid
+  gameId       Int    @map("game_id")
+  propertyId   String @map("property_id") @db.Uuid
+  displayOrder Int    @default(0) @map("display_order")
+
+  game     Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id])
+
+  @@unique([gameId, propertyId])
+  @@index([propertyId])
+  @@map("game_properties")
+}
+
 
 // 1 per gameNso, separate for each game an NSO participates in
 model ProgressTracking {

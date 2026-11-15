@@ -1,48 +1,73 @@
-// This page has been coded by both me and AI (50%).
+// AI contribution: 50%
+// This page has been coded by both me and AI
 // I started coding the general structure of the component and used AI to accelerate the process and get the right placement of elements
 import DonutChart from '@/components/commons/DonutChart';
 import ChartLegend from '@/components/commons/ChartLegend';
 import type { ChartSegment } from '@/components/commons/chartTypes';
 import DashboardPanel from './DashboardPanel';
 
-//Mock data for the moment
-const segments: ChartSegment[] = [
-  {
-    key: 'complete',
-    label: 'Complete',
-    value: 68,
-    color: 'var(--color-success)',
-  },
-  {
-    key: 'submitted',
-    label: 'Submitted',
-    value: 10,
-    color: 'var(--color-info)',
-  },
-  {
-    key: 'required-actions',
-    label: 'Required Actions',
-    value: 7,
-    color: 'var(--color-error)',
-  },
-  {
-    key: 'in-progress',
-    label: 'In Progress',
-    value: 5,
-    color: 'var(--color-warning)',
-  },
-  {
-    key: 'not-started',
-    label: 'Not Started',
-    value: 10,
-    color: 'var(--color-muted)',
-  },
-];
+type ProgressCounts = {
+  COMPLETE: number;
+  SUBMITTED: number;
+  ACTION_REQUIRED: number;
+  IN_PROGRESS: number;
+  NOT_STARTED: number;
+};
 
-export default function PlanningProgressCard() {
+export default function PlanningProgressCard({
+  counts,
+}: {
+  counts: ProgressCounts;
+}) {
+  const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
   const complete =
-    segments.find((segment) => segment.key === 'complete')?.value ?? 0;
+    total === 0 ? 0 : Math.round((counts.COMPLETE / total) * 100);
+  if (total === 0) {
+    return (
+      <DashboardPanel
+        id="progress-heading"
+        title="Planning Progress – 0% complete"
+      >
+        <p className="mt-6 text-sm text-muted">
+          No planning tasks yet. Your progress will appear here once tasks are
+          added.
+        </p>
+      </DashboardPanel>
+    );
+  }
 
+  const segments: ChartSegment[] = [
+    {
+      key: 'complete',
+      label: 'Complete',
+      value: counts.COMPLETE,
+      color: 'var(--color-success)',
+    },
+    {
+      key: 'submitted',
+      label: 'Submitted',
+      value: counts.SUBMITTED,
+      color: 'var(--color-info)',
+    },
+    {
+      key: 'required-actions',
+      label: 'Required Actions',
+      value: counts.ACTION_REQUIRED,
+      color: 'var(--color-error)',
+    },
+    {
+      key: 'in-progress',
+      label: 'In Progress',
+      value: counts.IN_PROGRESS,
+      color: 'var(--color-warning)',
+    },
+    {
+      key: 'not-started',
+      label: 'Not Started',
+      value: counts.NOT_STARTED,
+      color: 'var(--color-muted)',
+    },
+  ];
   return (
     <DashboardPanel
       id="progress-heading"
@@ -52,7 +77,9 @@ export default function PlanningProgressCard() {
         <div className="w-full max-w-72 shrink-0">
           <div
             role="img"
-            aria-label={`Planning status breakdown: ${segments.map((segment) => `${segment.label} ${segment.value}%`).join(', ')}`}
+            aria-label={`Planning status breakdown: ${segments
+              .map((segment) => `${segment.label}: ${segment.value}`)
+              .join(', ')}`}
           >
             <DonutChart segments={segments} className="h-64 w-full" />
           </div>
@@ -61,7 +88,7 @@ export default function PlanningProgressCard() {
           <ChartLegend
             items={segments.map((segment) => ({
               ...segment,
-              label: `${segment.label} (${segment.value}%)`,
+              label: `${segment.label} (${total ? Math.round((segment.value / total) * 100) : 0}%)`,
             }))}
           />
         </div>

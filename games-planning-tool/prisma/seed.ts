@@ -904,6 +904,68 @@ async function seedResources() {
   await updateResourceLinks(allRecords);
 }
 
+// Property catalog seed data (generic placeholder hotels)
+const occupancyTypeSeeds = [
+  { code: 'single', label: 'Price for single', capacity: 1, sortOrder: 1 },
+  { code: 'double', label: 'Price for double', capacity: 2, sortOrder: 2 },
+  { code: 'triple', label: 'Price for triple', capacity: 3, sortOrder: 3 },
+  { code: 'quad', label: 'Price for quad', capacity: 4, sortOrder: 4 },
+];
+
+type PropertySeed = { name: string; prices: Record<string, number> };
+type ClusterSeed = { name: string; properties: PropertySeed[] };
+
+const propertyClusterSeeds: ClusterSeed[] = [
+  {
+    name: 'Milano',
+    properties: [
+      {
+        name: 'UNA Mediterraneo',
+        prices: { single: 375, double: 750, triple: 900 },
+      },
+      {
+        name: 'NH Milano Congress Centre',
+        prices: { single: 375, double: 750 },
+      },
+      { name: 'NH Milano Fiera', prices: { single: 375, double: 750 } },
+    ],
+  },
+];
+
+//property helper
+async function seedProperties(gameId: number) {
+  const types = await Promise.all(
+    occupancyTypeSeeds.map((t) => prisma.occupancyType.create({ data: t })),
+  );
+  const typeIdByCode = new Map(types.map((t) => [t.code, t.id]));
+
+  let displayOrder = 0;
+  for (const cluster of propertyClusterSeeds) {
+    const createdCluster = await prisma.propertyCluster.create({
+      data: { name: cluster.name },
+    });
+
+    for (const p of cluster.properties) {
+      const property = await prisma.property.create({
+        data: {
+          clusterId: createdCluster.id,
+          name: p.name,
+          prices: {
+            create: Object.entries(p.prices).map(([code, price]) => ({
+              occupancyTypeId: typeIdByCode.get(code)!,
+              price,
+            })),
+          },
+        },
+      });
+
+      await prisma.gameProperty.create({
+        data: { gameId, propertyId: property.id, displayOrder: displayOrder++ },
+      });
+    }
+  }
+}
+
 // Exceeds 50 lines: seeds every record type in dependency order.
 async function main() {
   // Wipe in dependency order (children first)
@@ -912,11 +974,19 @@ async function main() {
   await prisma.disciplineBreakdown.deleteMany();
   await prisma.teamSizeEstimate.deleteMany();
   await prisma.gameMember.deleteMany();
+  await prisma.announcement.deleteMany();
+  await prisma.task.deleteMany();
   await prisma.gameNso.deleteMany();
   await prisma.member.deleteMany();
   await prisma.user.deleteMany();
   await prisma.nso.deleteMany();
   await prisma.game.deleteMany();
+  await prisma.gameProperty.deleteMany();
+  await prisma.propertyPrice.deleteMany();
+  await prisma.property.deleteMany();
+  await prisma.propertyCluster.deleteMany();
+  await prisma.occupancyType.deleteMany();
+  await prisma.resource.deleteMany();
 
   // Games
   const game = await prisma.game.create({
@@ -948,6 +1018,115 @@ async function main() {
       gameId: game.id,
       nsoId: nso.id,
     })),
+  });
+
+  const [swimmingPair, athleticsPair] = await Promise.all([
+    prisma.gameNso.findUniqueOrThrow({
+      where: {
+        gameId_nsoId: { gameId: game.id, nsoId: nsos.aquatics.id },
+      },
+      select: { id: true },
+    }),
+    prisma.gameNso.findUniqueOrThrow({
+      where: {
+        gameId_nsoId: { gameId: game.id, nsoId: nsos.athletics.id },
+      },
+      select: { id: true },
+    }),
+  ]);
+
+  const seedDay = new Date();
+  const dateFromToday = (offset: number) =>
+    new Date(
+      Date.UTC(
+        seedDay.getUTCFullYear(),
+        seedDay.getUTCMonth(),
+        seedDay.getUTCDate() + offset,
+      ),
+    );
+
+  await prisma.announcement.createMany({
+    data: [
+      {
+        gameNsoId: swimmingPair.id,
+        title: 'New Rate Conversion from CAD to USD',
+        body: 'Updated exchange-rate assumptions are available for your cost estimates. Review your budget before submitting it.',
+        publishedAt: dateFromToday(0),
+      },
+      {
+        gameNsoId: swimmingPair.id,
+        title: 'Earlier Village Check-in for Team Canada',
+        body: 'Village check-in will open 24 hours earlier. Review your team’s arrival plans and update your itinerary if needed.',
+        publishedAt: dateFromToday(-1),
+      },
+      {
+        gameNsoId: swimmingPair.id,
+        title: 'Transport Hub C Service Update',
+        body: 'Transport Hub C will use an electric fleet. Check the revised shuttle windows before confirming your team’s arrival times.',
+        publishedAt: dateFromToday(-2),
+      },
+      {
+        gameNsoId: athleticsPair.id,
+        title: 'Accreditation Photo Guidelines Updated',
+        body: 'Review the new photo requirements before uploading accreditation photos for your delegation.',
+        publishedAt: dateFromToday(0),
+      },
+      {
+        gameNsoId: athleticsPair.id,
+        title: 'Training Venue Schedule Released',
+        body: 'The first draft of the training schedule is available. Check your assigned practice times before finalizing travel plans.',
+        publishedAt: dateFromToday(-2),
+      },
+    ],
+  });
+
+  await prisma.task.createMany({
+    data: [
+      {
+        gameNsoId: swimmingPair.id,
+        stepKey: 'confirm-shuttle-booking',
+        title: 'Confirm shuttle booking',
+        description:
+          'Review your assigned shuttle and confirm the passenger count.',
+        status: 'ACTION_REQUIRED',
+        deadline: dateFromToday(2),
+      },
+      {
+        gameNsoId: swimmingPair.id,
+        stepKey: 'prepare-equipment-inventory',
+        title: 'Prepare equipment inventory',
+        description:
+          'List the equipment your delegation will bring to the Games.',
+        status: 'IN_PROGRESS',
+        deadline: dateFromToday(4),
+      },
+      {
+        gameNsoId: swimmingPair.id,
+        stepKey: 'verify-delegation-contacts',
+        title: 'Verify delegation contacts',
+        description:
+          'Confirm the primary and backup contacts for your delegation.',
+        status: 'COMPLETE',
+        deadline: dateFromToday(3),
+      },
+      {
+        gameNsoId: athleticsPair.id,
+        stepKey: 'upload-accreditation-photos',
+        title: 'Upload accreditation photos',
+        description:
+          'Replace any photos that do not meet the updated requirements.',
+        status: 'ACTION_REQUIRED',
+        deadline: dateFromToday(3),
+      },
+      {
+        gameNsoId: athleticsPair.id,
+        stepKey: 'confirm-training-venue',
+        title: 'Confirm training venue',
+        description: 'Verify your assigned venue and practice time.',
+        status: 'COMPLETE',
+        deadline: dateFromToday(5),
+      },
+    ],
   });
 
   // Members
@@ -1016,6 +1195,9 @@ async function main() {
       },
     ],
   });
+
+  // Properties (hotels + prices) linked to the game
+  await seedProperties(game.id);
 
   // Resources (helper function)
   await seedResources();
