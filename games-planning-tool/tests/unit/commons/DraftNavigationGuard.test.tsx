@@ -1,7 +1,7 @@
 // AI contribution: 100% AI-generated
 import '@testing-library/jest-dom/vitest';
 import { fireEvent, render, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   flushActiveDrafts: vi.fn(),
@@ -23,6 +23,10 @@ function appendAnchor(container: HTMLElement, href: string): HTMLAnchorElement {
 }
 
 describe('DraftNavigationGuard', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.flushActiveDrafts.mockResolvedValue(undefined);
@@ -85,6 +89,23 @@ describe('DraftNavigationGuard', () => {
     fireEvent.click(link);
 
     await waitFor(() => expect(confirmSpy).toHaveBeenCalled());
+    confirmSpy.mockRestore();
+  });
+
+  it('asks before leaving when draft saving times out', async () => {
+    vi.useFakeTimers();
+    mocks.flushActiveDrafts.mockReturnValue(new Promise<void>(() => {}));
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const { container } = render(<DraftNavigationGuard />);
+    const link = appendAnchor(container, '/10/resources');
+
+    fireEvent.click(link);
+
+    await vi.advanceTimersByTimeAsync(10000);
+
+    expect(confirmSpy).toHaveBeenCalledWith(
+      'Your draft could not be saved. Leave this page and risk losing recent edits?',
+    );
     confirmSpy.mockRestore();
   });
 

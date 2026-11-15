@@ -7,6 +7,28 @@ import {
   hasUnsavedDraftChanges,
 } from '@/lib/draft-navigation';
 
+// adding a timeout for saving drafts
+const SAVE_TIMEOUT_MS = 10000;
+
+async function flushDraftsWithTimeout(): Promise<void> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    await Promise.race([
+      flushActiveDrafts(),
+      new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new Error('Draft saving timed out'));
+        }, SAVE_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
 export default function DraftNavigationGuard() {
   const isNavigating = useRef(false);
   const replayingClick = useRef(false);
@@ -60,17 +82,33 @@ export default function DraftNavigationGuard() {
           replayingClick.current = false;
         }
       };
-      void flushActiveDrafts()
-        .then(resumeNavigation)
-        .catch(() => {
-          if (
-            window.confirm(
-              'A draft could not be saved. Leave this page and risk losing recent edits?',
-            )
-          ) {
-            resumeNavigation();
-          }
-        })
+      void flushDraftsWithTimeout()
+        .then(
+          () => {
+            // Drafts saved successfully
+            try {
+              resumeNavigation();
+            } catch (error) {
+              console.error('Failed to resume navigation:', error);
+            }
+          },
+          (error) => {
+            // Draft saving failed or timed out
+            console.error('Failed to save drafts:', error);
+
+            if (
+              window.confirm(
+                'Your draft could not be saved. Leave this page and risk losing recent edits?',
+              )
+            ) {
+              try {
+                resumeNavigation();
+              } catch (navigationError) {
+                console.error('Failed to resume navigation:', navigationError);
+              }
+            }
+          },
+        )
         .finally(() => {
           isNavigating.current = false;
         });
