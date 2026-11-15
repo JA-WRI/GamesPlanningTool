@@ -4,9 +4,7 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import Grid, {
-  ColumnDefinition,
-} from '../../../../games-planning-tool/src/components/commons/Grid';
+import Grid, { ColumnDefinition } from '@/components/commons/Grid';
 
 interface SampleRow extends Record<string, unknown> {
   id: string;

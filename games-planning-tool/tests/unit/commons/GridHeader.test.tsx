@@ -4,7 +4,7 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import GridHeaderPage from '../../../../games-planning-tool/src/components/commons/GridHeader';
+import GridHeaderPage from '@/components/commons/GridHeader';
 
 describe('GridHeaderPage', () => {
   const defaultProps = {

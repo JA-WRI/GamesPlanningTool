@@ -1,11 +1,11 @@
 // AI contribution: 100% AI-generated
 'use client';
 
-import { ColumnDefinition } from '../../../../games-planning-tool/src/components/commons/Grid';
+import { ColumnDefinition } from '@/components/commons/Grid';
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import BaseGridPage from '../../../../games-planning-tool/src/components/commons/BaseGridPage';
+import BaseGridPage from '@/components/commons/BaseGridPage';
 
 interface ItemRow extends Record<string, unknown> {
   id: string;
