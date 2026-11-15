@@ -225,7 +225,7 @@ describe('PlanningProgressCard', () => {
       }),
     ).toBeInTheDocument();
 
-    expect(screen.getByText('Required Actions (25%)')).toBeInTheDocument();
+    expect(screen.getByText('Action Required (25%)')).toBeInTheDocument();
     expect(screen.getByText('In Progress (75%)')).toBeInTheDocument();
     expect(chartMock).toHaveBeenCalled();
   });
