@@ -83,7 +83,7 @@ export default function PlanningProgressCard({
           <ChartLegend
             items={segments.map((segment) => ({
               ...segment,
-              label: `${segment.label} (${total ? Math.round((segment.value / total) * 100) : 0}%)`,
+              label: `${segment.label} (${Math.round((segment.value / total) * 100)}%)`,
             }))}
           />
         </div>
