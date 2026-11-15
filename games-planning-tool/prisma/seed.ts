@@ -899,6 +899,123 @@ async function seedResources() {
   await updateResourceLinks(allRecords);
 }
 
+async function seedCalculator(gameId: number, nsoIds: string[]) {
+  // Create the four traveler categories
+  const categoryNames = [
+    'Travelling Accredited Alternate Athletes @ partial NSO cost (Ap)',
+    'Travelling Non-accredited Alternate Athletes @ full NSO cost',
+    'Support staff @ partial NSO cost (e.g., partial Ao)',
+    'Support staff @ full NSO cost (incl. non-accredited)',
+  ];
+
+  const gameNsos = await prisma.gameNso.findMany({
+    where: {
+      gameId,
+      nsoId: { in: nsoIds },
+    },
+    select: { id: true },
+  });
+
+  const categories: { id: number; name: string }[] = [];
+
+  for (const name of categoryNames) {
+    const category = await prisma.travelerCategory.create({
+      data: { name },
+    });
+    categories.push(category);
+  }
+
+  // Create the initial traveler rows for each NSO
+  await prisma.traveler.createMany({
+    data: nsoIds.flatMap((nsoId) =>
+      categories.map((category) => ({
+        gameId,
+        nsoId,
+        travelerCategoryId: category.id,
+        numberOfTeamMembers: 0,
+        days: 0,
+        travelCostInCents: 0,
+        accommodationCostInCents: 0,
+        mealsCostInCents: 0,
+        insuranceCostInCents: 0,
+        extraCostsInCents: 0,
+      })),
+    ),
+  });
+
+  // Default values from the Estimated Costs table
+
+  const estimatedCosts = [
+    {
+      name: 'Travel Economy Fare',
+      costInCents: 240000,
+      unitOfMeasure: 'CAD',
+      notes: 'To be Confirmed',
+    },
+    {
+      name: 'Athlete Insurance',
+      costInCents: 5000,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Support Staff Insurance',
+      costInCents: 2800,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Cellphone (local plan)',
+      costInCents: 10800,
+      unitOfMeasure: 'CAD/day',
+    },
+    {
+      name: 'Meals',
+      costInCents: 11800,
+      unitOfMeasure: 'CAD/meal',
+      notes: '(outside of Village, breakfast incl at most accommodation)',
+    },
+    {
+      name: 'Village Meal Voucher',
+      costInCents: 5700,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Knife & Fork for Ap',
+      costInCents: 227900,
+      unitOfMeasure: 'CAD',
+    },
+    {
+      name: 'Clothing Package',
+      costInCents: 320000,
+      unitOfMeasure: 'CAD',
+    },
+  ];
+
+  await prisma.estimatedCostItem.createMany({
+    data: gameNsos.flatMap((gameNso) =>
+      estimatedCosts.map((cost) => ({
+        ...cost,
+        gameNsoId: gameNso.id,
+      })),
+    ),
+  });
+
+  // Temporary conversion rates until API integration
+  await prisma.conversionRate.createMany({
+    data: [
+      {
+        fromCurrency: 'USD',
+        toCurrency: 'CAD',
+        rate: '1.38',
+      },
+      {
+        fromCurrency: 'EUR',
+        toCurrency: 'CAD',
+        rate: '1.48',
+      },
+    ],
+  });
+}
+
 // Property catalog seed data (generic placeholder hotels)
 const occupancyTypeSeeds = [
   { code: 'single', label: 'Price for single', capacity: 1, sortOrder: 1 },
@@ -965,8 +1082,22 @@ async function seedProperties(gameId: number) {
 async function main() {
   // Wipe in dependency order (children first)
   await prisma.resource.deleteMany();
+  // Calculator data
+  await prisma.traveler.deleteMany();
+  await prisma.estimatedCostItem.deleteMany();
+  await prisma.conversionRate.deleteMany();
+  await prisma.travelerCategory.deleteMany();
   await prisma.disciplineBreakdown.deleteMany();
   await prisma.teamSizeEstimate.deleteMany();
+  await prisma.contact.deleteMany();
+  await prisma.pgtcDiscipline.deleteMany();
+  await prisma.draft.deleteMany();
+  await prisma.gameProperty.deleteMany();
+  await prisma.propertyPrice.deleteMany();
+  await prisma.property.deleteMany();
+  await prisma.propertyCluster.deleteMany();
+  await prisma.occupancyType.deleteMany();
+  // Existing data
   await prisma.gameMember.deleteMany();
   await prisma.announcement.deleteMany();
   await prisma.task.deleteMany();
@@ -975,12 +1106,6 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.nso.deleteMany();
   await prisma.game.deleteMany();
-  await prisma.gameProperty.deleteMany();
-  await prisma.propertyPrice.deleteMany();
-  await prisma.property.deleteMany();
-  await prisma.propertyCluster.deleteMany();
-  await prisma.occupancyType.deleteMany();
-  await prisma.resource.deleteMany();
 
   // Games
   const game = await prisma.game.create({
@@ -1014,114 +1139,8 @@ async function main() {
     })),
   });
 
-  const [swimmingPair, athleticsPair] = await Promise.all([
-    prisma.gameNso.findUniqueOrThrow({
-      where: {
-        gameId_nsoId: { gameId: game.id, nsoId: nsos.aquatics.id },
-      },
-      select: { id: true },
-    }),
-    prisma.gameNso.findUniqueOrThrow({
-      where: {
-        gameId_nsoId: { gameId: game.id, nsoId: nsos.athletics.id },
-      },
-      select: { id: true },
-    }),
-  ]);
-
-  const seedDay = new Date();
-  const dateFromToday = (offset: number) =>
-    new Date(
-      Date.UTC(
-        seedDay.getUTCFullYear(),
-        seedDay.getUTCMonth(),
-        seedDay.getUTCDate() + offset,
-      ),
-    );
-
-  await prisma.announcement.createMany({
-    data: [
-      {
-        gameNsoId: swimmingPair.id,
-        title: 'New Rate Conversion from CAD to USD',
-        body: 'Updated exchange-rate assumptions are available for your cost estimates. Review your budget before submitting it.',
-        publishedAt: dateFromToday(0),
-      },
-      {
-        gameNsoId: swimmingPair.id,
-        title: 'Earlier Village Check-in for Team Canada',
-        body: 'Village check-in will open 24 hours earlier. Review your team’s arrival plans and update your itinerary if needed.',
-        publishedAt: dateFromToday(-1),
-      },
-      {
-        gameNsoId: swimmingPair.id,
-        title: 'Transport Hub C Service Update',
-        body: 'Transport Hub C will use an electric fleet. Check the revised shuttle windows before confirming your team’s arrival times.',
-        publishedAt: dateFromToday(-2),
-      },
-      {
-        gameNsoId: athleticsPair.id,
-        title: 'Accreditation Photo Guidelines Updated',
-        body: 'Review the new photo requirements before uploading accreditation photos for your delegation.',
-        publishedAt: dateFromToday(0),
-      },
-      {
-        gameNsoId: athleticsPair.id,
-        title: 'Training Venue Schedule Released',
-        body: 'The first draft of the training schedule is available. Check your assigned practice times before finalizing travel plans.',
-        publishedAt: dateFromToday(-2),
-      },
-    ],
-  });
-
-  await prisma.task.createMany({
-    data: [
-      {
-        gameNsoId: swimmingPair.id,
-        stepKey: 'confirm-shuttle-booking',
-        title: 'Confirm shuttle booking',
-        description:
-          'Review your assigned shuttle and confirm the passenger count.',
-        status: 'ACTION_REQUIRED',
-        deadline: dateFromToday(2),
-      },
-      {
-        gameNsoId: swimmingPair.id,
-        stepKey: 'prepare-equipment-inventory',
-        title: 'Prepare equipment inventory',
-        description:
-          'List the equipment your delegation will bring to the Games.',
-        status: 'IN_PROGRESS',
-        deadline: dateFromToday(4),
-      },
-      {
-        gameNsoId: swimmingPair.id,
-        stepKey: 'verify-delegation-contacts',
-        title: 'Verify delegation contacts',
-        description:
-          'Confirm the primary and backup contacts for your delegation.',
-        status: 'COMPLETE',
-        deadline: dateFromToday(3),
-      },
-      {
-        gameNsoId: athleticsPair.id,
-        stepKey: 'upload-accreditation-photos',
-        title: 'Upload accreditation photos',
-        description:
-          'Replace any photos that do not meet the updated requirements.',
-        status: 'ACTION_REQUIRED',
-        deadline: dateFromToday(3),
-      },
-      {
-        gameNsoId: athleticsPair.id,
-        stepKey: 'confirm-training-venue',
-        title: 'Confirm training venue',
-        description: 'Verify your assigned venue and practice time.',
-        status: 'COMPLETE',
-        deadline: dateFromToday(5),
-      },
-    ],
-  });
+  // Calculator seed data
+  await seedCalculator(game.id, [nsos.aquatics.id, nsos.athletics.id]);
 
   // Members
   const members: { seed: MemberSeed; id: string }[] = [];

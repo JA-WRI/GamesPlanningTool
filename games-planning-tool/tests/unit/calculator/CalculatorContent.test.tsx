@@ -1,11 +1,42 @@
-//AI usage: over 50%
-import { fireEvent, render, screen, within } from '@testing-library/react';
-import { expect, it } from 'vitest';
+// 90% AI
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
+import { expect, it, vi } from 'vitest';
 import CalculatorClient from '@/features/nso-calculator/components/CalculatorClient';
 import PropertyPricingTable from '@/features/nso-calculator/components/PropertyPricingTable';
 import type { PropertyPricingTable as PropertyPricingTableData } from '@/features/nso-calculator/property-pricing';
+import { INITIAL_COST_ROWS } from '@/features/nso-calculator/components/EstimatedCosts';
+import { saveDraftDocument } from '@/lib/draft-actions';
 
-// Single source of truth for the property data rendered below.
+vi.mock('@/lib/draft-actions', () => ({
+  saveDraftDocument: vi.fn().mockResolvedValue(undefined),
+  deleteDraftDocument: vi.fn().mockResolvedValue(undefined),
+}));
+
+const canonical = {
+  rates: { CAD: 1, USD: 1.38, EUR: 1.48 },
+  categories: [{ name: 'Support staff' }],
+  initialTravelers: [
+    {
+      id: '1',
+      category: 'Support staff',
+      numberOfTeamMembers: 0,
+      days: 0,
+      travelBudget: 0,
+      accommodationBudget: 0,
+      mealsBudget: 0,
+      insuranceBudget: 0,
+      totalCostPerTeamMember: 0,
+    },
+  ],
+  initialEstimatedCosts: INITIAL_COST_ROWS,
+};
+
 const pricing: PropertyPricingTableData = {
   columns: [{ code: 'single', label: 'Price for single' }],
   rows: [
@@ -21,9 +52,19 @@ const [property] = pricing.rows;
 const propertyLabel = `${property.clusterName} - ${property.name}`;
 const propertyPrice = property.prices.single;
 
-it('preserves calculator and estimated costs with database properties while Cost Summary is deferred', () => {
+it('preserves calculator and estimated costs with database properties while Cost Summary is deferred', async () => {
+  const saveTravelers = vi.fn(async (_id, rows) => rows);
+  const saveCosts = vi.fn(async (_id, rows) => rows);
   render(
-    <CalculatorClient gameName="Database Games">
+    <CalculatorClient
+      {...canonical}
+      calculatorId={1}
+      gameName="Database Games"
+      travelerDraftKey="travelers"
+      estimatedCostsDraftKey="costs"
+      onSaveTravelers={saveTravelers}
+      onSaveEstimatedCosts={saveCosts}
+    >
       <PropertyPricingTable table={pricing} />
     </CalculatorClient>,
   );
@@ -50,21 +91,28 @@ it('preserves calculator and estimated costs with database properties while Cost
   fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
   const row = screen.getAllByRole('table')[0].querySelectorAll('tbody tr')[0];
   const inputs = within(row as HTMLElement).getAllByRole('spinbutton');
-  // Members, days, travel, accommodation, meals, insurance, total/member.
+  // Members, travel, days, accommodation, meals, insurance.
   for (const [index, value] of [
     [0, 2],
-    [1, 3],
-    [2, 2400],
+    [1, 2400],
+    [2, 3],
     [3, 750],
     [4, 118],
     [5, 28],
   ]) {
     fireEvent.change(inputs[index], { target: { value: String(value) } });
   }
-  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-  expect(
-    within(screen.getAllByRole('table')[0]).getByText('2400'),
-  ).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+  await waitFor(() => expect(saveTravelers).toHaveBeenCalledOnce());
+  expect(saveTravelers.mock.calls[0][1][0]).toMatchObject({
+    days: 3,
+    totalCostPerTeamMember: 4796,
+  });
+  await waitFor(() =>
+    expect(
+      within(screen.getAllByRole('table')[0]).getByText('2400'),
+    ).toBeInTheDocument(),
+  );
 
   fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[1]);
   const costsTable = screen.getAllByRole('table')[1];
@@ -72,26 +120,139 @@ it('preserves calculator and estimated costs with database properties while Cost
   fireEvent.change(within(cellphoneRow).getByRole('spinbutton'), {
     target: { value: '10' },
   });
-  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-  expect(
-    within(screen.getAllByRole('table')[1]).getByText('10'),
-  ).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+  await waitFor(() => expect(saveCosts).toHaveBeenCalledOnce());
+  await waitFor(() =>
+    expect(
+      within(screen.getAllByRole('table')[1]).getByText('10'),
+    ).toBeInTheDocument(),
+  );
 
   fireEvent.click(screen.getByRole('button', { name: 'USD' }));
-  expect(
-    within(screen.getAllByRole('table')[0]).getByText('1739.13'),
-  ).toBeInTheDocument();
+  await waitFor(() =>
+    expect(
+      within(screen.getAllByRole('table')[0]).getByText('1739.13'),
+    ).toBeInTheDocument(),
+  );
   expect(
     within(screen.getAllByRole('table')[1]).getByText('7.25'),
   ).toBeInTheDocument();
   // Property prices are not converted by the currency toggle
   expect(screen.getByText(propertyPrice)).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'CAD' }));
-  expect(
-    within(screen.getAllByRole('table')[0]).getByText('2400'),
-  ).toBeInTheDocument();
+  await waitFor(() =>
+    expect(
+      within(screen.getAllByRole('table')[0]).getByText('2400'),
+    ).toBeInTheDocument(),
+  );
   expect(
     within(screen.getAllByRole('table')[1]).getByText('10'),
   ).toBeInTheDocument();
   expect(screen.queryByLabelText('Estimated total')).not.toBeInTheDocument();
+});
+
+it('flushes both drafts in CAD before switching currency and restores them on reload', async () => {
+  vi.mocked(saveDraftDocument).mockClear();
+  const props = {
+    ...canonical,
+    calculatorId: 1,
+    gameName: 'Games',
+    travelerDraftKey: 'travelers',
+    estimatedCostsDraftKey: 'costs',
+    onSaveTravelers: vi.fn(async (_id, rows) => rows),
+    onSaveEstimatedCosts: vi.fn(async (_id, rows) => rows),
+  } satisfies React.ComponentProps<typeof CalculatorClient>;
+  const { unmount } = render(<CalculatorClient {...props} />);
+  const tables = screen.getAllByRole('table');
+
+  fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
+  fireEvent.change(within(tables[0]).getAllByRole('spinbutton')[1], {
+    target: { value: '276' },
+  });
+  fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
+  const costsRow = within(tables[1]).getAllByRole('row')[1];
+  fireEvent.change(within(costsRow).getByRole('spinbutton'), {
+    target: { value: '138' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: 'USD' }));
+
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: 'USD' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    ),
+  );
+  expect(
+    within(screen.getAllByRole('table')[0]).getAllByText('200')[0],
+  ).toBeInTheDocument();
+  expect(
+    within(screen.getAllByRole('table')[1]).getByText('100'),
+  ).toBeInTheDocument();
+  expect(props.onSaveTravelers).not.toHaveBeenCalled();
+  expect(props.onSaveEstimatedCosts).not.toHaveBeenCalled();
+
+  const calls = vi.mocked(saveDraftDocument).mock.calls;
+  const travelerDraft = calls.find(([key]) => key === 'travelers')?.[1];
+  const costsDraft = calls.find(([key]) => key === 'costs')?.[1];
+  expect(travelerDraft).toEqual(
+    expect.arrayContaining([expect.objectContaining({ travelBudget: 276 })]),
+  );
+  expect(costsDraft).toEqual({
+    rows: expect.arrayContaining([expect.objectContaining({ amount: 138 })]),
+  });
+
+  unmount();
+  render(
+    <CalculatorClient
+      {...canonical}
+      {...props}
+      initialTravelerDraft={travelerDraft}
+      initialEstimatedCostsDraft={costsDraft}
+    />,
+  );
+  expect(
+    within(screen.getAllByRole('table')[0]).getAllByText('276')[0],
+  ).toBeInTheDocument();
+  expect(
+    within(screen.getAllByRole('table')[1]).getByText('138'),
+  ).toBeInTheDocument();
+  expect(
+    screen
+      .getAllByRole('status', { name: '' })
+      .filter((status) => status.textContent === 'Draft restored'),
+  ).toHaveLength(2);
+});
+
+it('keeps the currency and edits when a draft flush fails', async () => {
+  vi.mocked(saveDraftDocument).mockRejectedValueOnce(new Error('save failed'));
+  const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+  render(
+    <CalculatorClient
+      {...canonical}
+      calculatorId={1}
+      gameName="Games"
+      travelerDraftKey="travelers"
+      estimatedCostsDraftKey="costs"
+      onSaveTravelers={vi.fn(async (_id, rows) => rows)}
+      onSaveEstimatedCosts={vi.fn(async (_id, rows) => rows)}
+    />,
+  );
+  fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
+  const travelInput = within(screen.getAllByRole('table')[0]).getAllByRole(
+    'spinbutton',
+  )[1];
+  fireEvent.change(travelInput, { target: { value: '276' } });
+  fireEvent.click(screen.getByRole('button', { name: 'USD' }));
+
+  await waitFor(() =>
+    expect(alert).toHaveBeenCalledWith(
+      'Could not save your draft. Currency was not changed.',
+    ),
+  );
+  expect(screen.getByRole('button', { name: 'CAD' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  expect(travelInput).toHaveValue(276);
+  alert.mockRestore();
 });
