@@ -85,7 +85,7 @@ describe('StatusOverviewPanel', () => {
   it('pages to the neighbouring statuses', async () => {
     renderPanel();
 
-    // Completed sits between Not Started and In Progress
+    // Complete sits between Not Started and In Progress
     await userEvent.click(
       screen.getAllByRole('button', { name: /In Progress/ }).at(-1)!,
     );

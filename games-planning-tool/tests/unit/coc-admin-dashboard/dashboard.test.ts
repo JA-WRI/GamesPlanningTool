@@ -108,7 +108,7 @@ describe('dashboard logic', () => {
       expect(namesByStatusAtColumn(teams, 0)).toEqual({
         'Not Started': ['Gamma', 'Delta'],
         'In Progress': [],
-        Completed: ['Alpha'],
+        Complete: ['Alpha'],
         Submitted: ['Beta'],
         'Action Required': [],
       });
@@ -118,7 +118,7 @@ describe('dashboard logic', () => {
       expect(namesByStatusAtColumn(teams, 99)).toEqual({
         'Not Started': [],
         'In Progress': [],
-        Completed: [],
+        Complete: [],
         Submitted: [],
         'Action Required': [],
       });

@@ -1,5 +1,6 @@
 // AI contribution: Above 50% AI-generated
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { TaskStatus } from '@/generated/prisma/enums';
 
 const { findMany } = vi.hoisted(() => ({ findMany: vi.fn() }));
 vi.mock('@/lib/prisma', () => ({ prisma: { gameNso: { findMany } } }));
@@ -31,11 +32,11 @@ describe('COC dashboard database loading', () => {
         id: 'pair-a',
         nso: { name: 'NSO A' },
         progressTracking: {
-          contactInfo: 'complete',
-          teamSize: 'in_progress',
-          accreditation: 'submitted',
-          estimatedCosts: 'action_required',
-          reviewAndCompletion: 'not_started',
+          contactInfo: TaskStatus.COMPLETE,
+          teamSize: TaskStatus.IN_PROGRESS,
+          accreditation: TaskStatus.SUBMITTED,
+          estimatedCosts: TaskStatus.ACTION_REQUIRED,
+          reviewAndCompletion: TaskStatus.NOT_STARTED,
         },
       },
       { id: 'pair-b', nso: { name: 'NSO B' }, progressTracking: null },
@@ -58,11 +59,11 @@ describe('COC dashboard database loading', () => {
           id: 'pair-game-1',
           nso: sameNso,
           progressTracking: {
-            contactInfo: 'complete',
-            teamSize: 'complete',
-            accreditation: 'complete',
-            estimatedCosts: 'complete',
-            reviewAndCompletion: 'complete',
+            contactInfo: TaskStatus.COMPLETE,
+            teamSize: TaskStatus.COMPLETE,
+            accreditation: TaskStatus.COMPLETE,
+            estimatedCosts: TaskStatus.COMPLETE,
+            reviewAndCompletion: TaskStatus.COMPLETE,
           },
         },
       ])
@@ -91,11 +92,11 @@ describe('COC dashboard database loading', () => {
         {
           ...pairing,
           progressTracking: {
-            contactInfo: 'complete',
-            teamSize: 'not_started',
-            accreditation: 'not_started',
-            estimatedCosts: 'not_started',
-            reviewAndCompletion: 'not_started',
+            contactInfo: TaskStatus.COMPLETE,
+            teamSize: TaskStatus.NOT_STARTED,
+            accreditation: TaskStatus.NOT_STARTED,
+            estimatedCosts: TaskStatus.NOT_STARTED,
+            reviewAndCompletion: TaskStatus.NOT_STARTED,
           },
         },
       ]);

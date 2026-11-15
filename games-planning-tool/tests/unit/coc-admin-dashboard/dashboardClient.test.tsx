@@ -210,9 +210,9 @@ describe('Dashboard page', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'Filter Team Size by status' }),
     );
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Completed' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Complete' }));
 
-    // Only Team Size === Completed: Swimming, Cycling, and Soccer.
+    // Only Team Size === Complete: Swimming, Cycling, and Soccer.
     expect(findTeam('Swimming Canada')).toBeInTheDocument();
     expect(findTeam('Cycling Canada')).toBeInTheDocument();
     expect(findTeam('Soccer Canada')).toBeInTheDocument();
@@ -251,7 +251,7 @@ describe('Dashboard page', () => {
     const { rerender } = renderDashboard();
     await userEvent.click(screen.getByRole('button', { name: 'Contact Info' }));
     const panel = () => within(screen.getByLabelText('Status Overview Panel'));
-    expect(panel().getByText('5 of 7 completed')).toBeInTheDocument();
+    expect(panel().getByText('5 of 7 complete')).toBeInTheDocument();
 
     const updatedTeams = testTeams.map((team) => ({
       ...team,
@@ -279,7 +279,7 @@ describe('Dashboard page', () => {
       <DashboardClient teams={updatedTeams} dashboardCharts={updatedCharts} />,
     );
 
-    expect(panel().getByText('0 of 7 completed')).toBeInTheDocument();
+    expect(panel().getByText('0 of 7 complete')).toBeInTheDocument();
     expect(panel().getByText('No NSOs with this status.')).toBeInTheDocument();
     expect(panel().queryByText('Basketball Canada')).not.toBeInTheDocument();
     await userEvent.click(
@@ -305,7 +305,7 @@ describe('Dashboard page', () => {
     rerender(<DashboardClient teams={[]} dashboardCharts={emptyCharts} />);
 
     const panel = within(screen.getByLabelText('Status Overview Panel'));
-    expect(panel.getByText('0 of 0 completed')).toBeInTheDocument();
+    expect(panel.getByText('0 of 0 complete')).toBeInTheDocument();
     expect(panel.getByText('No NSOs with this status.')).toBeInTheDocument();
   });
 

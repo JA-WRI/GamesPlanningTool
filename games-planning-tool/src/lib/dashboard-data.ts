@@ -1,16 +1,16 @@
 // AI contribution: Above 50% AI generated
 import type { Status, StatusCounts } from '@/components/commons/status';
 import type { Team } from '@/lib/dashboard';
-import type { TaskStatus } from '@/generated/prisma/enums';
+import { TaskStatus } from '@/generated/prisma/enums';
 
 // Db enum mapping to frontend status strings
 const statusMap = {
-  NOT_STARTED: 'Not Started',
-  IN_PROGRESS: 'In Progress',
-  COMPLETE: 'Complete',
-  SUBMITTED: 'Submitted',
-  ACTION_REQUIRED: 'Action Required',
-} as const satisfies Record<string, Status>;
+  [TaskStatus.NOT_STARTED]: 'Not Started',
+  [TaskStatus.IN_PROGRESS]: 'In Progress',
+  [TaskStatus.COMPLETE]: 'Complete',
+  [TaskStatus.SUBMITTED]: 'Submitted',
+  [TaskStatus.ACTION_REQUIRED]: 'Action Required',
+} as const satisfies Record<TaskStatus, Status>;
 
 const STEPS = [
   { title: 'Contact Info', field: 'contactInfo' },
@@ -49,7 +49,7 @@ export function transformDashboardData(records: GameNsoRecord[]) {
       columns: STEPS.map((step) => ({
         title: step.title,
         href: '#',
-        status: statusMap[progress?.[step.field] ?? 'NOT_STARTED'],
+        status: statusMap[progress?.[step.field] ?? TaskStatus.NOT_STARTED],
       })),
     };
   });
