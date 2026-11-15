@@ -4,6 +4,10 @@ import { render, screen } from '@testing-library/react';
 import ResourcesPage from '@/app/(application)/[gameId]/[nsoId]/resources/page';
 import ResourceManagementPage from '@/app/(application)/admin/resource-management/page';
 
+vi.mock('@/server/auth/session', () => ({
+  getSession: vi.fn().mockResolvedValue(null),
+}));
+
 vi.mock('@/lib/resources', () => ({
   listResources: vi.fn().mockResolvedValue([]),
   resourceVisibilityFor: vi.fn().mockReturnValue({
