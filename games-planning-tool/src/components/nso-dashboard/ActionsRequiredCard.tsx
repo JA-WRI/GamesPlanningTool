@@ -1,4 +1,5 @@
-// This page has been coded by both me and AI (50%).
+// AI contribution: 50%
+// This page has been coded by both me and AI
 // I started coding the general structure of the component and used AI to accelerate the process and get the right placement of elements
 import DashboardPanel from './DashboardPanel';
 
@@ -8,6 +9,17 @@ type ActionsRequiredCardProps = { actions: Action[] };
 export default function ActionsRequiredCard({
   actions,
 }: ActionsRequiredCardProps) {
+  if (actions.length === 0) {
+    return (
+      <DashboardPanel
+        id="actions-heading"
+        title="Actions Required"
+        className="h-auto min-h-0 self-start"
+      >
+        <p className="mt-8 text-sm text-muted">No actions required.</p>
+      </DashboardPanel>
+    );
+  }
   return (
     <DashboardPanel id="actions-heading" title="Actions Required">
       <div

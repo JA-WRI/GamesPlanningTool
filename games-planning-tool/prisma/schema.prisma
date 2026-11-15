@@ -54,7 +54,7 @@ model Game {
   contacts        Contact[]
   pgtcDisciplines PgtcDiscipline[]
   gameProperties GameProperty[]
-  
+
   @@map("games")
 }
 
@@ -83,6 +83,8 @@ model GameNso {
 
   game             Game              @relation(fields: [gameId], references: [id])
   nso              Nso               @relation(fields: [nsoId], references: [id])
+  tasks            Task[]
+  announcements    Announcement[]
   teamSizeEstimate TeamSizeEstimate?
 
   @@unique([gameId, nsoId])
@@ -282,15 +284,50 @@ model Draft {
   @@index([updatedAt])
   @@map("drafts")
 }
+enum TaskStatus {
+  COMPLETE
+  SUBMITTED
+  ACTION_REQUIRED
+  IN_PROGRESS
+  NOT_STARTED
+}
+
+model Task {
+  id          String     @id @default(uuid()) @db.Uuid
+  gameNsoId   String     @map("game_nso_id") @db.Uuid
+  stepKey     String     @map("step_key")
+  title       String
+  description String?
+  status      TaskStatus @default(NOT_STARTED)
+  deadline    DateTime?  @db.Date
+
+  gameNso GameNso @relation(fields: [gameNsoId], references: [id])
+
+  @@index([gameNsoId])
+  @@map("tasks")
+}
+
+model Announcement {
+  id          String   @id @default(uuid()) @db.Uuid
+  gameNsoId   String   @map("game_nso_id") @db.Uuid
+  title       String
+  body        String?
+  publishedAt DateTime @map("published_at") @db.Date
+
+  gameNso GameNso @relation(fields: [gameNsoId], references: [id])
+
+  @@index([gameNsoId])
+  @@map("announcements")
+}
 
 model PropertyCluster {
   id   String @id @default(uuid()) @db.Uuid
-  name String 
+  name String
 
   properties Property[]
 
-  @@map("property_clusters")
   @@unique([name])
+  @@map("property_clusters")
 }
 
 model Property {
@@ -302,14 +339,14 @@ model Property {
   prices         PropertyPrice[]
   gameProperties GameProperty[]
 
-  @@map("properties")
   @@unique([clusterId, name])
+  @@map("properties")
 }
 
 model OccupancyType {
   id        String @id @default(uuid()) @db.Uuid
   code      String @unique @db.VarChar(50)
-  label     String @db.VarChar(100)        
+  label     String @db.VarChar(100)
   capacity  Int
   sortOrder Int    @default(0) @map("sort_order")
 
@@ -330,7 +367,6 @@ model PropertyPrice {
   @@unique([propertyId, occupancyTypeId])
   @@map("property_prices")
 }
-
 
 model GameProperty {
   id           String @id @default(uuid()) @db.Uuid

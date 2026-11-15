@@ -1099,6 +1099,8 @@ async function main() {
   await prisma.occupancyType.deleteMany();
   // Existing data
   await prisma.gameMember.deleteMany();
+  await prisma.announcement.deleteMany();
+  await prisma.task.deleteMany();
   await prisma.gameNso.deleteMany();
   await prisma.member.deleteMany();
   await prisma.user.deleteMany();
