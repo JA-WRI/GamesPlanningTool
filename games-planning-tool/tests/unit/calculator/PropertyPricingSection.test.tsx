@@ -1,6 +1,10 @@
 //AI usage: over 50%
 import { render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+vi.mock('@/lib/draft-actions', () => ({
+  saveDraftDocument: vi.fn().mockResolvedValue(undefined),
+  deleteDraftDocument: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock('@/server/queries/property-pricing', () => ({
   getPropertyPricing: vi.fn(),
 }));
