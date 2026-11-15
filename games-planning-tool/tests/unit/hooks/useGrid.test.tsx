@@ -37,7 +37,7 @@ describe('useGrid Hook', () => {
     expect(result.current.rows[1].name).toBe('New Item');
   });
 
-  it('saves rows and triggers callback correctly', () => {
+  it('saves rows and triggers callback correctly', async () => {
     const onSaveCallback = vi.fn();
     const { result } = renderHook(() =>
       useGrid(initialRows, createEmptyRow, onSaveCallback),
@@ -48,8 +48,8 @@ describe('useGrid Hook', () => {
       result.current.setRows([{ id: '1', name: 'Updated Item' }]);
     });
 
-    act(() => {
-      result.current.handleSave();
+    await act(async () => {
+      await result.current.handleSave();
     });
 
     expect(result.current.isEditing).toBe(false);
@@ -57,6 +57,31 @@ describe('useGrid Hook', () => {
     expect(onSaveCallback).toHaveBeenCalledWith([
       { id: '1', name: 'Updated Item' },
     ]);
+  });
+
+  it('keeps the draft editable when an async save fails', async () => {
+    const onSaveCallback = vi.fn().mockRejectedValue(new Error('save failed'));
+    const { result } = renderHook(() =>
+      useGrid(initialRows, createEmptyRow, onSaveCallback),
+    );
+
+    act(() => {
+      result.current.setIsEditing(true);
+      result.current.setRows([{ id: '1', name: 'Unsaved Item' }]);
+    });
+
+    await act(async () => {
+      await expect(result.current.handleSave()).rejects.toThrow('save failed');
+    });
+
+    expect(result.current.isEditing).toBe(true);
+    expect(result.current.rows[0].name).toBe('Unsaved Item');
+
+    act(() => {
+      result.current.handleCancel();
+    });
+
+    expect(result.current.rows).toEqual(initialRows);
   });
 
   it('cancels edits and reverts back to saved rows', () => {
@@ -74,4 +99,24 @@ describe('useGrid Hook', () => {
     expect(result.current.isEditing).toBe(false);
     expect(result.current.rows[0].name).toBe('Item 1');
   });
+});
+
+it('uses database-assigned IDs on the next save', async () => {
+  const canonicalRows = [{ id: '42', name: 'Saved row' }];
+  const save = vi.fn().mockResolvedValue(canonicalRows);
+  const { result } = renderHook(() =>
+    useGrid(
+      [{ id: 'temporary', name: 'New row' }],
+      () => ({ id: 'new', name: '' }),
+      save,
+    ),
+  );
+  await act(async () => {
+    await result.current.handleSave();
+  });
+  expect(result.current.rows).toEqual(canonicalRows);
+  await act(async () => {
+    await result.current.handleSave();
+  });
+  expect(save).toHaveBeenLastCalledWith(canonicalRows);
 });

@@ -64,6 +64,7 @@ export interface ColumnDefinition<T> {
   formula?: ColumnFormula<T>;
   formatValue?: (val: number) => string;
   allowedTextValues?: string[];
+  digitsOnly?: boolean;
   readOnly?: boolean;
 }
 
@@ -226,10 +227,7 @@ export default function Grid<T extends Record<string, unknown>>({
                   const rawComputed = col.formula
                     ? calculateValue(row, col.formula)
                     : (row[col.field] ?? '');
-                  const errorMsg =
-                    col.type === 'number'
-                      ? getCellError(col, rawComputed)
-                      : null;
+                  const errorMsg = getCellError(col, rawComputed);
                   const displayVal =
                     col.formula &&
                     typeof rawComputed === 'number' &&
@@ -321,6 +319,7 @@ export default function Grid<T extends Record<string, unknown>>({
                             }
                             placeholder={col.placeholder || col.label}
                             error={Boolean(errorMsg)}
+                            helperText={errorMsg}
                             onChange={(e) => {
                               const val = e.target.value;
                               const isAllowedText = col.allowedTextValues?.some(
@@ -328,6 +327,7 @@ export default function Grid<T extends Record<string, unknown>>({
                                   item.toUpperCase() === val.toUpperCase(),
                               );
                               const parsedValue =
+                                col.digitsOnly ||
                                 isAllowedText ||
                                 Number.isNaN(Number(val)) ||
                                 val === ''
@@ -351,6 +351,9 @@ export default function Grid<T extends Record<string, unknown>>({
                                 min: col.min,
                                 max: col.max,
                                 step: col.step,
+                                inputMode: col.digitsOnly
+                                  ? 'numeric'
+                                  : undefined,
                                 style: { textAlign: col.align || 'left' },
                               },
                             }}
