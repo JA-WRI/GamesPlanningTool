@@ -1,3 +1,4 @@
+// 90% AI
 import { expect, it, vi } from 'vitest';
 import {
   saveEstimatedCosts,
@@ -38,15 +39,13 @@ it('routes draft cost commits through the original cents-based saving action', a
   expect(saveEstimatedCosts).toHaveBeenCalledWith(7, 'nso', rows);
 });
 
-it('maps saved traveler IDs, dates, cents and calculated totals back to the grid', async () => {
+it('maps saved traveler IDs, days, cents and calculated totals back to the grid', async () => {
   vi.mocked(saveTravelers).mockResolvedValue([
     {
       id: 9,
       travelerCategory: { name: 'Staff' },
       numberOfTeamMembers: 2,
       days: 3,
-      checkInDate: new Date('2030-07-01'),
-      checkOutDate: new Date('2030-07-04'),
       travelCostInCents: 10000,
       accommodationCostInCents: 5000,
       mealsCostInCents: 2000,
@@ -57,7 +56,6 @@ it('maps saved traveler IDs, dates, cents and calculated totals back to the grid
   expect(saveTravelers).toHaveBeenCalledWith(7, 'nso', []);
   expect(saved[0]).toMatchObject({
     id: '9',
-    checkIn: '2030-07-01',
     days: 3,
     travelBudget: 100,
     totalCostPerTeamMember: 280,

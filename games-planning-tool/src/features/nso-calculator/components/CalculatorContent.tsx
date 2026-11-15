@@ -13,10 +13,7 @@ import {
   type Currency,
   type CurrencyRates,
 } from './ConversionRates';
-import {
-  calculateDaysOnSite,
-  calculateTotalCostPerMember,
-} from '../utils/calculations';
+import { calculateTotalCostPerMember } from '../utils/calculations';
 
 export type CalculatorRow = Record<string, unknown> & {
   id: string;
@@ -24,8 +21,6 @@ export type CalculatorRow = Record<string, unknown> & {
   numberOfTeamMembers: number;
   days: number;
   travelBudget: number;
-  checkIn: string;
-  checkOut: string;
   accommodationBudget: number;
   mealsBudget: number;
   insuranceBudget: number;
@@ -39,23 +34,11 @@ function createTraveler(category: string): CalculatorRow {
     numberOfTeamMembers: 0,
     days: 0,
     travelBudget: 0,
-    checkIn: '',
-    checkOut: '',
     accommodationBudget: 0,
     mealsBudget: 0,
     insuranceBudget: 0,
     totalCostPerTeamMember: 0,
   };
-}
-
-function displayDaysOnSite(checkIn: string, checkOut: string): number {
-  if (!checkIn || !checkOut) return 0;
-
-  try {
-    return calculateDaysOnSite(checkIn, checkOut);
-  } catch {
-    return 0;
-  }
 }
 
 function displayTotalCostPerMember(row: CalculatorRow): number {
@@ -64,7 +47,7 @@ function displayTotalCostPerMember(row: CalculatorRow): number {
   const meals = Number(row.mealsBudget);
   const insurance = Number(row.insuranceBudget);
 
-  const values = [travel, accommodation, meals, insurance];
+  const values = [travel, accommodation, meals, insurance, Number(row.days)];
 
   // Keep the grid from crashing while editing
   if (values.some((value) => !Number.isFinite(value) || value < 0)) {
@@ -74,20 +57,10 @@ function displayTotalCostPerMember(row: CalculatorRow): number {
   return calculateTotalCostPerMember(
     travel,
     accommodation,
-    displayDaysOnSite(row.checkIn, row.checkOut),
+    Number(row.days),
     meals,
     insurance,
   );
-}
-
-function getLocalToday(): string {
-  const today = new Date();
-
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
 }
 
 const columns: ColumnDefinition<CalculatorRow>[] = [
@@ -116,30 +89,13 @@ const columns: ColumnDefinition<CalculatorRow>[] = [
     align: 'center',
   },
   {
-    field: 'checkIn',
-    label: 'Check-in Date',
-    type: 'text',
-    placeholder: 'YYYY-MM-DD',
-    width: 155,
-    align: 'center',
-  },
-  {
-    field: 'checkOut',
-    label: 'Check-out Date',
-    type: 'text',
-    placeholder: 'YYYY-MM-DD',
-    width: 155,
-    align: 'center',
-  },
-  {
     field: 'days',
     label: 'Days on Site',
-    type: 'calculated',
+    type: 'number',
+    min: 0,
+    step: 1,
     width: 125,
     align: 'center',
-    formula: {
-      evaluate: (row) => displayDaysOnSite(row.checkIn, row.checkOut),
-    },
   },
   {
     field: 'accommodationBudget',
@@ -267,59 +223,7 @@ const CalculatorContent = forwardRef<
     },
   }));
 
-  const validateTravelerDates = (rows: CalculatorRow[]) => {
-    const today = getLocalToday();
-
-    rows.forEach((row, index) => {
-      const rowNumber = index + 1;
-
-      // Both empty is allowed
-      if (!row.checkIn && !row.checkOut) return;
-
-      // Give specific error messages
-      if (!row.checkIn) {
-        throw new Error(`Row ${rowNumber}: Please select a check-in date.`);
-      }
-
-      if (!row.checkOut) {
-        throw new Error(`Row ${rowNumber}: Please select a check-out date.`);
-      }
-
-      const previous = savedCAD.find((savedRow) => savedRow.id === row.id);
-
-      const datesChanged =
-        !previous ||
-        previous.checkIn !== row.checkIn ||
-        previous.checkOut !== row.checkOut;
-
-      try {
-        calculateDaysOnSite(
-          row.checkIn,
-          row.checkOut,
-          datesChanged ? today : undefined,
-        );
-      } catch (error) {
-        const reason =
-          error instanceof Error ? error.message : 'Invalid date range';
-
-        throw new Error(`Row ${rowNumber}: ${reason}`);
-      }
-    });
-  };
-
-  const getDateValidationError = (rows: CalculatorRow[]): string | null => {
-    try {
-      validateTravelerDates(rows);
-      return null;
-    } catch (error) {
-      return error instanceof Error
-        ? error.message
-        : 'Please correct the dates.';
-    }
-  };
-
   const handleSave = async (updatedRows: CalculatorRow[]) => {
-    validateTravelerDates(updatedRows);
     const rowsCAD = convertRows(updatedRows, currency, rates, true).map(
       calculateTravelerRow,
     );
@@ -366,7 +270,9 @@ const CalculatorContent = forwardRef<
                 }
               : column,
           )}
-          isValid={(rows) => getDateValidationError(rows) === null}
+          isValid={(rows) =>
+            rows.every((row) => Number.isSafeInteger(row.days) && row.days >= 0)
+          }
           createEmptyRow={() => createTraveler(categories[0]?.name ?? '')}
           addButtonLabel="Add New Traveler"
           showSearch={false}

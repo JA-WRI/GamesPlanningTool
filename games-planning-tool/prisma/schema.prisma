@@ -355,8 +355,6 @@ model Traveler {
 
   numberOfTeamMembers Int       @default(0) @map("number_of_team_members")
   days                Int       @default(0)
-  checkInDate         DateTime? @map("check_in_date") @db.Date
-  checkOutDate        DateTime? @map("check_out_date") @db.Date
 
   travelCostInCents        Int @default(0) @map("travel_cost_in_cents")
   accommodationCostInCents Int @default(0) @map("accommodation_cost_in_cents")

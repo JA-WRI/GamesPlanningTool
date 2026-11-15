@@ -2,7 +2,6 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { calculateDaysOnSite } from './utils/calculations';
 
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -12,8 +11,6 @@ export type TravelerInput = {
   category: string;
   numberOfTeamMembers: number;
   days: number;
-  checkIn: string;
-  checkOut: string;
   travelBudget: number;
   accommodationBudget: number;
   mealsBudget: number;
@@ -39,24 +36,6 @@ function toNonNegativeInteger(value: number): number {
   }
 
   return value;
-}
-
-function toDate(value: string): Date | null {
-  if (value === '') return null;
-
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    throw new Error('Invalid date format');
-  }
-
-  const date = new Date(`${value}T00:00:00.000Z`);
-  if (
-    Number.isNaN(date.getTime()) ||
-    date.toISOString().slice(0, 10) !== value
-  ) {
-    throw new Error('Invalid date');
-  }
-
-  return date;
 }
 
 export async function saveTravelers(
@@ -114,21 +93,12 @@ export async function saveTravelers(
         throw new Error('Unknown traveler category');
       }
 
-      const checkInDate = toDate(row.checkIn);
-      const checkOutDate = toDate(row.checkOut);
-
-      if (checkInDate && checkOutDate && checkOutDate < checkInDate) {
-        throw new Error('Check-out cannot be before check-in');
-      }
-
-      const days = calculateDaysOnSite(row.checkIn, row.checkOut);
+      const days = toNonNegativeInteger(row.days);
 
       const data = {
         travelerCategoryId,
         numberOfTeamMembers: toNonNegativeInteger(row.numberOfTeamMembers),
         days,
-        checkInDate,
-        checkOutDate,
         travelCostInCents: toCents(row.travelBudget),
         accommodationCostInCents: toCents(row.accommodationBudget),
         mealsCostInCents: toCents(row.mealsBudget),

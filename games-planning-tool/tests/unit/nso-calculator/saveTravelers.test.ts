@@ -40,8 +40,6 @@ const storedTraveler = {
   mealsCostInCents: 10000,
   insuranceCostInCents: 5000,
   extraCostsInCents: 0,
-  checkInDate: new Date('2027-06-15T00:00:00Z'),
-  checkOutDate: new Date('2027-06-17T00:00:00Z'),
 };
 
 type TravelerInput = {
@@ -50,8 +48,6 @@ type TravelerInput = {
   numberOfTeamMembers: number;
   days: number;
   travelBudget: number;
-  checkIn: string;
-  checkOut: string;
   accommodationBudget: number;
   mealsBudget: number;
   insuranceBudget: number;
@@ -65,8 +61,6 @@ function travelerRow(overrides: Partial<TravelerInput> = {}): TravelerInput {
     numberOfTeamMembers: 2,
     days: 2,
     travelBudget: 2400,
-    checkIn: '2027-06-15',
-    checkOut: '2027-06-17',
     accommodationBudget: 150,
     mealsBudget: 100,
     insuranceBudget: 50,
@@ -212,15 +206,14 @@ describe('saveTravelers — server action', () => {
     ).rejects.toThrow();
   });
 
-  it('rejects malformed date ranges before writing', async () => {
-    await expect(
-      saveTravelers(gameId, nsoId, [
-        travelerRow({ checkIn: '2027-06-20', checkOut: '2027-06-18' }),
-      ]),
-    ).rejects.toThrow();
-
-    expect(db.traveler.create).not.toHaveBeenCalled();
-  });
+  it.each([-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects invalid days: %s',
+    async (days) => {
+      await expect(
+        saveTravelers(gameId, nsoId, [travelerRow({ days })]),
+      ).rejects.toThrow('Invalid traveler count or days');
+    },
+  );
 
   it('rejects an unknown traveler category', async () => {
     await expect(

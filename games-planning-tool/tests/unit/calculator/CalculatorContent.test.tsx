@@ -27,8 +27,6 @@ const canonical = {
       category: 'Support staff',
       numberOfTeamMembers: 0,
       days: 0,
-      checkIn: '',
-      checkOut: '',
       travelBudget: 0,
       accommodationBudget: 0,
       mealsBudget: 0,
@@ -93,18 +91,23 @@ it('preserves calculator and estimated costs with database properties while Cost
   fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
   const row = screen.getAllByRole('table')[0].querySelectorAll('tbody tr')[0];
   const inputs = within(row as HTMLElement).getAllByRole('spinbutton');
-  // Members, days, travel, accommodation, meals, insurance, total/member.
+  // Members, travel, days, accommodation, meals, insurance.
   for (const [index, value] of [
     [0, 2],
     [1, 2400],
-    [2, 750],
-    [3, 118],
-    [4, 28],
+    [2, 3],
+    [3, 750],
+    [4, 118],
+    [5, 28],
   ]) {
     fireEvent.change(inputs[index], { target: { value: String(value) } });
   }
   fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
   await waitFor(() => expect(saveTravelers).toHaveBeenCalledOnce());
+  expect(saveTravelers.mock.calls[0][1][0]).toMatchObject({
+    days: 3,
+    totalCostPerTeamMember: 4796,
+  });
   await waitFor(() =>
     expect(
       within(screen.getAllByRole('table')[0]).getByText('2400'),
