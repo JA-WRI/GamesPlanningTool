@@ -10,7 +10,7 @@ beforeAll(() => {
 
 const segments = [
   { key: 'a', label: 'Not Started', value: 3, color: '#6b7280' },
-  { key: 'b', label: 'Completed', value: 7, color: '#84cc16' },
+  { key: 'b', label: 'Complete', value: 7, color: '#84cc16' },
 ];
 
 describe('DonutChart', () => {

@@ -11,7 +11,7 @@ const { prismaMock, getSession } = vi.hoisted(() => ({
   getSession: vi.fn(),
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: prismaMock }));
-vi.mock('@/lib/data', () => ({ getSession }));
+vi.mock('@/server/auth/session', () => ({ getSession }));
 
 import { saveMedalRows } from '@/features/team-size/actions/medalPotentialActions';
 

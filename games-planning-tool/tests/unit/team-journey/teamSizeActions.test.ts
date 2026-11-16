@@ -4,44 +4,52 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MOCK_DISCIPLINES, MOCK_TEAM_SIZE } from './fixtures';
 
 // fake prisma objct the tests never touch a real database
-const { prismaMock } = vi.hoisted(() => ({
+const { prismaMock, getSession } = vi.hoisted(() => ({
   prismaMock: {
     $transaction: vi.fn(),
     teamSizeEstimate: { upsert: vi.fn(), findUnique: vi.fn() },
     disciplineBreakdown: { upsert: vi.fn() },
     gameNso: { findUnique: vi.fn() },
   },
-}));
-vi.mock('@/features/team-size/actions/canEditNso', () => ({
-  canEditNso: vi.fn().mockResolvedValue(true),
+  getSession: vi.fn(),
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: prismaMock }));
+vi.mock('@/server/auth/session', () => ({ getSession }));
 // server-only throws outside the server, so the tests turn it off
 vi.mock('server-only', () => ({}));
 
 import { saveTeamSize } from '@/features/team-size/actions/teamSizeActions';
 import { getTeamSize } from '@/server/queries/teamSizeDb';
-import { canEditNso } from '@/features/team-size/actions/canEditNso';
 
 const GAME_ID = '1';
 const NSO_ID = 'b9f0193f-2e62-4141-bffb-ffa3c7f9e9d7';
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(canEditNso).mockResolvedValue(true);
+  getSession.mockResolvedValue({ user: { role: 'admin', gameId: GAME_ID } });
   prismaMock.$transaction.mockResolvedValue([]);
   // by default the NSO takes part in the game
   prismaMock.gameNso.findUnique.mockResolvedValue({ id: 'link' });
 });
 
 describe('saveTeamSize', () => {
-  it('does not save when the user cannot edit the NSO', async () => {
-    vi.mocked(canEditNso).mockResolvedValue(false);
-    expect(
-      await saveTeamSize(GAME_ID, NSO_ID, MOCK_TEAM_SIZE, MOCK_DISCIPLINES),
-    ).toEqual({ ok: false });
-    expect(prismaMock.$transaction).not.toHaveBeenCalled();
-  });
+  it.each([
+    null,
+    { user: { role: 'nso', gameId: GAME_ID, nsoId: 'another-nso' } },
+  ])(
+    'rejects unauthorized edits before accessing the database (%j)',
+    async (session) => {
+      getSession.mockResolvedValue(session);
+
+      expect(
+        await saveTeamSize(GAME_ID, NSO_ID, MOCK_TEAM_SIZE, MOCK_DISCIPLINES),
+      ).toEqual({ ok: false });
+      expect(prismaMock.gameNso.findUnique).not.toHaveBeenCalled();
+      expect(prismaMock.teamSizeEstimate.upsert).not.toHaveBeenCalled();
+      expect(prismaMock.disciplineBreakdown.upsert).not.toHaveBeenCalled();
+      expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    },
+  );
 
   it('saves the estimate and the 4 disciplines together', async () => {
     const result = await saveTeamSize(

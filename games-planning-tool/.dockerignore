@@ -1,0 +1,29 @@
+# Never bake secrets into the image — env is injected at runtime
+.env
+.env.*
+!.env.example
+
+# Dependencies / build output (rebuilt inside the image)
+node_modules
+.next
+out
+build
+src/generated/prisma
+
+# Tooling, tests, reports
+.git
+.husky
+.agents
+.claude
+.windsurf
+coverage
+playwright-report
+test-results
+blob-report
+*.tsbuildinfo
+npm-debug.log*
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml

@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest';
 
 // fake session, there is no real login yet
 const { getSession } = vi.hoisted(() => ({ getSession: vi.fn() }));
-vi.mock('@/lib/data', () => ({ getSession }));
+vi.mock('@/server/auth/session', () => ({ getSession }));
 
 import { canEditNso } from '@/features/team-size/actions/canEditNso';
 

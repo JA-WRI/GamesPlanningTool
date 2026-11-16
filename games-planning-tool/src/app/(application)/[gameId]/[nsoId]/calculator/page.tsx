@@ -16,7 +16,7 @@ import { getDraftDocument } from '@/lib/draft-actions';
 import { DRAFT_SCHEMA_VERSION, draftKeys } from '@/lib/draft-keys';
 import PropertyPricingSection from '@/features/nso-calculator/components/PropertyPricingSection';
 import { getGamesWithNsos } from '@/server/queries/games';
-import { getSession } from '@/lib/data';
+import { getSession } from '@/server/auth/session';
 import { findGame, gamesForUser } from '@/lib/routing/Navigation';
 
 export default async function CalculatorPage({

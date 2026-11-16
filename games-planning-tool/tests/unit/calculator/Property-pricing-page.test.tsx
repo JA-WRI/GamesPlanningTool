@@ -1,7 +1,7 @@
 //AI usage: over 50%
 import { beforeEach, expect, it, vi } from 'vitest';
 vi.mock('@/server/queries/games', () => ({ getGamesWithNsos: vi.fn() }));
-vi.mock('@/lib/data', () => ({ getSession: vi.fn() }));
+vi.mock('@/server/auth/session', () => ({ getSession: vi.fn() }));
 vi.mock('@/lib/calculator', () => ({ getCalculatorData: vi.fn() }));
 vi.mock('@/lib/draft-actions', () => ({ getDraftDocument: vi.fn() }));
 vi.mock('@/features/nso-calculator/components/calculator-actions', () => ({
@@ -20,7 +20,7 @@ vi.mock('@/features/nso-calculator/components/PropertyPricingSection', () => ({
   default: () => null,
 }));
 import { getGamesWithNsos } from '@/server/queries/games';
-import { getSession } from '@/lib/data';
+import { getSession } from '@/server/auth/session';
 import { getCalculatorData } from '@/lib/calculator';
 import { getDraftDocument } from '@/lib/draft-actions';
 import { ConversionRatesError } from '@/lib/calculator-errors';
@@ -54,7 +54,7 @@ beforeEach(() => {
   vi.mocked(getDraftDocument).mockResolvedValue(undefined);
   vi.mocked(getGamesWithNsos).mockResolvedValue([game]);
   vi.mocked(getSession).mockResolvedValue({
-    user: { role: 'admin', gameId: String(game.id) },
+    user: { id: 'user_1', name: 'Admin User', role: 'admin' },
   });
 });
 
@@ -101,7 +101,12 @@ it.each([
 
 it('prevents an NSO user opening another participating NSO calculator', async () => {
   vi.mocked(getSession).mockResolvedValue({
-    user: { role: 'nso', gameId: String(game.id), nsoId: participatingNso.id },
+    user: {
+      id: 'user_2',
+      name: 'NSO User',
+      role: 'nso',
+      nsoId: participatingNso.id,
+    },
   });
   await expect(
     Page({ params: params(String(game.id), otherParticipatingNso.id) }),

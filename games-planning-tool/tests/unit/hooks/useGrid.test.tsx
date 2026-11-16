@@ -4,7 +4,7 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useGrid } from '../../../../games-planning-tool/src/hooks/useGrid';
+import { useGrid } from '@/hooks/useGrid';
 
 interface TestRow extends Record<string, unknown> {
   id: string;

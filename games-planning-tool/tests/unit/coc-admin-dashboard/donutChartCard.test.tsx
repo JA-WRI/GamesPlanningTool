@@ -13,7 +13,7 @@ vi.mock(
   }),
 );
 
-const segments = [{ key: 'a', label: 'Completed', value: 5, color: '#000' }];
+const segments = [{ key: 'a', label: 'Complete', value: 5, color: '#000' }];
 
 describe('DonutChartCard', () => {
   it('renders the title', () => {
