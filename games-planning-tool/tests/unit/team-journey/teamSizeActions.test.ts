@@ -14,7 +14,7 @@ const { prismaMock, getSession } = vi.hoisted(() => ({
   getSession: vi.fn(),
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: prismaMock }));
-vi.mock('@/lib/data', () => ({ getSession }));
+vi.mock('@/server/auth/session', () => ({ getSession }));
 // server-only throws outside the server, so the tests turn it off
 vi.mock('server-only', () => ({}));
 
