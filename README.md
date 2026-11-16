@@ -60,10 +60,11 @@ docker compose down
 
 ### 6. Apply the database schema
  
-Run this once after cloning:
+Apply the committed migrations, then generate Prisma Client:
  
 ```bash
-npx prisma migrate dev
+npm run db:migrate -- --config prisma7.config.ts
+npm run prisma:generate -- --config prisma7.config.ts
 ```
 
 ### 7. Start the Next.js dev server
@@ -91,17 +92,26 @@ The schema (`prisma/schema.prisma`) is the single source of truth for database s
 1. Edit `prisma/schema.prisma` (add/change a model, field, etc.)
 2. Run a migration with a **descriptive name**:
 ```bash
-   npx prisma migrate dev --name add_comment_table
+   npx prisma migrate dev --config prisma7.config.ts --name add_comment_table
+   npm run prisma:generate -- --config prisma7.config.ts
 ```
 3. Commit both the schema change **and** the new folder created in `prisma/migrations/` to git.
 
+Keep migrations already merged into the shared branch unchanged. Add schema changes in a new migration so databases that applied the earlier migrations receive them too.
+
 #### c. After pulling teammates' changes
  
-If someone else added migrations, sync your local database:
+Stop the dev server, then apply pending migrations and regenerate the client from the pulled schema:
  
 ```bash
-npx prisma migrate dev
+npm run db:migrate -- --config prisma7.config.ts
+npm run prisma:generate -- --config prisma7.config.ts
+npm run dev
 ```
+
+Prisma 7 requires explicit client generation after schema changes. An `Unknown field` error for a relation such as `GameNso.progressTracking` can mean the running app still uses an older generated client. Regenerate it and restart the dev server.
+
+For Supabase, configure `DIRECT_URL` with the migration connection string; `prisma7.config.ts` prefers it over `DATABASE_URL`. Apply committed migrations with `migrate deploy` (the `db:migrate` script). If a migration previously failed, inspect the failure and database state before resolving it; do not reset a shared database.
 
 #### Using Prisma in code
  

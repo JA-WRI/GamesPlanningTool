@@ -12,9 +12,9 @@ import { tagHex } from '../../../src/components/commons/Tag';
 const counts: StatusCounts = {
   'Not Started': 1,
   'In Progress': 2,
-  Completed: 3,
+  Complete: 3,
   Submitted: 4,
-  'Requires Update': 5,
+  'Action Required': 5,
 };
 
 describe('status helpers', () => {
@@ -22,9 +22,9 @@ describe('status helpers', () => {
     expect(STATUS_ORDER).toEqual([
       'Not Started',
       'In Progress',
-      'Completed',
+      'Complete',
       'Submitted',
-      'Requires Update',
+      'Action Required',
     ]);
   });
 

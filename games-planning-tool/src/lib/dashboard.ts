@@ -1,12 +1,39 @@
-//50% or more AI-generated
+// AI contribution: 50% or more AI-generated
 import type { Status, StatusCounts } from '@/components/commons/status';
 import { STATUS_ORDER } from '@/components/commons/status';
+
+export type StepKey =
+  | 'contactInfo'
+  | 'teamSize'
+  | 'accreditation'
+  | 'estimatedCosts'
+  | 'reviewAndCompletion';
+
+export type Column = {
+  stepKey: StepKey;
+  title: string;
+  status: Status;
+  href: string;
+};
+
+export type Team = {
+  name: string;
+  altNames?: string[];
+  logo?: string;
+  columns: Column[];
+};
 
 export type DashboardStats = {
   total: number;
   avgCompletion: number;
   toReview: number;
   toStart: number;
+};
+
+export type DashboardChart = {
+  stepKey: StepKey;
+  title: string;
+  counts: StatusCounts;
 };
 
 export function percentage(part: number, whole: number): number {
@@ -28,7 +55,7 @@ export function computeStats(
 
   return {
     total: steps.length > 0 ? totalOf(steps[0].counts) : 0,
-    avgCompletion: percentage(sumOf('Completed'), all),
+    avgCompletion: percentage(sumOf('Complete'), all),
     toReview: percentage(sumOf('Submitted'), all),
     toStart: percentage(sumOf('Not Started'), all),
   };
@@ -62,17 +89,20 @@ export function cycleIndex(index: number, delta: number, length: number) {
   return (((index + delta) % length) + length) % length;
 }
 
-// Teams grouped by name, bucketed by their status at a given column index,
-// in STATUS_ORDER.
-export function namesByStatusAtColumn<T extends TeamLike>(
-  teams: T[],
-  columnIndex: number,
+// Group names by step identity, independent of chart or column order.
+export function namesByStatusForStep(
+  teams: { name: string; columns: Pick<Column, 'stepKey' | 'status'>[] }[],
+  stepKey: StepKey | null,
 ): Record<Status, string[]> {
   return Object.fromEntries(
     STATUS_ORDER.map((status) => [
       status,
       teams
-        .filter((team) => team.columns[columnIndex]?.status === status)
+        .filter(
+          (team) =>
+            team.columns.find((column) => column.stepKey === stepKey)
+              ?.status === status,
+        )
         .map((team) => team.name),
     ]),
   ) as Record<Status, string[]>;

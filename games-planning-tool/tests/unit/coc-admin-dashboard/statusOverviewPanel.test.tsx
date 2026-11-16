@@ -16,17 +16,17 @@ vi.mock(
 const counts = {
   'Not Started': 2,
   'In Progress': 1,
-  Completed: 7,
+  Complete: 7,
   Submitted: 0,
-  'Requires Update': 0,
+  'Action Required': 0,
 };
 
 const names: Record<Status, string[]> = {
   'Not Started': ['A', 'B'],
   'In Progress': ['C'],
-  Completed: ['N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7'],
+  Complete: ['N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7'],
   Submitted: [],
-  'Requires Update': [],
+  'Action Required': [],
 };
 
 function renderPanel(onClose = vi.fn()) {
@@ -46,11 +46,11 @@ describe('StatusOverviewPanel', () => {
     renderPanel();
 
     expect(screen.getByText('Team Size')).toBeInTheDocument();
-    expect(screen.getByText('7 of 10 completed')).toBeInTheDocument();
+    expect(screen.getByText('7 of 10 complete')).toBeInTheDocument();
     expect(screen.getByText('70%')).toBeInTheDocument();
   });
 
-  it('lists completed NSOs by default, collapsing past five', async () => {
+  it('lists complete NSOs by default, collapsing past five', async () => {
     renderPanel();
 
     expect(screen.getByText('N5')).toBeInTheDocument();
@@ -85,7 +85,7 @@ describe('StatusOverviewPanel', () => {
   it('pages to the neighbouring statuses', async () => {
     renderPanel();
 
-    // Completed sits between Not Started and In Progress
+    // Complete sits between Not Started and In Progress
     await userEvent.click(
       screen.getAllByRole('button', { name: /In Progress/ }).at(-1)!,
     );

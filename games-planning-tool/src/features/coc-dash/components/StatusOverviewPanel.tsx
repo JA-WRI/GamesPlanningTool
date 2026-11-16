@@ -16,10 +16,10 @@ import { cycleIndex, percentage } from '@/lib/dashboard';
 // Order of the status chips and of the previous/next pager.
 export const PANEL_STATUS_ORDER: Status[] = [
   'Not Started',
-  'Completed',
+  'Complete',
   'In Progress',
   'Submitted',
-  'Requires Update',
+  'Action Required',
 ];
 
 const COLLAPSED_NSO_COUNT = 5;
@@ -221,7 +221,7 @@ export default function StatusOverviewPanel({
   counts,
   nsoNamesByStatus,
   onClose,
-  initialStatus = 'Completed',
+  initialStatus = 'Complete',
 }: StatusOverviewPanelProps) {
   const [status, setStatus] = useState<Status>(initialStatus);
   const [expanded, setExpanded] = useState(false);

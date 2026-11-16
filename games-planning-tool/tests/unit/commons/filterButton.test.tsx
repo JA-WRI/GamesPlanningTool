@@ -7,7 +7,7 @@ import FilterButton, {
 } from '../../../src/components/commons/FilterButton';
 
 const options: FilterOption[] = [
-  { label: 'Completed', value: 'Completed', color: 'green' },
+  { label: 'Complete', value: 'Complete', color: 'green' },
   { label: 'Submitted', value: 'Submitted', color: 'blue' },
 ];
 
@@ -95,25 +95,25 @@ describe('FilterButton', () => {
   });
 
   it('reports a toggled option as selected', async () => {
-    const onChange = renderFilter({ selected: ['Completed'] });
+    const onChange = renderFilter({ selected: ['Complete'] });
 
     await openMenu();
     await userEvent.click(screen.getByRole('checkbox', { name: 'Submitted' }));
 
-    expect(onChange).toHaveBeenCalledWith(['Completed', 'Submitted']);
+    expect(onChange).toHaveBeenCalledWith(['Complete', 'Submitted']);
   });
 
   it('reports a toggled option as removed', async () => {
-    const onChange = renderFilter({ selected: ['Completed', 'Submitted'] });
+    const onChange = renderFilter({ selected: ['Complete', 'Submitted'] });
 
     await openMenu();
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Completed' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Complete' }));
 
     expect(onChange).toHaveBeenCalledWith(['Submitted']);
   });
 
   it('clears all selections', async () => {
-    const onChange = renderFilter({ selected: ['Completed', 'Submitted'] });
+    const onChange = renderFilter({ selected: ['Complete', 'Submitted'] });
 
     await openMenu();
     await userEvent.click(screen.getByText('Clear filters'));
@@ -130,7 +130,7 @@ describe('FilterButton', () => {
   });
 
   it('shows a badge with the number of selected options', () => {
-    renderFilter({ selected: ['Completed', 'Submitted'] });
+    renderFilter({ selected: ['Complete', 'Submitted'] });
 
     expect(screen.getByText('2')).toBeInTheDocument();
   });

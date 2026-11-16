@@ -5,14 +5,9 @@ import DonutChart from '@/components/commons/DonutChart';
 import ChartLegend from '@/components/commons/ChartLegend';
 import type { ChartSegment } from '@/components/commons/chartTypes';
 import DashboardPanel from './DashboardPanel';
+import type { TaskStatus } from '@/generated/prisma/enums';
 
-type ProgressCounts = {
-  COMPLETE: number;
-  SUBMITTED: number;
-  ACTION_REQUIRED: number;
-  IN_PROGRESS: number;
-  NOT_STARTED: number;
-};
+type ProgressCounts = Record<TaskStatus, number>;
 
 export default function PlanningProgressCard({
   counts,
@@ -51,7 +46,7 @@ export default function PlanningProgressCard({
     },
     {
       key: 'required-actions',
-      label: 'Required Actions',
+      label: 'Action Required',
       value: counts.ACTION_REQUIRED,
       color: 'var(--color-error)',
     },
@@ -88,7 +83,7 @@ export default function PlanningProgressCard({
           <ChartLegend
             items={segments.map((segment) => ({
               ...segment,
-              label: `${segment.label} (${total ? Math.round((segment.value / total) * 100) : 0}%)`,
+              label: `${segment.label} (${Math.round((segment.value / total) * 100)}%)`,
             }))}
           />
         </div>

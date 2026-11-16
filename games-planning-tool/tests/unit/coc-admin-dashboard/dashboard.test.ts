@@ -1,43 +1,47 @@
-//50% or more AI-generated
+// AI declaration:50% or more AI-generated
 import { describe, it, expect } from 'vitest';
 import {
   computeStats,
   cycleIndex,
   filterByColumnStatuses,
   filterTeams,
-  namesByStatusAtColumn,
+  namesByStatusForStep,
   percentage,
   totalOf,
 } from '../../../src/lib/dashboard';
 import type { Status } from '../../../src/components/commons/status';
+import type { StepKey } from '../../../src/lib/dashboard';
+
+const stepKeys: StepKey[] = ['contactInfo', 'teamSize'];
 
 const counts = (
   notStarted: number,
   inProgress: number,
-  completed: number,
+  complete: number,
   submitted: number,
-  requiresUpdate: number,
+  actionRequired: number,
 ) => ({
   'Not Started': notStarted,
   'In Progress': inProgress,
-  Completed: completed,
+  Complete: complete,
   Submitted: submitted,
-  'Requires Update': requiresUpdate,
+  'Action Required': actionRequired,
 });
 
 const team = (name: string, ...statuses: Status[]) => ({
   name,
   columns: statuses.map((status, i) => ({
+    stepKey: stepKeys[i],
     title: `Step ${i + 1}`,
     status,
   })),
 });
 
 const teams = [
-  team('Alpha', 'Completed', 'Not Started'),
-  team('Beta', 'Submitted', 'Completed'),
+  team('Alpha', 'Complete', 'Not Started'),
+  team('Beta', 'Submitted', 'Complete'),
   team('Gamma', 'Not Started', 'Not Started'),
-  team('Delta', 'Not Started', 'Requires Update'),
+  team('Delta', 'Not Started', 'Action Required'),
 ];
 
 describe('dashboard logic', () => {
@@ -87,12 +91,12 @@ describe('dashboard logic', () => {
 
     it('keeps teams with any step in a selected status', () => {
       expect(
-        filterTeams(teams, '', ['Requires Update']).map((t) => t.name),
+        filterTeams(teams, '', ['Action Required']).map((t) => t.name),
       ).toEqual(['Delta']);
     });
 
     it('combines search and status filters', () => {
-      expect(filterTeams(teams, 'beta', ['Completed'])).toHaveLength(1);
+      expect(filterTeams(teams, 'beta', ['Complete'])).toHaveLength(1);
       expect(filterTeams(teams, 'alpha', ['Submitted'])).toHaveLength(0);
     });
   });
@@ -103,26 +107,33 @@ describe('dashboard logic', () => {
     expect(cycleIndex(2, 1, 5)).toBe(3);
   });
 
-  describe('namesByStatusAtColumn', () => {
-    it('groups team names by their status at the given column index', () => {
-      expect(namesByStatusAtColumn(teams, 0)).toEqual({
+  describe('namesByStatusForStep', () => {
+    it('groups team names by step even when column orders differ', () => {
+      const reorderedTeams = teams.map((team, index) => ({
+        ...team,
+        columns: index % 2 === 0 ? [...team.columns].reverse() : team.columns,
+      }));
+      expect(namesByStatusForStep(reorderedTeams, 'contactInfo')).toEqual({
         'Not Started': ['Gamma', 'Delta'],
         'In Progress': [],
-        Completed: ['Alpha'],
+        Complete: ['Alpha'],
         Submitted: ['Beta'],
-        'Requires Update': [],
+        'Action Required': [],
       });
     });
 
-    it('returns an empty list for every status when the index is out of range', () => {
-      expect(namesByStatusAtColumn(teams, 99)).toEqual({
-        'Not Started': [],
-        'In Progress': [],
-        Completed: [],
-        Submitted: [],
-        'Requires Update': [],
-      });
-    });
+    it.each([null, 'accreditation'] as const)(
+      'returns empty groups when the step is unselected or missing (%s)',
+      (stepKey) => {
+        expect(namesByStatusForStep(teams, stepKey)).toEqual({
+          'Not Started': [],
+          'In Progress': [],
+          Complete: [],
+          Submitted: [],
+          'Action Required': [],
+        });
+      },
+    );
   });
 
   describe('filterByColumnStatuses', () => {
@@ -133,12 +144,12 @@ describe('dashboard logic', () => {
 
     const titledTeams = [
       titledTeam('Alpha', [
-        { title: 'Team Size', status: 'Completed' },
+        { title: 'Team Size', status: 'Complete' },
         { title: 'Accreditation', status: 'Not Started' },
       ]),
       titledTeam('Beta', [
         { title: 'Team Size', status: 'Submitted' },
-        { title: 'Accreditation', status: 'Completed' },
+        { title: 'Accreditation', status: 'Complete' },
       ]),
     ];
 
@@ -149,7 +160,7 @@ describe('dashboard logic', () => {
     it('keeps only teams matching an active column filter', () => {
       expect(
         filterByColumnStatuses(titledTeams, {
-          'Team Size': ['Completed'],
+          'Team Size': ['Complete'],
         }).map((t) => t.name),
       ).toEqual(['Alpha']);
     });
@@ -158,7 +169,7 @@ describe('dashboard logic', () => {
       expect(
         filterByColumnStatuses(titledTeams, {
           'Team Size': ['Submitted'],
-          Accreditation: ['Completed'],
+          Accreditation: ['Complete'],
         }).map((t) => t.name),
       ).toEqual(['Beta']);
     });
@@ -166,7 +177,7 @@ describe('dashboard logic', () => {
     it('excludes teams missing the filtered column entirely', () => {
       expect(
         filterByColumnStatuses(titledTeams, {
-          'Missing Column': ['Completed'],
+          'Missing Column': ['Complete'],
         }),
       ).toHaveLength(0);
     });

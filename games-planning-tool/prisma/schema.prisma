@@ -87,6 +87,8 @@ model GameNso {
   announcements    Announcement[]
   teamSizeEstimate TeamSizeEstimate?
 
+  progressTracking ProgressTracking?
+
   @@unique([gameId, nsoId])
   @@index([nsoId])
   @@map("game_nsos")
@@ -382,7 +384,25 @@ model GameProperty {
   @@map("game_properties")
 }
 
-// Calculator tables 
+
+// 1 per gameNso, separate for each game an NSO participates in
+model ProgressTracking {
+  id        String   @id @default(uuid()) @db.Uuid
+  gameNsoId String   @unique @map("game_nso_id") @db.Uuid
+  lastUpdated DateTime @updatedAt @map("last_updated")
+
+  contactInfo         TaskStatus @default(NOT_STARTED) @map("contact_info")
+  teamSize            TaskStatus @default(NOT_STARTED) @map("team_size")
+  accreditation       TaskStatus @default(NOT_STARTED)
+  estimatedCosts      TaskStatus @default(NOT_STARTED) @map("estimated_costs")
+  reviewAndCompletion TaskStatus @default(NOT_STARTED) @map("review_and_completion")
+
+  gameNso GameNso @relation(fields: [gameNsoId], references: [id], onDelete: Cascade)
+
+  @@map("progress_tracking")
+}
+
+// Calculator tables
 model Traveler {
   id                 Int    @id @default(autoincrement())
   travelerCategoryId Int    @map("traveler_category_id")

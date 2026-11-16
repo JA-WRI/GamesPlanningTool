@@ -4,22 +4,22 @@ import type { TagColor } from './Tag';
 import { tagHex } from './Tag';
 
 export type Status =
-  'Submitted' | 'In Progress' | 'Completed' | 'Not Started' | 'Requires Update';
+  'Submitted' | 'In Progress' | 'Complete' | 'Not Started' | 'Action Required';
 
 export const statusColor: Record<Status, TagColor> = {
   Submitted: 'blue',
   'In Progress': 'yellow',
-  Completed: 'green',
+  Complete: 'green',
   'Not Started': 'gray',
-  'Requires Update': 'red',
+  'Action Required': 'red',
 };
 
 export const STATUS_ORDER: Status[] = [
   'Not Started',
   'In Progress',
-  'Completed',
+  'Complete',
   'Submitted',
-  'Requires Update',
+  'Action Required',
 ];
 
 export type StatusCounts = Record<Status, number>;
