@@ -5,13 +5,13 @@ import StatusColumn from '../../../src/features/coc-dash/components/StatusColumn
 
 describe('StatusColumn', () => {
   it('renders the status tag', () => {
-    render(<StatusColumn status="Completed" href="/detail" />);
+    render(<StatusColumn status="Complete" href="/detail" />);
 
-    expect(screen.getByText('Completed')).toBeInTheDocument();
+    expect(screen.getByText('Complete')).toBeInTheDocument();
   });
 
   it('links "View Detail" to the given href', () => {
-    render(<StatusColumn status="Completed" href="/detail" />);
+    render(<StatusColumn status="Complete" href="/detail" />);
 
     expect(screen.getByRole('link', { name: 'View Detail' })).toHaveAttribute(
       'href',

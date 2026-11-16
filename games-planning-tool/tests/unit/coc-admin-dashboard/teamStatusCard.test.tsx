@@ -1,13 +1,13 @@
 //50% or more AI-generated
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import TeamStatusCard from '../../../src/features/coc-dash/components/TeamStatusCard';
 import type { Status } from '../../../src/components/commons/status';
 
 const columns: { title: string; status: Status; href: string }[] = [
-  { title: 'Contact Info', status: 'Requires Update', href: '/contact-info' },
+  { title: 'Contact Info', status: 'Action Required', href: '/contact-info' },
   { title: 'Team Size', status: 'Submitted', href: '/team-size' },
-  { title: 'Accreditation', status: 'Completed', href: '/accreditation' },
+  { title: 'Accreditation', status: 'Complete', href: '/accreditation' },
   { title: 'Estimated Costs', status: 'In Progress', href: '/estimated-costs' },
   { title: 'Review and Completion', status: 'Not Started', href: '/review' },
 ];
@@ -68,6 +68,20 @@ describe('TeamStatusCard', () => {
 
     expect(screen.queryByAltText('Badminton Canada')).not.toBeInTheDocument();
     expect(screen.getByText('Badminton Canada')).toBeInTheDocument();
+  });
+
+  it('falls back to the team name when the logo fails to load', () => {
+    renderCard();
+
+    fireEvent.error(screen.getByRole('img', { name: 'Badminton Canada' }));
+
+    expect(
+      screen.queryByRole('img', { name: 'Badminton Canada' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('Badminton Canada')).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'View Detail' })).toHaveLength(
+      columns.length,
+    );
   });
 
   it('shows the same status in more than one column', () => {

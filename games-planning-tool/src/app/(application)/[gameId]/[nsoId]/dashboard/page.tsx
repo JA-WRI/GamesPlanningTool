@@ -11,6 +11,7 @@ import { prisma } from '../../../../../lib/prisma';
 import { notFound } from 'next/navigation';
 import type { Resource } from '@/features/resources/types/resource';
 import { normalizeResourceCategories } from '@/lib/resources-data';
+import { TaskStatus } from '@/generated/prisma/enums';
 
 type DashboardPageProps = {
   params: Promise<{
@@ -86,7 +87,7 @@ export default async function Page({ params }: DashboardPageProps) {
       ])
     : [[], []];
 
-  const counts = {
+  const counts: Record<TaskStatus, number> = {
     COMPLETE: 0,
     SUBMITTED: 0,
     ACTION_REQUIRED: 0,
@@ -99,7 +100,7 @@ export default async function Page({ params }: DashboardPageProps) {
   }
 
   const actions = tasks
-    .filter((task) => task.status === 'ACTION_REQUIRED')
+    .filter((task) => task.status === TaskStatus.ACTION_REQUIRED)
     .map((task) => ({
       id: task.id,
       title: task.title,
@@ -109,7 +110,7 @@ export default async function Page({ params }: DashboardPageProps) {
   const today = getTodayInUtc();
 
   const deadlines = tasks.flatMap((task) => {
-    if (!task.deadline || task.status === 'COMPLETE') return [];
+    if (!task.deadline || task.status === TaskStatus.COMPLETE) return [];
 
     // Treat the stored deadline as a calendar date.
     const date = task.deadline.toISOString().slice(0, 10);

@@ -3,7 +3,12 @@
 import 'dotenv/config';
 import crypto from 'crypto';
 import { prisma } from '../src/lib/prisma';
-import { Role, MemberType, UserStatus } from '../src/generated/prisma/enums';
+import {
+  Role,
+  MemberType,
+  UserStatus,
+  TaskStatus,
+} from '../src/generated/prisma/enums';
 
 if (process.env.NODE_ENV === 'production') {
   throw new Error('Refusing to seed a production database.');
@@ -1081,6 +1086,7 @@ async function seedProperties(gameId: number) {
 // Exceeds 50 lines: seeds every record type in dependency order.
 async function main() {
   // Wipe in dependency order (children first)
+  await prisma.progressTracking.deleteMany();
   await prisma.resource.deleteMany();
   // Calculator data
   await prisma.traveler.deleteMany();
@@ -1214,6 +1220,39 @@ async function main() {
 
   // Resources (helper function)
   await seedResources();
+
+  // Give each NSO a distinct planning profile and cover all five statuses.
+  // Final review stays unstarted while earlier steps still need work.
+  const progressByNso = {
+    [nsos.aquatics.id]: {
+      contactInfo: TaskStatus.COMPLETE,
+      teamSize: TaskStatus.SUBMITTED,
+      accreditation: TaskStatus.IN_PROGRESS,
+      estimatedCosts: TaskStatus.ACTION_REQUIRED,
+      reviewAndCompletion: TaskStatus.NOT_STARTED,
+    },
+    [nsos.athletics.id]: {
+      contactInfo: TaskStatus.SUBMITTED,
+      teamSize: TaskStatus.ACTION_REQUIRED,
+      accreditation: TaskStatus.NOT_STARTED,
+      estimatedCosts: TaskStatus.IN_PROGRESS,
+      reviewAndCompletion: TaskStatus.NOT_STARTED,
+    },
+  };
+
+  // Create one progress record per game/NSO pairing.
+  const gameNsos = await prisma.gameNso.findMany({
+    where: {
+      gameId: game.id,
+    },
+  });
+
+  await prisma.progressTracking.createMany({
+    data: gameNsos.map((gameNso) => ({
+      gameNsoId: gameNso.id,
+      ...progressByNso[gameNso.nsoId],
+    })),
+  });
 
   console.log('Seed complete.');
 }
