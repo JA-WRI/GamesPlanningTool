@@ -3,7 +3,7 @@
 
 import type { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/prisma';
-import { getSession } from '@/lib/data';
+import { getSession } from '@/server/auth/session';
 
 const DRAFT_KEY_PATTERN = /^[a-zA-Z0-9:_-]{1,180}$/;
 const MAX_DRAFT_BYTES = 1_000_000;
@@ -16,8 +16,8 @@ async function getScopedKey(draftKey: string): Promise<string> {
   const session = await getSession();
   if (!session?.user) throw new Error('Unauthorized.');
 
-  const { role, gameId, nsoId } = session.user;
-  return `${role}:${gameId}:${nsoId ?? 'all'}:${draftKey}`;
+  const { role, id, nsoId } = session.user;
+  return `${role}:${id}:${nsoId ?? 'all'}:${draftKey}`;
 }
 
 function toJsonPayload(payload: unknown): Prisma.InputJsonValue {

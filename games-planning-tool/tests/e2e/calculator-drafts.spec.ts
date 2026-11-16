@@ -11,8 +11,10 @@ import {
 const calculatorId = 1;
 const category = 'Travel Economy Fare';
 
-function draftScope({ gameId, nsoId }: TestGameWithNso) {
-  return `admin:game_id_1:all:calculator:${calculatorId}:estimated-costs:${gameId}:${nsoId}`;
+// Draft scope keys are `<role>:<userId>:<nsoId|all>:<draftKey>`. Match on the
+// draft key so the test doesn't depend on which dev user the session picks.
+function draftScopePattern({ gameId, nsoId }: TestGameWithNso) {
+  return `%:calculator:${calculatorId}:estimated-costs:${gameId}:${nsoId}`;
 }
 
 async function savedAmount({ gameId, nsoId }: TestGameWithNso) {
@@ -30,8 +32,8 @@ async function draftAmount(fixture: TestGameWithNso) {
   return withClient(async (client) => {
     const { rows } = await client.query<{
       payload: { rows: { category: string; amount: number }[] };
-    }>(`SELECT payload FROM drafts WHERE scope_key = $1`, [
-      draftScope(fixture),
+    }>(`SELECT payload FROM drafts WHERE scope_key LIKE $1`, [
+      draftScopePattern(fixture),
     ]);
     return (
       rows[0]?.payload.rows.find((row) => row.category === category)?.amount ??
@@ -138,8 +140,8 @@ test('calculator costs save, restore, switch currency, and discard', async ({
     await expect(displayRow().locator('td').nth(1)).toHaveText('276');
   } finally {
     await withClient(async (client) => {
-      await client.query('DELETE FROM drafts WHERE scope_key = $1', [
-        draftScope(fixture),
+      await client.query('DELETE FROM drafts WHERE scope_key LIKE $1', [
+        draftScopePattern(fixture),
       ]);
       await client.query(
         'DELETE FROM estimated_cost_items WHERE game_nso_id IN (SELECT id FROM game_nsos WHERE game_id = $1 AND nso_id = $2)',

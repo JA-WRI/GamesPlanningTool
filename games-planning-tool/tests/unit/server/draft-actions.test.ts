@@ -14,7 +14,7 @@ const { prismaMock, getSessionMock } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/prisma', () => ({ prisma: prismaMock }));
-vi.mock('@/lib/data', () => ({ getSession: getSessionMock }));
+vi.mock('@/server/auth/session', () => ({ getSession: getSessionMock }));
 
 import {
   deleteDraftDocument,
@@ -25,7 +25,7 @@ import {
 beforeEach(() => {
   vi.clearAllMocks();
   getSessionMock.mockResolvedValue({
-    user: { role: 'admin', gameId: 'game_id_1' },
+    user: { id: 'user_1', name: 'Admin User', role: 'admin' },
   });
 });
 
@@ -40,7 +40,7 @@ describe('draft actions', () => {
       { id: 'one' },
     ]);
     expect(prismaMock.draft.findUnique).toHaveBeenCalledWith({
-      where: { scopeKey: 'admin:game_id_1:all:contacts:nso' },
+      where: { scopeKey: 'admin:user_1:all:contacts:nso' },
     });
   });
 
@@ -54,7 +54,7 @@ describe('draft actions', () => {
       null,
     );
     expect(prismaMock.draft.findUnique).toHaveBeenCalledWith({
-      where: { scopeKey: 'admin:game_id_1:all:calculator:1:travelers' },
+      where: { scopeKey: 'admin:user_1:all:calculator:1:travelers' },
     });
     expect(prismaMock.draft.delete).not.toHaveBeenCalled();
     expect(prismaMock.draft.deleteMany).not.toHaveBeenCalled();
@@ -66,9 +66,9 @@ describe('draft actions', () => {
     await saveDraftDocument('contacts:nso', payload);
 
     expect(prismaMock.draft.upsert).toHaveBeenCalledWith({
-      where: { scopeKey: 'admin:game_id_1:all:contacts:nso' },
+      where: { scopeKey: 'admin:user_1:all:contacts:nso' },
       create: {
-        scopeKey: 'admin:game_id_1:all:contacts:nso',
+        scopeKey: 'admin:user_1:all:contacts:nso',
         payload,
         schemaVersion: 1,
       },
@@ -94,7 +94,7 @@ describe('draft actions', () => {
     await deleteDraftDocument('contacts:nso');
 
     expect(prismaMock.draft.deleteMany).toHaveBeenCalledWith({
-      where: { scopeKey: 'admin:game_id_1:all:contacts:nso' },
+      where: { scopeKey: 'admin:user_1:all:contacts:nso' },
     });
   });
 });

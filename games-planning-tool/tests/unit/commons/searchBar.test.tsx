@@ -4,7 +4,7 @@ import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import SearchBar from '../../../../games-planning-tool/src/components/commons/SearchBar';
+import SearchBar from '@/components/commons/SearchBar';
 
 describe('SearchBar', () => {
   it('renders the default placeholder', () => {
