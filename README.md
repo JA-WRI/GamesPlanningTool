@@ -12,6 +12,11 @@
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white)](https://github.com/JA-WRI/GamesPlanningTool/security/dependabot)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=JA-WRI_GamesPlanningTool&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=JA-WRI_GamesPlanningTool)
 
+## Release Demos
+[Release 1](https://drive.google.com/file/d/1WLNsgcN2p7T3A6BSbpTmCsV1Z35oCFrs/view?usp=sharing)<br>
+[Release 2]<br>
+[Release 3]
+
 ## Project Summary
 
 Planning for the Games shouldn’t mean chasing spreadsheets, emails, and disconnected documents. The Games Planning Tool is a centralized web application that gives National Sport Organizations (NSOs) and the Canadian Olympic Committee (COC) a single source of truth for Games preparation. Starting with the Team Journey, NSOs build and refine their team plans, from participant details to arrival and departure logistics, while the COC sees the full picture across organizations and can step in whenever needed. That same shared foundation carries into cost estimation, where NSOs work from simple templates and COC-configured rates so everyone is looking at the same numbers. A dashboard ties it all together, surfacing deadlines, outstanding actions, and resources, and helping the COC spot gaps early and keep every NSO on track. The result is less duplication, fewer errors, and a more collaborative path to getting Team Canada ready to compete.
@@ -195,3 +200,23 @@ npm run dev                       # start Next.js dev server
 npx prisma studio                 # open visual DB browser (localhost:5555)
 npx prisma migrate dev --name x   # create + apply a new migration
 ```
+
+## [Wiki Table of Contents](https://github.com/JA-WRI/GamesPlanningTool/wiki)
+
+01. Meeting Minutes
+02. Risks
+03. User consent and end-user license agreement
+04. Legal and Ethical issues
+05. Economic
+06. Budget
+07. Personas
+08. Diversity statement
+09. Overall Architecture and Class Diagrams
+10. Infrastructure and tools
+11. Name Conventions
+12. Testing Plan and Continuous Integration
+13. Security
+14. Performance
+15. Deployment Plan and Infrastructure
+16. Missing knowledge and Independent Learning
+17. Iteration and Release Notes
