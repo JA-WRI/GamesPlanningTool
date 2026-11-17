@@ -38,6 +38,14 @@ git clone https://github.com/JA-WRI/GamesPlanningTool.git
 cd games-planning-tool
 ```
 
+> ## Running the app in Docker
+> No need to follow remaining steps if your goal is to run the application in docker
+> ```bash
+> docker compose up --build -d # build and start the app on http://localhost:3000
+> docker compose logs -f app # follow the app logs
+> docker compose down # stop it
+> ```
+
 ### 3. Install dependencies
 
 ```bash
@@ -182,14 +190,6 @@ prisma/
 ```
 
 You'll edit `schema.prisma` directly when adding/changing a model, then run a migration.
-
-## Running the app in Docker
-
-```bash
-docker compose up --build -d # build and start the app on http://localhost:3000
-docker compose logs -f app # follow the app logs
-docker compose down # stop it
-```
 
 ## Quick reference — common commands
 
