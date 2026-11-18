@@ -41,7 +41,7 @@ cd games-planning-tool
 ```
 
 > ## Running the app in Docker
-> No need to follow remaining steps if your goal is to run the application in docker
+> If you have the access to the env file no need to follow remaining steps if your goal is to run the application in docker. Please contact the Repo owner for access to the .env file.
 > ```bash
 > docker compose up --build -d # build and start the app on http://localhost:3000
 > docker compose logs -f app # follow the app logs
