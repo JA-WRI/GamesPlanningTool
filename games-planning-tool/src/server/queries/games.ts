@@ -30,3 +30,18 @@ export const getGamesWithNsos = cache(async (): Promise<GameWithNsos[]> => {
     nsos: gameNsos.map((gn) => gn.nso),
   }));
 });
+
+export const getActiveOrInactiveGameById = cache(async (gameId: string) => {
+  const id = Number(gameId);
+  if (!Number.isInteger(id)) return null;
+  return prisma.game.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      startDate: true,
+      endDate: true,
+      isActive: true,
+    },
+  });
+});
