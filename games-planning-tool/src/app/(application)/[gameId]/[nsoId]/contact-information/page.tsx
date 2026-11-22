@@ -1,24 +1,25 @@
-// No substantial AI-generated code
-'use client';
+// less then 50% AI generated
+import NSOGeneralInfoSection from '../../../../../features/contact-information/components/NSOInfoPage';
+import { getNsoInfo } from '@/lib/nsoInfo';
+import { notFound } from 'next/navigation';
 
-import NSOGeneralInfoSection, {
-  NSOInfoPage,
-} from '../../../../../features/contact-information/components/NSOInfoPage';
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ gameId: string; nsoId: string }>;
+}) {
+  const { gameId, nsoId } = await params;
 
-// mock data
-const initialNSOData: NSOInfoPage = {
-  name: 'Badminton Canada',
-  sport: 'Badminton',
-  primaryContactEmail: 'info@badmintoncanada.org',
-};
+  const info = await getNsoInfo(nsoId, Number(gameId));
+  if (!info) notFound();
 
-export default function Page() {
   return (
     <div className="p-6">
       <NSOGeneralInfoSection
+        key={`${gameId}-${nsoId}`}
         title="NSO General Information"
         description="National Sport Organization Information"
-        initialData={initialNSOData}
+        initialData={info}
       />
     </div>
   );

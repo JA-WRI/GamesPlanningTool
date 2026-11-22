@@ -226,8 +226,8 @@ model Resource {
 
 model Contact {
   id          String      @id @default(uuid())
-  nsoId       String      @db.Uuid
-  gameId      Int
+  nsoId       String?     @map("nso_id")@db.Uuid
+  gameId      Int         @map("game_id")
   role        String
   type        ContactType
   isPrimary   Boolean     @default(false) @map("is_primary")
@@ -236,14 +236,12 @@ model Contact {
   email       String
   countryCode String      @map("country_code")
   phone       String
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
 
   game Game @relation(fields: [gameId], references: [id])
-  nso  Nso  @relation(fields: [nsoId], references: [id])
+  nso  Nso?  @relation(fields: [nsoId], references: [id])
 
   @@index([nsoId, gameId])
-  @@map("nso_contacts")
+  @@map("contacts")
 }
 
 model PgtcDiscipline {
