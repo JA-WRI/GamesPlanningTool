@@ -12,9 +12,12 @@ type GameTab = 'active' | 'archived';
 export default function SystemSettingsPage({
   active,
   archived,
+  sectionsDone,
 }: {
   active: GameSummary[];
   archived: GameSummary[];
+  // Setup sections done, keyed by game id.
+  sectionsDone: Record<number, number>;
 }) {
   const [tab, setTab] = useState<GameTab>('active');
   const [popupOpen, setPopupOpen] = useState(false);
@@ -77,7 +80,13 @@ export default function SystemSettingsPage({
             No {tab === 'active' ? 'active' : 'archived'} games.
           </p>
         ) : (
-          games.map((game) => <GameCard key={game.id} game={game} />)
+          games.map((game) => (
+            <GameCard
+              key={game.id}
+              game={game}
+              sectionsDone={sectionsDone[game.id] ?? 0}
+            />
+          ))
         )}
       </div>
 

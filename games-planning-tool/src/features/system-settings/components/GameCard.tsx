@@ -3,16 +3,18 @@
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
+import { ListItemIcon, ListItemText, Menu, MenuItem } from '@mui/material';
 import ArchiveIcon from '@mui/icons-material/Archive';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import type { GameSummary } from '@/lib/types';
+import { CONFIG_SECTIONS } from '@/lib/admin-config-sections';
+import SetupProgressBar from '@/components/admin-settings/SetupProgressBar';
 import { setGameActive } from '@/features/system-settings/actions/setGameActive';
 import DeleteGameDialog from './DeleteGamePopup';
 
-// Fixed locale and UTC so the server and browser render the same text,
-// and a date-only value never shifts to the previous day.
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString('en-US', {
     month: 'short',
@@ -26,12 +28,13 @@ function formatRange(start: string | null, end: string | null) {
   return `${start ? formatDate(start) : 'TBD'} – ${end ? formatDate(end) : 'TBD'}`;
 }
 
+const labelClass =
+  'text-[11px] font-medium uppercase tracking-wide text-gray-400';
+
 function DateBlock({ label, value }: { label: string; value: string | null }) {
   return (
     <div>
-      <dt className="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-        {label}
-      </dt>
+      <dt className={labelClass}>{label}</dt>
       <dd
         className={`mt-1 text-sm ${value ? 'text-gray-900' : 'text-gray-400'}`}
       >
@@ -44,14 +47,24 @@ function DateBlock({ label, value }: { label: string; value: string | null }) {
 const iconButton =
   'shrink-0 rounded-full p-2 text-gray-400 transition focus:outline-none focus-visible:ring-2 disabled:opacity-50';
 
-export default function GameCard({ game }: { game: GameSummary }) {
+export default function GameCard({
+  game,
+  sectionsDone,
+}: {
+  game: GameSummary;
+  sectionsDone: number;
+}) {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const archiveLabel = game.isActive ? 'Archive' : 'Restore';
+  const ArchiveToggleIcon = game.isActive ? ArchiveIcon : UnarchiveIcon;
+  const totalSections = CONFIG_SECTIONS.length;
 
   const handleToggleActive = () => {
+    setMenuAnchor(null);
     setError(null);
     startTransition(async () => {
       const result = await setGameActive(game.id, !game.isActive);
@@ -59,8 +72,14 @@ export default function GameCard({ game }: { game: GameSummary }) {
     });
   };
 
+  const openDelete = () => {
+    setMenuAnchor(null);
+    setConfirmOpen(true);
+  };
+
   return (
-    <article className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1.6fr)_auto] items-center gap-8 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm transition hover:shadow-md">
+    // Stacked on small screens; one row from lg up.
+    <article className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white px-6 py-5 shadow-sm transition hover:shadow-md lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto] lg:items-center lg:gap-8">
       <div className="min-w-0">
         <h3 className="truncate text-base font-semibold text-gray-900">
           {game.name}
@@ -84,7 +103,22 @@ export default function GameCard({ game }: { game: GameSummary }) {
         />
       </dl>
 
-      <div className="flex items-center gap-2">
+      <div>
+        <div className="flex items-baseline justify-between gap-2">
+          <span className={labelClass}>Setup</span>
+          <span className="text-xs text-gray-500">
+            {sectionsDone} of {totalSections} sections
+          </span>
+        </div>
+        <SetupProgressBar
+          done={sectionsDone}
+          total={totalSections}
+          label={`Setup progress for ${game.name}`}
+          className="mt-2"
+        />
+      </div>
+
+      <div className="flex items-center justify-between gap-2 lg:justify-end">
         {/* The game's setup index redirects to its first section. */}
         <Link
           href={`/admin/system-settings/${game.id}`}
@@ -93,32 +127,64 @@ export default function GameCard({ game }: { game: GameSummary }) {
           View Configurations
         </Link>
 
-        {/* Archive / Restore */}
-        <button
-          type="button"
-          onClick={handleToggleActive}
-          disabled={isPending}
-          aria-label={`${archiveLabel} ${game.name}`}
-          title={archiveLabel}
-          className={`${iconButton} hover:bg-amber-50 hover:text-[#B5650D] focus-visible:ring-amber-300`}
-        >
-          {game.isActive ? (
-            <ArchiveIcon fontSize="small" aria-hidden />
-          ) : (
-            <UnarchiveIcon fontSize="small" aria-hidden />
-          )}
-        </button>
+        {/* Monitors (1600px+): archive and delete stay in view. Laptops are
+            usually 1280–1536px, so they get the ⋮ menu below instead.
+            Keep this breakpoint the same as the ⋮ button's. */}
+        <div className="hidden items-center gap-2 min-[1600px]:flex">
+          <button
+            type="button"
+            onClick={handleToggleActive}
+            disabled={isPending}
+            aria-label={`${archiveLabel} ${game.name}`}
+            title={archiveLabel}
+            className={`${iconButton} hover:bg-amber-50 hover:text-[#B5650D] focus-visible:ring-amber-300`}
+          >
+            <ArchiveToggleIcon fontSize="small" aria-hidden />
+          </button>
 
-        {/* Delete */}
+          <button
+            type="button"
+            onClick={openDelete}
+            aria-label={`Delete ${game.name}`}
+            title="Delete"
+            className={`${iconButton} hover:bg-red-50 hover:text-red-600 focus-visible:ring-red-300`}
+          >
+            <DeleteIcon fontSize="small" aria-hidden />
+          </button>
+        </div>
+
+        {/* Laptops and smaller (under 1600px): archive and delete live in a ⋮ menu. */}
         <button
           type="button"
-          onClick={() => setConfirmOpen(true)}
-          aria-label={`Delete ${game.name}`}
-          title="Delete"
-          className={`${iconButton} hover:bg-red-50 hover:text-red-600 focus-visible:ring-red-300`}
+          onClick={(e) => setMenuAnchor(e.currentTarget)}
+          disabled={isPending}
+          aria-label={`More actions for ${game.name}`}
+          aria-haspopup="menu"
+          aria-expanded={menuAnchor ? 'true' : undefined}
+          className={`${iconButton} hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-gray-300 min-[1600px]:hidden`}
         >
-          <DeleteIcon fontSize="small" aria-hidden />
+          <MoreVertIcon fontSize="small" aria-hidden />
         </button>
+        <Menu
+          anchorEl={menuAnchor}
+          open={menuAnchor !== null}
+          onClose={() => setMenuAnchor(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <MenuItem onClick={handleToggleActive}>
+            <ListItemIcon>
+              <ArchiveToggleIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>{archiveLabel}</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={openDelete} sx={{ color: 'error.main' }}>
+            <ListItemIcon sx={{ color: 'inherit' }}>
+              <DeleteIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Delete</ListItemText>
+          </MenuItem>
+        </Menu>
       </div>
 
       {error && (

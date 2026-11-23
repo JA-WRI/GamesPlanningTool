@@ -32,6 +32,7 @@ vi.mock('@/features/system-settings/components/DeleteGamePopup', () => ({
 
 import { setGameActive } from '@/features/system-settings/actions/setGameActive';
 import GameCard from '@/features/system-settings/components/GameCard';
+import { CONFIG_SECTIONS } from '@/lib/admin-config-sections';
 
 const setGameActiveMock = vi.mocked(setGameActive);
 
@@ -56,10 +57,16 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
-function setup(overrides: Partial<GameSummary> = {}) {
+function setup(overrides: Partial<GameSummary> = {}, sectionsDone = 0) {
   const game = makeGame(overrides);
-  return { game, user: userEvent.setup(), ...render(<GameCard game={game} />) };
+  return {
+    game,
+    user: userEvent.setup(),
+    ...render(<GameCard game={game} sectionsDone={sectionsDone} />),
+  };
 }
+
+const total = CONFIG_SECTIONS.length;
 
 describe('GameCard', () => {
   beforeEach(() => {
@@ -116,6 +123,78 @@ describe('GameCard', () => {
       });
 
       expect(screen.getByText('Jan 1, 2028 – Jan 2, 2028')).toBeInTheDocument();
+    });
+  });
+
+  describe('setup progress', () => {
+    it('shows how many setup sections are done', () => {
+      setup({ name: 'G' }, 3);
+
+      expect(screen.getByText(`3 of ${total} sections`)).toBeInTheDocument();
+      const bar = screen.getByRole('progressbar', {
+        name: 'Setup progress for G',
+      });
+      expect(bar).toHaveAttribute('aria-valuenow', '3');
+      expect(bar).toHaveAttribute('aria-valuemax', String(total));
+    });
+
+    it('shows an empty bar for a new game', () => {
+      setup({ name: 'G' }, 0);
+
+      expect(screen.getByText(`0 of ${total} sections`)).toBeInTheDocument();
+      expect(screen.getByRole('progressbar')).toHaveAttribute(
+        'aria-valuenow',
+        '0',
+      );
+    });
+  });
+
+  describe('more actions menu (smaller screens)', () => {
+    const openMenu = (user: ReturnType<typeof userEvent.setup>) =>
+      user.click(screen.getByRole('button', { name: 'More actions for G' }));
+
+    it('is closed until the ⋮ button is clicked', async () => {
+      const { user } = setup({ name: 'G' });
+
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      await openMenu(user);
+
+      expect(screen.getByRole('menuitem', { name: 'Archive' })).toBeVisible();
+      expect(screen.getByRole('menuitem', { name: 'Delete' })).toBeVisible();
+    });
+
+    it('archives an active game from the menu', async () => {
+      setGameActiveMock.mockResolvedValue({ ok: true });
+      const { user } = setup({ id: 42, name: 'G', isActive: true });
+
+      await openMenu(user);
+      await user.click(screen.getByRole('menuitem', { name: 'Archive' }));
+
+      await waitFor(() =>
+        expect(setGameActiveMock).toHaveBeenCalledWith(42, false),
+      );
+    });
+
+    it('offers Restore for an archived game', async () => {
+      setGameActiveMock.mockResolvedValue({ ok: true });
+      const { user } = setup({ id: 42, name: 'G', isActive: false });
+
+      await openMenu(user);
+      await user.click(screen.getByRole('menuitem', { name: 'Restore' }));
+
+      await waitFor(() =>
+        expect(setGameActiveMock).toHaveBeenCalledWith(42, true),
+      );
+    });
+
+    it('opens the delete popup from the menu', async () => {
+      const { user } = setup({ id: 9, name: 'G' });
+
+      await openMenu(user);
+      await user.click(screen.getByRole('menuitem', { name: 'Delete' }));
+
+      expect(screen.getByTestId('delete-popup')).toHaveTextContent('9:G');
+      expect(setGameActiveMock).not.toHaveBeenCalled();
     });
   });
 

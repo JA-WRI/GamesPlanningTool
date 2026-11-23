@@ -11,6 +11,7 @@ import {
   sectionHref,
   type SectionCompletion,
 } from '@/lib/admin-config-sections';
+import SetupProgressBar from './SetupProgressBar';
 
 // Free stepper: every section can be opened in any order. A side menu on wide
 // screens; on narrower screens it sits above the step and scrolls sideways.
@@ -32,22 +33,10 @@ export default function ConfigSetupStepper({
       className="flex flex-col gap-3 lg:sticky lg:top-4 lg:w-56 lg:shrink-0 xl:w-64 lg:self-start p-3 rounded-lg border border-black/15 shadow-sm"
     >
       <div>
-        <p className="text-sm font-semibold">
+        <p className="text-sm text-gray-500">
           {done} of {total} sections done
         </p>
-        <div
-          role="progressbar"
-          aria-label="Setup progress"
-          aria-valuemin={0}
-          aria-valuemax={total}
-          aria-valuenow={done}
-          className="mt-1 h-2 overflow-hidden rounded-full bg-black/10"
-        >
-          <div
-            className="bg-success h-full rounded-full transition-[width]"
-            style={{ width: `${(done / total) * 100}%` }}
-          />
-        </div>
+        <SetupProgressBar done={done} total={total} className="mt-1" />
       </div>
 
       <ol className="-mx-2 flex gap-2 overflow-x-auto px-2 pb-2 lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0 lg:pb-0">
@@ -66,7 +55,11 @@ export default function ConfigSetupStepper({
                 }`}
               >
                 <StatusMark isComplete={isComplete} />
-                <span className="text-sm font-semibold whitespace-nowrap">
+                <span
+                  className={`text-sm whitespace-nowrap ${
+                    isActive ? 'text-gray-900' : 'text-gray-500'
+                  }`}
+                >
                   {i + 1}. {section.label}
                 </span>
               </Link>

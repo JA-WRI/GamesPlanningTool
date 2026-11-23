@@ -25,7 +25,7 @@ export default async function GameSetupLayout({
         <header className="flex flex-col gap-1 p-3">
           <Link
             href="/admin/system-settings"
-            className="inline-flex items-center gap-1 self-start text-sm"
+            className="inline-flex items-center gap-1 self-start text-sm pb-5"
           >
             <ArrowBackIcon fontSize="inherit" aria-hidden />
             All Games

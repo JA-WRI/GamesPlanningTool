@@ -4,8 +4,16 @@ import userEvent from '@testing-library/user-event';
 import type { GameSummary } from '@/lib/types';
 
 vi.mock('@/features/system-settings/components/GameCard', () => ({
-  default: ({ game }: { game: { id: number; name: string } }) => (
-    <div data-testid="game-card">{game.name}</div>
+  default: ({
+    game,
+    sectionsDone,
+  }: {
+    game: { id: number; name: string };
+    sectionsDone: number;
+  }) => (
+    <div data-testid="game-card" data-sections-done={sectionsDone}>
+      {game.name}
+    </div>
   ),
 }));
 
@@ -38,10 +46,20 @@ const makeGame = (
   planningPeriodEnd: null,
 });
 
-function setup(active: GameSummary[] = [], archived: GameSummary[] = []) {
+function setup(
+  active: GameSummary[] = [],
+  archived: GameSummary[] = [],
+  sectionsDone: Record<number, number> = {},
+) {
   return {
     user: userEvent.setup(),
-    ...render(<SystemSettingsPage active={active} archived={archived} />),
+    ...render(
+      <SystemSettingsPage
+        active={active}
+        archived={archived}
+        sectionsDone={sectionsDone}
+      />,
+    ),
   };
 }
 
@@ -147,6 +165,15 @@ describe('SystemSettingsPage', () => {
         .getAllByTestId('game-card')
         .map((card) => card.textContent);
       expect(names).toEqual(['First', 'Second']);
+    });
+
+    it("passes each game's sections done to its card, defaulting to 0", () => {
+      setup([makeGame(1, 'A', true), makeGame(2, 'B', true)], [], { 1: 4 });
+
+      const done = screen
+        .getAllByTestId('game-card')
+        .map((card) => card.getAttribute('data-sections-done'));
+      expect(done).toEqual(['4', '0']);
     });
   });
 
