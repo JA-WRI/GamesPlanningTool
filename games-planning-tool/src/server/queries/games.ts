@@ -5,11 +5,7 @@ import { connection } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import type { GameWithNsos } from '@/lib/types';
 
-// All active games with the active NSOs participating in each.
-// Cached per request, so layouts, pages and the header share one query.
 export const getGamesWithNsos = cache(async (): Promise<GameWithNsos[]> => {
-  // Run at request time, this fixes the `next build` in CI (CI has no database then).
-  // Could possibly take out once auth is implemented but would still need this in paged that don't verify sessions.
   await connection();
   const rows = await prisma.game.findMany({
     where: { isActive: true },
@@ -30,3 +26,69 @@ export const getGamesWithNsos = cache(async (): Promise<GameWithNsos[]> => {
     nsos: gameNsos.map((gn) => gn.nso),
   }));
 });
+
+export type GameSummary = {
+  id: number;
+  name: string;
+  country: string;
+  city: string;
+  isActive: boolean;
+  startDate: string | null;
+  endDate: string | null;
+  planningPeriodStart: string | null;
+  planningPeriodEnd: string | null;
+};
+
+export const getGamesByStatus = cache(
+  async (): Promise<{ active: GameSummary[]; archived: GameSummary[] }> => {
+    await connection();
+    const rows = await prisma.game.findMany({
+      orderBy: [{ startDate: { sort: 'desc', nulls: 'last' } }, { id: 'desc' }],
+      select: {
+        id: true,
+        name: true,
+        country: true,
+        city: true,
+        isActive: true,
+        startDate: true,
+        endDate: true,
+        planningPeriodStart: true,
+        planningPeriodEnd: true,
+      },
+    });
+
+    const games: GameSummary[] = rows.map((g) => ({
+      ...g,
+      startDate: g.startDate?.toISOString() ?? null,
+      endDate: g.endDate?.toISOString() ?? null,
+      planningPeriodStart: g.planningPeriodStart?.toISOString() ?? null,
+      planningPeriodEnd: g.planningPeriodEnd?.toISOString() ?? null,
+    }));
+
+    return {
+      active: games.filter((g) => g.isActive),
+      archived: games.filter((g) => !g.isActive),
+    };
+  },
+);
+
+// Writes are not wrapped in cache(): they must run every time.
+export async function insertGame(data: {
+  name: string;
+  country: string;
+  city: string;
+}) {
+  return prisma.game.create({ data, select: { id: true } });
+}
+
+export async function removeGame(id: number) {
+  return prisma.game.delete({ where: { id }, select: { id: true } });
+}
+
+export async function updateGameActive(id: number, isActive: boolean) {
+  return prisma.game.update({
+    where: { id },
+    data: { isActive },
+    select: { id: true },
+  });
+}

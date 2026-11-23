@@ -1,5 +1,8 @@
-import React from 'react';
+//50% or more AI generated
+import { getGamesByStatus } from '@/server/queries/games';
+import SystemSettingsPage from './_components/SystemSettingsPage';
 
-export default function page() {
-  return <div>page</div>;
+export default async function Page() {
+  const { active, archived } = await getGamesByStatus();
+  return <SystemSettingsPage active={active} archived={archived} />;
 }
