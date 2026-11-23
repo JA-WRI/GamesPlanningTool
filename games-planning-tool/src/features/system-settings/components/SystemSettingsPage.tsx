@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import AddIcon from '@mui/icons-material/Add';
 import type { GameSummary } from '@/lib/types';
 import GameCard from './GameCard';
 import NewGamePopup from './NewGamePopup';
@@ -60,13 +61,7 @@ export default function SystemSettingsPage({
           onClick={() => setPopupOpen(true)}
           className="mb-2 flex items-center gap-1.5 rounded-lg border border-[#B5650D] px-3 py-1.5 text-sm font-medium text-[#B5650D] transition hover:bg-[#B5650D] hover:text-white"
         >
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            className="h-4 w-4 fill-current"
-          >
-            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z" />
-          </svg>
+          <AddIcon fontSize="small" aria-hidden />
           New Game
         </button>
       </div>

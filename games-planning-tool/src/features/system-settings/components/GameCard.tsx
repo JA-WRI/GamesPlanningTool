@@ -2,6 +2,11 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import Link from 'next/link';
+import ArchiveIcon from '@mui/icons-material/Archive';
+import DeleteIcon from '@mui/icons-material/Delete';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import type { GameSummary } from '@/lib/types';
 import { setGameActive } from '@/features/system-settings/actions/setGameActive';
 import DeleteGameDialog from './DeleteGamePopup';
@@ -61,13 +66,7 @@ export default function GameCard({ game }: { game: GameSummary }) {
           {game.name}
         </h3>
         <p className="mt-1 flex items-center gap-1 text-sm text-gray-500">
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            className="h-3.5 w-3.5 shrink-0 fill-current"
-          >
-            <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
-          </svg>
+          <LocationOnIcon fontSize="inherit" className="shrink-0" aria-hidden />
           <span className="truncate">
             {game.city}, {game.country}
           </span>
@@ -86,12 +85,13 @@ export default function GameCard({ game }: { game: GameSummary }) {
       </dl>
 
       <div className="flex items-center gap-2">
-        <button
-          type="button"
+        {/* The game's setup index redirects to its first section. */}
+        <Link
+          href={`/admin/system-settings/${game.id}`}
           className="shrink-0 rounded-lg bg-[#B5650D] px-4 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-[#9A540A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B5650D]/40 focus-visible:ring-offset-2"
         >
           View Configurations
-        </button>
+        </Link>
 
         {/* Archive / Restore */}
         <button
@@ -102,17 +102,11 @@ export default function GameCard({ game }: { game: GameSummary }) {
           title={archiveLabel}
           className={`${iconButton} hover:bg-amber-50 hover:text-[#B5650D] focus-visible:ring-amber-300`}
         >
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            className="h-5 w-5 fill-current"
-          >
-            {game.isActive ? (
-              <path d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5L6.5 12H10v-2h4v2h3.5L12 17.5zM5.12 5l.81-1h12l.94 1H5.12z" />
-            ) : (
-              <path d="M20.55 5.22l-1.39-1.68A1.51 1.51 0 0 0 18 3H6c-.47 0-.88.21-1.15.55L3.46 5.22C3.17 5.57 3 6.02 3 6.5V19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.45-1.28zM12 9.5l5.5 5.5H14v2h-4v-2H6.5L12 9.5zM5.12 5l.82-1h12l.93 1H5.12z" />
-            )}
-          </svg>
+          {game.isActive ? (
+            <ArchiveIcon fontSize="small" aria-hidden />
+          ) : (
+            <UnarchiveIcon fontSize="small" aria-hidden />
+          )}
         </button>
 
         {/* Delete */}
@@ -123,13 +117,7 @@ export default function GameCard({ game }: { game: GameSummary }) {
           title="Delete"
           className={`${iconButton} hover:bg-red-50 hover:text-red-600 focus-visible:ring-red-300`}
         >
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            className="h-5 w-5 fill-current"
-          >
-            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-          </svg>
+          <DeleteIcon fontSize="small" aria-hidden />
         </button>
       </div>
 

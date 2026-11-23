@@ -74,6 +74,14 @@ describe('GameCard', () => {
       expect(screen.getByText('Los Angeles, USA')).toBeInTheDocument();
     });
 
+    it("links View Configurations to the game's setup pages", () => {
+      setup({ id: 42 });
+
+      expect(
+        screen.getByRole('link', { name: 'View Configurations' }),
+      ).toHaveAttribute('href', '/admin/system-settings/42');
+    });
+
     it('shows "Not set" for both date ranges when there are no dates', () => {
       setup();
 
