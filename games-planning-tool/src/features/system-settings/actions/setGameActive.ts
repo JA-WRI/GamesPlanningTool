@@ -2,6 +2,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { assertAdmin } from '@/server/auth/permissions';
 import { updateGameActive } from '@/server/queries/games';
 
 export type SetGameActiveResult = { ok: true } | { ok: false; error: string };
@@ -10,7 +11,8 @@ export async function setGameActive(
   id: number,
   isActive: boolean,
 ): Promise<SetGameActiveResult> {
-  // TODO: check on the server that the caller is a COC/Admin user.
+  // Only admins manage games. Checked here because actions can be called directly.
+  await assertAdmin('Only admins can manage games.');
   if (!Number.isInteger(id) || typeof isActive !== 'boolean') {
     return { ok: false, error: 'Invalid request.' };
   }

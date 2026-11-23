@@ -10,18 +10,13 @@ import {
   updateResourceCategories as updateResourceCategoriesInDb,
 } from '@/lib/resources';
 import { uploadResourceFile } from '@/lib/storage';
-import { getSession } from '@/server/auth/session'; // TODO(auth): real session
+import { assertAdmin } from '@/server/auth/permissions';
 import {
   MAX_RESOURCE_FILE_SIZE,
   MAX_RESOURCE_FILE_SIZE_MESSAGE,
 } from '@/features/resources/types/resource';
 
-async function assertAdmin() {
-  const session = await getSession();
-  if (session.user.role !== 'admin') {
-    throw new Error('You do not have permission to modify resources.');
-  }
-}
+const NO_PERMISSION = 'You do not have permission to modify resources.';
 
 function parseCategories(value: FormDataEntryValue | null): string[] {
   if (typeof value !== 'string' || value === '') return [];
@@ -62,7 +57,7 @@ export async function createLinkResource(input: {
   categories: string[];
   parentId?: string | null;
 }) {
-  await assertAdmin();
+  await assertAdmin(NO_PERMISSION);
 
   return createResource({
     name: input.name,
@@ -78,7 +73,7 @@ export async function createFolder(input: {
   categories?: string[];
   parentId?: string | null;
 }) {
-  await assertAdmin();
+  await assertAdmin(NO_PERMISSION);
 
   return createResource({
     name: input.name,
@@ -89,7 +84,7 @@ export async function createFolder(input: {
 }
 
 export async function createFileResource(formData: FormData) {
-  await assertAdmin();
+  await assertAdmin(NO_PERMISSION);
 
   const file = formData.get('file');
   const name = String(formData.get('name') ?? '').trim();
@@ -112,7 +107,7 @@ export async function createFileResource(formData: FormData) {
 }
 
 export async function renameResource(id: string, name: string) {
-  await assertAdmin();
+  await assertAdmin(NO_PERMISSION);
   return renameResourceInDb(id, name);
 }
 
@@ -120,12 +115,12 @@ export async function updateResourceCategories(
   id: string,
   categories: string[],
 ) {
-  await assertAdmin();
+  await assertAdmin(NO_PERMISSION);
   return updateResourceCategoriesInDb(id, categories);
 }
 
 export async function deleteResources(ids: string[]) {
-  await assertAdmin();
+  await assertAdmin(NO_PERMISSION);
   return deleteResourcesFromDb(ids);
 }
 
@@ -133,7 +128,7 @@ export async function moveResources(
   ids: string[],
   targetParentId: string | null,
 ) {
-  await assertAdmin();
+  await assertAdmin(NO_PERMISSION);
   return moveResourcesInDb(ids, targetParentId);
 }
 
@@ -141,6 +136,6 @@ export async function reorderResources(
   parentId: string | null,
   orderedIds: string[],
 ) {
-  await assertAdmin();
+  await assertAdmin(NO_PERMISSION);
   return reorderResourcesInDb(parentId, orderedIds);
 }

@@ -8,18 +8,25 @@ vi.mock('@/server/queries/games', () => ({
   insertGame: vi.fn(),
 }));
 
+vi.mock('@/server/auth/permissions', () => ({
+  assertAdmin: vi.fn(),
+}));
+
 import { revalidatePath } from 'next/cache';
+import { assertAdmin } from '@/server/auth/permissions';
 import { insertGame } from '@/server/queries/games';
 import { createGame } from '@/features/system-settings/actions/createGame';
 
 const insertGameMock = vi.mocked(insertGame);
 const revalidatePathMock = vi.mocked(revalidatePath);
+const assertAdminMock = vi.mocked(assertAdmin);
 
 const valid = { name: 'Summer Games', country: 'USA', city: 'Los Angeles' };
 
 describe('createGame', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    assertAdminMock.mockResolvedValue(undefined);
     insertGameMock.mockResolvedValue({ id: 1 } as never);
 
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -27,6 +34,23 @@ describe('createGame', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  describe('permissions', () => {
+    it('rejects callers who are not admins', async () => {
+      assertAdminMock.mockRejectedValue(
+        new Error('Only admins can manage games.'),
+      );
+
+      await expect(createGame(valid)).rejects.toThrow(
+        'Only admins can manage games.',
+      );
+      expect(assertAdminMock).toHaveBeenCalledWith(
+        'Only admins can manage games.',
+      );
+      expect(insertGameMock).not.toHaveBeenCalled();
+      expect(revalidatePathMock).not.toHaveBeenCalled();
+    });
   });
 
   describe('validation', () => {

@@ -2,6 +2,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { assertAdmin } from '@/server/auth/permissions';
 import { insertGame } from '@/server/queries/games';
 export type CreateGameResult = { ok: true } | { ok: false; error: string };
 
@@ -10,7 +11,8 @@ export async function createGame(input: {
   country: string;
   city: string;
 }): Promise<CreateGameResult> {
-  // TODO: check on the server that the caller is a COC/Admin user.
+  // Only admins manage games. Checked here because actions can be called directly.
+  await assertAdmin('Only admins can manage games.');
   const name = String(input?.name ?? '').trim();
   const country = String(input?.country ?? '').trim();
   const city = String(input?.city ?? '').trim();

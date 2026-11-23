@@ -2,12 +2,14 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { assertAdmin } from '@/server/auth/permissions';
 import { removeGame } from '@/server/queries/games';
 
 export type DeleteGameResult = { ok: true } | { ok: false; error: string };
 
 export async function deleteGame(id: number): Promise<DeleteGameResult> {
-  // TODO: check on the server that the caller is a COC/Admin user.
+  // Only admins manage games. Checked here because actions can be called directly.
+  await assertAdmin('Only admins can manage games.');
   if (!Number.isInteger(id)) return { ok: false, error: 'Invalid game.' };
 
   try {

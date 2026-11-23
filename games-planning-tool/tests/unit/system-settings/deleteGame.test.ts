@@ -8,12 +8,18 @@ vi.mock('@/server/queries/games', () => ({
   removeGame: vi.fn(),
 }));
 
+vi.mock('@/server/auth/permissions', () => ({
+  assertAdmin: vi.fn(),
+}));
+
 import { revalidatePath } from 'next/cache';
+import { assertAdmin } from '@/server/auth/permissions';
 import { removeGame } from '@/server/queries/games';
 import { deleteGame } from '@/features/system-settings/actions/deleteGame';
 
 const removeGameMock = vi.mocked(removeGame);
 const revalidatePathMock = vi.mocked(revalidatePath);
+const assertAdminMock = vi.mocked(assertAdmin);
 
 const prismaError = (code: string) =>
   Object.assign(new Error(`Prisma error ${code}`), { code });
@@ -21,6 +27,7 @@ const prismaError = (code: string) =>
 describe('deleteGame', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    assertAdminMock.mockResolvedValue(undefined);
     removeGameMock.mockResolvedValue({ id: 1 } as never);
 
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -28,6 +35,23 @@ describe('deleteGame', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  describe('permissions', () => {
+    it('rejects callers who are not admins', async () => {
+      assertAdminMock.mockRejectedValue(
+        new Error('Only admins can manage games.'),
+      );
+
+      await expect(deleteGame(1)).rejects.toThrow(
+        'Only admins can manage games.',
+      );
+      expect(assertAdminMock).toHaveBeenCalledWith(
+        'Only admins can manage games.',
+      );
+      expect(removeGameMock).not.toHaveBeenCalled();
+      expect(revalidatePathMock).not.toHaveBeenCalled();
+    });
   });
 
   describe('validation', () => {

@@ -8,12 +8,18 @@ vi.mock('@/server/queries/games', () => ({
   updateGameActive: vi.fn(),
 }));
 
+vi.mock('@/server/auth/permissions', () => ({
+  assertAdmin: vi.fn(),
+}));
+
 import { revalidatePath } from 'next/cache';
+import { assertAdmin } from '@/server/auth/permissions';
 import { updateGameActive } from '@/server/queries/games';
 import { setGameActive } from '@/features/system-settings/actions/setGameActive';
 
 const updateGameActiveMock = vi.mocked(updateGameActive);
 const revalidatePathMock = vi.mocked(revalidatePath);
+const assertAdminMock = vi.mocked(assertAdmin);
 
 const prismaError = (code: string) =>
   Object.assign(new Error(`Prisma error ${code}`), { code });
@@ -21,6 +27,7 @@ const prismaError = (code: string) =>
 describe('setGameActive', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    assertAdminMock.mockResolvedValue(undefined);
     updateGameActiveMock.mockResolvedValue({ id: 1 } as never);
 
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -28,6 +35,23 @@ describe('setGameActive', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  describe('permissions', () => {
+    it('rejects callers who are not admins', async () => {
+      assertAdminMock.mockRejectedValue(
+        new Error('Only admins can manage games.'),
+      );
+
+      await expect(setGameActive(1, false)).rejects.toThrow(
+        'Only admins can manage games.',
+      );
+      expect(assertAdminMock).toHaveBeenCalledWith(
+        'Only admins can manage games.',
+      );
+      expect(updateGameActiveMock).not.toHaveBeenCalled();
+      expect(revalidatePathMock).not.toHaveBeenCalled();
+    });
   });
 
   describe('validation', () => {
