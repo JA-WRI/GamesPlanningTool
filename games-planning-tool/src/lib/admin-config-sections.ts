@@ -1,5 +1,6 @@
 //no substantial AI generated code
 export const CONFIG_SECTIONS = [
+  { key: 'example-setup', label: 'Example' },
   { key: 'game-details', label: 'Details' },
   { key: 'participating-nsos', label: 'NSOs' },
   { key: 'properties', label: 'Properties & Prices' },
