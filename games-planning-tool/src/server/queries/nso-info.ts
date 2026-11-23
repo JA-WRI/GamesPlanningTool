@@ -1,4 +1,5 @@
 //100% AI generated
+import 'server-only';
 import { prisma } from '@/lib/prisma';
 import type { NSOInfoPage } from '@/features/contact-information/components/NSOInfoPage';
 

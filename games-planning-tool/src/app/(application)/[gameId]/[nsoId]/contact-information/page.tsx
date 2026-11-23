@@ -1,6 +1,6 @@
 // less then 50% AI generated
 import NSOGeneralInfoSection from '../../../../../features/contact-information/components/NSOInfoPage';
-import { getNsoInfo } from '@/lib/nsoInfo';
+import { getNsoInfo } from '@/server/queries/nso-info';
 import { notFound } from 'next/navigation';
 
 export default async function Page({

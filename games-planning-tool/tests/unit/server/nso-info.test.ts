@@ -10,7 +10,7 @@ vi.mock('@/lib/prisma', () => ({
 }));
 
 import { prisma } from '@/lib/prisma';
-import { getNsoInfo } from '../../../src/lib/nsoInfo';
+import { getNsoInfo } from '../../../src/server/queries/nso-info';
 
 const findUnique = vi.mocked(prisma.nso.findUnique);
 

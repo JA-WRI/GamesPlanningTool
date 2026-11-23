@@ -1,3 +1,4 @@
+import 'server-only';
 import { prisma } from '@/lib/prisma';
 
 export async function getCocContacts(gameId: number) {

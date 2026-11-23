@@ -10,7 +10,7 @@ vi.mock('@/lib/prisma', () => ({
 }));
 
 import { prisma } from '@/lib/prisma';
-import { getCocContacts } from '../../../src/lib/cocContacts';
+import { getCocContacts } from '../../../src/server/queries/coc-contacts';
 
 const findMany = vi.mocked(prisma.contact.findMany);
 
