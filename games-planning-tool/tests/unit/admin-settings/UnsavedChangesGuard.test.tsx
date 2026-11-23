@@ -1,4 +1,4 @@
-// AI usage -> 100%
+//  More than 50% AI Generated Code
 import '@testing-library/jest-dom/vitest';
 import { useState } from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -116,5 +116,81 @@ describe('UnsavedChangesGuard', () => {
     const dirty = new Event('beforeunload', { cancelable: true });
     window.dispatchEvent(dirty);
     expect(dirty.defaultPrevented).toBe(true);
+  });
+});
+
+// Clicks the guard should leave alone, even with unsaved changes.
+describe('UnsavedChangesGuard: clicks it lets through', () => {
+  function renderDirty(link: React.ReactNode) {
+    render(
+      <UnsavedChangesGuard>
+        {link}
+        <Step />
+      </UnsavedChangesGuard>,
+    );
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'edited' },
+    });
+  }
+
+  const noNavigation = (event: React.MouseEvent) => event.preventDefault();
+
+  it.each([
+    ['Ctrl', { ctrlKey: true }],
+    ['Cmd', { metaKey: true }],
+    ['Shift', { shiftKey: true }],
+  ])('does not ask on a %s-click (opens a new tab or window)', (_key, keys) => {
+    renderDirty(
+      // eslint-disable-next-line @next/next/no-html-link-for-pages -- plain link on purpose
+      <a href="/admin/system-settings/8/properties" onClick={noNavigation}>
+        Properties
+      </a>,
+    );
+    fireEvent.click(screen.getByText('Properties'), keys);
+    expect(screen.queryByText(dialogTitle)).not.toBeInTheDocument();
+  });
+
+  it('does not ask for links to other sites', () => {
+    renderDirty(
+      <a href="https://example.com/help" onClick={noNavigation}>
+        Help
+      </a>,
+    );
+    fireEvent.click(screen.getByText('Help'));
+    expect(screen.queryByText(dialogTitle)).not.toBeInTheDocument();
+  });
+
+  it('does not ask for links to the page already open', () => {
+    renderDirty(
+      <a href={window.location.pathname} onClick={noNavigation}>
+        This page
+      </a>,
+    );
+    fireEvent.click(screen.getByText('This page'));
+    expect(screen.queryByText(dialogTitle)).not.toBeInTheDocument();
+  });
+
+  it('does not ask for clicks outside any link', () => {
+    renderDirty(null);
+    fireEvent.click(screen.getByLabelText('Name'));
+    fireEvent.click(document);
+    expect(screen.queryByText(dialogTitle)).not.toBeInTheDocument();
+  });
+
+  it('discards without navigating if the link is gone by then', () => {
+    // A plain DOM link React doesn't manage, so the test can remove it
+    const navigate = vi.fn((event: Event) => event.preventDefault());
+    renderDirty(null);
+    const link = document.createElement('a');
+    link.href = '/admin/system-settings/8/properties';
+    link.addEventListener('click', navigate);
+    document.body.append(link);
+
+    fireEvent.click(link);
+    link.remove();
+    fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
+
+    expect(navigate).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Name')).toHaveValue('saved');
   });
 });
