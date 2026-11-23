@@ -45,8 +45,14 @@ async function isExampleSetupComplete(gameId: number): Promise<boolean> {
     game.name.trim() !== '' &&
     game.city.trim() !== '' &&
     game.country.trim() !== '';
-  const hasValidGamesDates = game.endDate >= game.startDate;
+  // Dates are optional on a new Game, so a missing date means not complete.
+  const hasValidGamesDates =
+    game.startDate !== null &&
+    game.endDate !== null &&
+    game.endDate >= game.startDate;
   const hasValidPlanningPeriod =
+    game.planningPeriodStart !== null &&
+    game.planningPeriodEnd !== null &&
     game.planningPeriodEnd >= game.planningPeriodStart;
 
   return hasRequiredText && hasValidGamesDates && hasValidPlanningPeriod;

@@ -27,7 +27,11 @@ const validGame = {
   planningPeriodEnd: new Date('2024-06-30'),
 };
 
-function mockGame(game: Partial<typeof validGame> | null) {
+type MockGame = {
+  [K in keyof typeof validGame]: (typeof validGame)[K] | null;
+};
+
+function mockGame(game: Partial<MockGame> | null) {
   findUnique.mockResolvedValue(
     (game === null ? null : { ...validGame, ...game }) as never,
   );
@@ -100,5 +104,25 @@ describe('example completion check', () => {
   it('is not complete when the planning period ends before it starts', async () => {
     mockGame({ planningPeriodEnd: new Date('2022-12-31') });
     expect((await getSectionCompletion(14))['example-setup']).toBe(false);
+  });
+
+  it.each([
+    'startDate',
+    'endDate',
+    'planningPeriodStart',
+    'planningPeriodEnd',
+  ] as const)('is not complete when %s is not set', async (field) => {
+    mockGame({ [field]: null });
+    expect((await getSectionCompletion(15))['example-setup']).toBe(false);
+  });
+
+  it('is not complete for a newly created Game with no dates', async () => {
+    mockGame({
+      startDate: null,
+      endDate: null,
+      planningPeriodStart: null,
+      planningPeriodEnd: null,
+    });
+    expect((await getSectionCompletion(16))['example-setup']).toBe(false);
   });
 });
