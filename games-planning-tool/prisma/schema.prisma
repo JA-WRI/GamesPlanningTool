@@ -150,12 +150,39 @@ model GameMember {
   medal      String?
   medalNotes String? @map("medal_notes")
 
-  game   Game   @relation(fields: [gameId], references: [id])
-  member Member @relation(fields: [memberId], references: [id])
+  game                 Game                  @relation(fields: [gameId], references: [id])
+  member               Member                @relation(fields: [memberId], references: [id])
+  accreditationPeriods AccreditationPeriod[]
 
   @@unique([gameId, memberId])
   @@index([memberId])
   @@map("game_members")
+}
+
+enum AccreditationStatus {
+  CONFIRMED
+  TENTATIVE
+  DEVIATION
+}
+
+// The days one person is accredited and the hotel they stay at.
+// A person can have several periods, a new one starts when they change hotel.
+model AccreditationPeriod {
+  id           String              @id @default(uuid()) @db.Uuid
+  gameMemberId String              @map("game_member_id") @db.Uuid
+  propertyId   String              @map("property_id") @db.Uuid
+  startDate    DateTime            @map("start_date") @db.Date
+  endDate      DateTime            @map("end_date") @db.Date
+  status       AccreditationStatus @default(CONFIRMED)
+
+  // the migration also adds a db check: end_date >= start_date
+  // periods are removed with the person, a hotel in use can't be deleted
+  gameMember GameMember @relation(fields: [gameMemberId], references: [id], onDelete: Cascade)
+  property   Property   @relation(fields: [propertyId], references: [id])
+
+  @@index([gameMemberId])
+  @@index([propertyId])
+  @@map("accreditation_periods")
 }
 
 // Team size of one NSO for one game
@@ -337,9 +364,10 @@ model Property {
   clusterId String @map("cluster_id") @db.Uuid
   name      String @db.VarChar(255)
 
-  cluster        PropertyCluster @relation(fields: [clusterId], references: [id])
-  prices         PropertyPrice[]
-  gameProperties GameProperty[]
+  cluster              PropertyCluster       @relation(fields: [clusterId], references: [id])
+  prices               PropertyPrice[]
+  gameProperties       GameProperty[]
+  accreditationPeriods AccreditationPeriod[]
 
   @@unique([clusterId, name])
   @@map("properties")
