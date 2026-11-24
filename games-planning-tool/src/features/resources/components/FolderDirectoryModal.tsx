@@ -135,7 +135,10 @@ export function FolderDirectoryModal({
       getDescendantResourceIds(allResources, currentFolder.id),
     );
     return allResources.filter(
-      (resource) => descendantIds.has(resource.id) && matches(resource),
+      (resource) =>
+        descendantIds.has(resource.id) &&
+        (!filterPredicate || filterPredicate(resource)) &&
+        matches(resource),
     );
   }, [
     localOrderedChildren,
@@ -143,6 +146,7 @@ export function FolderDirectoryModal({
     searchSubfolders,
     allResources,
     currentFolder,
+    filterPredicate,
   ]);
 
   const {

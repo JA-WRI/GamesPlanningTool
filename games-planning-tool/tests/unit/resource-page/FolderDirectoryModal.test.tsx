@@ -124,6 +124,31 @@ describe('FolderDirectoryModal pointer and drag events', () => {
     expect(screen.getByText('Deep File')).toBeInTheDocument();
   });
 
+  it('applies the visibility filter to nested search results', () => {
+    const hidden: Resource = {
+      id: 'hidden-1',
+      name: 'Hidden File',
+      type: 'file',
+      fileUrl: 'test4',
+      categories: ['Other NSO'],
+      parentId: 'subfolder-1',
+    };
+    render(
+      <FolderDirectoryModal
+        {...defaultProps}
+        allResources={[mockFolder, ...mockChildren, hidden]}
+        filterPredicate={(resource) => !resource.name.startsWith('Hidden')}
+      />,
+    );
+
+    const searchInput = screen.getByPlaceholderText('Search in this folder...');
+    fireEvent.change(searchInput, { target: { value: 'File' } });
+    fireEvent.click(screen.getByLabelText('Include items in subfolders'));
+
+    expect(screen.getByText('File 1')).toBeInTheDocument();
+    expect(screen.queryByText('Hidden File')).not.toBeInTheDocument();
+  });
+
   it('triggers edit mode and selection via sweep pointer down', () => {
     render(<FolderDirectoryModal {...defaultProps} />);
     const editBtn = screen.getByRole('button', { name: 'Edit' });
