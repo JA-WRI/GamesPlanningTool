@@ -8,6 +8,7 @@ import {
   MemberType,
   UserStatus,
   TaskStatus,
+  AccreditationStatus,
 } from '../src/generated/prisma/enums';
 
 if (process.env.NODE_ENV === 'production') {
@@ -1083,9 +1084,73 @@ async function seedProperties(gameId: number) {
   }
 }
 
+// sample accreditation periods for 3 people of one NSO, inside the Games dates
+async function seedAccreditationPeriods(gameId: number, nsoId: string) {
+  const [people, hotels] = await Promise.all([
+    prisma.gameMember.findMany({
+      where: { gameId, member: { nsoId } },
+      orderBy: { member: { lastName: 'asc' } },
+      take: 3,
+    }),
+    prisma.gameProperty.findMany({
+      where: { gameId },
+      orderBy: { displayOrder: 'asc' },
+      take: 2,
+    }),
+  ]);
+  // needs 3 people and 2 hotels, skip if the seed data changes
+  if (people.length < 3 || hotels.length < 2) {
+    console.warn('Skipping accreditation periods: not enough people or hotels');
+    return;
+  }
+  const [first, second, third] = people;
+  const [hotelA, hotelB] = hotels.map((hotel) => hotel.propertyId);
+
+  await prisma.accreditationPeriod.createMany({
+    data: [
+      // changes hotel halfway, the periods are back to back
+      {
+        gameMemberId: first.id,
+        propertyId: hotelA,
+        startDate: d('2028-07-14'),
+        endDate: d('2028-07-20'),
+      },
+      {
+        gameMemberId: first.id,
+        propertyId: hotelB,
+        startDate: d('2028-07-21'),
+        endDate: d('2028-07-30'),
+        status: AccreditationStatus.TENTATIVE,
+      },
+      // stays the whole Games in one hotel
+      {
+        gameMemberId: second.id,
+        propertyId: hotelA,
+        startDate: d('2028-07-14'),
+        endDate: d('2028-07-30'),
+      },
+      // two periods with a gap, days in between are not accredited
+      {
+        gameMemberId: third.id,
+        propertyId: hotelB,
+        startDate: d('2028-07-16'),
+        endDate: d('2028-07-22'),
+        status: AccreditationStatus.DEVIATION,
+      },
+      {
+        gameMemberId: third.id,
+        propertyId: hotelA,
+        startDate: d('2028-07-26'),
+        endDate: d('2028-07-30'),
+      },
+    ],
+  });
+}
+
 // Exceeds 50 lines: seeds every record type in dependency order.
 async function main() {
   // Wipe in dependency order (children first)
+  await prisma.accreditationPeriod.deleteMany();
   await prisma.progressTracking.deleteMany();
   await prisma.resource.deleteMany();
   // Calculator data
@@ -1217,6 +1282,9 @@ async function main() {
 
   // Properties (hotels + prices) linked to the game
   await seedProperties(game.id);
+
+  // Accreditation periods (needs the roster and the hotels above)
+  await seedAccreditationPeriods(game.id, nsos.athletics.id);
 
   // Resources (helper function)
   await seedResources();
