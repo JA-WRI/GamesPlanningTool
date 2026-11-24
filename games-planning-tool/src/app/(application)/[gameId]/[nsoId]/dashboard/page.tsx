@@ -55,7 +55,11 @@ export default async function Page({ params }: DashboardPageProps) {
             nsoId,
           },
         },
-        select: { id: true },
+        select: {
+          id: true,
+          game: { select: { season: true } },
+          nso: { select: { name: true } },
+        },
       })
     : null;
 
@@ -187,8 +191,9 @@ export default async function Page({ params }: DashboardPageProps) {
 
         <div className="col-span-full min-w-0 rounded-xl border border-muted/30 bg-surface p-5 [&_h2]:text-base">
           <DashboardResourceRow
-            gameId={gameId}
             nsoId={nsoId}
+            gameSeason={pairing?.game?.season}
+            nsoName={pairing?.nso?.name}
             viewerRole="nso"
             resources={resources}
           />

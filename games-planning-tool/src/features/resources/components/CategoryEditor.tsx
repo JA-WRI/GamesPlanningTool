@@ -1,18 +1,17 @@
 // Made with AI agents (Antigravity)
 import React, { useState } from 'react';
-import {
-  CANADIAN_NSOS,
-  PRIMARY_CATEGORIES,
-} from '@/features/resources/types/resource';
+import { PRIMARY_CATEGORIES } from '@/features/resources/types/resource';
 
 interface CategoryEditorProps {
   selectedCategories: string[];
   onChange: (newCategories: string[]) => void;
+  nsoCategories?: string[];
 }
 
 export function CategoryEditor({
   selectedCategories,
   onChange,
+  nsoCategories = [],
 }: CategoryEditorProps) {
   const [nsoSearchFilter, setNsoSearchFilter] = useState('');
 
@@ -23,7 +22,7 @@ export function CategoryEditor({
     onChange(newCategories);
   };
 
-  const filteredNsos = CANADIAN_NSOS.filter((nso) =>
+  const filteredNsos = nsoCategories.filter((nso) =>
     nso.toLowerCase().includes(nsoSearchFilter.toLowerCase()),
   );
 

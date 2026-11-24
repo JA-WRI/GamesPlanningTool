@@ -8,8 +8,12 @@ import {
   FolderResource,
   FileResource,
 } from '@/features/resources/types/resource';
-import { getFolderChildren } from '@/lib/resources-data';
+import {
+  getFolderChildren,
+  getDescendantResourceIds,
+} from '@/lib/resources-data';
 import ResourceCard from './ResourceCard';
+import SearchBar from '@/components/commons/SearchBar';
 import { useSweepSelection } from '@/features/resources/hooks/useSweepSelection';
 import { FolderModalHeader } from './folder-modal/FolderModalHeader';
 import { FolderModalToolbar } from './folder-modal/FolderModalToolbar';
@@ -21,6 +25,7 @@ import { EditCategoriesModal } from './EditCategoriesModal';
 export interface FolderDirectoryModalProps {
   folder: FolderResource | null;
   allResources: Resource[];
+  nsoCategories?: string[];
   filterPredicate?: (resource: Resource) => boolean;
   externalDraggedId?: string | null;
   currentCategory?: string;
@@ -50,6 +55,7 @@ export interface FolderDirectoryModalProps {
 export function FolderDirectoryModal({
   folder,
   allResources,
+  nsoCategories = [],
   filterPredicate,
   externalDraggedId,
   isReadOnly = false,
@@ -77,6 +83,8 @@ export function FolderDirectoryModal({
     useState<Resource | null>(null);
   const [editingNameId, setEditingNameId] = useState<string | null>(null);
   const [editNameValue, setEditNameValue] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchSubfolders, setSearchSubfolders] = useState(false);
   const committedRef = useRef(false);
 
   const currentFolder = useMemo(() => {
@@ -109,6 +117,33 @@ export function FolderDirectoryModal({
   useEffect(() => {
     localOrderedRef.current = localOrderedChildren;
   }, [localOrderedChildren]);
+
+  const searchActive = searchQuery.trim().length > 0;
+
+  const displayedChildren = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return localOrderedChildren;
+
+    const matches = (resource: Resource) =>
+      resource.name.toLowerCase().includes(q) ||
+      resource.categories.some((c) => c.toLowerCase().includes(q));
+
+    if (!searchSubfolders || !currentFolder)
+      return localOrderedChildren.filter(matches);
+
+    const descendantIds = new Set(
+      getDescendantResourceIds(allResources, currentFolder.id),
+    );
+    return allResources.filter(
+      (resource) => descendantIds.has(resource.id) && matches(resource),
+    );
+  }, [
+    localOrderedChildren,
+    searchQuery,
+    searchSubfolders,
+    allResources,
+    currentFolder,
+  ]);
 
   const {
     isDraggingOutside,
@@ -184,7 +219,7 @@ export function FolderDirectoryModal({
   };
 
   const handleToggleSelect = (id: string) => {
-    if (isReadOnly || justFinishedSweepRef.current) return;
+    if (isReadOnly || searchActive || justFinishedSweepRef.current) return;
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -342,7 +377,10 @@ export function FolderDirectoryModal({
             committedRef={committedRef}
             onRenameResource={onRenameResource}
             onClose={onClose}
-            onNavigateFolder={(id) => setCurrentFolderId(id)}
+            onNavigateFolder={(id) => {
+              setSearchQuery('');
+              setCurrentFolderId(id);
+            }}
             isReadOnly={isReadOnly}
           />
 
@@ -370,6 +408,28 @@ export function FolderDirectoryModal({
             style={{ backgroundColor: '#ffffff' }}
             className="p-4 sm:p-6 overflow-y-auto flex-1 bg-white"
           >
+            <div className="mb-4 flex flex-col gap-2">
+              <div className="w-full sm:max-w-xs">
+                <SearchBar
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="Search in this folder..."
+                  clearable
+                />
+              </div>
+              {searchActive && (
+                <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700">
+                  <input
+                    type="checkbox"
+                    checked={searchSubfolders}
+                    onChange={(e) => setSearchSubfolders(e.target.checked)}
+                    className="h-4 w-4 accent-neutral-900"
+                  />
+                  Include items in subfolders
+                </label>
+              )}
+            </div>
+
             {localOrderedChildren.length === 0 ? (
               <div className="text-center py-12 text-neutral-500 text-sm">
                 <FolderOpenIcon
@@ -383,6 +443,10 @@ export function FolderDirectoryModal({
                     : 'Add files or create subfolders using the actions above.'}
                 </p>
               </div>
+            ) : displayedChildren.length === 0 ? (
+              <div className="text-center py-12 text-neutral-500 text-sm">
+                No items match your search.
+              </div>
             ) : (
               <div
                 className="grid gap-3 sm:gap-4 pt-2 pb-2 px-1 items-start"
@@ -390,7 +454,7 @@ export function FolderDirectoryModal({
                   gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))',
                 }}
               >
-                {localOrderedChildren.map((item) => {
+                {displayedChildren.map((item) => {
                   const isSubfolder = item.type === 'folder';
                   const isDropTarget = dropTargetFolderId === item.id;
                   const isDraggingThis =
@@ -407,9 +471,11 @@ export function FolderDirectoryModal({
                     >
                       <ResourceCard
                         resource={item}
-                        isEditing={isEditingFolder}
+                        isEditing={isEditingFolder && !searchActive}
                         isSelected={selectedIds.has(item.id)}
-                        canReorder={!isReadOnly && selectedIds.size === 0}
+                        canReorder={
+                          !isReadOnly && selectedIds.size === 0 && !searchActive
+                        }
                         canDrag={false}
                         isDraggingThisCard={isDraggingThis}
                         showRemovalSymbol={false}
@@ -421,7 +487,7 @@ export function FolderDirectoryModal({
                         }
                         onToggleSelect={handleToggleSelect}
                         onRoundButtonPointerDown={(e) => {
-                          if (!isReadOnly)
+                          if (!isReadOnly && !searchActive)
                             handleSweepPointerDown(
                               e.clientX,
                               e.clientY,
@@ -430,7 +496,7 @@ export function FolderDirectoryModal({
                         }}
                         onRoundButtonClick={handleToggleSelect}
                         onCardPointerDown={(e) => {
-                          if (!isReadOnly) {
+                          if (!isReadOnly && !searchActive) {
                             handleCardPointerDown(e, item.id);
                             startPointerDrag(e, item.id);
                           }
@@ -438,6 +504,7 @@ export function FolderDirectoryModal({
                         onClick={(resource) => {
                           if (justDraggedRef.current) return;
                           if (resource.type === 'folder') {
+                            setSearchQuery('');
                             setCurrentFolderId(resource.id);
                           } else if (resource.type === 'link' && resource.URL) {
                             window.open(
@@ -480,6 +547,7 @@ export function FolderDirectoryModal({
       {categoryEditResource && (
         <EditCategoriesModal
           resource={categoryEditResource}
+          nsoCategories={nsoCategories}
           onClose={() => setCategoryEditResource(null)}
           onSave={(id, cats) => {
             onCategoriesChange?.(id, cats);

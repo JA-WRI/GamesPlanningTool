@@ -10,6 +10,7 @@ import { CategoryEditor } from './CategoryEditor';
 
 interface ResourceDetailModalProps {
   resource: Resource | null;
+  nsoCategories?: string[];
   onClose: () => void;
   onRename?: (id: string, newName: string) => void;
   onCategoriesChange?: (id: string, newCategories: string[]) => void;
@@ -18,6 +19,7 @@ interface ResourceDetailModalProps {
 // Exceeds 50 lines: one dialog handles details, renaming, and category editing.
 export function ResourceDetailModal({
   resource,
+  nsoCategories = [],
   onClose,
   onRename,
   onCategoriesChange,
@@ -143,6 +145,7 @@ export function ResourceDetailModal({
                   onChange={(newCats) =>
                     onCategoriesChange?.(resource.id, newCats)
                   }
+                  nsoCategories={nsoCategories}
                 />
               </div>
             ) : (

@@ -8,6 +8,7 @@ import {
   MemberType,
   UserStatus,
   TaskStatus,
+  Season,
 } from '../src/generated/prisma/enums';
 
 if (process.env.NODE_ENV === 'production') {
@@ -1117,6 +1118,7 @@ async function main() {
   const game = await prisma.game.create({
     data: {
       name: 'Summer Games 2028',
+      season: Season.Summer,
       country: 'United States',
       city: 'Los Angeles',
       startDate: d('2028-07-14'),

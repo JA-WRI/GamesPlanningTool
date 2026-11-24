@@ -46,8 +46,9 @@ describe('DashboardResourceRow', () => {
 
     const { rerender } = render(
       <DashboardResourceRow
-        gameId="game_id_1"
         nsoId="nso_1"
+        gameSeason="Summer"
+        nsoName="Badminton"
         viewerRole="nso"
         resources={mockResources}
       />,
@@ -63,8 +64,9 @@ describe('DashboardResourceRow', () => {
 
     rerender(
       <DashboardResourceRow
-        gameId="game_id_2"
         nsoId="nso_2"
+        gameSeason="Winter"
+        nsoName="Cross Country Skiing"
         viewerRole="admin"
         resources={mockResources}
       />,
@@ -74,7 +76,7 @@ describe('DashboardResourceRow', () => {
   });
 
   it('handles empty state and renders Manage Resources for overview', () => {
-    render(<DashboardResourceRow gameId="game_id_1" resources={[]} />);
+    render(<DashboardResourceRow resources={[]} />);
     expect(
       screen.getByText('No resources available for this dashboard.'),
     ).toBeInTheDocument();
@@ -100,7 +102,7 @@ describe('DashboardResourceRow', () => {
       },
     ];
     render(
-      <DashboardResourceRow gameId="game_id_1" resources={mockResources} />,
+      <DashboardResourceRow gameSeason="Summer" resources={mockResources} />,
     );
 
     const folder = screen.getByText('General Folder');
@@ -147,9 +149,7 @@ describe('DashboardResourceRow', () => {
       childFile,
     ];
 
-    render(
-      <DashboardResourceRow gameId="game_id_1" resources={mockResources} />,
-    );
+    render(<DashboardResourceRow resources={mockResources} />);
 
     const windowOpenSpy = vi
       .spyOn(window, 'open')

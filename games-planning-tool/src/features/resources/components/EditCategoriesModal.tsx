@@ -8,16 +8,19 @@ import { CategoryEditor } from './CategoryEditor';
 
 export interface EditCategoriesModalProps {
   resource: Resource | null;
+  nsoCategories?: string[];
   onClose: () => void;
   onSave: (resourceId: string, categories: string[]) => void;
 }
 
 function EditCategoriesModalInner({
   resource,
+  nsoCategories = [],
   onClose,
   onSave,
 }: {
   resource: Resource;
+  nsoCategories?: string[];
   onClose: () => void;
   onSave: (resourceId: string, categories: string[]) => void;
 }) {
@@ -71,6 +74,7 @@ function EditCategoriesModalInner({
           <CategoryEditor
             selectedCategories={categories}
             onChange={setCategories}
+            nsoCategories={nsoCategories}
           />
         </div>
 
@@ -97,6 +101,7 @@ function EditCategoriesModalInner({
 
 export function EditCategoriesModal({
   resource,
+  nsoCategories,
   onClose,
   onSave,
 }: EditCategoriesModalProps) {
@@ -105,6 +110,7 @@ export function EditCategoriesModal({
     <EditCategoriesModalInner
       key={resource.id}
       resource={resource}
+      nsoCategories={nsoCategories}
       onClose={onClose}
       onSave={onSave}
     />

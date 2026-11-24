@@ -2,6 +2,7 @@
 import React from 'react';
 import { ResourcesPageContent } from '@/features/resources/components/ResourcesPageContent';
 import { listResources, resourceVisibilityFor } from '@/lib/resources';
+import { getNsoCategories } from '@/server/queries/nsos';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,11 +21,19 @@ type ResourcesPageProps = {
 
 export default async function ResourcesPage({ params }: ResourcesPageProps) {
   const { gameId, nsoId } = await params;
-  const resources = await listResources(resourceVisibilityFor(gameId, nsoId));
+  const [visibility, nsoCategories] = await Promise.all([
+    resourceVisibilityFor(gameId, nsoId),
+    getNsoCategories(),
+  ]);
+  const resources = await listResources(visibility);
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <ResourcesPageContent initialResources={resources} isReadOnly={true} />
+      <ResourcesPageContent
+        initialResources={resources}
+        nsoCategories={nsoCategories}
+        isReadOnly={true}
+      />
     </div>
   );
 }

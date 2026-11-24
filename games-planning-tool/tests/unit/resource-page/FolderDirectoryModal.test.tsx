@@ -91,6 +91,39 @@ describe('FolderDirectoryModal pointer and drag events', () => {
     vi.useRealTimers();
   });
 
+  it('filters folder contents by search query', () => {
+    render(<FolderDirectoryModal {...defaultProps} />);
+    const searchInput = screen.getByPlaceholderText('Search in this folder...');
+    fireEvent.change(searchInput, { target: { value: 'File 1' } });
+
+    expect(screen.getByText('File 1')).toBeInTheDocument();
+    expect(screen.queryByText('File 2')).not.toBeInTheDocument();
+  });
+
+  it('can include nested resources in folder search results', () => {
+    const grandchild: Resource = {
+      id: 'grandchild-1',
+      name: 'Deep File',
+      type: 'file',
+      fileUrl: 'test3',
+      categories: ['General'],
+      parentId: 'subfolder-1',
+    };
+    render(
+      <FolderDirectoryModal
+        {...defaultProps}
+        allResources={[mockFolder, ...mockChildren, grandchild]}
+      />,
+    );
+
+    const searchInput = screen.getByPlaceholderText('Search in this folder...');
+    fireEvent.change(searchInput, { target: { value: 'Deep' } });
+    expect(screen.queryByText('Deep File')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Include items in subfolders'));
+    expect(screen.getByText('Deep File')).toBeInTheDocument();
+  });
+
   it('triggers edit mode and selection via sweep pointer down', () => {
     render(<FolderDirectoryModal {...defaultProps} />);
     const editBtn = screen.getByRole('button', { name: 'Edit' });

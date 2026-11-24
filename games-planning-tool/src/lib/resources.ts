@@ -1,6 +1,5 @@
 // 50% or more AI-generated
 import { prisma } from '@/lib/prisma';
-import { Games, Nsos } from '@/lib/data';
 import type { Prisma } from '@/generated/prisma/client';
 import type { ResourceModel } from '@/generated/prisma/models/Resource';
 import {
@@ -219,22 +218,38 @@ function visibilityWhere({
   };
 }
 
-export function resourceVisibilityFor(
+export async function resourceVisibilityFor(
   gameId: string,
   nsoId: string,
-): ResourceVisibility {
-  const game = Games.find((item) => item.id === gameId);
-  const nso = Nsos.find((item) => item.id === nsoId);
+): Promise<ResourceVisibility> {
+  const numericGameId = Number(gameId);
+  const validGameId =
+    /^\d+$/.test(gameId) &&
+    Number.isSafeInteger(numericGameId) &&
+    numericGameId > 0 &&
+    numericGameId <= 2_147_483_647;
+  const validNsoId = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(
+    nsoId,
+  );
+
+  const [game, nso] = await Promise.all([
+    validGameId
+      ? prisma.game.findUnique({
+          where: { id: numericGameId },
+          select: { season: true },
+        })
+      : null,
+    validNsoId
+      ? prisma.nso.findUnique({
+          where: { id: nsoId },
+          select: { name: true },
+        })
+      : null,
+  ]);
 
   return {
-    gameCategory: game?.name.toLowerCase().includes('la 2028')
-      ? 'Summer Games'
-      : 'Winter Games',
-    nsoCategory: nso
-      ? (CANADIAN_NSOS.find(
-          (category) => category.toLowerCase() === nso.name.toLowerCase(),
-        ) ?? nso.name)
-      : undefined,
+    gameCategory: game?.season === 'Summer' ? 'Summer Games' : 'Winter Games',
+    nsoCategory: nso?.name,
   };
 }
 

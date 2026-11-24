@@ -8,9 +8,13 @@ vi.mock('@/server/auth/session', () => ({
   getSession: vi.fn().mockResolvedValue(null),
 }));
 
+vi.mock('@/server/queries/nsos', () => ({
+  getNsoCategories: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock('@/lib/resources', () => ({
   listResources: vi.fn().mockResolvedValue([]),
-  resourceVisibilityFor: vi.fn().mockReturnValue({
+  resourceVisibilityFor: vi.fn().mockResolvedValue({
     gameCategory: 'Summer Games',
     nsoCategory: 'Badminton',
   }),

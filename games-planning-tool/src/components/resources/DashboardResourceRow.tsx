@@ -9,7 +9,6 @@ import {
   CANADIAN_NSOS,
 } from '@/features/resources/types/resource';
 import { getFolderChildren } from '@/lib/resources-data';
-import { Games, Nsos } from '@/lib/data';
 import { ResourceCard } from '@/features/resources/components/ResourceCard';
 import { FolderDirectoryModal } from '@/features/resources/components/FolderDirectoryModal';
 import Link from 'next/link';
@@ -17,13 +16,15 @@ import { ResourceDetailModal } from '@/features/resources/components/ResourceDet
 
 // Exceeds 50 lines: renders the category-filtered resource strip and its folder modal.
 export function DashboardResourceRow({
-  gameId,
   nsoId,
+  gameSeason,
+  nsoName,
   viewerRole,
   resources,
 }: {
-  gameId: string;
   nsoId?: string;
+  gameSeason?: 'Summer' | 'Winter';
+  nsoName?: string;
   viewerRole?: string;
   resources: Resource[];
 }) {
@@ -31,19 +32,14 @@ export function DashboardResourceRow({
     useState<FolderResource | null>(null);
   const [detailResource, setDetailResource] = useState<Resource | null>(null);
 
-  const game = Games.find((g) => g.id === gameId);
-  const nso = nsoId ? Nsos.find((n) => n.id === nsoId) : undefined;
+  const gameCategory =
+    gameSeason === 'Summer' ? 'Summer Games' : 'Winter Games';
 
-  const gameName = game?.name || gameId;
-  const gameCategory = gameName.toLowerCase().includes('la 2028')
-    ? 'Summer Games'
-    : 'Winter Games';
-
-  const nsoName = nso?.name || nsoId;
-  const nsoCategoryRaw = nsoName
-    ? CANADIAN_NSOS.find((c) =>
-        c.toLowerCase().includes(nsoName.toLowerCase()),
-      ) || nsoName
+  const resolvedNsoName = nsoName ?? nsoId;
+  const nsoCategoryRaw = resolvedNsoName
+    ? CANADIAN_NSOS.find((category) =>
+        category.toLowerCase().includes(resolvedNsoName.toLowerCase()),
+      ) || resolvedNsoName
     : undefined;
 
   const filterPredicate = (r: Resource) => {

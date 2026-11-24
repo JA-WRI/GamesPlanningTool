@@ -31,17 +31,20 @@ import { CreateFolderModal } from './CreateFolderModal';
 
 export interface ResourcesPageContentProps {
   initialResources: Resource[];
+  nsoCategories?: string[];
   isReadOnly?: boolean;
 }
 
 // Exceeds 50 lines: one component wires page state, drag-and-drop, and all modals together.
 export function ResourcesPageContent({
   initialResources,
+  nsoCategories = [],
   isReadOnly = false,
 }: ResourcesPageContentProps) {
   const [resources, setResources] = useState(initialResources);
 
   const [globalSearch, setGlobalSearch] = useState('');
+  const [searchInsideFolders, setSearchInsideFolders] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -59,17 +62,20 @@ export function ResourcesPageContent({
 
   // Top Level Resource Filtering
   const filteredResources = useMemo(() => {
-    return resources.filter((res) => {
-      if (res.parentId) return false;
+    const q = globalSearch.trim().toLowerCase();
 
-      if (!globalSearch.trim()) return true;
-      const q = globalSearch.toLowerCase();
+    return resources.filter((res) => {
+      if (!q) return !res.parentId;
+      if (res.parentId && !searchInsideFolders) return false;
+
       return (
         res.name.toLowerCase().includes(q) ||
         res.categories.some((c) => c.toLowerCase().includes(q))
       );
     });
-  }, [resources, globalSearch]);
+  }, [resources, globalSearch, searchInsideFolders]);
+
+  const isNestedSearch = globalSearch.trim().length > 0 && searchInsideFolders;
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -220,6 +226,8 @@ export function ResourcesPageContent({
       <ResourcesToolbar
         globalSearch={globalSearch}
         setGlobalSearch={setGlobalSearch}
+        searchInsideFolders={searchInsideFolders}
+        setSearchInsideFolders={setSearchInsideFolders}
         isEditing={isEditing}
         setIsEditing={setIsEditing}
         selectedIds={selectedIds}
@@ -254,8 +262,15 @@ export function ResourcesPageContent({
                 resource={resource}
                 isEditing={isEditing}
                 isSelected={selectedIds.has(resource.id)}
-                canReorder={!isReadOnly && isEditing && selectedIds.size === 0}
-                canDrag={!isReadOnly && selectedIds.size === 0}
+                canReorder={
+                  !isReadOnly &&
+                  isEditing &&
+                  selectedIds.size === 0 &&
+                  !isNestedSearch
+                }
+                canDrag={
+                  !isReadOnly && selectedIds.size === 0 && !isNestedSearch
+                }
                 isDraggingThisCard={
                   draggedCardId === resource.id ||
                   externalPointerDraggedIds.includes(resource.id)
@@ -300,6 +315,7 @@ export function ResourcesPageContent({
       <AddResourceModal
         isOpen={isAddModalOpen}
         preselectedFolderId={addResourceFolderId}
+        nsoCategories={nsoCategories}
         onClose={() => {
           setIsAddModalOpen(false);
           setAddResourceFolderId(undefined);
@@ -314,6 +330,7 @@ export function ResourcesPageContent({
               detailResource)
             : null
         }
+        nsoCategories={nsoCategories}
         onClose={() => setDetailResource(null)}
         onRename={isReadOnly ? undefined : handleRenameResource}
         onCategoriesChange={isReadOnly ? undefined : handleCategoriesChange}
@@ -326,6 +343,7 @@ export function ResourcesPageContent({
               categoryEditResource)
             : null
         }
+        nsoCategories={nsoCategories}
         onClose={() => setCategoryEditResource(null)}
         onSave={handleCategoriesChange}
       />
@@ -338,6 +356,7 @@ export function ResourcesPageContent({
             ) as FolderResource) ?? activeDirectoryFolder
           }
           allResources={resources}
+          nsoCategories={nsoCategories}
           currentCategory="Global"
           isReadOnly={isReadOnly}
           onClose={() => setActiveDirectoryFolder(null)}

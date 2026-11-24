@@ -18,11 +18,15 @@ const db = vi.hoisted(() => ({
   create: vi.fn(),
   update: vi.fn(),
   deleteMany: vi.fn(),
+  gameFindUnique: vi.fn(),
+  nsoFindUnique: vi.fn(),
 }));
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     resource: db,
+    game: { findUnique: db.gameFindUnique },
+    nso: { findUnique: db.nsoFindUnique },
     $transaction: vi.fn(
       (
         arg:
@@ -54,6 +58,8 @@ beforeEach(() => {
   db.create.mockResolvedValue(row({ id: 'new', name: 'New' }));
   db.update.mockResolvedValue(undefined);
   db.deleteMany.mockResolvedValue({ count: 0 });
+  db.gameFindUnique.mockResolvedValue(null);
+  db.nsoFindUnique.mockResolvedValue(null);
 });
 
 describe('listResources', () => {
@@ -183,19 +189,30 @@ describe('listResources', () => {
 });
 
 describe('resourceVisibilityFor', () => {
-  it('maps known games and NSOs to their categories', () => {
-    expect(resourceVisibilityFor('game_id_1', 'nso_1')).toEqual({
+  const nsoId = '00000000-0000-4000-8000-000000000001';
+
+  it('maps a summer game and NSO name to their categories', async () => {
+    db.gameFindUnique.mockResolvedValue({ season: 'Summer' });
+    db.nsoFindUnique.mockResolvedValue({ name: 'Swimming Canada' });
+
+    expect(await resourceVisibilityFor('3', nsoId)).toEqual({
       gameCategory: 'Summer Games',
-      nsoCategory: 'Badminton',
-    });
-    expect(resourceVisibilityFor('game_id_2', 'nso_2')).toEqual({
-      gameCategory: 'Winter Games',
-      nsoCategory: 'Cross Country Skiing',
+      nsoCategory: 'Swimming Canada',
     });
   });
 
-  it('falls back when the game or NSO is unknown', () => {
-    expect(resourceVisibilityFor('missing', 'missing')).toEqual({
+  it('maps a winter game to its category', async () => {
+    db.gameFindUnique.mockResolvedValue({ season: 'Winter' });
+    db.nsoFindUnique.mockResolvedValue({ name: 'Canada Snowboard' });
+
+    expect(await resourceVisibilityFor('4', nsoId)).toEqual({
+      gameCategory: 'Winter Games',
+      nsoCategory: 'Canada Snowboard',
+    });
+  });
+
+  it('falls back when the game or NSO is unknown', async () => {
+    expect(await resourceVisibilityFor('999', nsoId)).toEqual({
       gameCategory: 'Winter Games',
       nsoCategory: undefined,
     });
