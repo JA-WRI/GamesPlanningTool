@@ -156,6 +156,18 @@ describe('createAccreditationPeriod', () => {
     });
   });
 
+  it('refuses a period when the Games dates are not set yet', async () => {
+    prismaMock.game.findUnique.mockResolvedValue({
+      startDate: null,
+      endDate: null,
+    });
+    expect(await createAccreditationPeriod(GAME_ID, NSO_ID, INPUT)).toEqual({
+      ok: false,
+      error: 'The Game dates are not set yet.',
+    });
+    expect(prismaMock.accreditationPeriod.create).not.toHaveBeenCalled();
+  });
+
   it('allows days before the Games when the person arrives early', async () => {
     prismaMock.gameMember.findFirst.mockResolvedValue({
       gameArrival: day('2028-07-11'),

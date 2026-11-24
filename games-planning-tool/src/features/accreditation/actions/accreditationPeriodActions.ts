@@ -81,6 +81,9 @@ async function findProblem(
     select: { startDate: true, endDate: true },
   });
   if (!game) return INVALID;
+  // the Games dates can be empty until an admin sets them
+  if (!game.startDate || !game.endDate)
+    return 'The Game dates are not set yet.';
 
   // the person's other periods, without the one being edited
   const otherPeriods = await tx.accreditationPeriod.findMany({
