@@ -16,19 +16,21 @@ import type {
 } from '@/features/team-size/lib/teamSizeGridLogic';
 import type { DisciplineGridRow } from '@/features/team-size/lib/disciplineGridLogic';
 import { getMedalRows } from '@/server/queries/medalPotentialDb';
+import { getJourneyStepStatuses } from '@/server/queries/journeyStepsDb';
 
 type TeamJourneyPageProps = {
   params: Promise<{ gameId: string; nsoId: string }>;
 };
 
-// server component, loads the saved team size and athletes, the tabs and form state live in TeamJourneyClient
+// server component, loads the saved team size, athletes and step statuses, the stepper and form state live in TeamJourneyClient
 export default async function TeamJourneyPage({
   params,
 }: TeamJourneyPageProps) {
   const { gameId, nsoId } = await params;
-  const [teamSize, medalRows] = await Promise.all([
+  const [teamSize, medalRows, stepStatuses] = await Promise.all([
     getTeamSize(gameId, nsoId),
     getMedalRows(gameId, nsoId),
+    getJourneyStepStatuses(gameId, nsoId),
   ]);
   // the layouts already check the ids, this is just in case
   if (!teamSize || !medalRows) notFound();
@@ -59,6 +61,7 @@ export default async function TeamJourneyPage({
       gameId={gameId}
       nsoId={nsoId}
       saved={{ ...teamSize, medalRows }}
+      stepStatuses={stepStatuses}
       draftKeys={keys}
       initialDrafts={{
         estimate: asDraftRows<TeamSizeRow>(estimateDraft),

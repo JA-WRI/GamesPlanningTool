@@ -2,8 +2,15 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Alert } from '@mui/material';
 import TeamSizeStep from '@/features/team-size/components/TeamSizeStep';
+import TeamJourneyStepper from '@/features/team-journey/components/TeamJourneyStepper';
+import {
+  parseStep,
+  stepQuery,
+  type JourneyStepStatuses,
+} from '@/features/team-journey/lib/stepperLogic';
 import { saveTeamSize } from '@/features/team-size/actions/teamSizeActions';
 import { saveMedalRows } from '@/features/team-size/actions/medalPotentialActions';
 import type { TeamSize } from '@/features/team-size/lib/teamSizeLogic';
@@ -23,6 +30,7 @@ type TeamJourneyClientProps = {
   gameId: string;
   nsoId: string;
   saved: SavedTeamJourney;
+  stepStatuses: JourneyStepStatuses;
   draftKeys: {
     estimate: string;
     disciplines: string;
@@ -45,9 +53,24 @@ export default function TeamJourneyClient({
   gameId,
   nsoId,
   saved,
+  stepStatuses,
   draftKeys,
   initialDrafts,
 }: TeamJourneyClientProps) {
+  const searchParams = useSearchParams();
+  const currentStep = parseStep(searchParams.get('step'));
+
+  // puts the step in the url so a reload stays on it
+  const goToStep = (step: number) => {
+    // clicking the open step again should not add to the browser history
+    if (step === currentStep) return;
+    window.history.pushState(
+      null,
+      '',
+      stepQuery(searchParams.toString(), step),
+    );
+  };
+
   const {
     teamSize,
     setTeamSize,
@@ -92,27 +115,41 @@ export default function TeamJourneyClient({
 
   return (
     <div className="min-h-screen bg-white px-10 py-8">
-      {saveFailed && (
-        <Alert severity="error">
-          Your last change was not saved. Please try again.
-        </Alert>
-      )}
-      <TeamSizeStep
-        teamSize={teamSize}
-        onTeamSizeSave={async (next) => {
-          await saveToDb(next, disciplines);
-          setTeamSize(next);
-        }}
-        disciplines={disciplines}
-        onDisciplinesSave={async (next) => {
-          await saveToDb(teamSize, next);
-          setDisciplines(next);
-        }}
-        medalRows={medalRows}
-        onMedalRowsSave={saveMedals}
-        draftKeys={draftKeys}
-        initialDrafts={initialDrafts}
+      <TeamJourneyStepper
+        currentStep={currentStep}
+        statuses={stepStatuses}
+        onStepChange={goToStep}
       />
+      {/* hidden instead of removed, so unsaved edits stay when switching steps */}
+      <div hidden={currentStep !== 1}>
+        {saveFailed && (
+          <Alert severity="error">
+            Your last change was not saved. Please try again.
+          </Alert>
+        )}
+        <TeamSizeStep
+          teamSize={teamSize}
+          onTeamSizeSave={async (next) => {
+            await saveToDb(next, disciplines);
+            setTeamSize(next);
+          }}
+          disciplines={disciplines}
+          onDisciplinesSave={async (next) => {
+            await saveToDb(teamSize, next);
+            setDisciplines(next);
+          }}
+          medalRows={medalRows}
+          onMedalRowsSave={saveMedals}
+          draftKeys={draftKeys}
+          initialDrafts={initialDrafts}
+        />
+      </div>
+      {/* the accreditation content comes in #104 and #105 */}
+      {currentStep === 2 && (
+        <p className="py-12 text-center text-muted">
+          Accreditation is coming soon.
+        </p>
+      )}
     </div>
   );
 }
