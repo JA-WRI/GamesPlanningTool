@@ -1,5 +1,5 @@
 // less then 50% AI generated
-import NSOGeneralInfoSection from '../../../../../features/contact-information/components/NSOInfoPage';
+import NSOGeneralInfoSection from '@/features/contact-information/components/NSOInfoPage';
 import { getNsoInfo } from '@/server/queries/nso-info';
 import { notFound } from 'next/navigation';
 import { toDbIds } from '@/features/team-size/lib/teamSizeDbMapping';

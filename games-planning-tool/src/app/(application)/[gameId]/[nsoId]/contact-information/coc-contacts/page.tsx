@@ -1,6 +1,6 @@
 // 50% or more AI
 import { notFound } from 'next/navigation';
-import ContactsGridPageCOC from '../../../../../../features/contact-information/components/ContactsGridCOCPage';
+import ContactsGridPageCOC from '@/features/contact-information/components/ContactsGridCOCPage';
 import { getCocContacts } from '@/server/queries/coc-contacts';
 
 export default async function Page({
