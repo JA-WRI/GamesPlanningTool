@@ -23,10 +23,9 @@ const SAVED = {
 };
 
 describe('useTeamJourneyState', () => {
-  it('starts on step 1 with the saved data', () => {
+  it('starts with the saved data', () => {
     const { result } = renderHook(() => useTeamJourneyState(SAVED));
 
-    expect(result.current.activeStep).toBe(1);
     expect(result.current.teamSize).toEqual(MOCK_TEAM_SIZE);
     expect(result.current.disciplines).toEqual(MOCK_DISCIPLINES);
     expect(result.current.medalRows).toEqual([MEDAL_ROW]);
@@ -55,13 +54,11 @@ describe('useTeamJourneyState', () => {
     expect(result.current.teamSize.notes).toBe('new note');
   });
 
-  it('keeps the data when the step changes', () => {
+  it('keeps an update to the medal rows', () => {
     const { result } = renderHook(() => useTeamJourneyState(SAVED));
+
     act(() => result.current.setMedalRows([]));
 
-    act(() => result.current.setActiveStep(5));
-
-    expect(result.current.activeStep).toBe(5);
     expect(result.current.medalRows).toEqual([]);
   });
 });

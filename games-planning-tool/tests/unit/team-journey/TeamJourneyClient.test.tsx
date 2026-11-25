@@ -17,6 +17,10 @@ vi.mock('@/features/team-size/actions/teamSizeActions', () => ({
 vi.mock('@/features/team-size/actions/medalPotentialActions', () => ({
   saveMedalRows: vi.fn(),
 }));
+// the page has no ?step= in the url, so it opens on step 1
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 // Exercise the client's state and server-action wiring independently of grid editing.
 vi.mock('@/features/team-size/components/TeamSizeStep', () => ({
@@ -92,6 +96,7 @@ function renderClient() {
       gameId={GAME_ID}
       nsoId={NSO_ID}
       saved={SAVED}
+      stepStatuses={{}}
       draftKeys={{
         estimate: 'estimate',
         disciplines: 'disciplines',
