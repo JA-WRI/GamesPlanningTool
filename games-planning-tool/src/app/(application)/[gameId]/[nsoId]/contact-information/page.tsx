@@ -2,6 +2,7 @@
 import NSOGeneralInfoSection from '../../../../../features/contact-information/components/NSOInfoPage';
 import { getNsoInfo } from '@/server/queries/nso-info';
 import { notFound } from 'next/navigation';
+import { toDbIds } from '@/features/team-size/lib/teamSizeDbMapping';
 
 export default async function Page({
   params,
@@ -10,7 +11,10 @@ export default async function Page({
 }) {
   const { gameId, nsoId } = await params;
 
-  const info = await getNsoInfo(nsoId, Number(gameId));
+  const ids = toDbIds(gameId, nsoId);
+  if (!ids) notFound();
+
+  const info = await getNsoInfo(ids.nsoId, ids.gameId);
   if (!info) notFound();
 
   return (
