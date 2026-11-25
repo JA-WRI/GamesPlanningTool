@@ -56,7 +56,8 @@ export default function TeamJourneyStepper({
                   type="button"
                   onClick={() => onStepChange(number)}
                   aria-current={state === 'current' ? 'step' : undefined}
-                  className="flex items-center gap-3 text-left"
+                  // grey background on hover so the steps look clickable
+                  className="-mx-3 -my-2 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-gray-100"
                 >
                   <StepCircle state={state} />
                   {/* the text sits next to the circle, like the mockup */}
