@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Alert } from '@mui/material';
 import TeamSizeStep from '@/features/team-size/components/TeamSizeStep';
 import TeamJourneyStepper from '@/features/team-journey/components/TeamJourneyStepper';
+import StepNavButtons from '@/features/team-journey/components/StepNavButtons';
 import {
   parseStep,
   stepQuery,
@@ -150,6 +151,7 @@ export default function TeamJourneyClient({
           Accreditation is coming soon.
         </p>
       )}
+      <StepNavButtons currentStep={currentStep} onStepChange={goToStep} />
     </div>
   );
 }
