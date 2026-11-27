@@ -1215,6 +1215,83 @@ async function main() {
     ],
   });
 
+  // Contacts: NSO contacts (one primary each) and game-level COC contacts
+  await prisma.contact.createMany({
+    data: [
+      {
+        nsoId: nsos.aquatics.id,
+        gameId: game.id,
+        role: 'Team Leader',
+        type: 'NSO',
+        isPrimary: true,
+        firstName: 'Nora',
+        lastName: 'Aquatics',
+        email: 'contact@swimming.example.ca',
+        countryCode: '+1',
+        phone: '5145550100',
+      },
+      {
+        nsoId: nsos.aquatics.id,
+        gameId: game.id,
+        role: 'Portal Admin',
+        type: 'NSO',
+        isPrimary: false,
+        firstName: 'Sam',
+        lastName: 'Splash',
+        email: 'admin@swimming.example.ca',
+        countryCode: '+1',
+        phone: '5145550101',
+      },
+      {
+        nsoId: nsos.athletics.id,
+        gameId: game.id,
+        role: 'Team Leader',
+        type: 'NSO',
+        isPrimary: true,
+        firstName: 'Ava',
+        lastName: 'Athletics',
+        email: 'contact@athletics.example.ca',
+        countryCode: '+1',
+        phone: '5145550102',
+      },
+      {
+        nsoId: nsos.athletics.id,
+        gameId: game.id,
+        role: 'Portal Admin',
+        type: 'NSO',
+        isPrimary: false,
+        firstName: 'Theo',
+        lastName: 'Track',
+        email: 'admin@athletics.example.ca',
+        countryCode: '+1',
+        phone: '5145550103',
+      },
+      // COC contacts belong to the game, so nsoId is left out (null)
+      {
+        gameId: game.id,
+        role: 'COC Lead',
+        type: 'COC',
+        isPrimary: true,
+        firstName: 'Chris',
+        lastName: 'Coc',
+        email: 'coc.lead@example.org',
+        countryCode: '+1',
+        phone: '5145550200',
+      },
+      {
+        gameId: game.id,
+        role: 'Team Services',
+        type: 'COC',
+        isPrimary: false,
+        firstName: 'Taylor',
+        lastName: 'Services',
+        email: 'coc.services@example.org',
+        countryCode: '+1',
+        phone: '5145550201',
+      },
+    ],
+  });
+
   // Properties (hotels + prices) linked to the game
   await seedProperties(game.id);
 

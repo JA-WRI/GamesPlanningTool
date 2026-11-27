@@ -4,8 +4,8 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
-import ActionsRequiredCard from '../../../src/components/nso-dashboard/ActionsRequiredCard';
-import DashboardPanel from '../../../src/components/nso-dashboard/DashboardPanel';
+import ActionsRequiredCard from '@/components/nso-dashboard/ActionsRequiredCard';
+import DashboardPanel from '@/components/nso-dashboard/DashboardPanel';
 import AnnouncementsCard from '@/components/nso-dashboard/AnnouncementsCard';
 import PlanningProgressCard from '@/components/nso-dashboard/PlanningProgressCard';
 import DeadlinesAheadCard from '@/components/nso-dashboard/DeadlinesAheadCard';
