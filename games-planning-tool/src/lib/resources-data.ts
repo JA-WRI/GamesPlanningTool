@@ -28,6 +28,16 @@ export function getFolderChildren(
   return resources.filter((r) => r.parentId === folderId);
 }
 
+export function resourceMatchesQuery(
+  resource: Resource,
+  normalizedQuery: string,
+): boolean {
+  return (
+    resource.name.toLowerCase().includes(normalizedQuery) ||
+    resource.categories.some((c) => c.toLowerCase().includes(normalizedQuery))
+  );
+}
+
 export function getDescendantResourceIds(
   resources: Resource[],
   rootFolderId: string,

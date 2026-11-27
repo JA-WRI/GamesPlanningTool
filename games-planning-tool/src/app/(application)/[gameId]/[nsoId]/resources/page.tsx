@@ -20,11 +20,16 @@ type ResourcesPageProps = {
 
 export default async function ResourcesPage({ params }: ResourcesPageProps) {
   const { gameId, nsoId } = await params;
-  const resources = await listResources(resourceVisibilityFor(gameId, nsoId));
+  const visibility = await resourceVisibilityFor(gameId, nsoId);
+  const resources = await listResources(visibility);
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <ResourcesPageContent initialResources={resources} isReadOnly={true} />
+      <ResourcesPageContent
+        initialResources={resources}
+        nsoCategories={visibility.nsoNames}
+        isReadOnly={true}
+      />
     </div>
   );
 }

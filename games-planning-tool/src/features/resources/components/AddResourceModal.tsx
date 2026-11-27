@@ -13,7 +13,6 @@ import LinearProgress from '@mui/material/LinearProgress';
 import {
   NewResourceInput,
   DEFAULT_CATEGORY,
-  CANADIAN_NSOS,
   MAX_RESOURCE_FILE_SIZE,
   MAX_RESOURCE_FILE_SIZE_MESSAGE,
 } from '@/features/resources/types/resource';
@@ -22,6 +21,7 @@ interface AddResourceModalProps {
   isOpen: boolean;
   preselectedCategory?: string;
   preselectedFolderId?: string;
+  nsoCategories?: string[];
   onClose: () => void;
   onAddResource: (input: NewResourceInput) => Promise<void>;
 }
@@ -30,11 +30,13 @@ interface AddResourceModalProps {
 function AddResourceForm({
   preselectedCategory,
   preselectedFolderId,
+  nsoCategories = [],
   onClose,
   onAddResource,
 }: {
   preselectedCategory?: string;
   preselectedFolderId?: string;
+  nsoCategories?: string[];
   onClose: () => void;
   onAddResource: (input: NewResourceInput) => Promise<void>;
 }) {
@@ -132,7 +134,7 @@ function AddResourceForm({
     }
   };
 
-  const filteredNsos = CANADIAN_NSOS.filter((nso) =>
+  const filteredNsos = nsoCategories.filter((nso) =>
     nso.toLowerCase().includes(nsoSearchFilter.toLowerCase()),
   );
 
@@ -430,6 +432,7 @@ export function AddResourceModal({
   isOpen,
   preselectedCategory,
   preselectedFolderId,
+  nsoCategories,
   onClose,
   onAddResource,
 }: AddResourceModalProps) {
@@ -445,6 +448,7 @@ export function AddResourceModal({
       <AddResourceForm
         preselectedCategory={preselectedCategory}
         preselectedFolderId={preselectedFolderId}
+        nsoCategories={nsoCategories}
         onClose={onClose}
         onAddResource={onAddResource}
       />

@@ -93,6 +93,20 @@ describe('ResourcesPageContent', () => {
     expect(screen.getByText('File 1')).toBeInTheDocument();
   });
 
+  it('can include nested resources in search results', () => {
+    render(<ResourcesPageContent initialResources={mockResources} />);
+    expect(screen.queryByText('Child 1')).not.toBeInTheDocument();
+
+    const searchInput = screen.getAllByPlaceholderText(
+      'Search by name, category...',
+    )[0];
+    fireEvent.change(searchInput, { target: { value: 'Child' } });
+    expect(screen.queryByText('Child 1')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Include items in folders'));
+    expect(screen.getByText('Child 1')).toBeInTheDocument();
+  });
+
   it('can open add resource and create folder modals', () => {
     render(<ResourcesPageContent initialResources={mockResources} />);
     const addBtn = screen.getByRole('button', { name: 'Add Resource' });

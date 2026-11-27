@@ -76,6 +76,7 @@ describe('AddResourceModal', () => {
       <AddResourceModal
         isOpen={true}
         preselectedCategory="Winter Games"
+        nsoCategories={['Athletics Canada', 'Swimming Canada']}
         onClose={handleClose}
         onAddResource={handleAdd}
       />,

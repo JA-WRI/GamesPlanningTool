@@ -42,12 +42,21 @@ describe('DashboardResourceRow', () => {
         fileUrl: 'test',
         categories: ['General', 'Alpine Canada'],
       },
+      {
+        id: '6',
+        name: 'Alpine Only',
+        type: 'file',
+        fileUrl: 'test',
+        categories: ['Alpine Canada'],
+      },
     ];
 
     const { rerender } = render(
       <DashboardResourceRow
-        gameId="game_id_1"
         nsoId="nso_1"
+        gameSeason="Summer"
+        nsoName="Badminton"
+        nsoNames={['Alpine Canada', 'Badminton', 'Cross Country Skiing']}
         viewerRole="nso"
         resources={mockResources}
       />,
@@ -57,14 +66,17 @@ describe('DashboardResourceRow', () => {
     expect(screen.getByText('Summer File')).toBeInTheDocument();
     expect(screen.queryByText('Winter File')).not.toBeInTheDocument();
     expect(screen.getByText('Admin Only File')).toBeInTheDocument();
+    expect(screen.queryByText('Other NSO')).not.toBeInTheDocument();
+    expect(screen.queryByText('Alpine Only')).not.toBeInTheDocument();
     expect(
       screen.queryByRole('link', { name: 'Manage Resources' }),
     ).not.toBeInTheDocument();
 
     rerender(
       <DashboardResourceRow
-        gameId="game_id_2"
         nsoId="nso_2"
+        gameSeason="Winter"
+        nsoName="Cross Country Skiing"
         viewerRole="admin"
         resources={mockResources}
       />,
@@ -74,7 +86,7 @@ describe('DashboardResourceRow', () => {
   });
 
   it('handles empty state and renders Manage Resources for overview', () => {
-    render(<DashboardResourceRow gameId="game_id_1" resources={[]} />);
+    render(<DashboardResourceRow resources={[]} />);
     expect(
       screen.getByText('No resources available for this dashboard.'),
     ).toBeInTheDocument();
@@ -100,7 +112,7 @@ describe('DashboardResourceRow', () => {
       },
     ];
     render(
-      <DashboardResourceRow gameId="game_id_1" resources={mockResources} />,
+      <DashboardResourceRow gameSeason="Summer" resources={mockResources} />,
     );
 
     const folder = screen.getByText('General Folder');
@@ -147,9 +159,7 @@ describe('DashboardResourceRow', () => {
       childFile,
     ];
 
-    render(
-      <DashboardResourceRow gameId="game_id_1" resources={mockResources} />,
-    );
+    render(<DashboardResourceRow resources={mockResources} />);
 
     const windowOpenSpy = vi
       .spyOn(window, 'open')

@@ -24,7 +24,13 @@ describe('CategoryEditor', () => {
 
   it('filters NSO associations and handles toggling an NSO', () => {
     const onChange = vi.fn();
-    render(<CategoryEditor selectedCategories={[]} onChange={onChange} />);
+    render(
+      <CategoryEditor
+        selectedCategories={[]}
+        onChange={onChange}
+        nsoCategories={['Athletics Canada', 'Swimming Canada']}
+      />,
+    );
 
     // Search for a specific NSO
     const searchInput = screen.getByPlaceholderText('Search NSOs...');

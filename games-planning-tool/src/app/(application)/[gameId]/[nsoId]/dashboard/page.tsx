@@ -11,6 +11,7 @@ import { prisma } from '../../../../../lib/prisma';
 import { notFound } from 'next/navigation';
 import type { Resource } from '@/features/resources/types/resource';
 import { normalizeResourceCategories } from '@/lib/resources-data';
+import { getNsoCategories } from '@/server/queries/nsos';
 import { TaskStatus } from '@/generated/prisma/enums';
 
 type DashboardPageProps = {
@@ -55,7 +56,11 @@ export default async function Page({ params }: DashboardPageProps) {
             nsoId,
           },
         },
-        select: { id: true },
+        select: {
+          id: true,
+          game: { select: { season: true } },
+          nso: { select: { name: true } },
+        },
       })
     : null;
 
@@ -135,16 +140,19 @@ export default async function Page({ params }: DashboardPageProps) {
     publishedAt: announcement.publishedAt.toISOString().slice(0, 10),
   }));
 
-  const resourceRows = await prisma.resource.findMany({
-    select: {
-      id: true,
-      name: true,
-      categories: true,
-      parentFolderId: true,
-      fileOrWebpageURL: true,
-      isWebpage: true,
-    },
-  });
+  const [resourceRows, nsoNames] = await Promise.all([
+    prisma.resource.findMany({
+      select: {
+        id: true,
+        name: true,
+        categories: true,
+        parentFolderId: true,
+        fileOrWebpageURL: true,
+        isWebpage: true,
+      },
+    }),
+    getNsoCategories(),
+  ]);
 
   const resources: Resource[] = resourceRows.map((row): Resource => {
     const base = {
@@ -187,8 +195,10 @@ export default async function Page({ params }: DashboardPageProps) {
 
         <div className="col-span-full min-w-0 rounded-xl border border-muted/30 bg-surface p-5 [&_h2]:text-base">
           <DashboardResourceRow
-            gameId={gameId}
             nsoId={nsoId}
+            gameSeason={pairing?.game?.season}
+            nsoName={pairing?.nso?.name}
+            nsoNames={nsoNames}
             viewerRole="nso"
             resources={resources}
           />

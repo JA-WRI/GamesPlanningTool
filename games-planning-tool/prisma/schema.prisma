@@ -24,6 +24,11 @@ enum UserStatus {
   inactive
 }
 
+enum Season {
+  Summer
+  Winter
+}
+
 enum ContactType {
   COC
   NSO
@@ -39,6 +44,7 @@ enum Discipline {
 model Game {
   id                  Int      @id @default(autoincrement())
   name                String
+  season              Season   @default(Summer)
   country             String
   city                String
   startDate           DateTime @map("start_date") @db.Date

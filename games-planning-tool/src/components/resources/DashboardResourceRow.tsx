@@ -6,10 +6,8 @@ import {
   Resource,
   FolderResource,
   FileResource,
-  CANADIAN_NSOS,
 } from '@/features/resources/types/resource';
 import { getFolderChildren } from '@/lib/resources-data';
-import { Games, Nsos } from '@/lib/data';
 import { ResourceCard } from '@/features/resources/components/ResourceCard';
 import { FolderDirectoryModal } from '@/features/resources/components/FolderDirectoryModal';
 import Link from 'next/link';
@@ -17,13 +15,17 @@ import { ResourceDetailModal } from '@/features/resources/components/ResourceDet
 
 // Exceeds 50 lines: renders the category-filtered resource strip and its folder modal.
 export function DashboardResourceRow({
-  gameId,
   nsoId,
+  gameSeason,
+  nsoName,
+  nsoNames = [],
   viewerRole,
   resources,
 }: {
-  gameId: string;
   nsoId?: string;
+  gameSeason?: 'Summer' | 'Winter';
+  nsoName?: string;
+  nsoNames?: string[];
   viewerRole?: string;
   resources: Resource[];
 }) {
@@ -31,33 +33,25 @@ export function DashboardResourceRow({
     useState<FolderResource | null>(null);
   const [detailResource, setDetailResource] = useState<Resource | null>(null);
 
-  const game = Games.find((g) => g.id === gameId);
-  const nso = nsoId ? Nsos.find((n) => n.id === nsoId) : undefined;
+  const gameCategory =
+    gameSeason === 'Summer' ? 'Summer Games' : 'Winter Games';
 
-  const gameName = game?.name || gameId;
-  const gameCategory = gameName.toLowerCase().includes('la 2028')
-    ? 'Summer Games'
-    : 'Winter Games';
-
-  const nsoName = nso?.name || nsoId;
-  const nsoCategoryRaw = nsoName
-    ? CANADIAN_NSOS.find((c) =>
-        c.toLowerCase().includes(nsoName.toLowerCase()),
-      ) || nsoName
-    : undefined;
+  const nsoCategoryRaw = nsoName ?? nsoId;
 
   const filterPredicate = (r: Resource) => {
     const lowerCats = r.categories.map((c) => c.toLowerCase());
 
-    // Fuzzy match for General or Global
-    if (lowerCats.some((c) => c.includes('general') || c.includes('global')))
-      return true;
+    // General and Global apply to both games
+    const hasBothGamesCat = lowerCats.some(
+      (c) => c.includes('general') || c.includes('global'),
+    );
 
     // Check game
     const hasGameCat = lowerCats.some(
       (c) => c.includes('summer') || c.includes('winter'),
     );
     if (
+      !hasBothGamesCat &&
       hasGameCat &&
       !lowerCats.some((c) => c.includes(gameCategory.toLowerCase()))
     ) {
@@ -67,7 +61,7 @@ export function DashboardResourceRow({
     // Check NSO (ONLY if nsoId is provided AND viewer is not admin/coc)
     const isAdminOrCoc = viewerRole === 'admin' || viewerRole === 'coc';
     if (nsoCategoryRaw && !isAdminOrCoc) {
-      const lowerNSOs = CANADIAN_NSOS.map((n) => n.toLowerCase());
+      const lowerNSOs = nsoNames.map((n) => n.toLowerCase());
       const hasNsoCat = lowerCats.some((c) =>
         lowerNSOs.some((nso) => c.includes(nso) || nso.includes(c)),
       );
