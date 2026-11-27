@@ -98,3 +98,7 @@ export function findGame<T extends Game>(
   if (!gameId) return undefined;
   return games.find((g) => String(g.id) === gameId);
 }
+
+export function isAdminPath(pathname: string): boolean {
+  return pathname === '/admin' || pathname.startsWith('/admin/');
+}

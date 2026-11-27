@@ -1,11 +1,9 @@
 //No substantial AI generated Code
 import Image from 'next/image';
-import GamesSelector from './GamesSelector';
-import NsoSelector from './NsoSelector';
+import HeaderSelectors from './HeaderSelectors';
 import DevUserToggle from './DevUserToggle';
 import type { GameWithNsos } from '@/lib/types';
 import type { SessionUser } from '@/server/auth/session';
-import { Suspense } from 'react';
 
 const ROLE_LABELS = { admin: 'Admin', coc: 'COC', nso: 'NSO' } as const;
 
@@ -44,14 +42,7 @@ export default function Header({
               Games Planning Tool
             </div>
           </div>
-          <div className="flex gap-8">
-            <GamesSelector role={role} games={games} />
-            {(role === 'coc' || role === 'admin') && (
-              <Suspense>
-                <NsoSelector games={games} />
-              </Suspense>
-            )}
-          </div>
+          <HeaderSelectors role={role} games={games} />
         </div>
         <div className="flex items-center gap-8">
           {/* temporary: remove the toggle once real authentication is implemented */}

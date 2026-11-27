@@ -10,11 +10,11 @@ vi.mock('next/server', () => ({ connection: vi.fn(async () => {}) }));
 
 // No database connection in unit tests.
 vi.mock('@/lib/prisma', () => ({
-  prisma: { game: { findMany: vi.fn() } },
+  prisma: { game: { findMany: vi.fn(), findUnique: vi.fn() } },
 }));
 
 import { prisma } from '@/lib/prisma';
-import { getGamesWithNsos } from '@/server/queries/games';
+import { getGameById, getGamesWithNsos } from '@/server/queries/games';
 
 const findMany = vi.mocked(prisma.game.findMany);
 
@@ -104,5 +104,34 @@ describe('getGamesWithNsos', () => {
     mockRows([]);
 
     expect(await getGamesWithNsos()).toEqual([]);
+  });
+});
+
+describe('getGameById', () => {
+  const findUnique = vi.mocked(prisma.game.findUnique);
+
+  beforeEach(() => {
+    findUnique.mockReset();
+  });
+
+  it('returns null without querying when the id is not a number', async () => {
+    expect(await getGameById('abc')).toBeNull();
+    expect(await getGameById('1.5')).toBeNull();
+    expect(findUnique).not.toHaveBeenCalled();
+  });
+
+  it('looks the Game up by its numeric id, without filtering out archived Games', async () => {
+    const game = { id: 8, name: 'Paris 2024' };
+    findUnique.mockResolvedValue(game as never);
+
+    expect(await getGameById('8')).toEqual(game);
+    expect(findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 8 } }),
+    );
+  });
+
+  it('returns null when no Game has the id', async () => {
+    findUnique.mockResolvedValue(null);
+    expect(await getGameById('99999')).toBeNull();
   });
 });

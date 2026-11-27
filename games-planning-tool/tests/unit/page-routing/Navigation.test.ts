@@ -7,6 +7,7 @@ import {
   resolveSessionNsoId,
   gamesForUser,
   findGame,
+  isAdminPath,
 } from '@/lib/routing/Navigation';
 import { describe, it, expect } from 'vitest';
 
@@ -228,5 +229,20 @@ describe('findGame', () => {
     expect(findGame(games, '01')).toBeUndefined();
     expect(findGame(games, '')).toBeUndefined();
     expect(findGame(games, undefined)).toBeUndefined();
+  });
+});
+
+describe('isAdminPath', () => {
+  it('matches /admin and every page under it', () => {
+    expect(isAdminPath('/admin')).toBe(true);
+    expect(isAdminPath('/admin/user-management')).toBe(true);
+    expect(isAdminPath('/admin/system-settings/8/game-details')).toBe(true);
+  });
+
+  it('does not match Game pages or look-alike paths', () => {
+    expect(isAdminPath('/8/dashboard')).toBe(false);
+    expect(isAdminPath('/8/usa/team-journey')).toBe(false);
+    expect(isAdminPath('/administration')).toBe(false);
+    expect(isAdminPath('/')).toBe(false);
   });
 });
