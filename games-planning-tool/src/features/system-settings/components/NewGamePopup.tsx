@@ -44,9 +44,14 @@ export default function NewGamePopup({
     e.preventDefault();
     setError(null);
     startTransition(async () => {
-      const result = await createGame({ name, country, city });
-      if (result.ok) close();
-      else setError(result.error);
+      try {
+        const result = await createGame({ name, country, city });
+        if (result.ok) close();
+        else setError(result.error);
+      } catch (err) {
+        console.error('createGame failed:', err);
+        setError('Could not create the game. Please try again.');
+      }
     });
   };
 

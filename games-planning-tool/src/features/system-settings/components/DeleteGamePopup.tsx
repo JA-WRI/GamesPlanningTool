@@ -38,9 +38,14 @@ export default function DeleteGamePopup({
   const handleDelete = () => {
     setError(null);
     startTransition(async () => {
-      const result = await deleteGame(gameId);
-      if (result.ok) onClose();
-      else setError(result.error);
+      try {
+        const result = await deleteGame(gameId);
+        if (result.ok) onClose();
+        else setError(result.error);
+      } catch (err) {
+        console.error('deleteGame failed:', err);
+        setError('Could not delete the game. Please try again.');
+      }
     });
   };
 

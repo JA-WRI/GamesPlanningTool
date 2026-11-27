@@ -67,8 +67,13 @@ export default function GameCard({
     setMenuAnchor(null);
     setError(null);
     startTransition(async () => {
-      const result = await setGameActive(game.id, !game.isActive);
-      if (!result.ok) setError(result.error);
+      try {
+        const result = await setGameActive(game.id, !game.isActive);
+        if (!result.ok) setError(result.error);
+      } catch (err) {
+        console.error('setGameActive failed:', err);
+        setError('Could not update the game. Please try again.');
+      }
     });
   };
 
