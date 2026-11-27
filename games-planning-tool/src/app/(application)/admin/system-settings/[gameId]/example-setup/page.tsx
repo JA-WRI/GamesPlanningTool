@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import ConfigSectionCard from '@/components/admin-settings/ConfigSectionCard';
+import SettingsSectionCard from '@/components/system-settings/SettingsSectionCard';
 
 //to be deleted, use this as a reference page.
-export default function GuardTestSection() {
+export default function ExampleSetupPage() {
   const [saved, setSaved] = useState('Paris 2024');
   const [value, setValue] = useState(saved);
 
   return (
-    <ConfigSectionCard
+    <SettingsSectionCard
       title="Game Details (guard test)"
       isDirty={value !== saved}
       onSave={() => setSaved(value)}
@@ -20,6 +20,6 @@ export default function GuardTestSection() {
         value={value}
         onChange={(e) => setValue(e.target.value)}
       />
-    </ConfigSectionCard>
+    </SettingsSectionCard>
   );
 }

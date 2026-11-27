@@ -7,7 +7,7 @@ vi.mock('@/features/system-settings/actions/createGame', () => ({
 }));
 
 import { createGame } from '@/features/system-settings/actions/createGame';
-import NewGamePopup from '@/features/system-settings/components/NewGamePopup';
+import NewGameModal from '@/features/system-settings/components/NewGameModal';
 
 const createGameMock = vi.mocked(createGame);
 
@@ -19,9 +19,9 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
-function setup(props: Partial<React.ComponentProps<typeof NewGamePopup>> = {}) {
+function setup(props: Partial<React.ComponentProps<typeof NewGameModal>> = {}) {
   const onClose = vi.fn();
-  const utils = render(<NewGamePopup open onClose={onClose} {...props} />);
+  const utils = render(<NewGameModal open onClose={onClose} {...props} />);
   return { onClose, user: userEvent.setup(), ...utils };
 }
 
@@ -48,7 +48,7 @@ const waitUntilIdle = () =>
     expect(createButton()).toBeEnabled();
   });
 
-describe('NewGamePopup', () => {
+describe('NewGameModal', () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });

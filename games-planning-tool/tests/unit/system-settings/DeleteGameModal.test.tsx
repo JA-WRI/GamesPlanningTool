@@ -7,7 +7,7 @@ vi.mock('@/features/system-settings/actions/deleteGame', () => ({
 }));
 
 import { deleteGame } from '@/features/system-settings/actions/deleteGame';
-import DeleteGamePopup from '@/features/system-settings/components/DeleteGamePopup';
+import DeleteGameModal from '@/features/system-settings/components/DeleteGameModal';
 
 const deleteGameMock = vi.mocked(deleteGame);
 
@@ -21,11 +21,11 @@ function deferred<T>() {
 }
 
 function setup(
-  props: Partial<React.ComponentProps<typeof DeleteGamePopup>> = {},
+  props: Partial<React.ComponentProps<typeof DeleteGameModal>> = {},
 ) {
   const onClose = vi.fn();
   const utils = render(
-    <DeleteGamePopup
+    <DeleteGameModal
       gameId={7}
       gameName="Test Game"
       open
@@ -45,7 +45,7 @@ const waitUntilIdle = () =>
     expect(deleteButton()).toBeEnabled();
   });
 
-describe('DeleteGamePopup', () => {
+describe('DeleteGameModal', () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });
@@ -203,7 +203,7 @@ describe('DeleteGamePopup', () => {
 
       // Parent closes, then reopens the popup.
       rerender(
-        <DeleteGamePopup
+        <DeleteGameModal
           gameId={7}
           gameName="Test Game"
           open={false}
@@ -211,7 +211,7 @@ describe('DeleteGamePopup', () => {
         />,
       );
       rerender(
-        <DeleteGamePopup
+        <DeleteGameModal
           gameId={7}
           gameName="Test Game"
           open

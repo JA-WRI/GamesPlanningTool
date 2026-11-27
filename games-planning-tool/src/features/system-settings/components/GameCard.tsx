@@ -10,10 +10,10 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import type { GameSummary } from '@/lib/types';
-import { CONFIG_SECTIONS } from '@/lib/admin-config-sections';
-import SetupProgressBar from '@/components/admin-settings/SetupProgressBar';
+import { SETTINGS_SECTIONS } from '@/lib/system-settings-sections';
+import SetupProgressBar from '@/components/system-settings/SetupProgressBar';
 import { setGameActive } from '@/features/system-settings/actions/setGameActive';
-import DeleteGameDialog from './DeleteGamePopup';
+import DeleteGameModal from './DeleteGameModal';
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString('en-US', {
@@ -61,7 +61,7 @@ export default function GameCard({
 
   const archiveLabel = game.isActive ? 'Archive' : 'Restore';
   const ArchiveToggleIcon = game.isActive ? ArchiveIcon : UnarchiveIcon;
-  const totalSections = CONFIG_SECTIONS.length;
+  const totalSections = SETTINGS_SECTIONS.length;
 
   const handleToggleActive = () => {
     setMenuAnchor(null);
@@ -150,6 +150,7 @@ export default function GameCard({
           <button
             type="button"
             onClick={openDelete}
+            disabled={isPending}
             aria-label={`Delete ${game.name}`}
             title="Delete"
             className={`${iconButton} hover:bg-red-50 hover:text-red-600 focus-visible:ring-red-300`}
@@ -201,7 +202,7 @@ export default function GameCard({
         </p>
       )}
 
-      <DeleteGameDialog
+      <DeleteGameModal
         gameId={game.id}
         gameName={game.name}
         open={confirmOpen}

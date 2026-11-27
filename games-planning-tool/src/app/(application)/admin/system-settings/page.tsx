@@ -1,7 +1,7 @@
 //50% or more AI generated
 import { getGamesByStatus } from '@/server/queries/games';
-import { getSectionCompletion } from '@/server/queries/admin-config-completion';
-import { countDone } from '@/lib/admin-config-sections';
+import { getSectionCompletion } from '@/server/queries/system-settings-completion';
+import { countDone } from '@/lib/system-settings-sections';
 import SystemSettingsPage from '@/features/system-settings/components/SystemSettingsPage';
 
 export default async function Page() {

@@ -4,7 +4,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import { deleteGame } from '@/features/system-settings/actions/deleteGame';
 
-export default function DeleteGamePopup({
+export default function DeleteGameModal({
   gameId,
   gameName,
   open,

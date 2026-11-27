@@ -8,7 +8,7 @@ vi.mock('@/features/system-settings/actions/setGameActive', () => ({
 }));
 
 // The popup has its own tests; here we only check GameCard drives it.
-vi.mock('@/features/system-settings/components/DeleteGamePopup', () => ({
+vi.mock('@/features/system-settings/components/DeleteGameModal', () => ({
   default: ({
     open,
     gameId,
@@ -32,7 +32,7 @@ vi.mock('@/features/system-settings/components/DeleteGamePopup', () => ({
 
 import { setGameActive } from '@/features/system-settings/actions/setGameActive';
 import GameCard from '@/features/system-settings/components/GameCard';
-import { CONFIG_SECTIONS } from '@/lib/admin-config-sections';
+import { SETTINGS_SECTIONS } from '@/lib/system-settings-sections';
 
 const setGameActiveMock = vi.mocked(setGameActive);
 
@@ -66,7 +66,7 @@ function setup(overrides: Partial<GameSummary> = {}, sectionsDone = 0) {
   };
 }
 
-const total = CONFIG_SECTIONS.length;
+const total = SETTINGS_SECTIONS.length;
 
 describe('GameCard', () => {
   beforeEach(() => {

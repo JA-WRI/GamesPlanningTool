@@ -3,14 +3,14 @@ import '@testing-library/jest-dom/vitest';
 import { useState } from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import UnsavedChangesGuard from '@/components/admin-settings/UnsavedChangesGuard';
-import ConfigSectionCard from '@/components/admin-settings/ConfigSectionCard';
+import UnsavedChangesGuard from '@/components/system-settings/UnsavedChangesGuard';
+import SettingsSectionCard from '@/components/system-settings/SettingsSectionCard';
 
 // A step with one field. Typing makes it dirty; Cancel restores "saved".
 function Step({ onDiscardSpy }: { onDiscardSpy?: () => void }) {
   const [value, setValue] = useState('saved');
   return (
-    <ConfigSectionCard
+    <SettingsSectionCard
       title="Game Details"
       isDirty={value !== 'saved'}
       onSave={() => {}}
@@ -24,7 +24,7 @@ function Step({ onDiscardSpy }: { onDiscardSpy?: () => void }) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
       />
-    </ConfigSectionCard>
+    </SettingsSectionCard>
   );
 }
 

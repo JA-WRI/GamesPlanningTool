@@ -11,8 +11,8 @@ vi.mock('@/lib/prisma', () => ({
 }));
 
 import { prisma } from '@/lib/prisma';
-import { CONFIG_SECTIONS } from '@/lib/admin-config-sections';
-import { getSectionCompletion } from '@/server/queries/admin-config-completion';
+import { SETTINGS_SECTIONS } from '@/lib/system-settings-sections';
+import { getSectionCompletion } from '@/server/queries/system-settings-completion';
 
 const findUnique = vi.mocked(prisma.game.findUnique);
 
@@ -46,7 +46,7 @@ describe('getSectionCompletion', () => {
   it('returns true / false for every section in the list', async () => {
     const result = await getSectionCompletion(1);
     expect(Object.keys(result).sort()).toEqual(
-      CONFIG_SECTIONS.map((s) => s.key).sort(),
+      SETTINGS_SECTIONS.map((s) => s.key).sort(),
     );
     for (const value of Object.values(result)) {
       expect(typeof value).toBe('boolean');

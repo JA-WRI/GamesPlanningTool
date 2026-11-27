@@ -17,7 +17,7 @@ vi.mock('@/features/system-settings/components/GameCard', () => ({
   ),
 }));
 
-vi.mock('@/features/system-settings/components/NewGamePopup', () => ({
+vi.mock('@/features/system-settings/components/NewGameModal', () => ({
   default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? (
       <div data-testid="new-game-popup">

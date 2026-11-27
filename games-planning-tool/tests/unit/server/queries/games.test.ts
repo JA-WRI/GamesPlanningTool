@@ -14,10 +14,7 @@ vi.mock('@/lib/prisma', () => ({
 }));
 
 import { prisma } from '@/lib/prisma';
-import {
-  getActiveOrInactiveGameById,
-  getGamesWithNsos,
-} from '@/server/queries/games';
+import { getGameById, getGamesWithNsos } from '@/server/queries/games';
 
 const findMany = vi.mocked(prisma.game.findMany);
 
@@ -110,7 +107,7 @@ describe('getGamesWithNsos', () => {
   });
 });
 
-describe('getActiveOrInactiveGameById', () => {
+describe('getGameById', () => {
   const findUnique = vi.mocked(prisma.game.findUnique);
 
   beforeEach(() => {
@@ -118,22 +115,16 @@ describe('getActiveOrInactiveGameById', () => {
   });
 
   it('returns null without querying when the id is not a number', async () => {
-    expect(await getActiveOrInactiveGameById('abc')).toBeNull();
-    expect(await getActiveOrInactiveGameById('1.5')).toBeNull();
+    expect(await getGameById('abc')).toBeNull();
+    expect(await getGameById('1.5')).toBeNull();
     expect(findUnique).not.toHaveBeenCalled();
   });
 
   it('looks the Game up by its numeric id, without filtering out archived Games', async () => {
-    const game = {
-      id: 8,
-      name: 'Paris 2024',
-      startDate: new Date('2024-07-26'),
-      endDate: new Date('2024-08-11'),
-      isActive: false,
-    };
+    const game = { id: 8, name: 'Paris 2024' };
     findUnique.mockResolvedValue(game as never);
 
-    expect(await getActiveOrInactiveGameById('8')).toEqual(game);
+    expect(await getGameById('8')).toEqual(game);
     expect(findUnique).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: 8 } }),
     );
@@ -141,6 +132,6 @@ describe('getActiveOrInactiveGameById', () => {
 
   it('returns null when no Game has the id', async () => {
     findUnique.mockResolvedValue(null);
-    expect(await getActiveOrInactiveGameById('99999')).toBeNull();
+    expect(await getGameById('99999')).toBeNull();
   });
 });

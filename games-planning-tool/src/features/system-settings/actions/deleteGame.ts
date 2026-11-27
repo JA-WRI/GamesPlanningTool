@@ -16,14 +16,16 @@ export async function deleteGame(id: number): Promise<DeleteGameResult> {
     await removeGame(id);
   } catch (error) {
     const code = (error as { code?: string })?.code;
-    if (code === 'P2025') {
-    } else if (code === 'P2003') {
+    // P2025: the game is already gone (e.g. deleted in another tab). That's the
+    // outcome we wanted, so fall through and treat it as success.
+    if (code === 'P2003') {
       return {
         ok: false,
         error:
           'This game has NSOs, members, contacts or other data linked to it, so it cannot be deleted.',
       };
-    } else {
+    }
+    if (code !== 'P2025') {
       console.error('deleteGame failed:', error);
       return {
         ok: false,

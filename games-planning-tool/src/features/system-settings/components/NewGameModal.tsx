@@ -7,7 +7,7 @@ import { createGame } from '@/features/system-settings/actions/createGame';
 const inputClass =
   'w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition focus:border-[#B5650D] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#B5650D]/20 disabled:opacity-60';
 
-export default function NewGamePopup({
+export default function NewGameModal({
   open,
   onClose,
 }: {
@@ -79,8 +79,12 @@ export default function NewGamePopup({
 
         <div className="space-y-4">
           <div>
+            <label htmlFor="game-name" className="sr-only">
+              Game name
+            </label>
             <input
               id="game-name"
+              required
               autoFocus
               className={inputClass}
               placeholder="Enter Game Name"
@@ -91,8 +95,12 @@ export default function NewGamePopup({
           </div>
 
           <div>
+            <label htmlFor="game-country" className="sr-only">
+              Country
+            </label>
             <input
               id="game-country"
+              required
               className={inputClass}
               placeholder="Country"
               value={country}
@@ -102,8 +110,12 @@ export default function NewGamePopup({
           </div>
 
           <div>
+            <label htmlFor="game-city" className="sr-only">
+              City
+            </label>
             <input
               id="game-city"
+              required
               className={inputClass}
               placeholder="City"
               value={city}

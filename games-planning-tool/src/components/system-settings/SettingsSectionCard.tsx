@@ -8,7 +8,7 @@ import { useUnsavedChangesWarning } from './UnsavedChangesGuard';
 // The section owns its form state and passes it in; this component only
 // decides what the footer shows and when Save is allowed.
 
-type ConfigSectionCardProps = {
+type SettingsSectionCardProps = {
   title: string;
   description?: string;
   children: React.ReactNode;
@@ -19,7 +19,7 @@ type ConfigSectionCardProps = {
   onCancel?: () => void; // should restore the last saved values
 };
 
-export default function ConfigSectionCard({
+export default function SettingsSectionCard({
   title,
   description,
   children,
@@ -28,7 +28,7 @@ export default function ConfigSectionCard({
   isSaving = false,
   onSave,
   onCancel,
-}: ConfigSectionCardProps) {
+}: SettingsSectionCardProps) {
   const canSave = isDirty && errorCount === 0 && !isSaving && !!onSave;
   const canCancel = isDirty && !isSaving && !!onCancel;
 

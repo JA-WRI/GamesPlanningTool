@@ -22,7 +22,7 @@ import {
 /* Warns before leaving a Game setup step that has unsaved changes.
 
   Wraps the setup view in the [gameId] layout. The current step's
-  ConfigSectionCard reports whether it has unsaved changes; while it does,
+  SettingsSectionCard reports whether it has unsaved changes; while it does,
   any link click (stepper, All Games, navbar, header) is stopped and the
   Admin is asked to keep editing or discard. Reload / closing the tab gets the
   browser's own "Leave site?" prompt.
@@ -38,7 +38,7 @@ type ContextValue = {
 
 const UnsavedChangesContext = createContext<ContextValue | null>(null);
 
-// Called by ConfigSectionCard. Does nothing outside an UnsavedChangesGuard.
+// Called by SettingsSectionCard. Does nothing outside an UnsavedChangesGuard.
 export function useUnsavedChangesWarning(
   isDirty: boolean,
   onDiscard?: () => void,

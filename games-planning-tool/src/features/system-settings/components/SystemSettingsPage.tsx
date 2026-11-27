@@ -5,7 +5,7 @@ import { useState } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import type { GameSummary } from '@/lib/types';
 import GameCard from './GameCard';
-import NewGamePopup from './NewGamePopup';
+import NewGameModal from './NewGameModal';
 
 type GameTab = 'active' | 'archived';
 
@@ -20,7 +20,7 @@ export default function SystemSettingsPage({
   sectionsDone: Record<number, number>;
 }) {
   const [tab, setTab] = useState<GameTab>('active');
-  const [popupOpen, setPopupOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const tabs: { value: GameTab; label: string }[] = [
     { value: 'active', label: `Active (${active.length})` },
@@ -61,7 +61,7 @@ export default function SystemSettingsPage({
 
         <button
           type="button"
-          onClick={() => setPopupOpen(true)}
+          onClick={() => setModalOpen(true)}
           className="mb-2 flex items-center gap-1.5 rounded-lg border border-[#B5650D] px-3 py-1.5 text-sm font-medium text-[#B5650D] transition hover:bg-[#B5650D] hover:text-white"
         >
           <AddIcon fontSize="small" aria-hidden />
@@ -90,7 +90,7 @@ export default function SystemSettingsPage({
         )}
       </div>
 
-      <NewGamePopup open={popupOpen} onClose={() => setPopupOpen(false)} />
+      <NewGameModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }

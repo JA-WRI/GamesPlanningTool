@@ -4,8 +4,8 @@ import { cache } from 'react';
 import { prisma } from '@/lib/prisma';
 import type {
   SectionCompletion,
-  ConfigSectionRoute,
-} from '@/lib/admin-config-sections';
+  SettingsSectionRoute,
+} from '@/lib/system-settings-sections';
 
 /*
   This file will be used to set Completion status of each Game setup section,
@@ -90,10 +90,10 @@ async function isEstimatedCostsComplete(gameId: number): Promise<boolean> {
 
 /* eslint-enable @typescript-eslint/no-unused-vars */
 
-// Which function checks which section. Typed against ConfigSectionRoute, so
+// Which function checks which section. Typed against SettingsSectionRoute, so
 // adding a section to the list without a function here is a type error.
 const COMPLETION_CHECKS: Record<
-  ConfigSectionRoute,
+  SettingsSectionRoute,
   (gameId: number) => Promise<boolean>
 > = {
   'example-setup': isExampleSetupComplete,
@@ -108,7 +108,7 @@ const COMPLETION_CHECKS: Record<
 // One fetch for all statuses. Cached per request, so the layout and pages share one lookup.
 export const getSectionCompletion = cache(
   async (gameId: number): Promise<SectionCompletion> => {
-    const keys = Object.keys(COMPLETION_CHECKS) as ConfigSectionRoute[];
+    const keys = Object.keys(COMPLETION_CHECKS) as SettingsSectionRoute[];
     const results = await Promise.all(
       keys.map((key) => COMPLETION_CHECKS[key](gameId)),
     );

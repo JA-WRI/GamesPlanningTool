@@ -2,13 +2,13 @@
 import '@testing-library/jest-dom/vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import ConfigSectionCard from '@/components/admin-settings/ConfigSectionCard';
+import SettingsSectionCard from '@/components/system-settings/SettingsSectionCard';
 
-function renderCard(props: Partial<Parameters<typeof ConfigSectionCard>[0]>) {
+function renderCard(props: Partial<Parameters<typeof SettingsSectionCard>[0]>) {
   render(
-    <ConfigSectionCard title="Game Details" {...props}>
+    <SettingsSectionCard title="Game Details" {...props}>
       <p>Section content</p>
-    </ConfigSectionCard>,
+    </SettingsSectionCard>,
   );
   return {
     // Matches both "Save" and "Saving…"
@@ -17,7 +17,7 @@ function renderCard(props: Partial<Parameters<typeof ConfigSectionCard>[0]>) {
   };
 }
 
-describe('ConfigSectionCard', () => {
+describe('SettingsSectionCard', () => {
   it('shows the title, description and the section content', () => {
     renderCard({ description: 'Name, location and dates' });
     expect(

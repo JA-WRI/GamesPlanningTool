@@ -3,20 +3,20 @@ import '@testing-library/jest-dom/vitest';
 import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  CONFIG_SECTIONS,
+  SETTINGS_SECTIONS,
   type SectionCompletion,
-} from '@/lib/admin-config-sections';
+} from '@/lib/system-settings-sections';
 
 const { useSelectedLayoutSegment } = vi.hoisted(() => ({
   useSelectedLayoutSegment: vi.fn<() => string | null>(),
 }));
 vi.mock('next/navigation', () => ({ useSelectedLayoutSegment }));
 
-import ConfigSetupStepper from '@/components/admin-settings/ConfigSetupStepper';
+import SettingsStepper from '@/components/system-settings/SettingsStepper';
 
 function completion(complete: string[] = []): SectionCompletion {
   return Object.fromEntries(
-    CONFIG_SECTIONS.map((s) => [s.key, complete.includes(s.key)]),
+    SETTINGS_SECTIONS.map((s) => [s.key, complete.includes(s.key)]),
   ) as SectionCompletion;
 }
 
@@ -24,16 +24,16 @@ function linkFor(label: string) {
   return screen.getByRole('link', { name: new RegExp(`\\d+\\. ${label}`) });
 }
 
-describe('ConfigSetupStepper', () => {
+describe('SettingsStepper', () => {
   beforeEach(() => {
     useSelectedLayoutSegment.mockReturnValue('properties');
   });
 
   it('links every section to its page for this Game, in order', () => {
-    render(<ConfigSetupStepper gameId={8} completion={completion()} />);
+    render(<SettingsStepper gameId={8} completion={completion()} />);
     const links = screen.getAllByRole('link');
-    expect(links).toHaveLength(CONFIG_SECTIONS.length);
-    CONFIG_SECTIONS.forEach((section, i) => {
+    expect(links).toHaveLength(SETTINGS_SECTIONS.length);
+    SETTINGS_SECTIONS.forEach((section, i) => {
       expect(links[i]).toHaveAttribute(
         'href',
         `/admin/system-settings/8/${section.key}`,
@@ -44,10 +44,7 @@ describe('ConfigSetupStepper', () => {
 
   it('shows a done mark only on complete sections', () => {
     render(
-      <ConfigSetupStepper
-        gameId={8}
-        completion={completion(['game-details'])}
-      />,
+      <SettingsStepper gameId={8} completion={completion(['game-details'])} />,
     );
     expect(within(linkFor('Details')).getByText('Done')).toBeInTheDocument();
     expect(
@@ -57,13 +54,13 @@ describe('ConfigSetupStepper', () => {
 
   it('shows how many sections are done', () => {
     render(
-      <ConfigSetupStepper
+      <SettingsStepper
         gameId={8}
         completion={completion(['game-details', 'properties'])}
       />,
     );
     expect(
-      screen.getByText(`2 of ${CONFIG_SECTIONS.length} sections done`),
+      screen.getByText(`2 of ${SETTINGS_SECTIONS.length} sections done`),
     ).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toHaveAttribute(
       'aria-valuenow',
@@ -72,7 +69,7 @@ describe('ConfigSetupStepper', () => {
   });
 
   it('marks the section in the URL as the current step', () => {
-    render(<ConfigSetupStepper gameId={8} completion={completion()} />);
+    render(<SettingsStepper gameId={8} completion={completion()} />);
     expect(linkFor('Properties & Prices')).toHaveAttribute(
       'aria-current',
       'step',

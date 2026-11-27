@@ -2,10 +2,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { getActiveOrInactiveGameById } from '@/server/queries/games';
-import { getSectionCompletion } from '@/server/queries/admin-config-completion';
-import ConfigSetupStepper from '@/components/admin-settings/ConfigSetupStepper';
-import UnsavedChangesGuard from '@/components/admin-settings/UnsavedChangesGuard';
+import { getGameById } from '@/server/queries/games';
+import { getSectionCompletion } from '@/server/queries/system-settings-completion';
+import SettingsStepper from '@/components/system-settings/SettingsStepper';
+import UnsavedChangesGuard from '@/components/system-settings/UnsavedChangesGuard';
 
 export default async function GameSetupLayout({
   children,
@@ -15,7 +15,7 @@ export default async function GameSetupLayout({
   params: Promise<{ gameId: string }>;
 }) {
   const { gameId } = await params;
-  const game = await getActiveOrInactiveGameById(gameId);
+  const game = await getGameById(gameId);
   if (!game) notFound();
   const completion = await getSectionCompletion(game.id);
 
@@ -34,7 +34,7 @@ export default async function GameSetupLayout({
         </header>
 
         <div className="flex flex-col gap-4 lg:flex-row lg:gap-6 xl:gap-8">
-          <ConfigSetupStepper gameId={game.id} completion={completion} />
+          <SettingsStepper gameId={game.id} completion={completion} />
           <section className="flex min-w-0 flex-1 flex-col gap-4">
             {children}
           </section>

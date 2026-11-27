@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
     throw new Error(`NEXT_REDIRECT ${url}`);
   }),
   getSession: vi.fn(),
-  getActiveOrInactiveGameById: vi.fn(),
+  getGameById: vi.fn(),
   getSectionCompletion: vi.fn(),
 }));
 
@@ -24,16 +24,16 @@ vi.mock('next/navigation', () => ({
 }));
 vi.mock('@/server/auth/session', () => ({ getSession: mocks.getSession }));
 vi.mock('@/server/queries/games', () => ({
-  getActiveOrInactiveGameById: mocks.getActiveOrInactiveGameById,
+  getGameById: mocks.getGameById,
 }));
-vi.mock('@/server/queries/admin-config-completion', () => ({
+vi.mock('@/server/queries/system-settings-completion', () => ({
   getSectionCompletion: mocks.getSectionCompletion,
 }));
 
 import AdminLayout from '@/app/(application)/admin/layout';
 import GameSetupLayout from '@/app/(application)/admin/system-settings/[gameId]/layout';
 import GameSetupPage from '@/app/(application)/admin/system-settings/[gameId]/page';
-import { CONFIG_SECTIONS } from '@/lib/admin-config-sections';
+import { SETTINGS_SECTIONS } from '@/lib/system-settings-sections';
 
 function sessionAs(role: 'admin' | 'coc' | 'nso') {
   mocks.getSession.mockResolvedValue({
@@ -69,7 +69,7 @@ describe('Game setup layout', () => {
   const params = (gameId: string) => Promise.resolve({ gameId });
 
   it('shows Not Found for a Game that does not exist', async () => {
-    mocks.getActiveOrInactiveGameById.mockResolvedValue(null);
+    mocks.getGameById.mockResolvedValue(null);
     await expect(
       GameSetupLayout({ children: <p>Step</p>, params: params('99999') }),
     ).rejects.toThrow('NEXT_NOT_FOUND');
@@ -77,19 +77,19 @@ describe('Game setup layout', () => {
   });
 
   it('shows the Game name, the back link, the stepper and the current step', async () => {
-    mocks.getActiveOrInactiveGameById.mockResolvedValue({
+    mocks.getGameById.mockResolvedValue({
       id: 8,
       name: 'Paris 2024',
     });
     mocks.getSectionCompletion.mockResolvedValue(
-      Object.fromEntries(CONFIG_SECTIONS.map((s) => [s.key, false])),
+      Object.fromEntries(SETTINGS_SECTIONS.map((s) => [s.key, false])),
     );
 
     render(
       await GameSetupLayout({ children: <p>Step</p>, params: params('8') }),
     );
 
-    expect(mocks.getActiveOrInactiveGameById).toHaveBeenCalledWith('8');
+    expect(mocks.getGameById).toHaveBeenCalledWith('8');
     expect(mocks.getSectionCompletion).toHaveBeenCalledWith(8);
     expect(
       screen.getByRole('heading', { name: 'Paris 2024' }),

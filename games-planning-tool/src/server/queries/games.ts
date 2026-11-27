@@ -5,7 +5,11 @@ import { connection } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import type { GameSummary, GameWithNsos } from '@/lib/types';
 
+// All active games with the active NSOs participating in each.
+// Cached per request, so layouts, pages and the header share one query.
 export const getGamesWithNsos = cache(async (): Promise<GameWithNsos[]> => {
+  // Run at request time, this fixes the `next build` in CI (CI has no database then).
+  // Could possibly take out once auth is implemented but would still need this in paged that don't verify sessions.
   await connection();
   const rows = await prisma.game.findMany({
     where: { isActive: true },
@@ -27,18 +31,13 @@ export const getGamesWithNsos = cache(async (): Promise<GameWithNsos[]> => {
   }));
 });
 
-export const getActiveOrInactiveGameById = cache(async (gameId: string) => {
+// One Game by id, active or archived (admins can open either).
+export const getGameById = cache(async (gameId: string) => {
   const id = Number(gameId);
   if (!Number.isInteger(id)) return null;
   return prisma.game.findUnique({
     where: { id },
-    select: {
-      id: true,
-      name: true,
-      startDate: true,
-      endDate: true,
-      isActive: true,
-    },
+    select: { id: true, name: true },
   });
 });
 

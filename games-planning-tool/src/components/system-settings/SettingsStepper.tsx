@@ -6,16 +6,16 @@ import { useSelectedLayoutSegment } from 'next/navigation';
 import CheckIcon from '@mui/icons-material/Check';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import {
-  CONFIG_SECTIONS,
+  SETTINGS_SECTIONS,
   countDone,
   sectionHref,
   type SectionCompletion,
-} from '@/lib/admin-config-sections';
+} from '@/lib/system-settings-sections';
 import SetupProgressBar from './SetupProgressBar';
 
 // Free stepper: every section can be opened in any order. A side menu on wide
 // screens; on narrower screens it sits above the step and scrolls sideways.
-export default function ConfigSetupStepper({
+export default function SettingsStepper({
   gameId,
   completion,
 }: {
@@ -25,7 +25,7 @@ export default function ConfigSetupStepper({
   // The section folder under [gameId], e.g. "game-details"
   const active = useSelectedLayoutSegment();
   const done = countDone(completion);
-  const total = CONFIG_SECTIONS.length;
+  const total = SETTINGS_SECTIONS.length;
 
   return (
     <nav
@@ -40,7 +40,7 @@ export default function ConfigSetupStepper({
       </div>
 
       <ol className="-mx-2 flex gap-2 overflow-x-auto px-2 pb-2 lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0 lg:pb-0">
-        {CONFIG_SECTIONS.map((section, i) => {
+        {SETTINGS_SECTIONS.map((section, i) => {
           const isActive = section.key === active;
           const isComplete = completion[section.key];
           return (
