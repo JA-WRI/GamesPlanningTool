@@ -61,30 +61,3 @@ export const PRIMARY_CATEGORIES = [
   'Summer Games',
   'General',
 ] as const;
-
-export const CANADIAN_NSOS = [
-  'Alpine Canada',
-  'Athletics Canada',
-  'Canada Basketball',
-  'Canada Snowboard',
-  'Canada Soccer',
-  'Canoe Kayak Canada',
-  'Curling Canada',
-  'Cycling Canada',
-  'Field Hockey Canada',
-  'Figure Skating (Skate Canada)',
-  'Gymnastics Canada',
-  'Hockey Canada',
-  'Judo Canada',
-  'Rowing Canada',
-  'Rugby Canada',
-  'Speed Skating Canada',
-  'Swimming Canada',
-  'Tennis Canada',
-  'Triathlon Canada',
-  'Volleyball Canada',
-  'Water Polo Canada',
-  'Wrestling Canada',
-] as const;
-
-export type NsoCategory = (typeof CANADIAN_NSOS)[number];

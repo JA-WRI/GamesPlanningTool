@@ -2,10 +2,7 @@
 import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@/generated/prisma/client';
 import type { ResourceModel } from '@/generated/prisma/models/Resource';
-import {
-  CANADIAN_NSOS,
-  type Resource,
-} from '@/features/resources/types/resource';
+import type { Resource } from '@/features/resources/types/resource';
 
 const DEFAULT_CATEGORY = 'General';
 const PUBLIC_CATEGORIES = ['General', 'Global'];
@@ -14,6 +11,7 @@ const GAME_CATEGORIES = ['Summer Games', 'Winter Games'];
 export type ResourceVisibility = {
   gameCategory: string;
   nsoCategory?: string;
+  nsoNames: string[];
 };
 
 export type NewResource = {
@@ -193,6 +191,7 @@ function wouldCreateCycle(
 function visibilityWhere({
   gameCategory,
   nsoCategory,
+  nsoNames,
 }: ResourceVisibility): Prisma.ResourceWhereInput {
   const matchesGame: Prisma.ResourceWhereInput = {
     OR: [
@@ -209,9 +208,8 @@ function visibilityWhere({
       matchesGame,
       {
         OR: [
-          { categories: { hasSome: PUBLIC_CATEGORIES } },
           { categories: { has: nsoCategory } },
-          { NOT: { categories: { hasSome: [...CANADIAN_NSOS] } } },
+          { NOT: { categories: { hasSome: nsoNames } } },
         ],
       },
     ],
@@ -223,33 +221,38 @@ export async function resourceVisibilityFor(
   nsoId: string,
 ): Promise<ResourceVisibility> {
   const numericGameId = Number(gameId);
-  const validGameId =
+  const isValidGameId =
     /^\d+$/.test(gameId) &&
     Number.isSafeInteger(numericGameId) &&
     numericGameId > 0 &&
     numericGameId <= 2_147_483_647;
-  const validNsoId = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(
+  const isValidNsoId = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(
     nsoId,
   );
 
-  const [game, nso] = await Promise.all([
-    validGameId
+  const [game, nso, nsos] = await Promise.all([
+    isValidGameId
       ? prisma.game.findUnique({
           where: { id: numericGameId },
           select: { season: true },
         })
       : null,
-    validNsoId
+    isValidNsoId
       ? prisma.nso.findUnique({
           where: { id: nsoId },
           select: { name: true },
         })
       : null,
+    prisma.nso.findMany({
+      select: { name: true },
+      orderBy: { name: 'asc' },
+    }),
   ]);
 
   return {
     gameCategory: game?.season === 'Summer' ? 'Summer Games' : 'Winter Games',
     nsoCategory: nso?.name,
+    nsoNames: nsos.map((row) => row.name),
   };
 }
 

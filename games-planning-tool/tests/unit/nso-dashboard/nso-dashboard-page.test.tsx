@@ -5,6 +5,10 @@ import Page from '@/app/(application)/[gameId]/[nsoId]/dashboard/page';
 import { TaskStatus } from '@/generated/prisma/enums';
 import { prisma } from '@/lib/prisma';
 
+vi.mock('@/server/queries/nsos', () => ({
+  getNsoCategories: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     gameNso: { findUnique: vi.fn().mockResolvedValue(null) },

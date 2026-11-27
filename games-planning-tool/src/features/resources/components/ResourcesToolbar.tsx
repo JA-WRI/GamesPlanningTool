@@ -7,8 +7,8 @@ import SearchBar from '@/components/commons/SearchBar';
 export interface ResourcesToolbarProps {
   globalSearch: string;
   setGlobalSearch: (value: string) => void;
-  searchInsideFolders: boolean;
-  setSearchInsideFolders: (value: boolean) => void;
+  includeNested: boolean;
+  setIncludeNested: (value: boolean) => void;
   isEditing: boolean;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   selectedIds: Set<string>;
@@ -22,8 +22,8 @@ export interface ResourcesToolbarProps {
 export function ResourcesToolbar({
   globalSearch,
   setGlobalSearch,
-  searchInsideFolders,
-  setSearchInsideFolders,
+  includeNested,
+  setIncludeNested,
   isEditing,
   setIsEditing,
   selectedIds,
@@ -52,8 +52,8 @@ export function ResourcesToolbar({
             <label className="mt-2 flex items-center gap-2 text-xs font-semibold text-neutral-700">
               <input
                 type="checkbox"
-                checked={searchInsideFolders}
-                onChange={(e) => setSearchInsideFolders(e.target.checked)}
+                checked={includeNested}
+                onChange={(e) => setIncludeNested(e.target.checked)}
                 className="h-4 w-4 accent-neutral-900"
               />
               Include items in folders

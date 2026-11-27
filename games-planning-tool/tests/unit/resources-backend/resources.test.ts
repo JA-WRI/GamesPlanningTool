@@ -11,7 +11,6 @@ import {
   reorderResources,
   resourceVisibilityFor,
 } from '@/lib/resources';
-import { CANADIAN_NSOS } from '@/features/resources/types/resource';
 
 const db = vi.hoisted(() => ({
   findMany: vi.fn(),
@@ -20,13 +19,14 @@ const db = vi.hoisted(() => ({
   deleteMany: vi.fn(),
   gameFindUnique: vi.fn(),
   nsoFindUnique: vi.fn(),
+  nsoFindMany: vi.fn(),
 }));
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     resource: db,
     game: { findUnique: db.gameFindUnique },
-    nso: { findUnique: db.nsoFindUnique },
+    nso: { findUnique: db.nsoFindUnique, findMany: db.nsoFindMany },
     $transaction: vi.fn(
       (
         arg:
@@ -60,6 +60,7 @@ beforeEach(() => {
   db.deleteMany.mockResolvedValue({ count: 0 });
   db.gameFindUnique.mockResolvedValue(null);
   db.nsoFindUnique.mockResolvedValue(null);
+  db.nsoFindMany.mockResolvedValue([]);
 });
 
 describe('listResources', () => {
@@ -140,7 +141,7 @@ describe('listResources', () => {
   });
 
   it('queries resources visible for a game category', async () => {
-    await listResources({ gameCategory: 'Summer Games' });
+    await listResources({ gameCategory: 'Summer Games', nsoNames: [] });
 
     expect(db.findMany).toHaveBeenCalledWith({
       where: {
@@ -159,6 +160,7 @@ describe('listResources', () => {
     await listResources({
       gameCategory: 'Winter Games',
       nsoCategory: 'Cross Country Skiing',
+      nsoNames: ['Cross Country Skiing', 'Swimming Canada'],
     });
 
     expect(db.findMany).toHaveBeenCalledWith({
@@ -177,9 +179,14 @@ describe('listResources', () => {
           },
           {
             OR: [
-              { categories: { hasSome: ['General', 'Global'] } },
               { categories: { has: 'Cross Country Skiing' } },
-              { NOT: { categories: { hasSome: [...CANADIAN_NSOS] } } },
+              {
+                NOT: {
+                  categories: {
+                    hasSome: ['Cross Country Skiing', 'Swimming Canada'],
+                  },
+                },
+              },
             ],
           },
         ],
@@ -194,20 +201,30 @@ describe('resourceVisibilityFor', () => {
   it('maps a summer game and NSO name to their categories', async () => {
     db.gameFindUnique.mockResolvedValue({ season: 'Summer' });
     db.nsoFindUnique.mockResolvedValue({ name: 'Swimming Canada' });
+    db.nsoFindMany.mockResolvedValue([
+      { name: 'Canada Snowboard' },
+      { name: 'Swimming Canada' },
+    ]);
 
     expect(await resourceVisibilityFor('3', nsoId)).toEqual({
       gameCategory: 'Summer Games',
       nsoCategory: 'Swimming Canada',
+      nsoNames: ['Canada Snowboard', 'Swimming Canada'],
     });
   });
 
   it('maps a winter game to its category', async () => {
     db.gameFindUnique.mockResolvedValue({ season: 'Winter' });
     db.nsoFindUnique.mockResolvedValue({ name: 'Canada Snowboard' });
+    db.nsoFindMany.mockResolvedValue([
+      { name: 'Canada Snowboard' },
+      { name: 'Swimming Canada' },
+    ]);
 
     expect(await resourceVisibilityFor('4', nsoId)).toEqual({
       gameCategory: 'Winter Games',
       nsoCategory: 'Canada Snowboard',
+      nsoNames: ['Canada Snowboard', 'Swimming Canada'],
     });
   });
 
@@ -215,6 +232,7 @@ describe('resourceVisibilityFor', () => {
     expect(await resourceVisibilityFor('999', nsoId)).toEqual({
       gameCategory: 'Winter Games',
       nsoCategory: undefined,
+      nsoNames: [],
     });
   });
 });

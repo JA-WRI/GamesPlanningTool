@@ -42,6 +42,13 @@ describe('DashboardResourceRow', () => {
         fileUrl: 'test',
         categories: ['General', 'Alpine Canada'],
       },
+      {
+        id: '6',
+        name: 'Alpine Only',
+        type: 'file',
+        fileUrl: 'test',
+        categories: ['Alpine Canada'],
+      },
     ];
 
     const { rerender } = render(
@@ -49,6 +56,7 @@ describe('DashboardResourceRow', () => {
         nsoId="nso_1"
         gameSeason="Summer"
         nsoName="Badminton"
+        nsoNames={['Alpine Canada', 'Badminton', 'Cross Country Skiing']}
         viewerRole="nso"
         resources={mockResources}
       />,
@@ -58,6 +66,8 @@ describe('DashboardResourceRow', () => {
     expect(screen.getByText('Summer File')).toBeInTheDocument();
     expect(screen.queryByText('Winter File')).not.toBeInTheDocument();
     expect(screen.getByText('Admin Only File')).toBeInTheDocument();
+    expect(screen.queryByText('Other NSO')).not.toBeInTheDocument();
+    expect(screen.queryByText('Alpine Only')).not.toBeInTheDocument();
     expect(
       screen.queryByRole('link', { name: 'Manage Resources' }),
     ).not.toBeInTheDocument();

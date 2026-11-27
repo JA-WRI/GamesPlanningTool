@@ -17,6 +17,7 @@ vi.mock('@/lib/resources', () => ({
   resourceVisibilityFor: vi.fn().mockResolvedValue({
     gameCategory: 'Summer Games',
     nsoCategory: 'Badminton',
+    nsoNames: ['Badminton'],
   }),
 }));
 

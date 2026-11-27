@@ -11,6 +11,7 @@ import {
 import {
   getFolderChildren,
   getDescendantResourceIds,
+  resourceMatchesQuery,
 } from '@/lib/resources-data';
 import ResourceCard from './ResourceCard';
 import SearchBar from '@/components/commons/SearchBar';
@@ -84,7 +85,7 @@ export function FolderDirectoryModal({
   const [editingNameId, setEditingNameId] = useState<string | null>(null);
   const [editNameValue, setEditNameValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchSubfolders, setSearchSubfolders] = useState(false);
+  const [includeNested, setIncludeNested] = useState(false);
   const committedRef = useRef(false);
 
   const currentFolder = useMemo(() => {
@@ -118,17 +119,22 @@ export function FolderDirectoryModal({
     localOrderedRef.current = localOrderedChildren;
   }, [localOrderedChildren]);
 
-  const searchActive = searchQuery.trim().length > 0;
+  const isSearchActive = searchQuery.trim().length > 0;
+  const canInteract = !isReadOnly && !isSearchActive;
+
+  const navigateToFolder = (id: string) => {
+    setSearchQuery('');
+    setCurrentFolderId(id);
+  };
 
   const displayedChildren = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return localOrderedChildren;
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (!normalizedQuery) return localOrderedChildren;
 
     const matches = (resource: Resource) =>
-      resource.name.toLowerCase().includes(q) ||
-      resource.categories.some((c) => c.toLowerCase().includes(q));
+      resourceMatchesQuery(resource, normalizedQuery);
 
-    if (!searchSubfolders || !currentFolder)
+    if (!includeNested || !currentFolder)
       return localOrderedChildren.filter(matches);
 
     const descendantIds = new Set(
@@ -143,7 +149,7 @@ export function FolderDirectoryModal({
   }, [
     localOrderedChildren,
     searchQuery,
-    searchSubfolders,
+    includeNested,
     allResources,
     currentFolder,
     filterPredicate,
@@ -223,7 +229,7 @@ export function FolderDirectoryModal({
   };
 
   const handleToggleSelect = (id: string) => {
-    if (isReadOnly || searchActive || justFinishedSweepRef.current) return;
+    if (!canInteract || justFinishedSweepRef.current) return;
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -381,10 +387,7 @@ export function FolderDirectoryModal({
             committedRef={committedRef}
             onRenameResource={onRenameResource}
             onClose={onClose}
-            onNavigateFolder={(id) => {
-              setSearchQuery('');
-              setCurrentFolderId(id);
-            }}
+            onNavigateFolder={navigateToFolder}
             isReadOnly={isReadOnly}
           />
 
@@ -421,12 +424,12 @@ export function FolderDirectoryModal({
                   clearable
                 />
               </div>
-              {searchActive && (
+              {isSearchActive && (
                 <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700">
                   <input
                     type="checkbox"
-                    checked={searchSubfolders}
-                    onChange={(e) => setSearchSubfolders(e.target.checked)}
+                    checked={includeNested}
+                    onChange={(e) => setIncludeNested(e.target.checked)}
                     className="h-4 w-4 accent-neutral-900"
                   />
                   Include items in subfolders
@@ -434,7 +437,7 @@ export function FolderDirectoryModal({
               )}
             </div>
 
-            {localOrderedChildren.length === 0 ? (
+            {localOrderedChildren.length === 0 && (
               <div className="text-center py-12 text-neutral-500 text-sm">
                 <FolderOpenIcon
                   sx={{ fontSize: 48 }}
@@ -447,11 +450,14 @@ export function FolderDirectoryModal({
                     : 'Add files or create subfolders using the actions above.'}
                 </p>
               </div>
-            ) : displayedChildren.length === 0 ? (
-              <div className="text-center py-12 text-neutral-500 text-sm">
-                No items match your search.
-              </div>
-            ) : (
+            )}
+            {localOrderedChildren.length > 0 &&
+              displayedChildren.length === 0 && (
+                <div className="text-center py-12 text-neutral-500 text-sm">
+                  No items match your search.
+                </div>
+              )}
+            {displayedChildren.length > 0 && (
               <div
                 className="grid gap-3 sm:gap-4 pt-2 pb-2 px-1 items-start"
                 style={{
@@ -475,11 +481,9 @@ export function FolderDirectoryModal({
                     >
                       <ResourceCard
                         resource={item}
-                        isEditing={isEditingFolder && !searchActive}
+                        isEditing={isEditingFolder && !isSearchActive}
                         isSelected={selectedIds.has(item.id)}
-                        canReorder={
-                          !isReadOnly && selectedIds.size === 0 && !searchActive
-                        }
+                        canReorder={canInteract && selectedIds.size === 0}
                         canDrag={false}
                         isDraggingThisCard={isDraggingThis}
                         showRemovalSymbol={false}
@@ -491,7 +495,7 @@ export function FolderDirectoryModal({
                         }
                         onToggleSelect={handleToggleSelect}
                         onRoundButtonPointerDown={(e) => {
-                          if (!isReadOnly && !searchActive)
+                          if (canInteract)
                             handleSweepPointerDown(
                               e.clientX,
                               e.clientY,
@@ -500,7 +504,7 @@ export function FolderDirectoryModal({
                         }}
                         onRoundButtonClick={handleToggleSelect}
                         onCardPointerDown={(e) => {
-                          if (!isReadOnly && !searchActive) {
+                          if (canInteract) {
                             handleCardPointerDown(e, item.id);
                             startPointerDrag(e, item.id);
                           }
@@ -508,8 +512,7 @@ export function FolderDirectoryModal({
                         onClick={(resource) => {
                           if (justDraggedRef.current) return;
                           if (resource.type === 'folder') {
-                            setSearchQuery('');
-                            setCurrentFolderId(resource.id);
+                            navigateToFolder(resource.id);
                           } else if (resource.type === 'link' && resource.URL) {
                             window.open(
                               resource.URL,

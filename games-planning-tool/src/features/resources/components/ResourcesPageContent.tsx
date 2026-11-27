@@ -8,7 +8,10 @@ import {
   FileResource,
   NewResourceInput,
 } from '@/features/resources/types/resource';
-import { getDescendantResourceIds } from '@/lib/resources-data';
+import {
+  getDescendantResourceIds,
+  resourceMatchesQuery,
+} from '@/lib/resources-data';
 import {
   createFileResource,
   createFolder,
@@ -44,7 +47,7 @@ export function ResourcesPageContent({
   const [resources, setResources] = useState(initialResources);
 
   const [globalSearch, setGlobalSearch] = useState('');
-  const [searchInsideFolders, setSearchInsideFolders] = useState(false);
+  const [includeNested, setIncludeNested] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -62,20 +65,17 @@ export function ResourcesPageContent({
 
   // Top Level Resource Filtering
   const filteredResources = useMemo(() => {
-    const q = globalSearch.trim().toLowerCase();
+    const normalizedQuery = globalSearch.trim().toLowerCase();
 
     return resources.filter((res) => {
-      if (!q) return !res.parentId;
-      if (res.parentId && !searchInsideFolders) return false;
+      if (!normalizedQuery) return !res.parentId;
+      if (res.parentId && !includeNested) return false;
 
-      return (
-        res.name.toLowerCase().includes(q) ||
-        res.categories.some((c) => c.toLowerCase().includes(q))
-      );
+      return resourceMatchesQuery(res, normalizedQuery);
     });
-  }, [resources, globalSearch, searchInsideFolders]);
+  }, [resources, globalSearch, includeNested]);
 
-  const isNestedSearch = globalSearch.trim().length > 0 && searchInsideFolders;
+  const isNestedSearchActive = globalSearch.trim().length > 0 && includeNested;
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -226,8 +226,8 @@ export function ResourcesPageContent({
       <ResourcesToolbar
         globalSearch={globalSearch}
         setGlobalSearch={setGlobalSearch}
-        searchInsideFolders={searchInsideFolders}
-        setSearchInsideFolders={setSearchInsideFolders}
+        includeNested={includeNested}
+        setIncludeNested={setIncludeNested}
         isEditing={isEditing}
         setIsEditing={setIsEditing}
         selectedIds={selectedIds}
@@ -266,10 +266,10 @@ export function ResourcesPageContent({
                   !isReadOnly &&
                   isEditing &&
                   selectedIds.size === 0 &&
-                  !isNestedSearch
+                  !isNestedSearchActive
                 }
                 canDrag={
-                  !isReadOnly && selectedIds.size === 0 && !isNestedSearch
+                  !isReadOnly && selectedIds.size === 0 && !isNestedSearchActive
                 }
                 isDraggingThisCard={
                   draggedCardId === resource.id ||
